@@ -102,7 +102,7 @@ void extract_features(uint32** img, int i0, int i1, int j0, int j1, MeteorROI* s
 
 
 // -------------------------------------------------------------------------
-void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, MeteorROI* stats, int n, int S_max)
+void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, MeteorROI* stats, int n, int S_min, int S_max)
 // -------------------------------------------------------------------------
 {
     int x0, x1, y0, y1, id;
@@ -111,7 +111,7 @@ void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, Me
     for(int i=1; i<=n; i++){
         cc = stats[i];
         if(cc.S){
-            if (cc.S > S_max ){
+            if (S_min > cc.S || cc.S > S_max ){
                 stats[i].S = 0;
                 /* JUSTE POUR DEBUG (Affichage frames)*/
                 x0 = cc.ymin;
@@ -136,7 +136,8 @@ void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, Me
                     if(HI[k][l]){
                         for(k=x0; k<x1; k++){
                             for(l=y0; l<y1; l++){
-                                HI[k][l] = i;
+                                if (M[k][l] == id)
+                                    HI[k][l] = i;
                             }
                         }
                         goto next;

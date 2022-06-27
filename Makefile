@@ -32,7 +32,7 @@ full :
 	./ballon -input /dsk/l1/misc/cc3801875/videos/C0089.MP4 -start_frame 0 -end_frame 6000 -validation ./validation/C0089.txt
 
 tau : 
-	./ballon -input /dsk/l1/misc/cc3801875/Meteors_in_mkv/4 -start_frame 1 -end_frame 30 
+	./ballon -input /dsk/l1/misc/cc3801875/Meteors_in_mkv/4 -start_frame 1 -end_frame 41 -light_max 85 -light_min 75
 
 ffmpeg-io/lib/libffmpeg-io.a:
 	@$(MAKE) -C ffmpeg-io

@@ -28,7 +28,7 @@
 
 
 #define SEQUENCE_DST_PATH_DEBUG "debug/"
-#define SEQUENCE_DST_PATH_FRAMES "frames/"
+// #define SEQUENCE_DST_PATH_FRAMES "frames/"
 #define SEQUENCE_DST_PATH_FRAMES "/dsk/l1/misc/cc3801875/frames_tau/"
 #define SIZE_BUF 20
 

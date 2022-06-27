@@ -153,7 +153,6 @@ void meteor_tau_h(int argc, char** argv)
     init_Track(tracks, SIZE_MAX_TRACKS);
     init_Track(tracks_stars, SIZE_MAX_TRACKS);
     CCL_LSL_init(i0, i1, j0, j1);
-// /*
 
     PUTS("Traitement");
 
@@ -200,7 +199,6 @@ void meteor_tau_h(int argc, char** argv)
         fdisp(ty);
         // saveFrame_ui32matrix(path_frame, ballon->SH32, i0, i1, j0, j1);
 
-// /*
 
         PUTS("\t Step 6 : Seuillage très haut");
         copy_ui8matrix_ui8matrix(ballon->I1, i0, i1, j0, j1, ballon->SM); 
@@ -290,7 +288,8 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     int end          = find_int_arg  (argc, argv, "-end_frame", 1000);
     int light_min    = find_int_arg  (argc, argv, "-light_min",  60 ); // a definir
     int light_max    = find_int_arg  (argc, argv, "-light_max",  85 ); // a definir
-    int surface_max  = find_int_arg  (argc, argv, "-surface_max",100); // a definir
+    int surface_min  = find_int_arg  (argc, argv, "-surface_min",  9); // a definir
+    int surface_max  = find_int_arg  (argc, argv, "-surface_max",1000); // a definir
     char* src_path   = find_char_arg (argc, argv, "-input",      NULL);
 
     // sequence
@@ -315,7 +314,8 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     // image
     int b = 1;                  
     // TRES MOCHE 
-    int i0 = 0, i1 = 1200 , j0 = 0, j1 = 1920;
+    
+    int i0 = 0, i1 = 1536 , j0 = 0, j1 = 2048;
 
     
 
@@ -355,8 +355,7 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     // ----------------//
 
     while(frame <= end) {        
-        sprintf(src, "%s/%04d.pgm", src_path, frame);
-        // disp(src);
+        sprintf(src, "%s/%04d.pgm", src_path, frame); 
         MLoadPGM_ui8matrix(src, i0, i1, j0, j1, ballon->I0);
 		printf("[Frame] %-4d\n", frame-1);
 
@@ -379,16 +378,16 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
      	//--------------------------------------------------------//
         PUTS("\t Step 2 : ECC/ACC");
         n1 = CCL_LSL(ballon->SM32, i0, i1, j0, j1);
-        // idisp(n1);
+        idisp(n1);
         extract_features(ballon->SM32, i0, i1, j0, j1, stats1, n1);
+        if (frame == 20)
+        VERBOSE(saveStats(path_stats_0, stats1, n1); ); 
 
      	//--------------------------------------------------------//
-        PUTS("\t Step 3 : seuillage hysteresis"); 
-        merge_HI_CCL_v2(ballon->SH32, ballon->SM32, i0, i1, j0, j1, stats1, n1, surface_max );
-        
-        PUTS("\t Step 3 : Filter surface");
-        filter_surface(stats1, n1, ballon->SH32, 8, surface_max);
+        PUTS("\t Step 3 : seuillage hysteresis && filtrage surfacique"); 
+        merge_HI_CCL_v2(ballon->SH32, ballon->SM32, i0, i1, j0, j1, stats1, n1, surface_min, surface_max );
         int n_shrink = shrink_stats(stats1, stats_shrink, n1);
+        saveFrame_ui32matrix(path_frame, ballon->SH32, i0, i1, j0, j1);
 
       	//--------------------------------------------------------//
         PUTS("\t Step 4 : mise en correspondance");
@@ -396,8 +395,6 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
 
       	//--------------------------------------------------------//
         PUTS("\t Step 5 : recalage");
-        // rigid_registration(stats0, stats_shrink, n0, n_shrink, &theta, &tx, &ty);
-        // motion_extraction(stats0, stats_shrink, n0, theta, tx, ty);
         motion(stats0, stats_shrink, n0, n_shrink, &theta, &tx, &ty);
 
         PUTS("\t Step 6: Tracking");
@@ -408,13 +405,13 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
 
         //--------------------------------------------------------//
         PUTS("\t [DEBUG] Saving frames");
-        saveFrame_ui32matrix(path_frame, ballon->SH32, i0, i1, j0, j1);
+        // saveFrame_ui32matrix(path_frame, ballon->SH32, i0, i1, j0, j1);
     	// saveFrame_quad_hysteresis(path_frame, ballon->I0, ballon->SH32, ballon->SB32, ballon->SH32, i0, i1, j0, j1);
 
         PUTS("\t [DEBUG] Saving stats");
         // saveStats(path_stats_0, stats0, n0);
         // saveStats(path_stats_0, stats_shrink, n_shrink);
-        // saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
+        saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
         // saveMotion(path_motion, theta, tx, ty, frame-1);
         // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
         // saveError(path_error, stats0, n0);
@@ -425,7 +422,7 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
         frame++;
     }
     saveTracks(path_tracks, tracks, last);
-    printTracks(tracks, last);
+    // printTracks(tracks, last);
 
     // ----------
     // -- free --

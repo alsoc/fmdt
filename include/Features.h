@@ -52,9 +52,7 @@ int analyse_features(MeteorROI* stats, int n, float e_threshold);
 float Features_calc_circular(MeteorROI* stats, int ne, uint8** img, float32**U, float32**V);
 float filter_speed(MeteorROI* stats, int n, uint32** img, float32**U, float32**V, float32 threshold);
 void filter_surface(MeteorROI* stats, int n, uint32** img, uint32 threshold_min, uint32 threshold_max);
-void merge_CCL(uint32** HI, uint32** LW, int i0, int i1, int j0, int j1,  uint32** Y);
-void merge_HI_CCL(uint32** Y, uint32** HI, int i0, int i1, int j0, int j1, MeteorROI* stats, int S_min, int S_max);
-void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, MeteorROI* stats, int n, int S_max);
+void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, MeteorROI* stats, int n, int S_min, int S_max);
 void rigid_registration(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, double* theta, double* tx, double* ty);
 int shrink_stats(MeteorROI *stats_src, MeteorROI *stats_dest, int n);
 

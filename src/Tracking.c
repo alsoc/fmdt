@@ -23,7 +23,7 @@
 #include <stdio.h>
 
 #define SIZE_BUF 20
-#define R 5
+#define R 10
 
 
 
@@ -332,7 +332,7 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
         int asso = stats0[i].next;
 
         // si mouvement detecté
-        if (fabs(e-errMoy) >  1.5 * eType && asso){
+        if (fabs(e-errMoy) >  2 * eType && asso){
 
             if (stats0[i].state) {
                 continue; // Extrapolated
