@@ -1,0 +1,236 @@
+#include "Validation.h"
+#include "Tracking.h"
+#include "DebugUtil.h"
+
+#include <stdio.h>
+#include <stdlib.h>
+#include <string.h>
+
+#define TOLERANCE_DIRECTION 5
+#define TOLERANCE_DISTANCEMIN 20 //8
+
+static char* inputs_file = 0;
+static char* dst_path = 0;
+static unsigned inputs_nb = 0;
+static struct input* inputs = NULL;
+static Track* tracks = NULL;
+static unsigned tracks_nb = 0;
+
+static int positiveTrue = 0;
+static int positiveFalse = 0;
+
+int Validation(char* _inputs_file, Track* _tracks_pool, unsigned _tracks_nb, char* _dst_path)
+{
+    if(!_inputs_file || !_tracks_pool) return -1;
+
+    tracks = _tracks_pool;
+    tracks_nb = _tracks_nb;
+
+    FILE* file = fopen(_inputs_file, "r");
+    if(!file) return -1;
+    inputs_file = _inputs_file;
+    dst_path = strdup(_dst_path);
+
+    if(fscanf(file, "%u\n", &inputs_nb) < 1 || inputs_nb<1)
+    {
+        VERBOSE (printf("[Validation] aucun meteore a suivre dans le fichier input donne !\n"); );
+        return 0;
+    }
+    else
+    { 
+        VERBOSE (printf("[Validation] %4hu entrees dans le fichier d'input\n", inputs_nb); );
+    }
+    
+    inputs = (struct input*)malloc(inputs_nb * sizeof(struct input));
+    
+    int i=0;
+    while(i<inputs_nb && !feof(file))
+    {
+        if(fscanf(file, "%hu %hu %hu %hu %hu %hu\n", &inputs[i].t0, &inputs[i].x0, &inputs[i].y0, &inputs[i].t1, &inputs[i].x1, &inputs[i].y1) == 6)
+        {
+            inputs[i].t0_min = inputs[i].t0 - 5;
+            inputs[i].t1_max = inputs[i].t1 + 5;
+
+            inputs[i].a = (float)(inputs[i].y1-inputs[i].y0)/(float)(inputs[i].x1-inputs[i].x0);
+            inputs[i].b = inputs[i].y1 - inputs[i].a * inputs[i].x1;
+            
+            VERBOSE (printf("[Validation] Input %-2d : t0=%-4d x0=%-4d y0=%-4d t1=%-4d x1=%-4d y1=%-4d\tf(x)=%-3.3f*x+%-3.3f\n", i, inputs[i].t0, inputs[i].x0, inputs[i].y0, inputs[i].t1, inputs[i].x1, inputs[i].y1, inputs[i].a, inputs[i].b); ); 
+
+            inputs[i].track = NULL;
+            inputs[i].xt = inputs[i].x0;
+            inputs[i].yt = inputs[i].y0;
+
+            inputs[i].nb_tracks     = 0;
+            inputs[i].hits          = 0;
+            // inputs[i].is_valid      = 0;
+            // inputs[i].is_valid_last = -1;
+
+            inputs[i].dirX = inputs[i].x1 > inputs[i].x0; // vers la droite 
+            inputs[i].dirY = inputs[i].y0 < inputs[i].y1; // vers le bas
+            // idisp(inputs[i].dirY);
+            // idisp(inputs[i].dirX);
+
+            if(inputs[i].dirX){
+                    if(inputs[i].dirY){
+                        inputs[i].bb_y0   = inputs[i].y0 - TOLERANCE_DISTANCEMIN;   inputs[i].bb_x0   = inputs[i].x0 - TOLERANCE_DISTANCEMIN;
+                        inputs[i].bb_y1   = inputs[i].y1 + TOLERANCE_DISTANCEMIN;   inputs[i].bb_x1   = inputs[i].x1 + TOLERANCE_DISTANCEMIN;
+                    }else {
+                        inputs[i].bb_y0   = inputs[i].y1 - TOLERANCE_DISTANCEMIN;   inputs[i].bb_x0   = inputs[i].x0 - TOLERANCE_DISTANCEMIN;
+                        inputs[i].bb_y1   = inputs[i].y0 + TOLERANCE_DISTANCEMIN;   inputs[i].bb_x1   = inputs[i].x1 + TOLERANCE_DISTANCEMIN;
+                    }
+                    
+            } else {
+                    if(inputs[i].dirY) {
+                        inputs[i].bb_y0   = inputs[i].y0 - TOLERANCE_DISTANCEMIN;   inputs[i].bb_x0   = inputs[i].x1 - TOLERANCE_DISTANCEMIN;
+                        inputs[i].bb_y1   = inputs[i].y1 + TOLERANCE_DISTANCEMIN;   inputs[i].bb_x1   = inputs[i].x0 + TOLERANCE_DISTANCEMIN;
+                    }else{
+                        inputs[i].bb_y0   = inputs[i].y1 - TOLERANCE_DISTANCEMIN;   inputs[i].bb_x0   = inputs[i].x1 - TOLERANCE_DISTANCEMIN;
+                        inputs[i].bb_y1   = inputs[i].y0 + TOLERANCE_DISTANCEMIN;   inputs[i].bb_x1   = inputs[i].x0 + TOLERANCE_DISTANCEMIN;
+                    }
+
+
+            }
+            i++;
+        }
+    }
+    inputs_nb = i; // petit risque de memoire pas utilisee
+    
+    fclose(file);
+    
+    return inputs_nb;
+}
+void Validation_free(void)
+{
+    char buf[100];
+    sprintf(buf,"%svalidation.txt",dst_path);
+    VERBOSE (printf("[Validation] save in file : %s\n",buf); );
+    FILE* out = fopen(buf,"a");
+    if(inputs)
+    {
+        for(int i=0;i<inputs_nb;i++)
+        {
+            int expected_hits = inputs[i].t1-inputs[i].t0+1;
+
+            VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1 ); );
+
+            fprintf(out, "%s\t%-2d\t%-3d\t%-3d\t%-3d\n", inputs_file, i+1, inputs[i].hits, expected_hits, inputs[i].nb_tracks);
+        }
+        free(inputs);
+        inputs = NULL;
+    } else {
+        fprintf(out, "%s\t%-2d\t%-3d\t%-3d\t%-3d\t%-3d\n", inputs_file, 0, 0, 0, positiveTrue, positiveFalse);
+    }
+
+    fprintf(out, "%s\tFP = %-4d\n", inputs_file, positiveFalse);
+    
+    fclose(out);
+    free(dst_path);
+}
+
+void Validation_step(unsigned timestamp)
+{    
+    Track* track;
+    idisp(tracks_nb);
+    for(int t = 0; t < tracks_nb ;t++) {
+        track = &tracks[t];
+        
+        if (track->timestamp == 0) continue;
+
+        ValidationInput* input = NULL;
+        for(int i = 0; i < inputs_nb ;i++) {
+            if(inputs[i].t0 <= timestamp && timestamp<= inputs[i].t1 &&
+                inputs[i].bb_x0 <= track->begin.x && track->end.x <= inputs[i].bb_x1 &&
+                inputs[i].bb_y0 >= track->begin.y && track->end.y >= inputs[i].bb_y1) {
+                input = &inputs[i];
+                break; // maybe
+            }
+            
+        }
+
+        // Piste matche avec un input
+        if(input) {
+
+            int dirY_valid  = ( (input->dirY && track->begin.y >= (input->yt+TOLERANCE_DIRECTION)) || (!input->dirY && track->begin.y <= (input->yt-TOLERANCE_DIRECTION)) );
+            int dirX_valid  = ( (input->dirX && track->begin.x >= (input->xt-TOLERANCE_DIRECTION)) || (!input->dirX && track->begin.x <= (input->xt+TOLERANCE_DIRECTION)) );
+
+            if(dirY_valid && dirX_valid) {
+                // input->nb_tracks++;
+                // input->hits = track->time;
+                input->is_valid_last = timestamp;
+                input->xt = track->begin.x;
+                input->yt = track->begin.y;
+                input->hits++;
+
+            }
+        } else { // Piste ne matche pas avec input
+                positiveFalse++;
+        }
+    }
+}
+
+// version naive
+void Validation_final()
+{
+
+    Track* track;
+    idisp(tracks_nb);
+    for(int t = 0; t < tracks_nb ;t++) {
+        track = &tracks[t];
+        
+        if (track->timestamp == 0) continue;
+
+        ValidationInput* input = NULL;
+        for(int i = 0; i < inputs_nb ;i++) {
+            if(inputs[i].t0_min <= track->timestamp && track->timestamp+track->time <= inputs[i].t1_max &&
+                inputs[i].bb_x0 <= track->begin.x && track->end.x <= inputs[i].bb_x1 &&
+                inputs[i].bb_y0 <= track->begin.y && track->end.y <= inputs[i].bb_y1) {
+                input = &inputs[i];
+                break; // maybe
+            }
+            // int tmp = 3965;
+            // if(track->timestamp == tmp){
+            //     puts("-----------------------------");
+            //     idisp(i);
+            //     idisp(inputs[i].t0);
+            //     idisp(inputs[i].t1);
+            //     idisp(track->timestamp);
+            //     idisp(track->timestamp+track->time);
+            // }
+
+            // if(inputs[i].t0_min <= track->timestamp && (track->timestamp+track->time) <= inputs[i].t1_max){
+            //     puts("1");
+            //         if(track->timestamp == tmp){
+            //             idisp(inputs[i].bb_x0);
+            //             idisp(inputs[i].bb_x1);
+            //             fdisp(track->begin.x);
+            //             fdisp(track->end.x);
+            //         }
+            //     if (inputs[i].bb_x0 <= track->begin.x && track->end.x <= inputs[i].bb_x1){
+            //         puts("2");
+            //         if(track->timestamp == tmp){
+            //             idisp(inputs[i].bb_y0);
+            //             idisp(inputs[i].bb_y1);
+            //             fdisp(track->begin.y);
+            //             fdisp(track->end.y);
+            //         }
+            //         if(inputs[i].bb_y0 <= track->begin.y && track->end.y <= inputs[i].bb_y1) {
+            //             puts("3");
+            //             input = &inputs[i];
+            //             break; // maybe
+
+            //         }
+            //     }
+            // }
+        }
+
+        // Piste matche avec un input
+        if(input) {
+                input->nb_tracks++;
+                input->hits = track->time + input->hits + 1;
+        } else { // Piste ne matche pas avec input
+                positiveFalse++;
+        }
+
+    }
+
+}

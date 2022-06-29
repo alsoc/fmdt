@@ -53,6 +53,8 @@ void saveConflicts(const char*filename, uint32 *conflicts, uint32 **Nearest, flo
 void saveAssoConflicts(const char*filename, int frame, uint32 *conflicts, uint32 **Nearest, float32 **distances, int n_asso, int n_conflict, MeteorROI *stats0, MeteorROI *stats1);
 int sursegmentation(MeteorROI *stats, int n);
 void saveError(const char *filename, MeteorROI *stats, int n);
+void saveFrame_tracking(const char*filename, uint8** I, Track* tracks, int tracks_nb, int i0, int i1, int j0, int j1);
+void saveVideoFrame_tracking(const char*filename, uint8** I, Track* tracks, int tracks_nb, int i0, int i1, int j0, int j1);
 void saveMotionExtraction(char *filename, MeteorROI *stats0, MeteorROI *stats1, int nc0, double theta, double tx, double ty, int frame);
 double errorMoy(MeteorROI *stats, int n);
 
@@ -73,6 +75,7 @@ void create_debug_dir(char *filename, int light_min, int light_max, int edt);
 void create_frames_dir(char *filename, int light_min, int light_max, int edt);
 void create_debug_files(int frame);
 void create_frames_files(int frame);
+void create_videos_files(char* filename);
 
 
 #endif //__DEBUGUTIL_H__

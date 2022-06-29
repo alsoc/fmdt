@@ -28,15 +28,17 @@
 
 
 #define SEQUENCE_DST_PATH_DEBUG "debug/"
+#define SEQUENCE_DST_PATH_VIDEOS "/dsk/l1/misc/cc3801875/videos_Tracks/"
 // #define SEQUENCE_DST_PATH_FRAMES "frames/"
 #define SEQUENCE_DST_PATH_FRAMES "/dsk/l1/misc/cc3801875/frames_tau/"
 #define SIZE_BUF 20
 
 char path_stats_0[100], path_stats_1[100];
 char path_frame[100];
+char path_video_tracking[200];
 char path_motion[100], path_extraction[100], path_error[100], path_tracks[100];
 char path_debug[150];
-char path_frames_f[70], path_stats_f[70];
+char path_frames_f[70], path_stats_f[70], path_videos[70];
 
 extern uint32 **nearest;
 extern float32 **distances;
@@ -99,8 +101,8 @@ void printTracks(Track* tracks, int last)
     if (last==-1) return;
 
     for(int i = 0; i<= last; i++){
-                printf("%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \n", 
-        tracks[i].timestamp, tracks[i].begin.x, tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x , tracks[i].end.y);
+                printf("%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \t %4d \t %4d \t %4d \t %4d\n", 
+        tracks[i].timestamp, tracks[i].begin.x, tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x , tracks[i].end.y, tracks[i].rx, tracks[i].ry, tracks[i].bb_x, tracks[i].bb_y);
 
         // printf("%4d \t %5f \t %5f \t %4d \t %5f \t %5f \t d\n", 
         // tracks[i].timestamp, tracks[i].begin.x , tracks[i].begin.y, tracks[i].timestamp+tracks[i].time - 1, tracks[i].end.x , tracks[i].end.y);
@@ -695,6 +697,128 @@ void saveFrame_ui32matrix(const char*filename, uint32**I, int i0, int i1, int j0
 }
 
 // ==========================================================================================================================================================================
+void saveFrame_tracking(const char*filename, uint8**I, Track* tracks, int tracks_nb, int i0, int i1, int j0, int j1)
+// ==========================================================================================================================================================================
+{
+    rgb8 green;     rgb8 red;       rgb8 blue;      rgb8 orange;
+    green.g = 255;  red.g = 000;    blue.g = 000;   orange.r = 255;
+    green.b = 000;  red.b = 000;    blue.b = 255;   orange.g = 165;
+    green.r = 000;  red.r = 255;    blue.r = 000;   orange.b = 000;
+
+    int w = (j1-j0+1);
+    int h = (i1-i0+1);
+
+
+    char buffer[80];
+
+    FILE *file;
+
+    rgb8** img = rgb8matrix(0, h-1, 0, w-1);
+    if (img == NULL) return;
+
+    // (1,1) : filtrage surface
+    for (int i=i0 ; i<=i1 ; i++) {
+        for (int j=j0 ; j<=j1 ; j++) {
+            img[i][j].r = I[i][j];
+            img[i][j].g = I[i][j];
+            img[i][j].b = I[i][j];
+        }
+    }
+
+    for (int i=0 ; i<tracks_nb+1 ; i++) {
+        idisp(tracks[i].time);
+        idisp(tracks[i].state);
+        if (tracks[i].state != TRACK_LOST && tracks[i].time >= 2 && tracks[i].state != TRACK_EXTRAPOLATED && tracks[i].state != TRACK_FINISHED) {
+            int ymin = clamp(tracks[i].bb_y - tracks[i].ry, 1, i1-1);
+            int ymax = clamp(tracks[i].bb_y + tracks[i].ry, 1, i1-1);
+            int xmin = clamp(tracks[i].bb_x - tracks[i].rx, 1, j1-1);
+            int xmax = clamp(tracks[i].bb_x + tracks[i].rx, 1, j1-1);
+            idisp(xmin);
+            idisp(xmax);
+            idisp(ymin);
+            idisp(ymax);
+            if(tracks[i].time >= 2) {
+                // if(tracks[i].is_valid) {
+                    
+                    // if(tracks[i].state != TRACK_EXTRAPOLATED) 
+                    plot_bouding_box(img, ymin,ymax,xmin,xmax, 1, green);
+                    // else plot_bouding_box(img, ymin,ymax,xmin,xmax, 2, blue);
+            }
+        }
+    }
+
+    file = fopen(filename, "wb");
+    if (file == NULL)
+      nrerror("ouverture du fichier %s impossible dans saveVideoFrame_quad\n");
+
+    /* enregistrement de l'image au format rpgm */
+
+    sprintf(buffer,"P6\n%d %d\n255\n",(int)(w-1), (int)(h-1));
+    fwrite(buffer,strlen(buffer),1,file);
+    for(int i=0; i<=h-1; i++)
+      WritePNMrow((uint8*)img[i], w-1, file);
+
+    /* fermeture du fichier */
+    fclose(file);
+
+    free_rgb8matrix(img, 0, h-1, 0, w-1);
+}
+
+
+// ==============================================================================================================================
+void saveVideoFrame_tracking(const char*filename, uint8** I, Track* tracks, int tracks_nb, int i0, int i1, int j0, int j1)
+// ==============================================================================================================================
+{
+    rgb8 green;     rgb8 red;       rgb8 blue;      rgb8 orange;
+    green.g = 255;  red.g = 000;    blue.g = 000;   orange.r = 255;
+    green.b = 000;  red.b = 000;    blue.b = 255;   orange.g = 165;
+    green.r = 000;  red.r = 255;    blue.r = 000;   orange.b = 000;
+
+    static ffmpeg_handle writer;
+    if (writer.pipe == NULL) {
+      ffmpeg_init(&writer);
+      writer.input.width = j1 - j0 + 1;
+      writer.input.height = i1 - i0 + 1;
+      writer.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
+      if (!ffmpeg_start_writer(&writer, filename, NULL)) return;
+    }
+    rgb8** img = rgb8matrix(0, i1, 0, j1);
+    for (int i=i0 ; i<=i1 ; i++) {
+        for (int j=j0 ; j<=j1 ; j++) {
+            img[i][j].r = I[i][j];
+            img[i][j].g = I[i][j];
+            img[i][j].b = I[i][j];
+        }
+    }
+
+    for (int i=0 ; i<tracks_nb+1 ; i++) {
+        idisp(tracks[i].time);
+        idisp(tracks[i].state);
+        if (tracks[i].state != TRACK_LOST && tracks[i].time >= 3 && tracks[i].state != TRACK_EXTRAPOLATED && tracks[i].state != TRACK_FINISHED) {
+            int ymin = clamp(tracks[i].bb_y - tracks[i].ry, 1, i1-1);
+            int ymax = clamp(tracks[i].bb_y + tracks[i].ry, 1, i1-1);
+            int xmin = clamp(tracks[i].bb_x - tracks[i].rx, 1, j1-1);
+            int xmax = clamp(tracks[i].bb_x + tracks[i].rx, 1, j1-1);
+            idisp(xmin);
+            idisp(xmax);
+            idisp(ymin);
+            idisp(ymax);
+            if(tracks[i].time >= 3) {
+                // if(tracks[i].is_valid) {
+                    
+                    // if(tracks[i].state != TRACK_EXTRAPOLATED) 
+                    plot_bouding_box(img, ymin,ymax,xmin,xmax, 2, green);
+                    // else plot_bouding_box(img, ymin,ymax,xmin,xmax, 2, blue);
+            }
+        }
+    }
+    ffmpeg_write2d(&writer, (uint8_t**)img);
+    free_rgb8matrix(img, 0, i1, 0, j1);
+}
+
+
+
+// ==========================================================================================================================================================================
 void saveFrame_ui8matrix(const char*filename, uint8**I, int i0, int i1, int j0, int j1)
 // ==========================================================================================================================================================================
 {
@@ -957,17 +1081,19 @@ void split_path_file(char** p, char** f, char *pf)
 void create_debug_dir(char *filename, int light_min, int light_max, int edt)
 // ==========================================================================================================================================================================
 {
-        char tmp_asso[25], tmp_stats[25];
+        char tmp_asso[25], tmp_stats[25], tmp_videos[50];
         char path_assoconflicts[60], path_assoconflicts_f[80], path_stats[60];
         struct stat status = { 0 };
 
         sprintf(tmp_asso,     "%sassoconflicts/",             SEQUENCE_DST_PATH_DEBUG);
         sprintf(tmp_stats,    "%sstats/",                     SEQUENCE_DST_PATH_DEBUG);
+        sprintf(tmp_videos,   "%svideos/",                    SEQUENCE_DST_PATH_VIDEOS);
 
 
         if ((light_min != -1) && (light_max != -1)){
                 sprintf(path_assoconflicts,     "debug/assoconflicts/SB_%d_SH_%d/",             light_min, light_max);
                 sprintf(path_stats,             "debug/stats/SB_%d_SH_%d/",                     light_min, light_max);
+                sprintf(path_videos,            "%sSB_%d_SH_%d/",                               tmp_videos, light_min, light_max);
                 sprintf(path_assoconflicts_f,   "%s%s/",                                        path_assoconflicts, filename);
                 sprintf(path_stats_f,           "%s%s/",                                        path_stats, filename);
                 sprintf(path_motion,            "%smotion.txt",                                 path_assoconflicts_f);
@@ -999,11 +1125,17 @@ next:
         if( stat(SEQUENCE_DST_PATH_DEBUG, &status) == -1 ) {
               mkdir( SEQUENCE_DST_PATH_DEBUG, 0700 );
         }
+        if( stat(SEQUENCE_DST_PATH_VIDEOS, &status) == -1 ) {
+              mkdir( SEQUENCE_DST_PATH_VIDEOS, 0700 );
+        }
         if( stat(tmp_asso, &status) == -1 ) {
                 mkdir( tmp_asso, 0700 );
         }
         if( stat(tmp_stats, &status) == -1 ) {
                 mkdir( tmp_stats, 0700 );
+        }        
+        if( stat(tmp_videos, &status) == -1 ) {
+                mkdir( tmp_videos, 0700 );
         }
         if( stat(path_assoconflicts, &status) == -1 ) {
                 mkdir(path_assoconflicts, 0700 );
@@ -1013,6 +1145,9 @@ next:
         }
         if( stat(path_stats, &status) == -1 ) {
                 mkdir(path_stats, 0700 );
+        }
+        if( stat(path_videos, &status) == -1 ) {
+                mkdir(path_videos, 0700 );
         }
         if( stat(path_stats_f, &status) == -1 ) {
                 mkdir(path_stats_f, 0700 );
@@ -1072,5 +1207,12 @@ void create_frames_files(int frame)
 // ==========================================================================================================================================================================
 {
     sprintf(path_frame,           "%s%05d.ppm",           path_frames_f, frame);
+}
+
+// ==========================================================================================================================================================================
+void create_videos_files(char *filename)
+// ==========================================================================================================================================================================
+{
+    sprintf(path_video_tracking,           "%s%s.mp4",      path_videos,     filename);
 }
 

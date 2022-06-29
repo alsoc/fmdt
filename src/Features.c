@@ -320,10 +320,9 @@ void rigid_registration(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, do
 void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, double* theta, double* tx, double* ty, double errMoy, double eType)
 // -----------------------------------------------------
 {
-    double Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
+    double Sx, Sxp, Sy, Syp;
     MeteorROI cc0, cc1;
     double x0, y0, x1, y1; 
-    double a, b;
     double xg, yg, xpg, ypg;
     int asso;
     int cpt;
@@ -333,10 +332,6 @@ void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, 
     Sxp   = 0;
     Sy    = 0;
     Syp   = 0;
-    Sx_xp = 0;
-    Sxp_y = 0;
-    Sx_yp = 0;
-    Sy_yp = 0;
     cpt = 0;
 
 
@@ -365,52 +360,9 @@ void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, 
     xpg  = Sxp / cpt;
     ypg  = Syp / cpt;
 
-    Sx    = 0;
-    Sxp   = 0;
-    Sy    = 0;
-    Syp   = 0;
-
-
-    // parcours tab assos
-    for(int i=1; i<=n0; i++){
-        cc0 = stats0[i];
-
-        asso = stats0[i].next;
-
-        if (fabs(stats0[i].error-errMoy) >  eType && asso){
-            stats0[i].motion = 1;
-            continue;
-        }  
-        
-        if (cc0.S>0 && asso){
-            cc1 = stats1[stats0[i].next];
-
-            x0 = cc0.x - xg;
-            y0 = cc0.y - yg;
-            x1 = cc1.x - xpg;
-            y1 = cc1.y - ypg;
-
-
-            Sx    += x0;
-            Sy    += y0;
-            Sxp   += x1;
-            Syp   += y1;
-            Sx_xp += x0 * x1;
-            Sxp_y += x1 * y0;
-            Sx_yp += x0 * y1;
-            Sy_yp += y0 * y1;
-
-        }
-    }
-    a = cpt*cpt * (Sx_yp - Sxp_y) + (1 - 2 * cpt) * (Sx * Syp - Sxp * Sy);
-    b = cpt*cpt * (Sx_xp + Sy_yp) + (1 - 2 * cpt) * (Sx * Sxp + Syp * Sy);
-    
-
     *theta = 0; 
-    // *theta = atan2(a,b); 
     *tx = xpg - cos(*theta) * xg + sin(*theta) * yg;
     *ty = ypg - sin(*theta) * xg - cos(*theta) * yg;
- 
 }
 
 // ---------------------------------------------------------------------------------------------------

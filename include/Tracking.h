@@ -23,6 +23,13 @@ typedef struct {
 
         uint32 time;
 
+        uint16 bb_x;
+        uint16 bb_y;
+
+        uint16 rx;
+        uint16 ry;
+
+
         int state;
         // Resultat validation (bad design)
         // uint8 is_meteor;
