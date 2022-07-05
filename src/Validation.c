@@ -21,15 +21,23 @@ static int positiveFalse = 0;
 
 int Validation(char* _inputs_file, Track* _tracks_pool, unsigned _tracks_nb, char* _dst_path)
 {
-    if(!_inputs_file || !_tracks_pool) return -1;
+        PUTS("0");
+    if(!_inputs_file || !_tracks_pool){
+      PUTS("1");
+      return -1;  
+    } 
 
     tracks = _tracks_pool;
     tracks_nb = _tracks_nb;
 
     FILE* file = fopen(_inputs_file, "r");
-    if(!file) return -1;
+    if(!file) {
+        PUTS("2");
+        return -1;
+    } 
     inputs_file = _inputs_file;
     dst_path = strdup(_dst_path);
+        PUTS("3");
 
     if(fscanf(file, "%u\n", &inputs_nb) < 1 || inputs_nb<1)
     {
@@ -40,13 +48,15 @@ int Validation(char* _inputs_file, Track* _tracks_pool, unsigned _tracks_nb, cha
     { 
         VERBOSE (printf("[Validation] %4hu entrees dans le fichier d'input\n", inputs_nb); );
     }
+        PUTS("4");
     
     inputs = (struct input*)malloc(inputs_nb * sizeof(struct input));
     
     int i=0;
+    idisp(inputs_nb);
     while(i<inputs_nb && !feof(file))
     {
-        if(fscanf(file, "%hu %hu %hu %hu %hu %hu\n", &inputs[i].t0, &inputs[i].x0, &inputs[i].y0, &inputs[i].t1, &inputs[i].x1, &inputs[i].y1) == 6)
+        if(fscanf(file, "%hu \t %f \t %f \t %hu \t %f \t %f \n", &inputs[i].t0, &inputs[i].x0, &inputs[i].y0, &inputs[i].t1, &inputs[i].x1, &inputs[i].y1))
         {
             inputs[i].t0_min = inputs[i].t0 - 5;
             inputs[i].t1_max = inputs[i].t1 + 5;
@@ -54,7 +64,7 @@ int Validation(char* _inputs_file, Track* _tracks_pool, unsigned _tracks_nb, cha
             inputs[i].a = (float)(inputs[i].y1-inputs[i].y0)/(float)(inputs[i].x1-inputs[i].x0);
             inputs[i].b = inputs[i].y1 - inputs[i].a * inputs[i].x1;
             
-            VERBOSE (printf("[Validation] Input %-2d : t0=%-4d x0=%-4d y0=%-4d t1=%-4d x1=%-4d y1=%-4d\tf(x)=%-3.3f*x+%-3.3f\n", i, inputs[i].t0, inputs[i].x0, inputs[i].y0, inputs[i].t1, inputs[i].x1, inputs[i].y1, inputs[i].a, inputs[i].b); ); 
+            VERBOSE (printf("[Validation] Input %-2d : t0=%-4d x0=%6.1f y0=%6.1f t1=%-4d x1=%6.1f y1=%6.1f\tf(x)=%-3.3f*x+%-3.3f\n", i, inputs[i].t0, inputs[i].x0, inputs[i].y0, inputs[i].t1, inputs[i].x1, inputs[i].y1, inputs[i].a, inputs[i].b); ); 
 
             inputs[i].track = NULL;
             inputs[i].xt = inputs[i].x0;
@@ -138,9 +148,9 @@ void Validation_step(unsigned timestamp)
 
         ValidationInput* input = NULL;
         for(int i = 0; i < inputs_nb ;i++) {
-            if(inputs[i].t0 <= timestamp && timestamp<= inputs[i].t1 &&
+            if(inputs[i].t0_min <= track->timestamp && track->timestamp+track->time <= inputs[i].t1_max &&
                 inputs[i].bb_x0 <= track->begin.x && track->end.x <= inputs[i].bb_x1 &&
-                inputs[i].bb_y0 >= track->begin.y && track->end.y >= inputs[i].bb_y1) {
+                inputs[i].bb_y0 <= track->begin.y && track->end.y <= inputs[i].bb_y1) {
                 input = &inputs[i];
                 break; // maybe
             }
@@ -150,18 +160,17 @@ void Validation_step(unsigned timestamp)
         // Piste matche avec un input
         if(input) {
 
-            int dirY_valid  = ( (input->dirY && track->begin.y >= (input->yt+TOLERANCE_DIRECTION)) || (!input->dirY && track->begin.y <= (input->yt-TOLERANCE_DIRECTION)) );
-            int dirX_valid  = ( (input->dirX && track->begin.x >= (input->xt-TOLERANCE_DIRECTION)) || (!input->dirX && track->begin.x <= (input->xt+TOLERANCE_DIRECTION)) );
+            // int dirY_valid  = ( (input->dirY && track->begin.y >= (input->yt+TOLERANCE_DIRECTION)) || (!input->dirY && track->begin.y <= (input->yt-TOLERANCE_DIRECTION)) );
+            // int dirX_valid  = ( (input->dirX && track->begin.x >= (input->xt-TOLERANCE_DIRECTION)) || (!input->dirX && track->begin.x <= (input->xt+TOLERANCE_DIRECTION)) );
 
-            if(dirY_valid && dirX_valid) {
+            // if(dirY_valid && dirX_valid) {
                 // input->nb_tracks++;
                 // input->hits = track->time;
                 input->is_valid_last = timestamp;
                 input->xt = track->begin.x;
                 input->yt = track->begin.y;
                 input->hits++;
-
-            }
+            // }
         } else { // Piste ne matche pas avec input
                 positiveFalse++;
         }
@@ -227,6 +236,7 @@ void Validation_final()
         if(input) {
                 input->nb_tracks++;
                 input->hits = track->time + input->hits + 1;
+                track->is_valid = 1;
         } else { // Piste ne matche pas avec input
                 positiveFalse++;
         }

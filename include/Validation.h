@@ -22,13 +22,13 @@
 typedef struct input {
     //Debut
     sint16 t0;
-    sint16 x0;
-    sint16 y0;
+    float32 x0;
+    float32 y0;
 
     // Fin
     sint16 t1;
-    sint16 x1;
-    sint16 y1;
+    float32 x1;
+    float32 y1;
 
     sint16 t0_min;
     sint16 t1_max;
@@ -36,8 +36,8 @@ typedef struct input {
 
     
     // Rectangle englobant
-    sint16 bb_x0, bb_x1;
-    sint16 bb_y0, bb_y1;
+    float32 bb_x0, bb_x1;
+    float32 bb_y0, bb_y1;
 
     sint16 bb_x0_m, bb_x1_m;
     sint16 bb_y0_m, bb_y1_m;
@@ -54,8 +54,8 @@ typedef struct input {
     //infos piste
     Track* track;
     unsigned track_id;
-    sint16 xt;
-    sint16 yt;
+    float32 xt;
+    float32 yt;
     
     //compteurs
     uint16 nb_tracks;

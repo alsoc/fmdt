@@ -33,16 +33,17 @@
 #define SEQUENCE_DST_PATH_FRAMES "/dsk/l1/misc/cc3801875/frames_tau/"
 #define SIZE_BUF 20
 
-char path_stats_0[100], path_stats_1[100];
-char path_frame[100];
-char path_video_tracking[200];
-char path_motion[100], path_extraction[100], path_error[100], path_tracks[100];
-char path_debug[150];
-char path_frames_f[70], path_stats_f[70], path_videos[70];
+char path_stats_0[250], path_stats_1[250];
+char path_frame[250];
+char path_video_tracking[250];
+char path_motion[200], path_extraction[200], path_error[200], path_tracks[200], path_bounding_box[200];
+char path_debug[250];
+char path_frames_f[200], path_stats_f[200], path_videos[200];
 
 extern uint32 **nearest;
 extern float32 **distances;
 extern uint32 *conflicts;
+
 
 
 
@@ -84,14 +85,45 @@ void printBuffer(Buf *buffer, int n)
 // ---------------------------------------------------------------------------------------------------
 {
     for(int i = 0; i<n; i++){
-        if(buffer[i].stats.ID > 0)
+        if(buffer[i].stats0.ID > 0)
             printf("%4d \t %4d \t %4d  \n", 
-            buffer[i].stats.ID, buffer[i].stats.time, buffer[i].frame);
+            buffer[i].stats0.ID, buffer[i].stats0.time, buffer[i].frame);
     }
     printf("\n");
 }
 
 
+void printTabBB(elemBB **tabBB, int n)
+{
+    for (int i = 0; i < n; i++){
+        if(tabBB[i]!= NULL){
+            for( elemBB *current =tabBB[i]; current != NULL; current = current->next ){
+                printf( "%d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y );
+            }
+        }
+    }
+}
+
+
+void saveTabBB(const char *filename, elemBB **tabBB, int n)
+{
+
+    FILE *f = fopen(filename, "w");
+    if (f == NULL){
+        printf("error ouverture %s \n", filename);
+        exit(1);
+    }
+
+    for (int i = 0; i < n; i++){
+        if(tabBB[i]!= NULL){
+            for( elemBB *current =tabBB[i]; current != NULL; current = current->next ){
+                fprintf(f, "%d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y );
+            }
+        }
+    }
+
+    fclose(f);
+}
 // ---------------------------------------------------------------------------------------------------
 void printTracks(Track* tracks, int last)
 // ---------------------------------------------------------------------------------------------------
@@ -101,8 +133,8 @@ void printTracks(Track* tracks, int last)
     if (last==-1) return;
 
     for(int i = 0; i<= last; i++){
-                printf("%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \t %4d \t %4d \t %4d \t %4d\n", 
-        tracks[i].timestamp, tracks[i].begin.x, tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x , tracks[i].end.y, tracks[i].rx, tracks[i].ry, tracks[i].bb_x, tracks[i].bb_y);
+                printf("%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \t %4d \t %4d \t %4d \t %4d \t %4d\n", 
+        tracks[i].timestamp, tracks[i].begin.x, tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x , tracks[i].end.y, tracks[i].rx, tracks[i].ry, tracks[i].bb_x, tracks[i].bb_y, tracks[i].is_valid);
 
         // printf("%4d \t %5f \t %5f \t %4d \t %5f \t %5f \t d\n", 
         // tracks[i].timestamp, tracks[i].begin.x , tracks[i].begin.y, tracks[i].timestamp+tracks[i].time - 1, tracks[i].end.x , tracks[i].end.y);
@@ -208,8 +240,8 @@ void saveTracks(const char*filename, Track* tracks, int n)
     if (cpt != 0){
         for(int i = 0; i<= n; i++){
             if(tracks[i].time){
-                fprintf(f, "%4d \t %06.1f \t %06.1f \t %4d \t %06.1f \t %06.1f\n", 
-                tracks[i].timestamp, tracks[i].begin.x , tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x, tracks[i].end.y);
+                fprintf(f, "%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \t %4d \t %4d  \n", 
+                tracks[i].timestamp, tracks[i].begin.x , tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x, tracks[i].end.y, tracks[i].bb_x, tracks[i].bb_y);
             }
     
         }
@@ -218,12 +250,30 @@ void saveTracks(const char*filename, Track* tracks, int n)
 }
 
 // ---------------------------------------------------------------------------------------------------
+void saveBoundingBox(const char*filename, uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, int frame)
+// ---------------------------------------------------------------------------------------------------
+{
+    FILE *f = fopen(filename, "a");
+    if (f == NULL){
+        printf("error ouverture %s \n", filename);
+        exit(1);
+    }
+
+    fprintf(f, "%4d \t %4d \t %4d \t %4d \t %4d \n", frame, rx, ry, bb_x, bb_y); 
+    
+    fclose(f);
+}
+
+
+
+// ---------------------------------------------------------------------------------------------------
 void parseTracks(const char*filename, Track* tracks, int* n)
 // ---------------------------------------------------------------------------------------------------
 {
     char lines[100];
     int t0, t1;
     float32 x0, x1, y0, y1;
+    int bb_x, bb_y;
     FILE * file = fopen(filename, "r"); 
     if (file == NULL) {
         fprintf(stderr, "cannot open file\n");
@@ -232,19 +282,22 @@ void parseTracks(const char*filename, Track* tracks, int* n)
     
     fgets(lines, 100, file);
     sscanf(lines, "%d", n);
-
-    int i = 0;
-    while (fgets(lines, 100, file)){
-        sscanf(lines, "%d %f %f %d %f %f ", &t0, &x0, &y0, &t1, &x1, &y1);
+    // while (fgets(lines, 100, file)){
+    // printf("%d\n", *n);
+    for(int i = 0; i< *n; i++){
+        fgets(lines, 100, file);
+        sscanf(lines, "%d %f %f %d %f %f %d %d ", &t0, &x0, &y0, &t1, &x1, &y1, &bb_x, &bb_y);
         tracks[i].timestamp = t0;
-        tracks[i].time = t1-t0+1;
-        tracks[i].state = 0;
-        tracks[i].begin.x = x0;
-        tracks[i].begin.y = y0;
-        tracks[i].end.x = x1;
-        tracks[i].end.y = y1;
-        i++;
+        tracks[i].time      = t1-t0+1;
+        tracks[i].state     = 0;
+        tracks[i].begin.x   = x0;
+        tracks[i].begin.y   = y0;
+        tracks[i].end.x     = x1;
+        tracks[i].end.y     = y1;
+        tracks[i].bb_x      = bb_x;
+        tracks[i].bb_y      = bb_y;
     }
+    (*n)--;
     fclose(file);
 }
 
@@ -1081,8 +1134,8 @@ void split_path_file(char** p, char** f, char *pf)
 void create_debug_dir(char *filename, int light_min, int light_max, int edt)
 // ==========================================================================================================================================================================
 {
-        char tmp_asso[25], tmp_stats[25], tmp_videos[50];
-        char path_assoconflicts[60], path_assoconflicts_f[80], path_stats[60];
+        char tmp_asso[50], tmp_stats[50], tmp_videos[50];
+        char path_assoconflicts[80], path_assoconflicts_f[150], path_stats[60];
         struct stat status = { 0 };
 
         sprintf(tmp_asso,     "%sassoconflicts/",             SEQUENCE_DST_PATH_DEBUG);
@@ -1091,12 +1144,13 @@ void create_debug_dir(char *filename, int light_min, int light_max, int edt)
 
 
         if ((light_min != -1) && (light_max != -1)){
-                sprintf(path_assoconflicts,     "debug/assoconflicts/SB_%d_SH_%d/",             light_min, light_max);
-                sprintf(path_stats,             "debug/stats/SB_%d_SH_%d/",                     light_min, light_max);
+                sprintf(path_assoconflicts,     "%sSB_%d_SH_%d/",                               tmp_asso, light_min, light_max);
+                sprintf(path_stats,             "%sSB_%d_SH_%d/",                              tmp_stats, light_min, light_max);
                 sprintf(path_videos,            "%sSB_%d_SH_%d/",                               tmp_videos, light_min, light_max);
                 sprintf(path_assoconflicts_f,   "%s%s/",                                        path_assoconflicts, filename);
                 sprintf(path_stats_f,           "%s%s/",                                        path_stats, filename);
                 sprintf(path_motion,            "%smotion.txt",                                 path_assoconflicts_f);
+                sprintf(path_bounding_box,      "%sbounding_box.txt",                            path_assoconflicts_f);
                 sprintf(path_extraction,        "%sextraction.txt",                             path_assoconflicts_f);
                 sprintf(path_error,             "%serror.txt",                                  path_assoconflicts_f);
                 sprintf(path_tracks,            "%stracks.txt",                                 path_assoconflicts_f);
@@ -1112,7 +1166,7 @@ void create_debug_dir(char *filename, int light_min, int light_max, int edt)
                 sprintf(path_motion,            "%s%s/motion.txt",                              path_assoconflicts_f, filename);
                 sprintf(path_extraction,        "%s%s/extraction.txt",                          path_assoconflicts_f, filename);
                 sprintf(path_error,             "%s%s/error.txt",                               path_assoconflicts_f, filename);
-                sprintf(path_debug,                   "%s%s.txt",                                     path_assoconflicts_f, filename);
+                sprintf(path_debug,             "%s%s.txt",                                     path_assoconflicts_f, filename);
                 goto next; 
         }
 
@@ -1160,7 +1214,7 @@ next:
 void create_frames_dir(char *filename, int light_min, int light_max, int edt)
 // ==========================================================================================================================================================================
 {
-        char path_frames[60];
+        char path_frames[100];
         struct stat status = { 0 };
 
         if ((light_min != -1) && (light_max != -1)){

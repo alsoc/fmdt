@@ -33,7 +33,7 @@ typedef struct {
         int state;
         // Resultat validation (bad design)
         // uint8 is_meteor;
-        // uint8 is_valid;
+        uint8 is_valid;
 } Track;
 
 // Tracks states
@@ -43,12 +43,27 @@ typedef struct {
 #define TRACK_UPDATED        (4)
 #define TRACK_LOST           (5)
 
+#define NB_FRAMES 10000
+
+
 typedef struct {
-    MeteorROI stats;
+    MeteorROI stats0;
+    MeteorROI stats1;
     int frame;
+
 }Buf;
 
+typedef struct elemBB{
+    uint16 bb_x;
+    uint16 bb_y;
+    uint16 rx;
+    uint16 ry;
+    struct elemBB *next;
+} elemBB;
+
+
 void init_Track(Track *tracks, int n);
+void initTabBB();
 void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset, int theta, int tx, int ty);
 int TrackStars(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset);
 

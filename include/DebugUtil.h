@@ -43,7 +43,11 @@ void saveStats(const char*filename, MeteorROI* stats, int n);
 void saveTracks(const char*filename, Track* tracks, int n);
 void printStats(MeteorROI* stats, int n);
 void printBuffer(Buf *buffer, int n);
+void printTabBB(elemBB **tabBB, int n);
 void printTracks(Track* tracks, int last);
+void saveTabBB(const char *filename, elemBB **tabBB, int n);
+void saveBoundingBox(const char*filename, uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, int frame);
+void plot_bouding_box(rgb8** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8 color);
 
 void parseStats(const char*filename, MeteorROI* stats, int* n);
 void parseTracks(const char*filename, Track* tracks, int* n);

@@ -30,18 +30,20 @@
 #define SIZE_MAX_KPPV 200
 
 /*DEBUG*/
-extern char path_stats_0[100];
-extern char path_stats_1[100];
-extern char path_frame[100];
-extern char path_motion[100];
-extern char path_extraction[100];
-extern char path_error[100];
-extern char path_tracks[100];
+extern char path_stats_0[200];
+extern char path_stats_1[200];
+extern char path_frame[200];
+extern char path_motion[200];
+extern char path_extraction[200];
+extern char path_error[200];
+extern char path_tracks[200];
+extern char path_bounding_box[200];
 extern char path_debug[150];
 extern char path_video_tracking[200];
 extern uint32 *conflicts;
 extern uint32 **nearest;
 extern float32 **distances; 
+extern elemBB *tabBB[NB_FRAMES];
 
 
 /*
@@ -345,6 +347,7 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     // -------------------------- //
 
     initBallon(ballon, i0, i1, j0, j1, b);
+    initTabBB();
 
 	kppv_init(0, SIZE_MAX_KPPV, 0, SIZE_MAX_KPPV);
 	init_MeteorROI(stats0, SIZE_MAX_METEORROI);
@@ -436,6 +439,7 @@ void meteor_ballon_hyst(int argc, char** argv)
 // ======================================
 {
     // Help
+                   
     if (find_arg(argc, argv, "-h")) {
         fprintf(stderr, "usage: %s %s [options] <input_file>\n", argv[0], argv[1]);
         fprintf(stderr, "  -start_frame  : Image de départ dans la séquence\n");
@@ -516,6 +520,8 @@ void meteor_ballon_hyst(int argc, char** argv)
     // -------------------------- //
     // -- INITIALISATION MATRIX-- //
     // -------------------------- //
+
+
     PUTS("INIT");
     initBallon(ballon, i0, i1, j0, j1, b);
     PUTS("INIT ballon");
@@ -529,6 +535,8 @@ void meteor_ballon_hyst(int argc, char** argv)
     init_Track(tracks_stars, SIZE_MAX_TRACKS);
     PUTS("INIT CCL");
     CCL_LSL_init(i0, i1, j0, j1);
+
+    initTabBB();
 
     if (validation) 
         Validation(validation,tracks, 1000, "./debug/");
@@ -565,6 +573,7 @@ void meteor_ballon_hyst(int argc, char** argv)
      	//--------------------------------------------------------//
         PUTS("\t Step 2 : ECC/ACC");
         n1 = CCL_LSL(ballon->SM32, i0, i1, j0, j1);
+        idisp(n1);
         extract_features(ballon->SM32, i0, i1, j0, j1, stats1, n1);
 
      	//--------------------------------------------------------//
@@ -584,20 +593,20 @@ void meteor_ballon_hyst(int argc, char** argv)
         Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty);
         
         //--------------------------------------------------------//
-        PUTS("[DEBUG] Saving frames");
+        PUTS("\t [DEBUG] Saving frames");
         // saveFrame_ui32matrix(path_frame, ballon->SH32, i0, i1, j0, j1);
     	// saveFrame_quad_hysteresis(path_frame, ballon->I0, ballon->SH32, ballon->SB32, ballon->SH32, i0, i1, j0, j1);
 
         PUTS("\t [DEBUG] Saving stats");
         // saveStats(path_stats_0, stats0, n0);
         // saveStats(path_stats_0, stats_shrink, n_shrink);
-        // saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
+        saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
         // saveMotion(path_motion, theta, tx, ty, frame-1);
         // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
         // saveError(path_error, stats0, n0);
         // disp(path_video_tracking);
         // saveFrame_tracking(path_frame, ballon->I0, tracks, last, i0, i1, j0, j1);
-        saveVideoFrame_tracking(path_video_tracking, ballon->I0, tracks, last, i0, i1, j0, j1);
+        // saveVideoFrame_tracking(path_video_tracking, ballon->I0, tracks, last, i0, i1, j0, j1);
 
       	//--------------------------------------------------------//
         PUTS("\t TMP");
@@ -609,10 +618,12 @@ void meteor_ballon_hyst(int argc, char** argv)
         n0 = n_shrink;
     }
     
+    saveTabBB(path_bounding_box, tabBB, NB_FRAMES);
 
     // printf("cpt   %d\n", cpt);
     disp(path_tracks);
     saveTracks(path_tracks, tracks, last);
+
     if (validation) 
         Validation_final();
 
