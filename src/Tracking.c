@@ -22,7 +22,7 @@
 #include <math.h>
 #include <stdio.h>
 
-#define SIZE_BUF 20
+#define SIZE_BUF 10000
 #define R 10
 
 
@@ -280,7 +280,7 @@ void update_bounding_box(Track* track, MeteorROI stats, int frame)
     rx        = bb_x - stats.xmin + 5;
     ry        = bb_y - stats.ymin + 5;
 
-    addToList(rx, ry, bb_x, bb_y, frame);
+    // addToList(rx, ry, bb_x, bb_y, frame);
     // saveBoundingBox(path_bounding_box, rx, ry, bb_x, bb_y, frame);
 
 }
@@ -360,6 +360,39 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
 
 }
 
+// -----------------------------------------------------
+void updateTrackStars(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, int frame, int *offset, int *last)
+// -----------------------------------------------------
+{
+    int next;
+    int i;
+
+    for (i = *offset; i <= *last; i++){
+        next = tracks[i].end.next;
+        if(!next){
+            *offset = i;
+            break; 
+        }
+    }
+    for (i = *offset; i <= *last; i++){
+        if(tracks[i].time  && tracks[i].state != TRACK_FINISHED ){
+                next = stats0[tracks[i].end.ID].next;
+                if(next){
+                    tracks[i].x = tracks[i].end.x;
+                    tracks[i].y = tracks[i].end.y;
+                    tracks[i].end = stats1[next];
+                    tracks[i].time++;
+                    update_bounding_box(tracks+i, stats1[next], frame);
+                } 
+                else{
+                    //on extrapole si pas finished
+                    tracks[i].state = TRACK_FINISHED;
+                }
+        }
+    }
+}
+
+
 
 // à modifier pour optimisation
 // -----------------------------------------------------
@@ -387,10 +420,27 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
     track->state = TRACK_NEW;
     // update_bounding_box(track, last_stats, frame);
 
-    
 
 }
 
+// -----------------------------------------------------
+void insert_new_track_stars(MeteorROI last_stats,  MeteorROI begin, Track *tracks, int *last, int frame)
+// -----------------------------------------------------
+{
+    Track *track = &tracks[++(*last)];
+
+    track->begin     =  begin;
+    
+    track->bb_x      = (uint16)ceil((double)((begin.xmin + begin.xmax))/2);
+    track->bb_y      = (uint16)ceil((double)((begin.ymin + begin.ymax))/2);
+
+    track->end       = last_stats; 
+    track->time      = 1; 
+    track->timestamp = frame - 2;
+    track->state = TRACK_NEW;
+
+
+}
 
 
 // -----------------------------------------------------
@@ -410,7 +460,7 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
         int asso = stats0[i].next;
 
         // si mouvement detecté
-        if (fabs(e-errMoy) > eType && asso){
+        if (fabs(e-errMoy) > 2 * eType && asso){
             
             if (stats0[i].state) {
                 PUTS("EXTRAPOLATEED");
@@ -461,19 +511,37 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
     // printStats(stats1,nc1);
 }
 
-int TrackStars(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset)
+void TrackStars(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset)
 {
-    int cpt = 0;
+    int j;
 
     for(int i = 1; i <= nc0; i++){
-        stats0[i].time++;
-        stats1[stats0[i].next].time = stats0[i].time ;
-        if(stats0[i].time == 1){
-            cpt++;
-        }
+        int asso = stats0[i].next;
+
+        if (asso){
+            
+            stats0[i].time++;
+            stats1[stats0[i].next].time = stats0[i].time ;
+            idisp(stats0[i].time);
+           
+            if(stats0[i].time == 1)
+                insert_new_track_stars(stats0[i], stats1[stats0[i].next], tracks, last, frame);
+        idisp(*last);
+        idisp(*last);
+        idisp(*last);
+        idisp(*last);
+        idisp(*last);
+        idisp(*last);
+        idisp(*last);
+        idisp(*last);
+        idisp(*last);
+        idisp(*last);
+        idisp(*last);
+        printTracks(tracks, *last);
+        } 
     }
 
     // parcourir les track et update si besoin
-    // ck(tracks, stats0, stats1, nc1, frame, offset, last);
-    return cpt;
+    updateTrackStars(tracks, stats0, stats1, nc1, frame, offset, last);
+
 }

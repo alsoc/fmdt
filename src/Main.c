@@ -25,7 +25,7 @@
 #define SEQUENCE_NDIGIT 5
 #define K 3
 
-#define SIZE_MAX_METEORROI 15000
+#define SIZE_MAX_METEORROI 10000
 #define SIZE_MAX_TRACKS 1000
 #define SIZE_MAX_KPPV 200
 
@@ -306,7 +306,7 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
 	MeteorROI stats0[SIZE_MAX_METEORROI];
 	MeteorROI stats1[SIZE_MAX_METEORROI];
 	MeteorROI stats_shrink[SIZE_MAX_METEORROI];
-    Track tracks[1000];
+    Track tracks[10000];
 
     int  offset =  0;
     int  last   = -1;
@@ -421,6 +421,7 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
         n0 = n_shrink;
         frame++;
     }
+    // 
     saveTracks(path_tracks, tracks, last);
     // printTracks(tracks, last);
 
@@ -454,7 +455,6 @@ void meteor_ballon_hyst(int argc, char** argv)
         fprintf(stderr, "  -validation   : Fichier contenant la vérité terrain de la séquence\n");
         exit(1);
     }
-
     // Parsing Arguments
     int start        = find_int_arg  (argc, argv, "-start_frame", 0 );
     int end          = find_int_arg  (argc, argv, "-end_frame", 1000);
@@ -462,9 +462,10 @@ void meteor_ballon_hyst(int argc, char** argv)
     int light_min    = find_int_arg  (argc, argv, "-light_min",  60 ); // a definir
     int light_max    = find_int_arg  (argc, argv, "-light_max",  85 ); // a definir
     int surface_min  = find_int_arg  (argc, argv, "-surface_min",  9); // a definir
-    int surface_max  = find_int_arg  (argc, argv, "-surface_max",100); // a definir
+    int surface_max  = find_int_arg  (argc, argv, "-surface_max",1000); // a definir
     char* src_path   = find_char_arg (argc, argv, "-input",      NULL);
     char* validation = find_char_arg (argc, argv, "-validation", NULL);
+    PUTS("INIT VIDEoooO");
 
     // sequence
     char *filename;
@@ -481,11 +482,6 @@ void meteor_ballon_hyst(int argc, char** argv)
 
     int  offset =  0;
     int  last   = -1;
-
-    // int  offset_stars =  0;
-    // int  last_stars   = -1;
-    // int cpt = 0;
-
 
 	int n0 = 0;
 	int n1 = 0;
@@ -545,6 +541,7 @@ void meteor_ballon_hyst(int argc, char** argv)
     // ----------------//
     // -- TRAITEMENT --//
     // ----------------//
+
     PUTS("LOOP");
 
 	if(!Video_nextFrame(video,ballon->I0)) { 
@@ -591,6 +588,7 @@ void meteor_ballon_hyst(int argc, char** argv)
 
         PUTS("\t Step 6: Tracking");
         Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty);
+        // TrackStars(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset);
         
         //--------------------------------------------------------//
         PUTS("\t [DEBUG] Saving frames");
@@ -600,7 +598,7 @@ void meteor_ballon_hyst(int argc, char** argv)
         PUTS("\t [DEBUG] Saving stats");
         // saveStats(path_stats_0, stats0, n0);
         // saveStats(path_stats_0, stats_shrink, n_shrink);
-        saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
+        // saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
         // saveMotion(path_motion, theta, tx, ty, frame-1);
         // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
         // saveError(path_error, stats0, n0);

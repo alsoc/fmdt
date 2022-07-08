@@ -29,6 +29,10 @@ typedef struct {
         uint16 rx;
         uint16 ry;
 
+        float32 xmin;
+        float32 xmax;
+        float32 ymin;
+        float32 ymax;
 
         int state;
         // Resultat validation (bad design)
@@ -65,7 +69,7 @@ typedef struct elemBB{
 void init_Track(Track *tracks, int n);
 void initTabBB();
 void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset, int theta, int tx, int ty);
-int TrackStars(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset);
+void TrackStars(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset);
 
 #endif
 

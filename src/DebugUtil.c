@@ -848,10 +848,10 @@ void saveVideoFrame_tracking(const char*filename, uint8** I, Track* tracks, int 
         idisp(tracks[i].time);
         idisp(tracks[i].state);
         if (tracks[i].state != TRACK_LOST && tracks[i].time >= 3 && tracks[i].state != TRACK_EXTRAPOLATED && tracks[i].state != TRACK_FINISHED) {
-            int ymin = clamp(tracks[i].bb_y - tracks[i].ry, 1, i1-1);
-            int ymax = clamp(tracks[i].bb_y + tracks[i].ry, 1, i1-1);
-            int xmin = clamp(tracks[i].bb_x - tracks[i].rx, 1, j1-1);
-            int xmax = clamp(tracks[i].bb_x + tracks[i].rx, 1, j1-1);
+            int ymin = clamp(tracks[i].bb_y - tracks[i].ry - 5, 1, i1-1);
+            int ymax = clamp(tracks[i].bb_y + tracks[i].ry + 5, 1, i1-1);
+            int xmin = clamp(tracks[i].bb_x - tracks[i].rx - 5, 1, j1-1);
+            int xmax = clamp(tracks[i].bb_x + tracks[i].rx + 5, 1, j1-1);
             idisp(xmin);
             idisp(xmax);
             idisp(ymin);

@@ -10,19 +10,26 @@ DEFINES=
 BUILD_DIR=build/
 SRC_DIR=src/
 
-C_FILES = $(wildcard $(SRC_DIR)*.c)
+C_FILES = $(filter-out $(SRC_DIR)VideoTrack.c, $(wildcard $(SRC_DIR)*.c))
 OBJ_FILES = $(addprefix $(BUILD_DIR),$(notdir $(C_FILES:.c=.o))) $(addprefix $(BUILD_DIR),$(notdir $(CXX_FILES:.cpp=.o)))
+OBJ_FILES_TRACK = $(filter-out $(BUILD_DIR)Main.o , $(addprefix $(BUILD_DIR),$(notdir $(C_FILES:.c=.o))) $(addprefix $(BUILD_DIR),$(notdir $(CXX_FILES:.cpp=.o))))
 
-all: obj_dir $(EXEC_NAME)
+all: obj_dir $(EXEC_NAME) tracking
 
 clean:
-	rm -f $(EXEC_NAME) $(OBJ_FILES) img/img*_out*.png
+	rm -f $(EXEC_NAME) $(OBJ_FILES) tracking img/img*_out*.png $(BUILD_DIR)VideoTrack.o
 #	@$(MAKE) -C lib/ffmpeg-io clean
 
 $(EXEC_NAME): $(OBJ_FILES) ffmpeg-io/lib/libffmpeg-io.a
 	$(CC) -o $(EXEC_NAME) $(OBJ_FILES) $(LIBS)
 
 $(BUILD_DIR)%.o: $(SRC_DIR)%.c
+	$(CC) $(CFLAGS) $(INCLUDES) $(DEFINES)  -o $@ -c $<
+
+tracking : $(OBJ_FILES_TRACK) $(BUILD_DIR)VideoTrack.o ffmpeg-io/lib/libffmpeg-io.a
+	$(CC) -o tracking $(OBJ_FILES_TRACK) $(BUILD_DIR)VideoTrack.o $(LIBS)
+
+VideoTrack.o : $(SRC_DIR)VideoTrack.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(DEFINES)  -o $@ -c $<
 
 test : 

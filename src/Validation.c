@@ -115,6 +115,11 @@ void Validation_free(void)
     sprintf(buf,"%svalidation.txt",dst_path);
     VERBOSE (printf("[Validation] save in file : %s\n",buf); );
     FILE* out = fopen(buf,"a");
+    char *filename;
+    char *path;
+    split_path_file(&path, &filename, inputs_file);
+
+    fprintf(out, "%s\n",  filename);
     if(inputs)
     {
         for(int i=0;i<inputs_nb;i++)
@@ -123,15 +128,15 @@ void Validation_free(void)
 
             VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1 ); );
 
-            fprintf(out, "%s\t%-2d\t%-3d\t%-3d\t%-3d\n", inputs_file, i+1, inputs[i].hits, expected_hits, inputs[i].nb_tracks);
+           fprintf(out, "\t Input %-2d : hits = %3d / %3d \t Frames = %5d - %5d\n", i, inputs[i].hits, expected_hits, inputs[i].t0, inputs[i].t1 );
         }
         free(inputs);
         inputs = NULL;
     } else {
-        fprintf(out, "%s\t%-2d\t%-3d\t%-3d\t%-3d\t%-3d\n", inputs_file, 0, 0, 0, positiveTrue, positiveFalse);
+        fprintf(out, "\t%-2d\t%-3d\t%-3d\t%-3d\t%-3d\n", 0, 0, 0, positiveTrue, positiveFalse);
     }
 
-    fprintf(out, "%s\tFP = %-4d\n", inputs_file, positiveFalse);
+    fprintf(out, "\tFalse Positives = %-4d\n", positiveFalse);
     
     fclose(out);
     free(dst_path);
@@ -235,7 +240,7 @@ void Validation_final()
         // Piste matche avec un input
         if(input) {
                 input->nb_tracks++;
-                input->hits = track->time + input->hits + 1;
+                input->hits = track->time + input->hits ;
                 track->is_valid = 1;
         } else { // Piste ne matche pas avec input
                 positiveFalse++;
