@@ -280,7 +280,7 @@ void update_bounding_box(Track* track, MeteorROI stats, int frame)
     rx        = bb_x - stats.xmin + 5;
     ry        = bb_y - stats.ymin + 5;
 
-    // addToList(rx, ry, bb_x, bb_y, frame);
+    addToList(rx, ry, bb_x, bb_y, frame-1);
     // saveBoundingBox(path_bounding_box, rx, ry, bb_x, bb_y, frame);
 
 }
