@@ -46,7 +46,7 @@ int Validation(char* _inputs_file, Track* _tracks_pool, unsigned _tracks_nb, cha
     }
     else
     { 
-        VERBOSE (printf("[Validation] %4hu entrees dans le fichier d'input\n", inputs_nb); );
+        VERBOSE (printf("[Validation] %4hu entrees dans le fichier d'input\n", (unsigned short)inputs_nb); );
     }
         PUTS("4");
     

@@ -3,17 +3,17 @@
  * LIP6
  */ 
 
-
-#include <nrutil.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
-#include <Features.h>
 #include <sys/stat.h>
-#include <Tracking.h>
-#include <DebugUtil.h>
-#include <Video.h>
-#include <Validation.h>
+
+#include "nrutil.h"
+#include "Features.h"
+#include "Tracking.h"
+#include "DebugUtil.h"
+#include "Video.h"
+#include "Validation.h"
 
 #define SIZE_MAX_METEORROI 3000
 #define SIZE_MAX_TRACKS 1000
@@ -312,7 +312,7 @@ void test_validation_routine(int argc, char** argv)
     int start               = find_int_arg  (argc, argv, "-start_frame",    0);
     int end                 = find_int_arg  (argc, argv, "-end_frame",      10000);
 
-    int n = 0;
+    //int n = 0;
     int b = 1;
     int i0, i1, j0, j1;
 	int color = 0;
@@ -497,7 +497,7 @@ void test_validation_routine_frame(int argc, char** argv)
     printTracks(tracks, nb_tracks);
     calc_BB(tracks, nb_tracks);
 
-    // /*
+    //
     frame = start; 
     char lines[1000];
     char src[300];
