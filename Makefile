@@ -4,7 +4,7 @@ CFLAGS=-Wall -std=c99 -O3 -march=native -D_POSIX_C_SOURCE=200809L
 CXXFLAGS=-Wall -std=c++17 -O3
 EXEC_NAME=ballon
 INCLUDES=-I include/ -I ffmpeg-io/include
-LIBS=-Lffmpeg-io/lib -lm -lffmpeg-io
+LIBS=-Llib/ffmpeg-io/lib -lm -lffmpeg-io
 DEFINES=
 
 BUILD_DIR=build/
@@ -20,13 +20,13 @@ clean:
 	rm -f $(EXEC_NAME) $(OBJ_FILES) tracking img/img*_out*.png $(BUILD_DIR)VideoTrack.o
 #	@$(MAKE) -C lib/ffmpeg-io clean
 
-$(EXEC_NAME): $(OBJ_FILES) ffmpeg-io/lib/libffmpeg-io.a
+$(EXEC_NAME): $(OBJ_FILES) lib/ffmpeg-io/lib/libffmpeg-io.a
 	$(CC) -o $(EXEC_NAME) $(OBJ_FILES) $(LIBS)
 
 $(BUILD_DIR)%.o: $(SRC_DIR)%.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(DEFINES)  -o $@ -c $<
 
-tracking : $(OBJ_FILES_TRACK) $(BUILD_DIR)VideoTrack.o ffmpeg-io/lib/libffmpeg-io.a
+tracking : $(OBJ_FILES_TRACK) $(BUILD_DIR)VideoTrack.o lib/ffmpeg-io/lib/libffmpeg-io.a
 	$(CC) -o tracking $(OBJ_FILES_TRACK) $(BUILD_DIR)VideoTrack.o $(LIBS)
 
 VideoTrack.o : $(SRC_DIR)VideoTrack.c
@@ -41,14 +41,13 @@ full :
 tau : 
 	./ballon -input /dsk/l1/misc/cc3801875/Meteors_in_mkv/4 -start_frame 1 -end_frame 41 -light_max 85 -light_min 75
 
-ffmpeg-io/lib/libffmpeg-io.a:
+lib/ffmpeg-io/lib/libffmpeg-io.a:
 	@$(MAKE) -C ffmpeg-io
 
 obj_dir:
 	mkdir -p $(BUILD_DIR)
 
-.PHONY: ffmpeg-io/lib/libffmpeg-io.a 
+.PHONY: lib/ffmpeg-io/lib/libffmpeg-io.a
 
 zip:
 	zip -r -9 meteor . -i src/*.c include/*.h Makefile
- 

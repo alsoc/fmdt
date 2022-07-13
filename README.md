@@ -2,11 +2,41 @@
 
 Changer paths des outputs en fonction de votre espace de stockage dans DebugUtil.c (surtout SEQUENCE_DST_PATH_VIDEOS)
 
+## Dependencies
+
+This project use `ffmpeg-io` project as a submodule:
+
+```bash
+git submodule update --init --recursive
+```
+
+## Make
+
 Pour la création des binaires `ballon` et `tracking` :
 
 ```shell
 make
 ```
+
+## CMake
+
+```bash
+mkdir build
+cd build
+cmake ..
+make -j4
+```
+
+Example of optimization flags:
+```bash
+cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -funroll-loops -fstrict-aliasing -march=native"
+```
+
+**Tips**: on Apple Silicon M1 CPUs and with Apple Clang, use `-mcpu=apple-m1` instead of `-march=native`.
+
+The `CMake` file comes with several options:
+ * `-DTH_BALLON_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the detection chain executable.
+ * `-DTH_TRACKING_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the tracking executable.
 
 ## Chaine de traitement
 
