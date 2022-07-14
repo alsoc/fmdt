@@ -102,7 +102,7 @@ void saveVideoFrame_BB(const char*filename, uint8** I, int rx, int ry, int bb_x,
         }
     }
 
-    if (rx != -1 && ry != -1 & & bb_x != -1 && bb_y != -1){
+    if (rx != -1 && ry != -1 && bb_x != -1 && bb_y != -1){
         int ymin = clamp(bb_y - ry, 1, i1-1);
         int ymax = clamp(bb_y + ry, 1, i1-1);
         int xmin = clamp(bb_x - rx, 1, j1-1);
