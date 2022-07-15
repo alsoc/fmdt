@@ -184,7 +184,7 @@ void saveVideoFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int 
 void saveFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, int j0, int j1)
 // ==============================================================================================================================
 {
-    rgb8 green;     rgb8 red;       rgb8 blue;      rgb8 orange;
+    rgb8 green;     rgb8 red;       rgb8 blue;      rgb8 orange;   
     green.g = 255;  red.g = 000;    blue.g = 000;   orange.r = 255;
     green.b = 000;  red.b = 000;    blue.b = 255;   orange.g = 165;
     green.r = 000;  red.r = 255;    blue.r = 000;   orange.b = 000;
@@ -262,7 +262,8 @@ void addToListBB(int rx, int ry, int bb_x, int bb_y, int color, int i)
 
 }
 
-void calc_BB(Track* tracks, int n){
+void calc_BB(Track* tracks, int n, int i0, int i1, int j0, int j1){
+    
     for (int i = 0; i < n ; i++){
         
         int dirX = tracks[i].end.x > tracks[i].begin.x; // vers la droite 
@@ -286,6 +287,11 @@ void calc_BB(Track* tracks, int n){
                     tracks[i].ymax   = tracks[i].begin.y + TOLERANCE_DISTANCEMIN;   tracks[i].xmax   = tracks[i].begin.x + TOLERANCE_DISTANCEMIN;
                 }
         }
+
+         if(tracks[i].xmin < j0) tracks[i].xmin = j0;
+        if(tracks[i].ymin < i0) tracks[i].ymin = i0;
+        if(tracks[i].xmax > j1) tracks[i].xmax = j1;
+        if(tracks[i].ymax > i1) tracks[i].ymax = i1;
     }
 }
 
@@ -338,6 +344,7 @@ void test_validation_routine(int argc, char** argv)
     // debug/output paths and files
   	create_debug_dir (filename, light_min , light_max, -1);
 	create_videos_files(filename);
+	create_frames_dir(filename, light_min , light_max, -1);
 
     disp(path_tracks);
     disp(path_bounding_box);
@@ -370,26 +377,29 @@ void test_validation_routine(int argc, char** argv)
     }
 
     // calculs des BB (bounding box) des tracks 
-    calc_BB(tracks, nb_tracks);
+    calc_BB(tracks, nb_tracks, i0, i1, j0, j1);
 
     // parcours des BB à afficher
     char lines[1000];
     fgets(lines, 100, file_bb);
     sscanf(lines, "%d %d %d %d %d ", (int*)&frame_bb, (int*)&rx, (int*)&ry, (int*)&bb_x, (int*)&bb_y);
     printf("%d %d %d %d %d \n", frame_bb, rx, ry, bb_x, bb_y);
-
+    
     // parcours de la video
     while(Video_nextFrame(video,I0)) {
         frame = video->frame_current - 1;
 		printf("[Frame] %-4d\n", frame);
         int cpt = 0;
+	    
+        create_debug_files (frame);
+        create_frames_files(frame);
 
         // affiche tous les BB de l'image
         while(frame_bb == frame){
             printf("for %d %d %d \n", frame_bb, bb_x, bb_y);
             
             // cherche la piste correspondante
-            for (int i = 0; i < nb_tracks ; i++){
+            for (int i = 0; i <= nb_tracks ; i++){
                 if (tracks[i].timestamp <= frame  && frame <= tracks[i].timestamp+tracks[i].time &&
                     tracks[i].xmin <= bb_x  && bb_x <= tracks[i].xmax  &&
                     tracks[i].ymin <= bb_y  && bb_y <= tracks[i].ymax){
@@ -410,6 +420,8 @@ void test_validation_routine(int argc, char** argv)
             printf("%d %d %d %d %d \n", frame_bb, rx, ry, bb_x, bb_y);
         }
         saveVideoFrame_listBB(path_video_tracking, I0, cpt, i0, i1, j0, j1);
+        saveFrame_listBB(path_frame, I0, cpt, i0, i1, j0, j1);
+
     }
     
     free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
@@ -472,6 +484,7 @@ void test_validation_routine_frame(int argc, char** argv)
 
     uint8 **I0    = ui8matrix(i0-b, i1+b, j0-b, j1+b);
 
+        create_debug_files (frame);
 
     char path_bb[250];
     int frame, frame_bb;
@@ -493,10 +506,7 @@ void test_validation_routine_frame(int argc, char** argv)
         Validation_final();
         Validation_free();
     }
-
-    printTracks(tracks, nb_tracks);
-    calc_BB(tracks, nb_tracks);
-
+ymin
     // /*
     frame = start; 
     char lines[1000];
@@ -545,10 +555,275 @@ void test_validation_routine_frame(int argc, char** argv)
 }
 */
 
+void test_max(int argc, char** argv)
+
+{
+
+    if (find_arg(argc, argv, "-h")) {
+        fprintf(stderr, "usage: %s %s [options] <input_file>\n", argv[0], argv[1]);
+        fprintf(stderr, "  -input_video  : Path vers le fichier avec les tracks\n");
+        fprintf(stderr, "  -input_video  : Path vers le fichier avec les tracks\n");
+        fprintf(stderr, "  -validation0   : Fichier contenant la vérité terrain de la séquence\n");
+        fprintf(stderr, "  -validation1 : Fichier contenant la 2eme vérité terrain de la séquence\n");
+        fprintf(stderr, "  -start_frame  : Image de départ dans la séquence\n");
+        fprintf(stderr, "  -end_frame    : Dernière image de la séquence\n");
+        exit(1);
+    }
+
+    // Parsing Arguments
+    char* src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
+    char* src_path_video    = find_char_arg (argc, argv, "-input_video",    NULL);
+    char* validation0        = find_char_arg (argc, argv, "-validation0",     NULL);
+    char* validation1        = find_char_arg (argc, argv, "-validation1",     NULL);
+    int light_min           = find_int_arg  (argc, argv, "-light_min",      55); 
+    int light_max           = find_int_arg  (argc, argv, "-light_max",      80); 
+    int start               = find_int_arg  (argc, argv, "-start_frame",    0);
+    int end                 = find_int_arg  (argc, argv, "-end_frame",      10000);
+
+    int n = 0;
+    int b = 5;
+    int i0 = 0, i1 = 1200, j0 = 0, j1 = 1900;
+    int frame, frame_bb;
+    uint16 rx, ry, bb_x, bb_y;
+    int nb_tracks = 0;
+
+    if (!src_path || !src_path_video || !validation0){
+        printf("Input(s) missing\n");
+        exit(1);
+    }
+
+    char *path;
+    char *filename;
+    disp(src_path_video);
+    split_path_file(&path, &filename, src_path_video);
+    disp(filename);
+    
+    Track tracks0[SIZE_MAX_TRACKS];
+    Track tracks1[SIZE_MAX_TRACKS];
+
+	init_Track(tracks0, SIZE_MAX_TRACKS);
+	init_Track(tracks1, SIZE_MAX_TRACKS);
+        
+    // debug/output paths and files
+  	create_debug_dir (filename, light_min , light_max, -1);
+	create_videos_files(filename);
+	create_frames_dir(filename, light_min , light_max, -1);
+
+    disp(path_tracks);
+    disp(path_bounding_box);
+    
+    // recupere les tracks
+    parseTracks(path_tracks, tracks0, &nb_tracks);
+    parseTracks(path_tracks, tracks1, &nb_tracks);
+
+    uint8 **I0    = ui8matrix(i0-b, i1+b, j0-b, j1+b);
+    MLoadPGM_ui8matrix("max.pgm", i0, i1, j0, j1, I0);
+
+    // calculs des BB (bounding box) des tracks 
+    calc_BB(tracks0, nb_tracks, i0, i1, j0, j1);
+    calc_BB(tracks1, nb_tracks, i0, i1, j0, j1);
+
+    rgb8 green;     rgb8 red;       rgb8 blue;      rgb8 orange;
+    green.g = 255;  red.g = 000;    blue.g = 000;   orange.r = 255;
+    green.b = 000;  red.b = 000;    blue.b = 255;   orange.g = 165;
+    green.r = 000;  red.r = 255;    blue.r = 000;   orange.b = 000;
+
+    static ffmpeg_handle writer;
+    if (writer.pipe == NULL) {
+      ffmpeg_init(&writer);
+      writer.input.width = j1 - j0 + 1;
+      writer.input.height = i1 - i0 + 1;
+      writer.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
+      if (!ffmpeg_start_writer(&writer, "out.png", NULL)) return;
+    }
+    rgb8** img = rgb8matrix(0, i1, 0, j1);
+    for (int i=i0 ; i<=i1 ; i++) {
+        for (int j=j0 ; j<=j1 ; j++) {
+            img[i][j].r = I0[i][j];
+            img[i][j].g = I0[i][j];
+            img[i][j].b = I0[i][j];
+        }
+    }
+
+    // validation pour établir si une track est vrai/faux positif
+    if (validation0) {
+        Validation(validation0, tracks0, nb_tracks, "./debug/");
+        Validation_final();
+        Validation_free();
+    }
+    else {
+        PUTS("NO VALIDATION");
+    }
+    if (validation1) {
+        Validation(validation1, tracks1, nb_tracks, "./debug/");
+        Validation_final();
+        Validation_free();
+    }
+    else {
+        PUTS("NO VALIDATION");
+    }
+
+    rgb8 color;
+
+    for (int i = 0; i <= nb_tracks ; i++){
+        printf("i = %d\n", i);
+        if (tracks0[i].is_valid == 1){
+            if (tracks1[i].is_valid == 1){
+                color = green;
+            }
+            else 
+                color = blue;
+        }
+        else 
+            color = red;
+        plot_bouding_box(img, tracks0[i].ymin+5, tracks0[i].ymax-5, tracks0[i].xmin+5, tracks0[i].xmax-5, 2, color);
+    }
+    ffmpeg_write2d(&writer, (uint8_t**)img);
+    free_rgb8matrix(img, 0, i1, 0, j1);
+
+
+    // SavePGM_ui8matrix(I0, i0, i1, j0, j1, "out.pgm");
+    free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
+}
+
+void test_max_2(int argc, char** argv)
+
+{
+
+    if (find_arg(argc, argv, "-h")) {
+        fprintf(stderr, "usage: %s %s [options] <input_file>\n", argv[0], argv[1]);
+        fprintf(stderr, "  -input_video  : Path vers le fichier avec les tracks\n");
+        fprintf(stderr, "  -input_video  : Path vers le fichier avec les tracks\n");
+        fprintf(stderr, "  -validation   : Fichier contenant la vérité terrain de la séquence\n");
+        fprintf(stderr, "  -start_frame  : Image de départ dans la séquence\n");
+        fprintf(stderr, "  -end_frame    : Dernière image de la séquence\n");
+        exit(1);
+    }
+
+    // Parsing Arguments
+    char* src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
+    char* src_path_video    = find_char_arg (argc, argv, "-input_video",    NULL);
+    char* validation        = find_char_arg (argc, argv, "-validation",     NULL);
+    int light_min           = find_int_arg  (argc, argv, "-light_min",      60); 
+    int light_max           = find_int_arg  (argc, argv, "-light_max",      85); 
+    int start               = find_int_arg  (argc, argv, "-start_frame",    0);
+    int end                 = find_int_arg  (argc, argv, "-end_frame",      10000);
+
+    int n = 0;
+    int b = 5;
+    long int i0 = 0, i1 = 1200, j0 = 0, j1 = 1900;
+    int frame, frame_bb;
+    uint16 rx, ry, bb_x, bb_y;
+
+    if (!src_path || !src_path_video){
+        printf("Input(s) missing\n");
+        exit(1);
+    }
+
+    char *path;
+    char *filename;
+    disp(src_path_video);
+    split_path_file(&path, &filename, src_path_video);
+    disp(filename);
+    
+    Track tracks[SIZE_MAX_TRACKS];
+
+    int nb_tracks = 0;
+	init_Track(tracks, SIZE_MAX_TRACKS);
+        
+    // debug/output paths and files
+  	create_debug_dir (filename, light_min , light_max, -1);
+	create_videos_files(filename);
+	create_frames_dir(filename, light_min , light_max, -1);
+
+    disp(path_tracks);
+    disp(path_bounding_box);
+    
+    // recupere les tracks
+    parseTracks(path_tracks, tracks, &nb_tracks);
+    printTracks(tracks, nb_tracks);
+    puts("yo");
+    
+
+
+    // uint8 **I0    = ui8matrix(i0-b, i1+b, j0-b, j1+b);
+    puts("yo");
+    // MLoadPGM_ui8matrix("max.pgm", i0, i1, j0, j1, I0);
+
+    rgb8** I0;
+    I0 = load_image_color("out.png", &i0, &i1, &j0, &j1);
+
+    puts("yo");
+    // calculs des BB (bounding box) des tracks 
+    calc_BB(tracks, nb_tracks, i0, i1, j0, j1);
+
+    rgb8 green;     rgb8 red;       rgb8 yellow;      rgb8 orange;
+    green.g = 255;  red.g = 000;    yellow.g = 255;   orange.r = 255;
+    green.b = 000;  red.b = 000;    yellow.b = 000;   orange.g = 165;
+    green.r = 000;  red.r = 255;    yellow.r = 255;   orange.b = 000;
+
+    static ffmpeg_handle writer;
+    if (writer.pipe == NULL) {
+      ffmpeg_init(&writer);
+      writer.input.width = j1 - j0 + 1;
+      writer.input.height = i1 - i0 + 1;
+      writer.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
+      if (!ffmpeg_start_writer(&writer, "out1.png", NULL)) return;
+    }
+    rgb8** img = rgb8matrix(0, i1, 0, j1);
+    for (int i=i0 ; i<=i1 ; i++) {
+        for (int j=j0 ; j<=j1 ; j++) {
+            img[i][j].r = I0[i][j].r;
+            img[i][j].g = I0[i][j].g;
+            img[i][j].b = I0[i][j].b;
+        }
+    }
+
+    // validation pour établir si une track est vrai/faux positif
+    if (validation) {
+        disp(validation);
+        Validation(validation, tracks, nb_tracks, "./debug/");
+        Validation_final();
+        Validation_free();
+    }
+    else {
+        PUTS("NO VALIDATION");
+    }
+    rgb8 color;
+
+    for (int i = 0; i < nb_tracks ; i++){
+        printf("i = %d\n", i);
+        if (tracks[i].is_valid == 1){
+// 
+            // color = green;
+            color = yellow;
+        plot_bouding_box(img, tracks[i].ymin+5, tracks[i].ymax-5, tracks[i].xmin+5, tracks[i].xmax-5, 2, color);
+        }
+        // else 
+            // color = red;
+        // fdisp(tracks[i].ymin);
+        // fdisp(tracks[i].ymax);
+        // fdisp(tracks[i].xmin);
+        // fdisp(tracks[i].xmax);
+    }
+    puts("heun");
+
+    ffmpeg_write2d(&writer, (uint8_t**)img);
+    free_rgb8matrix(img, 0, i1, 0, j1);
+
+
+    // SavePGM_ui8matrix(I0, i0, i1, j0, j1, "out.pgm");
+    // free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
+}
+
+
+
+
 
 int main(int argc, char** argv)
 {
     test_validation_routine(argc, argv);
+    // test_max(argc, argv);
     
     return 0;
 }

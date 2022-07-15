@@ -606,12 +606,15 @@ void filter_speed_binarize(uint32** in, int i0, int i1, int j0, int j1, uint8** 
  
 void plot_bouding_box(rgb8** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8 color)
 {
+    idisp(ymin);
     for (int b=0; b<border ; b++) {
         ymin++; ymax--;xmin++;xmax--;
         for (int i=ymin ; i<=ymax ; i++) {
+            idisp(i);
             img[i][xmin] = color;
             img[i][xmax] = color;
         }
+        puts("why");
         for (int j=xmin ; j<=xmax ; j++) {
             img[ymin][j] = color;
             img[ymax][j] = color;

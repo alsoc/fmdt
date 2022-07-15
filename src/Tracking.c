@@ -280,7 +280,7 @@ void update_bounding_box(Track* track, MeteorROI stats, int frame)
     rx        = bb_x - stats.xmin + 5;
     ry        = bb_y - stats.ymin + 5;
 
-    // addToList(rx, ry, bb_x, bb_y, frame);
+    addToList(rx, ry, bb_x, bb_y, frame-1);
     // saveBoundingBox(path_bounding_box, rx, ry, bb_x, bb_y, frame);
 
 }
@@ -420,7 +420,8 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
     track->state = TRACK_NEW;
     // update_bounding_box(track, last_stats, frame);
 
-
+    track->dirX =  buffer[i].stats1.x > buffer[i].stats0.x; // vers la droite  
+    track->dirY =  buffer[i].stats1.y > buffer[i].stats0.y; // vers le bas
 }
 
 // -----------------------------------------------------
@@ -460,7 +461,7 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
         int asso = stats0[i].next;
 
         // si mouvement detecté
-        if (fabs(e-errMoy) > 2 * eType && asso){
+        if (fabs(e-errMoy) > 1.5 * eType && asso){
             
             if (stats0[i].state) {
                 PUTS("EXTRAPOLATEED");
@@ -526,17 +527,6 @@ void TrackStars(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, in
            
             if(stats0[i].time == 1)
                 insert_new_track_stars(stats0[i], stats1[stats0[i].next], tracks, last, frame);
-        idisp(*last);
-        idisp(*last);
-        idisp(*last);
-        idisp(*last);
-        idisp(*last);
-        idisp(*last);
-        idisp(*last);
-        idisp(*last);
-        idisp(*last);
-        idisp(*last);
-        idisp(*last);
         printTracks(tracks, *last);
         } 
     }
