@@ -3,7 +3,8 @@ CFLAGS=-Wall -std=c99 -O3 -march=native -D_POSIX_C_SOURCE=200809L
 # CFLAGS=-Wall -std=c99 -D_POSIX_C_SOURCE=200809L
 CXXFLAGS=-Wall -std=c++17 -O3
 EXEC_NAME=ballon
-INCLUDES=-I include/ -I ffmpeg-io/include
+
+INCLUDES=-I include/ -I lib/ffmpeg-io/include
 LIBS=-Llib/ffmpeg-io/lib -lm -lffmpeg-io
 DEFINES=
 
@@ -39,14 +40,15 @@ full :
 	./ballon -input /dsk/l1/misc/cc3801875/videos/C0089.MP4 -start_frame 0 -end_frame 6000 -validation ./validation/C0089.txt
 
 tau : 
-	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -start_frame 1 -end_frame 5000 -light_min 55 -light_max 80 -surface_min 4 -surface_max 1000 -debug
+	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -start_frame 1 -end_frame 5000 -light_min 55 -light_max 80 -surface_min 3 -surface_max 1000 -debug
+
 
 tau_validation : 
-	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -start_frame 1 -end_frame 5000 -light_min 55 -light_max 80 -surface_min 4 -surface_max 1000 -debug -validation ./validation/meteor24.txt
+	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -start_frame 1 -end_frame 5000 -light_min 55 -light_max 80 -surface_min 3 -surface_max 1000 -debug -validation ./validation/meteor24.txt
 
 
 lib/ffmpeg-io/lib/libffmpeg-io.a:
-	@$(MAKE) -C ffmpeg-io
+	@$(MAKE) -C lib/ffmpeg-io
 
 obj_dir:
 	mkdir -p $(BUILD_DIR)

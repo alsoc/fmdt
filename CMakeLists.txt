@@ -100,5 +100,6 @@ endif()
 if(TH_TRACKING_EXE)
 	target_link_libraries(th-tracking-exe PRIVATE ffmpeg-io-slib)
 	target_link_libraries(th-tracking-exe PRIVATE m)
+
 endif()
 

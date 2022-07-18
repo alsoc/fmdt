@@ -56,7 +56,8 @@ Pour les options :
 `-light_max  ` : Seuil haut du seuillage par hystérésis (int)\
 `-surface_min` : Surface min des CC en pixels (int)\
 `-surface_max` : Surface max des CC en pixels (int)\
-`-debug`       : Enregistre des données pour debugger dans debug/ (1/0) \
+`-debug`       : Enregistre des données pour debugger dans debug/ \
+`-save`        : Save binary frame for debug \
 `-validation ` : Fichier contenant la vérité terrain de la séquence (str)
 
 ## Videos
