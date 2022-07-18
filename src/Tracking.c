@@ -70,6 +70,7 @@ void init_Track(Track *tracks, int n)
         tracks[i].bb_x      = 0;
         tracks[i].bb_y      = 0;
         tracks[i].is_valid  = 0;
+        // tracks[i].cur         = 0;
     }
 }
 
@@ -87,6 +88,7 @@ void clear_index_Track(Track *tracks, int i)
     tracks[i].bb_x      = 0;
     tracks[i].bb_y      = 0;
     tracks[i].is_valid  = 0;
+    // tracks[i].cur         = 0;
 
 }
 
@@ -270,10 +272,12 @@ void update_bounding_box(Track* track, MeteorROI stats, int frame)
     idisp(stats.xmin);
     idisp(stats.xmax);
     uint16 rx, ry, bb_x, bb_y;
-    // track->bb_x      = (uint16)ceil((double)((stats.xmin + stats.xmax))/2);
-    // track->bb_y      = (uint16)ceil((double)((stats.ymin + stats.ymax))/2);
-    // track->rx        = track->bb_x - stats.xmin + 5;
-    // track->ry        = track->bb_y - stats.ymin + 5;
+
+    // juste pour debug (affichage)
+    track->bb_x      = (uint16)ceil((double)((stats.xmin + stats.xmax))/2);
+    track->bb_y      = (uint16)ceil((double)((stats.ymin + stats.ymax))/2);
+    track->rx        = track->bb_x - stats.xmin + 5;
+    track->ry        = track->bb_y - stats.ymin + 5;
 
     bb_x      = (uint16)ceil((double)((stats.xmin + stats.xmax))/2);
     bb_y      = (uint16)ceil((double)((stats.ymin + stats.ymax))/2);
@@ -342,6 +346,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
             if(tracks[i].state == TRACK_UPDATED || tracks[i].state == TRACK_NEW){
                 next = stats0[tracks[i].end.ID].next;
                 if(next){
+                    // tracks[i].vitesse[(tracks[i].cur)++] = stats0[tracks[i].end.ID].error;
                     tracks[i].x = tracks[i].end.x;
                     tracks[i].y = tracks[i].end.y;
                     tracks[i].end = stats1[next];
@@ -418,10 +423,8 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
     track->time      = 1; 
     track->timestamp = frame - 2;
     track->state = TRACK_NEW;
+    // track->vitesse[(track->cur)++] = buffer[i].stats0.error;
     // update_bounding_box(track, last_stats, frame);
-
-    track->dirX =  buffer[i].stats1.x > buffer[i].stats0.x; // vers la droite  
-    track->dirY =  buffer[i].stats1.y > buffer[i].stats0.y; // vers le bas
 }
 
 // -----------------------------------------------------
@@ -452,8 +455,9 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
 
     double errMoy = errorMoy(stats0, nc0);
     double eType = ecartType(stats0, nc0, errMoy);
-    int tab[10];
-    int cur = 0;
+
+
+    saveErrorMoy("second_error.txt", errMoy, eType);
 
     for(int i = 1; i <= nc0; i++){
         float32 e = stats0[i].error;
@@ -461,7 +465,7 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
         int asso = stats0[i].next;
 
         // si mouvement detecté
-        if (fabs(e-errMoy) > 1.5 * eType && asso){
+        if (fabs(e-errMoy) > 4 * eType && asso){
             
             if (stats0[i].state) {
                 PUTS("EXTRAPOLATEED");
@@ -485,7 +489,6 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
                         break;
                     }
                 }   
-                // idisp(j);
                 int k = search_buf_stat(stats0[i], frame);
                 idisp(k);
                 if(j == *last + 1 || *last == -1){
@@ -514,8 +517,6 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
 
 void TrackStars(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset)
 {
-    int j;
-
     for(int i = 1; i <= nc0; i++){
         int asso = stats0[i].next;
 
@@ -523,15 +524,11 @@ void TrackStars(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, in
             
             stats0[i].time++;
             stats1[stats0[i].next].time = stats0[i].time ;
-            idisp(stats0[i].time);
            
             if(stats0[i].time == 1)
                 insert_new_track_stars(stats0[i], stats1[stats0[i].next], tracks, last, frame);
-        printTracks(tracks, *last);
         } 
     }
-
     // parcourir les track et update si besoin
     updateTrackStars(tracks, stats0, stats1, nc1, frame, offset, last);
-
 }

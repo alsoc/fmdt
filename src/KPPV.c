@@ -12,7 +12,7 @@
 #include <macro_debug.h>
 #include <DebugUtil.h>
 #define INF32 0xFFFFFFFF
-#define MAX 200
+#define MAX 100
 
 uint32 **nearest; 
 float32 **distances; 
@@ -145,8 +145,5 @@ void mis_en_correspondance(MeteorROI *stats0, MeteorROI *stats1, int nc0, int nc
 void kppv_routine(MeteorROI *stats0, MeteorROI *stats1, int nc0, int nc1, int k)
 {
         kppv(stats0, stats1, nc0, nc1, k);
-        PUTS("OK");
         mis_en_correspondance(stats0, stats1, nc0, nc1);
-        PUTS("OOOOOK");
-
 }

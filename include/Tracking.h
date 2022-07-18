@@ -38,6 +38,10 @@ typedef struct {
         // Resultat validation (bad design)
         // uint8 is_meteor;
         uint8 is_valid;
+
+        // Juste pour afficher les vitesses
+        float32 vitesse[300];
+        int cur;
 } Track;
 
 // Tracks states

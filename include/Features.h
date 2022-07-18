@@ -44,6 +44,8 @@ typedef struct {
   uint8 motion; // debug
   uint8 state; 
   
+
+
 } MeteorROI;
 
 void init_MeteorROI (MeteorROI *stats, int n);
@@ -62,6 +64,10 @@ double errorMoy(MeteorROI *stats, int n);
 void motion(MeteorROI *stats0, MeteorROI *stats1, int n0, int n1, double *theta, double *tx, double *ty);
 
 void motion_extraction(MeteorROI *stats0, MeteorROI *stats1, int nc0, double theta, double tx, double ty);
+
+int analyse_features_ellipse(MeteorROI* stats, int n, float e_threshold);
+
+
 #ifdef __cplusplus
 }
 #endif

@@ -14,7 +14,7 @@ extern "C" {
 // si macro inactive, release
 // #define ENABLE_CONTROL : macro pour activer le controle d'acces
 
-#define ENABLE_DEBUG
+// #define ENABLE_DEBUG
 // ----------------------------------------------------- //
 // -- ne rien ecrire en desous de cette ligne ---------- //
 // ----------------------------------------------------- //

@@ -39,7 +39,11 @@ full :
 	./ballon -input /dsk/l1/misc/cc3801875/videos/C0089.MP4 -start_frame 0 -end_frame 6000 -validation ./validation/C0089.txt
 
 tau : 
-	./ballon -input /dsk/l1/misc/cc3801875/Meteors_in_mkv/4 -start_frame 1 -end_frame 41 -light_max 85 -light_min 75
+	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -start_frame 1 -end_frame 5000 -light_min 55 -light_max 80 -surface_min 4 -surface_max 1000 -debug
+
+tau_validation : 
+	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -start_frame 1 -end_frame 5000 -light_min 55 -light_max 80 -surface_min 4 -surface_max 1000 -debug -validation ./validation/meteor24.txt
+
 
 ffmpeg-io/lib/libffmpeg-io.a:
 	@$(MAKE) -C ffmpeg-io

@@ -111,6 +111,7 @@ void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, Me
     for(int i=1; i<=n; i++){
         cc = stats[i];
         if(cc.S){
+            id = cc.ID;
             if (S_min > cc.S || cc.S > S_max ){
                 stats[i].S = 0;
                 /* JUSTE POUR DEBUG (Affichage frames)*/
@@ -118,7 +119,6 @@ void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, Me
                 x1 = cc.ymax;
                 y0 = cc.xmin;
                 y1 = cc.xmax;
-                id = cc.ID;
                 for(int k=x0; k<=x1; k++){
                     for(int l=y0; l<=y1; l++){
                         if (M[k][l] == id)
@@ -738,6 +738,8 @@ void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, 
 }
 
 */
+
+// Pour l'optimisation : faire une version errorMoy_corrected()
 // ---------------------------------------------------------------------------------------------------
 double errorMoy(MeteorROI *stats, int n)
 // ---------------------------------------------------------------------------------------------------
@@ -746,24 +748,30 @@ double errorMoy(MeteorROI *stats, int n)
     int cpt = 0;
 
     for(int i=1; i<=n; i++){
+
         if (stats[i].motion || !stats[i].next) continue;
+
         S+=stats[i].error;
         cpt++;
     }
     return S/cpt;
 }
 
-
+// Pour l'optimisation : faire une version ecartType_corrected()
 // -----------------------------------------------------
 double ecartType(MeteorROI *stats, int n, double errMoy)
 // -----------------------------------------------------
 {   
     double S = 0.0;
     int cpt = 0;
+    float32 e;
 
     for (int i = 1; i <= n; i++){
-        if (stats[i].motion|| !stats[i].next) continue;
-        S += ((stats[i].error-errMoy)*(stats[i].error-errMoy));
+
+        if (stats[i].motion || !stats[i].next) continue;
+
+        e = stats[i].error;
+        S += ((e-errMoy)*(e-errMoy));
         cpt++;
     }
     return sqrt(S/cpt);
@@ -788,10 +796,12 @@ void motion_extraction(MeteorROI *stats0, MeteorROI *stats1, int nc0, double the
             x = cos(theta) * (xp - tx) + sin(theta) * (yp - ty);
             y = cos(theta) * (yp - ty) - sin(theta) * (xp - tx);
 
+            // pas besoin de stocker dx et dy (juste pour l'affichage du debug)
             dx = x-stats0[i].x;
             dy = y-stats0[i].y;
             stats0[i].dx = dx;
             stats0[i].dy = dy;
+
             e = sqrt(dx*dx+dy*dy);
             stats0[i].error = e;           
         }
@@ -806,16 +816,7 @@ void motion(MeteorROI *stats0, MeteorROI *stats1, int n0, int n1, double *theta,
     double errMoy = errorMoy(stats0, n0);
     double eType = ecartType(stats0, n0, errMoy);
 
-    FILE *f = fopen("./debug/first_error.txt", "a");
-    if (f == NULL){
-        printf("error ouverture %s \n", "./debug/first_error.txt");
-        exit(1);
-    }
-    fprintf(f, "%5.2f \t %5.2f \n", errMoy, eType); 
-    PUTS("motion");
-    fdisp(errMoy);
-    fdisp(eType);
-    fclose(f);
+    saveErrorMoy("first_error.txt", errMoy, eType);
 
     rigid_registration_corrected(stats0, stats1, n0, n1, theta, tx, ty, errMoy, eType);
     motion_extraction(stats0, stats1, n0, *theta, *tx, *ty);
@@ -827,11 +828,9 @@ void motion(MeteorROI *stats0, MeteorROI *stats1, int n0, int n1, double *theta,
 int analyse_features_ellipse(MeteorROI* stats, int n, float e_threshold)
 // -------------------------------------------------------------
  {
-    float32 radToDeg = 180.0 / 3.1415927;
-    
     float32 S, Sx, Sy, Sx2, Sy2, Sxy;
     float32 x_avg, y_avg, m20, m02, m11;
-    float32 theta, a2, b2, a, b, e;
+    float32 a2, b2, a, b, e;
     
     int true_n = 0;
     
