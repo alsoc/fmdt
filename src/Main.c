@@ -92,7 +92,7 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     while ((next = strpbrk(slash + 1, "\\/"))) {
         slash = next;
     }
-    if (&src_path != slash) slash++;
+    if (src_path != slash) slash++;
     filename = strndup(slash, next-slash);
 
 

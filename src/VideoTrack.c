@@ -3,17 +3,17 @@
  * LIP6
  */ 
 
-
-#include <nrutil.h>
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
-#include <Features.h>
 #include <sys/stat.h>
-#include <Tracking.h>
-#include <DebugUtil.h>
-#include <Video.h>
-#include <Validation.h>
+
+#include "nrutil.h"
+#include "Features.h"
+#include "Tracking.h"
+#include "DebugUtil.h"
+#include "Video.h"
+#include "Validation.h"
 
 #define SIZE_MAX_METEORROI 3000
 #define SIZE_MAX_TRACKS 1000
@@ -41,7 +41,6 @@ typedef struct coordBB {
 
 coordBB listBB[200];
 
-
 // ==============================================================================================================================
 rgb8 get_color(int color)
 // ==============================================================================================================================
@@ -68,6 +67,7 @@ rgb8 get_color(int color)
     }
     return red;
 }
+
 
 // ==============================================================================================================================
 void saveVideoFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, int j0, int j1)
@@ -413,7 +413,7 @@ void test_validation_routine_frame(int argc, char** argv)
         Validation_final();
         Validation_free();
     }
-ymin
+
     frame = start; 
     char lines[1000];
     char src[300];
@@ -459,7 +459,7 @@ ymin
     
     free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
 }
-*/
+
 
 void test_max(int argc, char** argv)
 

@@ -70,7 +70,6 @@ void init_Track(Track *tracks, int n)
         tracks[i].bb_x      = 0;
         tracks[i].bb_y      = 0;
         tracks[i].is_valid  = 0;
-        // tracks[i].cur         = 0;
     }
 }
 
@@ -88,7 +87,6 @@ void clear_index_Track(Track *tracks, int i)
     tracks[i].bb_x      = 0;
     tracks[i].bb_y      = 0;
     tracks[i].is_valid  = 0;
-    // tracks[i].cur         = 0;
 
 }
 
@@ -188,7 +186,6 @@ void insert_buffer(MeteorROI stats0, MeteorROI stats1, int frame)
             b->y      = stats0.y;        b1->y      = stats1.y;
             b->Sx     = stats0.Sx;       b1->Sx     = stats1.Sx;
             b->Sy     = stats0.Sy;       b1->Sy     = stats1.Sy;
-struct list;
             b->Sx2    = stats0.Sx2;      b1->Sx2    = stats1.Sx2;
             b->Sy2    = stats0.Sy2;      b1->Sy2    = stats1.Sy2;
             b->Sxy    = stats0.Sxy;      b1->Sxy    = stats1.Sxy;
@@ -529,6 +526,8 @@ void TrackStars(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, in
                 insert_new_track_stars(stats0[i], stats1[stats0[i].next], tracks, last, frame);
         } 
     }
+
     // parcourir les track et update si besoin
     updateTrackStars(tracks, stats0, stats1, nc1, frame, offset, last);
+
 }

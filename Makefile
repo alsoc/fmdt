@@ -4,7 +4,7 @@ CFLAGS=-Wall -std=c99 -O3 -march=native -D_POSIX_C_SOURCE=200809L
 CXXFLAGS=-Wall -std=c++17 -O3
 EXEC_NAME=ballon
 INCLUDES=-I include/ -I ffmpeg-io/include
-LIBS=-Lffmpeg-io/lib -lm -lffmpeg-io
+LIBS=-Llib/ffmpeg-io/lib -lm -lffmpeg-io
 DEFINES=
 
 BUILD_DIR=build/
@@ -20,13 +20,13 @@ clean:
 	rm -f $(EXEC_NAME) $(OBJ_FILES) tracking img/img*_out*.png $(BUILD_DIR)VideoTrack.o
 #	@$(MAKE) -C lib/ffmpeg-io clean
 
-$(EXEC_NAME): $(OBJ_FILES) ffmpeg-io/lib/libffmpeg-io.a
+$(EXEC_NAME): $(OBJ_FILES) lib/ffmpeg-io/lib/libffmpeg-io.a
 	$(CC) -o $(EXEC_NAME) $(OBJ_FILES) $(LIBS)
 
 $(BUILD_DIR)%.o: $(SRC_DIR)%.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(DEFINES)  -o $@ -c $<
 
-tracking : $(OBJ_FILES_TRACK) $(BUILD_DIR)VideoTrack.o ffmpeg-io/lib/libffmpeg-io.a
+tracking : $(OBJ_FILES_TRACK) $(BUILD_DIR)VideoTrack.o lib/ffmpeg-io/lib/libffmpeg-io.a
 	$(CC) -o tracking $(OBJ_FILES_TRACK) $(BUILD_DIR)VideoTrack.o $(LIBS)
 
 VideoTrack.o : $(SRC_DIR)VideoTrack.c
@@ -45,14 +45,13 @@ tau_validation :
 	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -start_frame 1 -end_frame 5000 -light_min 55 -light_max 80 -surface_min 4 -surface_max 1000 -debug -validation ./validation/meteor24.txt
 
 
-ffmpeg-io/lib/libffmpeg-io.a:
+lib/ffmpeg-io/lib/libffmpeg-io.a:
 	@$(MAKE) -C ffmpeg-io
 
 obj_dir:
 	mkdir -p $(BUILD_DIR)
 
-.PHONY: ffmpeg-io/lib/libffmpeg-io.a 
+.PHONY: lib/ffmpeg-io/lib/libffmpeg-io.a
 
 zip:
 	zip -r -9 meteor . -i src/*.c include/*.h Makefile
- 

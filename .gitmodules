@@ -1,0 +1,3 @@
+[submodule "lib/ffmpeg-io"]
+	path = lib/ffmpeg-io
+	url = git@gitlab.lip6.fr:sog/ffmpeg-io.git
