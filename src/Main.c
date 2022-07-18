@@ -298,9 +298,10 @@ void meteor_ballon_hyst(int argc, char** argv)
 
     while(Video_nextFrame(video,ballon->I1)) {
         
-        frame = video->frame_current - 1;
+        frame = video->frame_current-2;
 		printf("[Frame] %-4d\n", frame);
-	    create_debug_files (frame);
+
+    	create_debug_files (frame);
 	    create_frames_files(frame);
 	    create_videos_files(filename);
 
@@ -308,6 +309,11 @@ void meteor_ballon_hyst(int argc, char** argv)
         PUTS("\t Step 1 : seuillage low/high");
         copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SH); 
         copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SM);
+
+        if (frame == 0){
+            saveFrame_ui32matrix(path_frames_binary, ballon->SH32, i0, i1, j0, j1);
+            // saveFrame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
+        }
 
         threshold_high(ballon->SM, i0, i1, j0, j1, light_min);
         threshold_high(ballon->SH, i0, i1, j0, j1, light_max);
@@ -444,9 +450,9 @@ void meteor_ballon_max(int argc, char** argv)
     // -- TRAITEMENT --//
     // ----------------//
     PUTS("LOOP");
-	if(!Video_nextFrame(video,ballon->I0)) { 
-        exit(1);
-    }
+	// if(!Video_nextFrame(video,ballon->I0)) { 
+        // exit(1);
+    // }
 
     while(Video_nextFrame(video,ballon->I1)) {
         frame = video->frame_current - 1;

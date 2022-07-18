@@ -28,9 +28,9 @@
 
 
 #define SEQUENCE_DST_PATH_DEBUG "debug/"
-#define SEQUENCE_DST_PATH_VIDEOS "/dsk/l1/misc/mk3800103/videos_Tracks/"
+#define SEQUENCE_DST_PATH_VIDEOS "/dsk/l1/misc/cc3801875/videos_Tracks/"
 // #define SEQUENCE_DST_PATH_FRAMES "frames/"
-#define SEQUENCE_DST_PATH_FRAMES "/dsk/l1/misc/mk3800103/frames_out/"
+#define SEQUENCE_DST_PATH_FRAMES "/dsk/l1/misc/cc3801875/frames_out/"
 #define SIZE_BUF 20
 
 char path_stats_0[250], path_stats_1[250];
