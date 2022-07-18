@@ -12,7 +12,7 @@
 #include <macro_debug.h>
 #include <DebugUtil.h>
 #define INF32 0xFFFFFFFF
-#define MAX 500
+#define MAX 100
 
 uint32 **nearest; 
 float32 **distances; 

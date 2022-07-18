@@ -72,6 +72,7 @@ int Validation(char* _inputs_file, Track* _tracks_pool, unsigned _tracks_nb, cha
 
             inputs[i].nb_tracks     = 0;
             inputs[i].hits          = 0;
+            inputs[i].hits          = 1; //tmp
             // inputs[i].is_valid      = 0;
             // inputs[i].is_valid_last = -1;
 
@@ -126,7 +127,10 @@ void Validation_free(void)
         {
             int expected_hits = inputs[i].t1-inputs[i].t0+1;
 
-            VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1 ); );
+            // tmp
+            if (inputs[i].hits== 1) inputs[i].hits = 0;
+            // VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1 ); );
+            VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d \t %4d \t %4d \t %6.1f \t %6.1f \t %6.1f \t %6.1f\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1, inputs[i].track_t0, inputs[i].track_t1, inputs[i].track_x0, inputs[i].track_y0 ,inputs[i].track_x1, inputs[i].track_y1 ); );
 
            fprintf(out, "\t Input %-2d : hits = %3d / %3d \t Frames = %5d - %5d\n", i, inputs[i].hits, expected_hits, inputs[i].t0, inputs[i].t1 );
         }
@@ -185,6 +189,14 @@ void Validation_step(unsigned timestamp)
 // version naive
 void Validation_final()
 {
+    // pour afficher les vitesses des météores
+    // FILE *f = fopen("./test.txt", "a");
+    // if (f == NULL){
+    //     printf("error ouverture %s \n", "./test.txt");
+    //     exit(1);
+    // }
+
+
 
     Track* track;
     idisp(tracks_nb);
@@ -199,7 +211,22 @@ void Validation_final()
                 inputs[i].bb_x0 <= track->begin.x && track->end.x <= inputs[i].bb_x1 &&
                 inputs[i].bb_y0 <= track->begin.y && track->end.y <= inputs[i].bb_y1) {
                 input = &inputs[i];
-                break; // maybe
+                
+                // fprintf(f, "\nINPUT %d\n", i);
+
+                // for (int j = 0; j < track->cur; j++ ){
+                //     fprintf(f, "%5.3f\t", track->vitesse[j]);
+                    
+                // }
+
+                inputs[i].track_t0 = track->timestamp;
+                inputs[i].track_t1 = track->timestamp+track->time;
+                inputs[i].track_x0 = track->begin.x;
+                inputs[i].track_y0 = track->begin.y;
+                inputs[i].track_x1 = track->end.x;
+                inputs[i].track_y1 = track->end.y;
+                if (inputs[i].nb_tracks == 0)
+                    break; // maybe
             }
             // int tmp = 3965;
             // if(track->timestamp == tmp){
@@ -239,6 +266,7 @@ void Validation_final()
 
         // Piste matche avec un input
         if(input) {
+
                 input->nb_tracks++;
                 input->hits = track->time + input->hits ;
                 track->is_valid = 1;

@@ -28,17 +28,18 @@
 
 
 #define SEQUENCE_DST_PATH_DEBUG "debug/"
-#define SEQUENCE_DST_PATH_VIDEOS "/dsk/l1/misc/cc3801875/videos_Tracks/"
+#define SEQUENCE_DST_PATH_VIDEOS "/dsk/l1/misc/mk3800103/videos_Tracks/"
 // #define SEQUENCE_DST_PATH_FRAMES "frames/"
-#define SEQUENCE_DST_PATH_FRAMES "/dsk/l1/misc/cc3801875/frames_tau/"
+#define SEQUENCE_DST_PATH_FRAMES "/dsk/l1/misc/mk3800103/frames_out/"
 #define SIZE_BUF 20
 
 char path_stats_0[250], path_stats_1[250];
-char path_frame[250];
+char path_frames_binary[250], path_frames_output[250];
 char path_video_tracking[250];
 char path_motion[200], path_extraction[200], path_error[200], path_tracks[200], path_bounding_box[200];
 char path_debug[250];
-char path_frames_f[200], path_stats_f[200], path_videos[200];
+char path_frames_binary_dir[200], path_frames_output_dir[200], path_stats_f[200], path_videos[200];
+char path_assoconflicts_f[150];
 
 extern uint32 **nearest;
 extern float32 **distances;
@@ -121,6 +122,22 @@ void saveTabBB(const char *filename, elemBB **tabBB, int n)
             }
         }
     }
+
+    fclose(f);
+}
+// ---------------------------------------------------------------------------------------------------
+void saveErrorMoy(const char *filename, double errMoy, double eType)
+// ---------------------------------------------------------------------------------------------------
+{
+    char path[200];
+    sprintf(path, "%s%s", path_assoconflicts_f, filename);
+    disp(path);
+    FILE *f = fopen(path, "a");
+    if (f == NULL){
+        printf("error ouverture %s \n", path);
+        exit(1);
+    }
+    fprintf(f, "%5.2f \t %5.2f \n", errMoy, eType); 
 
     fclose(f);
 }
@@ -297,7 +314,7 @@ void parseTracks(const char*filename, Track* tracks, int* n)
         tracks[i].bb_x      = bb_x;
         tracks[i].bb_y      = bb_y;
     }
-    (*n)--;
+    // (*n)--;
     fclose(file);
 }
 
@@ -513,43 +530,43 @@ void saveAssoConflicts(const char*filename, int frame, uint32 *conflicts, uint32
 
     double errMoy = errorMoy(stats0, n_asso);
     double eType = ecartType(stats0, n_asso, errMoy);
-
+    fprintf(f, "error moy : %.3f \t ecart type : %.3f\n", errMoy, eType);
 
     for(int i = 1; i<= n_asso; i++){
+        if (stats0[i].S == 0) continue;
+        
         j = stats0[i].next; 
         if(j == 0 ){
-
-            if (stats0[i].S > 0)
                 fprintf(f, "%4d \t ->   pas d'association\n", i);
         }
         else {
             float32 dx = stats0[i].dx;
             float32 dy = stats0[i].dy;
-            fprintf(f, "%4d \t -> %4d \t  : distance = %10.2f \t ; %4d-voisin \t dx = %4.1f \t dy = %4.1f \t error: %.3f \t error moy : %.3f \t ecart type : %.3f  \n", i, j, distances[i][j], Nearest[i][j], dx , dy , stats0[i].error, errMoy, eType);
+            fprintf(f, "%4d \t -> %4d \t  : distance = %10.2f \t ; %4d-voisin \t dx = %4.1f \t dy = %4.1f \t error: %.3f\n", i, j, distances[i][j], Nearest[i][j], dx , dy , stats0[i].error);
         }
     }
 
-    // Conflicts
-    cpt = 0;
-    for(int i = 1; i<= n_conflict; i++){
-        if(conflicts[i] != 1 && conflicts[i] != 0)
-            cpt++;
-    }
+    // // Conflicts
+    // cpt = 0;
+    // for(int i = 1; i<= n_conflict; i++){
+    //     if(conflicts[i] != 1 && conflicts[i] != 0)
+    //         cpt++;
+    // }
 
-    fprintf(f, "Conflicts\n%d\n", cpt);
+    // fprintf(f, "Conflicts\n%d\n", cpt);
 
-    for(int j = 1; j <= n_conflict; j++){
-        if (conflicts[j] != 1 && conflicts[j] != 0){
-            fprintf(f, "conflit CC = %4d : ", j);
-            for(int i = 1 ; i <= n_asso; i++){
-                if (Nearest[i][j] == 1 ){
-                    fprintf(f, "%4d\t", i);
-                }
-            }
-            fprintf(f, "\n");
-        }
-    }
-    fprintf(f, "------------------------------------------------------------------------------------------------------------\n");
+    // for(int j = 1; j <= n_conflict; j++){
+    //     if (conflicts[j] != 1 && conflicts[j] != 0){
+    //         fprintf(f, "conflit CC = %4d : ", j);
+    //         for(int i = 1 ; i <= n_asso; i++){
+    //             if (Nearest[i][j] == 1 ){
+    //                 fprintf(f, "%4d\t", i);
+    //             }
+    //         }
+    //         fprintf(f, "\n");
+    //     }
+    // }
+    fprintf(f, "\n------------------------------------------------------------------------------------------------------------\n");
     fclose(f);
 }
 
@@ -1115,7 +1132,7 @@ void saveMax(const char*filename, uint8**I, int i0, int i1, int j0, int j1)
     fclose(f);
 }
 
-// ==========================================================================================================================================================================
+// =========================================================================================================================================================================
 void split_path_file(char** p, char** f, char *pf) 
 // =========================================================================================================================================================================
 {
@@ -1135,7 +1152,7 @@ void create_debug_dir(char *filename, int light_min, int light_max, int edt)
 // ==========================================================================================================================================================================
 {
         char tmp_asso[50], tmp_stats[50], tmp_videos[50];
-        char path_assoconflicts[80], path_assoconflicts_f[150], path_stats[60];
+        char path_assoconflicts[80], path_stats[60];
         struct stat status = { 0 };
 
         sprintf(tmp_asso,     "%sassoconflicts/",             SEQUENCE_DST_PATH_DEBUG);
@@ -1145,31 +1162,18 @@ void create_debug_dir(char *filename, int light_min, int light_max, int edt)
 
         if ((light_min != -1) && (light_max != -1)){
                 sprintf(path_assoconflicts,     "%sSB_%d_SH_%d/",                               tmp_asso, light_min, light_max);
-                sprintf(path_stats,             "%sSB_%d_SH_%d/",                              tmp_stats, light_min, light_max);
+                sprintf(path_stats,             "%sSB_%d_SH_%d/",                               tmp_stats, light_min, light_max);
                 sprintf(path_videos,            "%sSB_%d_SH_%d/",                               tmp_videos, light_min, light_max);
                 sprintf(path_assoconflicts_f,   "%s%s/",                                        path_assoconflicts, filename);
                 sprintf(path_stats_f,           "%s%s/",                                        path_stats, filename);
                 sprintf(path_motion,            "%smotion.txt",                                 path_assoconflicts_f);
-                sprintf(path_bounding_box,      "%sbounding_box.txt",                            path_assoconflicts_f);
+                sprintf(path_bounding_box,      "%sbounding_box.txt",                           path_assoconflicts_f);
                 sprintf(path_extraction,        "%sextraction.txt",                             path_assoconflicts_f);
                 sprintf(path_error,             "%serror.txt",                                  path_assoconflicts_f);
                 sprintf(path_tracks,            "%stracks.txt",                                 path_assoconflicts_f);
                 sprintf(path_debug,             "%s%s.txt",                                     path_assoconflicts_f, filename);
                 goto next;
         }
-
-        if (edt != -1){
-                sprintf(path_assoconflicts,     "debug/assoconflicts/EDT_%d/",                  edt);
-                sprintf(path_stats,             "debug/stats/SB_%d_SH_%d/",                     light_min, light_max);
-                sprintf(path_assoconflicts_f,   "%s%s/",                                        path_assoconflicts, filename);
-                sprintf(path_stats_f,           "%s%s/",                                        path_stats, filename);
-                sprintf(path_motion,            "%s%s/motion.txt",                              path_assoconflicts_f, filename);
-                sprintf(path_extraction,        "%s%s/extraction.txt",                          path_assoconflicts_f, filename);
-                sprintf(path_error,             "%s%s/error.txt",                               path_assoconflicts_f, filename);
-                sprintf(path_debug,             "%s%s.txt",                                     path_assoconflicts_f, filename);
-                goto next; 
-        }
-
         // default
         if( stat("./debug", &status) == -1 ) {
               mkdir( "./debug", 0700 );
@@ -1206,7 +1210,6 @@ next:
         if( stat(path_stats_f, &status) == -1 ) {
                 mkdir(path_stats_f, 0700 );
         }
-        printf("%s\n", path_assoconflicts_f);
 }
 
 
@@ -1215,18 +1218,15 @@ void create_frames_dir(char *filename, int light_min, int light_max, int edt)
 // ==========================================================================================================================================================================
 {
         char path_frames[100];
+        char path_frames_f[150];
         struct stat status = { 0 };
 
         if ((light_min != -1) && (light_max != -1)){
                 sprintf(path_frames,            "%sSB_%d_SH_%d/",                 SEQUENCE_DST_PATH_FRAMES, light_min, light_max);
                 sprintf(path_frames_f,          "%s%s/",                          path_frames, filename);
+                sprintf(path_frames_binary_dir,     "%s/binary/",                 path_frames_f);
+                sprintf(path_frames_output_dir,     "%s/output/",                 path_frames_f);
                 goto next;
-        }
-
-        if (edt != -1){
-                sprintf(path_frames,             "%sEDT_%d/",                     SEQUENCE_DST_PATH_FRAMES, edt);
-                sprintf(path_frames_f,           "%s%s/",                         path_frames, filename);
-                goto next; 
         }
         // default
         if( stat("./frames", &status) == -1 ) {
@@ -1244,7 +1244,12 @@ next:
         if( stat(path_frames_f, &status) == -1 ) {
                 mkdir( path_frames_f, 0700 );
         }
-        printf("%s\n", path_frames_f);
+        if( stat(path_frames_binary_dir, &status) == -1 ) {
+                mkdir( path_frames_binary_dir, 0700 );
+        }
+        if( stat(path_frames_output_dir, &status) == -1 ) {
+                mkdir( path_frames_output_dir, 0700 );
+        }
 }
 
 
@@ -1260,13 +1265,14 @@ void create_debug_files(int frame)
 void create_frames_files(int frame)
 // ==========================================================================================================================================================================
 {
-    sprintf(path_frame,           "%s%05d.ppm",           path_frames_f, frame);
+    sprintf(path_frames_binary,     "%s%05d.ppm",      path_frames_binary_dir, frame);
+    sprintf(path_frames_output,     "%s%05d.ppm",      path_frames_output_dir, frame);
 }
 
 // ==========================================================================================================================================================================
 void create_videos_files(char *filename)
 // ==========================================================================================================================================================================
 {
-    sprintf(path_video_tracking,           "%s%s.mp4",      path_videos,     filename);
+    sprintf(path_video_tracking,    "%s%s.mp4",      path_videos,     filename);
 }
 

@@ -111,6 +111,7 @@ void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, Me
     for(int i=1; i<=n; i++){
         cc = stats[i];
         if(cc.S){
+            id = cc.ID;
             if (S_min > cc.S || cc.S > S_max ){
                 stats[i].S = 0;
                 /* JUSTE POUR DEBUG (Affichage frames)*/
@@ -118,7 +119,6 @@ void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, Me
                 x1 = cc.ymax;
                 y0 = cc.xmin;
                 y1 = cc.xmax;
-                id = cc.ID;
                 for(int k=x0; k<=x1; k++){
                     for(int l=y0; l<=y1; l++){
                         if (M[k][l] == id)
@@ -340,13 +340,17 @@ void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, 
     Sy_yp = 0;
     cpt = 0;
 
-
+    int cpt1 = 0;
     // parcours tab assos
     for(int i=1; i<=n0; i++){
         cc0 = stats0[i];
 
-        if (fabs(stats0[i].error-errMoy) >  eType) continue; 
-        
+        if (fabs(stats0[i].error-errMoy) >  eType) {
+            stats0[i].motion = 1; 
+            fdisp(stats0[i].error);
+            cpt1++;
+            continue; 
+        }
         asso = stats0[i].next; // assos[i];
         
         if (cc0.S>0 && asso){
@@ -371,7 +375,7 @@ void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, 
     Sy    = 0;
     Syp   = 0;
 
-
+    idisp(cpt1);
     // parcours tab assos
     for(int i=1; i<=n0; i++){
         cc0 = stats0[i];
@@ -734,36 +738,43 @@ void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, 
 }
 
 */
+
+// Pour l'optimisation : faire une version errorMoy_corrected()
 // ---------------------------------------------------------------------------------------------------
 double errorMoy(MeteorROI *stats, int n)
 // ---------------------------------------------------------------------------------------------------
 {
-    double S = 0;
+    double S = 0.0;
     int cpt = 0;
 
     for(int i=1; i<=n; i++){
-        if (stats[i].motion) continue;
+
+        if (stats[i].motion || !stats[i].next) continue;
+
         S+=stats[i].error;
         cpt++;
     }
-    
     return S/cpt;
-
-
 }
 
-
+// Pour l'optimisation : faire une version ecartType_corrected()
 // -----------------------------------------------------
 double ecartType(MeteorROI *stats, int n, double errMoy)
 // -----------------------------------------------------
 {   
     double S = 0.0;
+    int cpt = 0;
+    float32 e;
 
     for (int i = 1; i <= n; i++){
-        if (stats[i].motion) continue;
-        S += (fabs(stats[i].error-errMoy));
+
+        if (stats[i].motion || !stats[i].next) continue;
+
+        e = stats[i].error;
+        S += ((e-errMoy)*(e-errMoy));
+        cpt++;
     }
-    return sqrt(S/n);
+    return sqrt(S/cpt);
 }
 
 // -----------------------------------------------------
@@ -785,10 +796,12 @@ void motion_extraction(MeteorROI *stats0, MeteorROI *stats1, int nc0, double the
             x = cos(theta) * (xp - tx) + sin(theta) * (yp - ty);
             y = cos(theta) * (yp - ty) - sin(theta) * (xp - tx);
 
+            // pas besoin de stocker dx et dy (juste pour l'affichage du debug)
             dx = x-stats0[i].x;
             dy = y-stats0[i].y;
             stats0[i].dx = dx;
             stats0[i].dy = dy;
+
             e = sqrt(dx*dx+dy*dy);
             stats0[i].error = e;           
         }
@@ -803,9 +816,67 @@ void motion(MeteorROI *stats0, MeteorROI *stats1, int n0, int n1, double *theta,
     double errMoy = errorMoy(stats0, n0);
     double eType = ecartType(stats0, n0, errMoy);
 
+    saveErrorMoy("first_error.txt", errMoy, eType);
+
     rigid_registration_corrected(stats0, stats1, n0, n1, theta, tx, ty, errMoy, eType);
     motion_extraction(stats0, stats1, n0, *theta, *tx, *ty);
 }
 
 
 
+// -------------------------------------------------------------
+int analyse_features_ellipse(MeteorROI* stats, int n, float e_threshold)
+// -------------------------------------------------------------
+ {
+    float32 S, Sx, Sy, Sx2, Sy2, Sxy;
+    float32 x_avg, y_avg, m20, m02, m11;
+    float32 a2, b2, a, b, e;
+    
+    int true_n = 0;
+    
+    for (int i=1 ; i<=n ; i++) {
+        S   = stats[i].S;
+        Sx  = stats[i].Sx;
+        Sy  = stats[i].Sy;
+        Sx2 = stats[i].Sx2;
+        Sy2 = stats[i].Sy2;
+        Sxy = stats[i].Sxy;
+        
+        if (S==0) continue;
+        
+        x_avg = Sx / S;
+        y_avg = Sy / S;
+        
+        // Moments centrés
+        m20 = Sx2 / S - x_avg * x_avg; // var(x)
+        m02 = Sy2 / S - y_avg * y_avg; // var(y)
+        m11 = Sxy / S - x_avg * y_avg; // cov(x,y) ?
+        
+        
+        a2 = (m20 + m02 + sqrt((m20 - m02) * (m20 - m02) + 4.0 * m11 * m11)) / (2.0 * S);
+        b2 = (m20 + m02 - sqrt((m20 - m02) * (m20 - m02) + 4.0 * m11 * m11)) / (2.0 * S);
+        
+        a = sqrt(a2);
+        b = sqrt(b2);
+        
+        e = a / b; // garder cette ligne une fois que tout sera corrige LL 2022 
+        // e = b / a; // FAUX car a grand rayon et b petit rayon par construction LL 2022
+        //e = sqrt(a2 - b2) / a;
+        //e = a / b;
+        
+        //float32 abs_diff = fabs(theta - stats[i].angle_UV);
+        //float32 angle_diff = min(min(abs_diff, 360-abs_diff), fabs(180-abs_diff));
+        
+        // test inverse de ce qui est naturel de faire (coherent avec e = b/a, mais INVERSE !) LL 2020
+        if (e > e_threshold /*&&  angle_diff > 10*/) {
+            stats[i].S = 0;
+            continue;
+        }
+        true_n++;
+        /*#ifndef REAL_TIME_TEST
+        printf("i = %2d | m20 = %8.1f | m02 = %8.1f | m11 = %8.1f | theta = %4.1f | a = %6.1f | b = %6.1f | e = %6.1f | |uv| = %6.1f | arg(uv) = %4.1f\n",
+        i, m20, m02, m11, theta, a, b, e, stats[i].norm_UV, stats[i].angle_UV);
+        #endif*/
+    }
+    return true_n;
+}
