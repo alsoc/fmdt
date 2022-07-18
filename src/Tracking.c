@@ -514,6 +514,7 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
 
 void TrackStars(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset)
 {
+
     for(int i = 1; i <= nc0; i++){
         int asso = stats0[i].next;
 

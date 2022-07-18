@@ -40,7 +40,6 @@ typedef struct coordBB {
 } coordBB;
 
 coordBB listBB[200];
-
 // ==============================================================================================================================
 rgb8 get_color(int color)
 // ==============================================================================================================================
@@ -68,6 +67,14 @@ rgb8 get_color(int color)
     return red;
 }
 
+void videoCopyToRGB(const char *filename, Video *video, uint8 **I, int i0, int i1, int j0, int j1)
+{
+    while(Video_nextFrame(video,I)) {
+        int frame = video->frame_current - 1;
+		printf("[Frame] %-4d\n", frame);
+        saveVideoFrame(filename, I, i0, i1, j0, j1);
+    }
+}
 
 // ==============================================================================================================================
 void saveVideoFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, int j0, int j1)

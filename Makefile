@@ -3,6 +3,7 @@ CFLAGS=-Wall -std=c99 -O3 -march=native -D_POSIX_C_SOURCE=200809L
 # CFLAGS=-Wall -std=c99 -D_POSIX_C_SOURCE=200809L
 CXXFLAGS=-Wall -std=c++17 -O3
 EXEC_NAME=ballon
+
 INCLUDES=-I include/ -I lib/ffmpeg-io/include
 LIBS=-Llib/ffmpeg-io/lib -lm -lffmpeg-io
 DEFINES=
@@ -40,6 +41,7 @@ full :
 
 tau : 
 	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -start_frame 1 -end_frame 5000 -light_min 55 -light_max 80 -surface_min 3 -surface_max 1000 -debug
+
 
 tau_validation : 
 	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -start_frame 1 -end_frame 5000 -light_min 55 -light_max 80 -surface_min 3 -surface_max 1000 -debug -validation ./validation/meteor24.txt
