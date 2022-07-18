@@ -92,10 +92,13 @@ endif()
 # Link with dependencies ------------------------------------------------------
 # -----------------------------------------------------------------------------
 target_link_libraries(th-common-obj PRIVATE ffmpeg-io-slib)
+target_link_libraries(th-common-obj PRIVATE m)
 if(TH_BALLON_EXE)
 	target_link_libraries(th-ballon-exe PRIVATE ffmpeg-io-slib)
+	target_link_libraries(th-ballon-exe PRIVATE m)
 endif()
 if(TH_TRACKING_EXE)
 	target_link_libraries(th-tracking-exe PRIVATE ffmpeg-io-slib)
+	target_link_libraries(th-tracking-exe PRIVATE m)
 endif()
 
