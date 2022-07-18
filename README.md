@@ -57,7 +57,7 @@ Pour les options :
 `-surface_min` : Surface min des CC en pixels (int)\
 `-surface_max` : Surface max des CC en pixels (int)\
 `-debug`       : Enregistre des données pour debugger dans debug/ \
-`-save`        : Save binary frame for debug
+`-save`        : Save binary frame for debug \
 `-validation ` : Fichier contenant la vérité terrain de la séquence (str)
 
 ## Videos
