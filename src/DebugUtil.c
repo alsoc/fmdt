@@ -18,6 +18,7 @@
 #include "ffmpeg-io/reader.h"
 #include "ffmpeg-io/writer.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -1136,10 +1137,14 @@ void saveMax(const char*filename, uint8**I, int i0, int i1, int j0, int j1)
 void split_path_file(char** p, char** f, char *pf) 
 // =========================================================================================================================================================================
 {
+    assert(pf != NULL);
+    assert(p != NULL);
+    assert(f != NULL);
+
     char *slash = pf, *next;
     while ((next = strpbrk(slash + 1, "\\/"))) 
         slash = next;
-    
+
     if (pf != slash) slash++;
     *p = strndup(pf, slash - pf);
     next = strpbrk(slash+1, ".");
