@@ -29,6 +29,10 @@ typedef struct {
         uint16 rx;
         uint16 ry;
 
+        //equation de la droite : y = ax + b
+        float32 a; 
+        float32 b;
+
         float32 xmin;
         float32 xmax;
         float32 ymin;
@@ -36,7 +40,7 @@ typedef struct {
 
         int state;
         // Resultat validation (bad design)
-        // uint8 is_meteor;
+        uint8 is_meteor;
         uint8 is_valid;
 
         // Juste pour afficher les vitesses

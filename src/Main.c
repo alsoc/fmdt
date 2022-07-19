@@ -58,7 +58,7 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     int light_min    = find_int_arg  (argc, argv, "-light_min",  60 ); // a definir
     int light_max    = find_int_arg  (argc, argv, "-light_max",  85 ); // a definir
     int surface_min  = find_int_arg  (argc, argv, "-surface_min",  3); // a definir
-    int surface_max  = find_int_arg  (argc, argv, "-surface_max",1000); // a definir
+    int surface_max  = find_int_arg  (argc, argv, "-surface_max",500); // a definir
     char* src_path   = find_char_arg (argc, argv, "-input",      NULL);
     int debug        = find_arg      (argc, argv, "-debug");
     int save         = find_arg      (argc, argv, "-save");
@@ -222,7 +222,7 @@ void meteor_ballon_hyst(int argc, char** argv)
     int light_min    = find_int_arg  (argc, argv, "-light_min",  55 ); // a definir
     int light_max    = find_int_arg  (argc, argv, "-light_max",  80 ); // a definir
     int surface_min  = find_int_arg  (argc, argv, "-surface_min",  5); // a definir
-    int surface_max  = find_int_arg  (argc, argv, "-surface_max",1000); // a definir
+    int surface_max  = find_int_arg  (argc, argv, "-surface_max",500); // a definir
     char* src_path   = find_char_arg (argc, argv, "-input",      NULL);
     char* validation = find_char_arg (argc, argv, "-validation", NULL);
     int debug        = find_arg      (argc, argv, "-debug");
@@ -310,11 +310,7 @@ void meteor_ballon_hyst(int argc, char** argv)
         copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SH); 
         copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SM);
 
-        if (frame == 0){
-            saveFrame_ui32matrix(path_frames_binary, ballon->SH32, i0, i1, j0, j1);
-            // saveFrame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
-        }
-
+      
         threshold_high(ballon->SM, i0, i1, j0, j1, light_min);
         threshold_high(ballon->SH, i0, i1, j0, j1, light_max);
      	//---------------------------------------------------------//
@@ -348,12 +344,13 @@ void meteor_ballon_hyst(int argc, char** argv)
         //--------------------------------------------------------//
         PUTS("\t [DEBUG] Saving frames");
         if (save){
-            saveFrame_ui32matrix(path_frames_binary, ballon->SH32, i0, i1, j0, j1);
+            // saveFrame_ui32matrix(path_frames_binary, ballon->SH32, i0, i1, j0, j1);
             // saveFrame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
         }
 
         PUTS("\t [DEBUG] Saving stats");
         if (debug){
+            // printStats(stats_shrink, n_shrink);
             saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
             // saveMotion(path_motion, theta, tx, ty, frame-1);
             // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
