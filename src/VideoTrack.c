@@ -24,6 +24,7 @@
 #define ORANGE 3
 #define BLUE   4
 #define YELLOW 5
+#define WHITE  6
 
 /*DEBUG*/
 extern char path_video_tracking[200];
@@ -40,14 +41,15 @@ typedef struct coordBB {
 } coordBB;
 
 coordBB listBB[200];
+
 // ==============================================================================================================================
 rgb8 get_color(int color)
 // ==============================================================================================================================
 {
-    rgb8 green;     rgb8 red;       rgb8 blue;      rgb8 orange;      rgb8 yellow;    
-    green.g = 255;  red.g = 000;    blue.g = 000;   orange.r = 255;   yellow.g = 255;
-    green.b = 000;  red.b = 000;    blue.b = 255;   orange.g = 165;   yellow.b = 000;
-    green.r = 000;  red.r = 255;    blue.r = 000;   orange.b = 000;   yellow.r = 255;
+    rgb8 green;     rgb8 red;       rgb8 blue;      rgb8 orange;      rgb8 yellow;      rgb8 white;     
+    green.g = 255;  red.g = 000;    blue.g = 000;   orange.r = 255;   yellow.g = 255;   white.g = 000;
+    green.b = 000;  red.b = 000;    blue.b = 255;   orange.g = 165;   yellow.b = 000;   white.b = 000;
+    green.r = 000;  red.r = 255;    blue.r = 000;   orange.b = 000;   yellow.r = 255;   white.r = 000;
 
     switch (color)
     {
@@ -61,6 +63,9 @@ rgb8 get_color(int color)
             return blue;
         case YELLOW:
             return yellow;
+        case WHITE:
+            return white;
+
         default:
             break;
     }
@@ -314,6 +319,9 @@ void test_validation_routine(int argc, char** argv)
                             color = tracks[i].is_valid ? GREEN : RED;
                         else
                             color = ORANGE;
+                        
+                        if(tracks[i].is_meteor == 1)
+                            color = RED;
                         addToListBB(rx, ry, bb_x, bb_y, color, cpt++);
                         break;
                 }

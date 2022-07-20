@@ -2,6 +2,7 @@
 #include "Tracking.h"
 #include "DebugUtil.h"
 
+#include <assert.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -112,6 +113,8 @@ int Validation(char* _inputs_file, Track* _tracks_pool, unsigned _tracks_nb, cha
 }
 void Validation_free(void)
 {
+    assert(inputs_file != NULL);
+
     char buf[100];
     sprintf(buf,"%svalidation.txt",dst_path);
     VERBOSE (printf("[Validation] save in file : %s\n",buf); );

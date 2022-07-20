@@ -18,6 +18,7 @@
 #include "ffmpeg-io/reader.h"
 #include "ffmpeg-io/writer.h"
 
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -146,9 +147,9 @@ void printTracks(Track* tracks, int last)
 
     if (last==-1) return;
 
-    for(int i = 0; i< last; i++){
-                printf("%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \t %4d \t %4d \t %4d \t %4d \t %4d\n", 
-        tracks[i].timestamp, tracks[i].begin.x, tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x , tracks[i].end.y, tracks[i].rx, tracks[i].ry, tracks[i].bb_x, tracks[i].bb_y, tracks[i].is_valid);
+    for(int i = 0; i<= last; i++){
+                printf("%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \t %4d \t %4d \t %4d \t %4d \t %4d %4d\n", 
+        tracks[i].timestamp, tracks[i].begin.x, tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x , tracks[i].end.y, tracks[i].rx, tracks[i].ry, tracks[i].bb_x, tracks[i].bb_y, tracks[i].is_valid, tracks[i].is_meteor);
 
         // printf("%4d \t %5f \t %5f \t %4d \t %5f \t %5f \t d\n", 
         // tracks[i].timestamp, tracks[i].begin.x , tracks[i].begin.y, tracks[i].timestamp+tracks[i].time - 1, tracks[i].end.x , tracks[i].end.y);
@@ -254,8 +255,8 @@ void saveTracks(const char*filename, Track* tracks, int n)
     if (cpt != 0){
         for(int i = 0; i<= n; i++){
             if(tracks[i].time){
-                fprintf(f, "%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \t %4d \t %4d  \n", 
-                tracks[i].timestamp, tracks[i].begin.x , tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x, tracks[i].end.y, tracks[i].bb_x, tracks[i].bb_y);
+                fprintf(f, "%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \t %4d \t %4d \t %4d\n", 
+                tracks[i].timestamp, tracks[i].begin.x , tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x, tracks[i].end.y, tracks[i].bb_x, tracks[i].bb_y, tracks[i].is_meteor);
             }
     
         }
@@ -288,6 +289,7 @@ void parseTracks(const char*filename, Track* tracks, int* n)
     int t0, t1;
     float32 x0, x1, y0, y1;
     int bb_x, bb_y;
+    int is_meteor;
     FILE * file = fopen(filename, "r"); 
     if (file == NULL) {
         fprintf(stderr, "cannot open file\n");
@@ -300,7 +302,7 @@ void parseTracks(const char*filename, Track* tracks, int* n)
     // printf("%d\n", *n);
     for(int i = 0; i< *n; i++){
         fgets(lines, 100, file);
-        sscanf(lines, "%d %f %f %d %f %f %d %d ", &t0, &x0, &y0, &t1, &x1, &y1, &bb_x, &bb_y);
+        sscanf(lines, "%d %f %f %d %f %f %d %d %d", &t0, &x0, &y0, &t1, &x1, &y1, &bb_x, &bb_y, &is_meteor);
         tracks[i].timestamp = t0;
         tracks[i].time      = t1-t0+1;
         tracks[i].state     = 0;
@@ -310,6 +312,7 @@ void parseTracks(const char*filename, Track* tracks, int* n)
         tracks[i].end.y     = y1;
         tracks[i].bb_x      = bb_x;
         tracks[i].bb_y      = bb_y;
+        tracks[i].is_meteor = is_meteor;
     }
     // (*n)--;
     fclose(file);
@@ -1133,10 +1136,14 @@ void saveMax(const char*filename, uint8**I, int i0, int i1, int j0, int j1)
 void split_path_file(char** p, char** f, char *pf) 
 // =========================================================================================================================================================================
 {
+    assert(pf != NULL);
+    assert(p != NULL);
+    assert(f != NULL);
+
     char *slash = pf, *next;
     while ((next = strpbrk(slash + 1, "\\/"))) 
         slash = next;
-    
+
     if (pf != slash) slash++;
     *p = strndup(pf, slash - pf);
     next = strpbrk(slash+1, ".");

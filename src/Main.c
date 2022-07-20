@@ -58,7 +58,7 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     int light_min    = find_int_arg  (argc, argv, "-light_min",  60 ); // a definir
     int light_max    = find_int_arg  (argc, argv, "-light_max",  85 ); // a definir
     int surface_min  = find_int_arg  (argc, argv, "-surface_min",  3); // a definir
-    int surface_max  = find_int_arg  (argc, argv, "-surface_max",1000); // a definir
+    int surface_max  = find_int_arg  (argc, argv, "-surface_max",500); // a definir
     char* src_path   = find_char_arg (argc, argv, "-input",      NULL);
     char* dest_path  = find_char_arg (argc, argv, "-output",     NULL);
     int debug        = find_arg      (argc, argv, "-debug");
@@ -315,12 +315,11 @@ void meteor_ballon_hyst(int argc, char** argv)
         frame = video->frame_current-2;
 		printf("[Frame] %-4d\n", frame);
 
-
 		//---------------------------------------------------------//
         PUTS("\t Step 1 : seuillage low/high");
         copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SH); 
         copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SM);
-
+		//---------------------------------------------------------//
         threshold_high(ballon->SM, i0, i1, j0, j1, light_min);
         threshold_high(ballon->SH, i0, i1, j0, j1, light_max);
      	//---------------------------------------------------------//

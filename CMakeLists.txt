@@ -5,14 +5,14 @@ project(tau-h)
 
 # CMake options ---------------------------------------------------------------
 # -----------------------------------------------------------------------------
-option(TH_BALLON_EXE "Compile the detection chain executable." ON)
-option(TH_TRACKING_EXE "compile the tracking executable." ON)
+option(TAH_BALLON_EXE "Compile the detection chain executable." ON)
+option(TAH_TRACKING_EXE "compile the tracking executable." ON)
 
 # Print CMake options values --------------------------------------------------
 # -----------------------------------------------------------------------------
 message(STATUS "Tau-h options: ")
-message(STATUS "  * TH_BALLON_EXE: '${TH_BALLON_EXE}'")
-message(STATUS "  * TH_TRACKING_EXE: '${TH_TRACKING_EXE}'")
+message(STATUS "  * TAH_BALLON_EXE: '${TAH_BALLON_EXE}'")
+message(STATUS "  * TAH_TRACKING_EXE: '${TAH_TRACKING_EXE}'")
 
 # Check CMake options ---------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -37,7 +37,7 @@ set(EXECUTABLE_OUTPUT_PATH ${exe_dir})
 # Declare source files to compile ---------------------------------------------
 # -----------------------------------------------------------------------------
 set(src_common_files
-	${src_dir}/Args.c
+    ${src_dir}/Args.c
     ${src_dir}/Features.c
     ${src_dir}/DebugUtil.c
     ${src_dir}/nrutil.c
@@ -48,23 +48,23 @@ set(src_common_files
 # Create binaries -------------------------------------------------------------
 # -----------------------------------------------------------------------------
 # object
-add_library(th-common-obj OBJECT ${src_common_files})
+add_library(tah-common-obj OBJECT ${src_common_files})
 # executables
-if(TH_BALLON_EXE)
+if(TAH_BALLON_EXE)
 	set(src_ballon_files
 	    ${src_dir}/Ballon.c
 	    ${src_dir}/CCL_LSL.c
 	    ${src_dir}/KPPV.c
 	    ${src_dir}/Threshold.c
 	    ${src_dir}/Main.c)
-	add_executable(th-ballon-exe $<TARGET_OBJECTS:th-common-obj> ${src_ballon_files})
-	set_target_properties(th-ballon-exe PROPERTIES OUTPUT_NAME ballon)
+	add_executable(tah-ballon-exe $<TARGET_OBJECTS:tah-common-obj> ${src_ballon_files})
+	set_target_properties(tah-ballon-exe PROPERTIES OUTPUT_NAME ballon)
 endif()
-if(TH_TRACKING_EXE)
+if(TAH_TRACKING_EXE)
 	set(src_tracking_files
 	    ${src_dir}/VideoTrack.c)
-	add_executable(th-tracking-exe $<TARGET_OBJECTS:th-common-obj> ${src_tracking_files})
-	set_target_properties(th-tracking-exe PROPERTIES OUTPUT_NAME tracking)
+	add_executable(tah-tracking-exe $<TARGET_OBJECTS:tah-common-obj> ${src_tracking_files})
+	set_target_properties(tah-tracking-exe PROPERTIES OUTPUT_NAME tracking)
 endif()
 
 # Add and compile sub-projects ------------------------------------------------
@@ -100,6 +100,4 @@ endif()
 if(TH_TRACKING_EXE)
 	target_link_libraries(th-tracking-exe PRIVATE ffmpeg-io-slib)
 	target_link_libraries(th-tracking-exe PRIVATE m)
-
 endif()
-

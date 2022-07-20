@@ -24,6 +24,7 @@
 
 #define SIZE_BUF 10000
 #define R 10
+#define INF 9999999
 
 
 static Buf buffer[SIZE_BUF];
@@ -70,6 +71,7 @@ void init_Track(Track *tracks, int n)
         tracks[i].bb_x      = 0;
         tracks[i].bb_y      = 0;
         tracks[i].is_valid  = 0;
+        tracks[i].is_meteor = 0;
     }
 }
 
@@ -87,6 +89,7 @@ void clear_index_Track(Track *tracks, int i)
     tracks[i].bb_x      = 0;
     tracks[i].bb_y      = 0;
     tracks[i].is_valid  = 0;
+    tracks[i].is_meteor  = 0;
 
 }
 
@@ -282,7 +285,6 @@ void update_bounding_box(Track* track, MeteorROI stats, int frame)
     ry        = bb_y - stats.ymin + 5;
 
     addToList(rx, ry, bb_x, bb_y, frame-1);
-    // saveBoundingBox(path_bounding_box, rx, ry, bb_x, bb_y, frame);
 
 }
 
@@ -317,7 +319,6 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                             tracks[i].end = stats0[j];
                             tracks[i].state = TRACK_UPDATED;
                             update_bounding_box(tracks+i, stats0[j], frame-1);
-                            // tracks[i].time++;
                         }
                 }
             }
@@ -343,6 +344,22 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
             if(tracks[i].state == TRACK_UPDATED || tracks[i].state == TRACK_NEW){
                 next = stats0[tracks[i].end.ID].next;
                 if(next){
+                    float32 a;
+                    float32 dx = (stats1[next].x - stats0[tracks[i].end.ID].x);
+                    float32 dy = (stats1[next].y - stats0[tracks[i].end.ID].y) ;
+
+                    a = (dx == 0) ? INF : (dy/dx);
+
+                    float32 y = tracks[i].a * stats1[next].x + tracks[i].b;
+
+                    if ( (fabs(stats1[next].y - y) < 25) && ((dx*tracks[i].dx >= 0.0f) && (dy*tracks[i].dy >= 0.0f)) && ((a < 0 && tracks[i].a < 0) ||  (a > 0 && tracks[i].a > 0) || ((a == INF) && (tracks[i].a == INF)))){
+                        tracks[i].is_meteor = 2;
+                        tracks[i].a = a;
+                        tracks[i].dx = dx;
+                        tracks[i].dy = dy;
+                        tracks[i].b = y - a * stats1[next].x;
+                    }
+                    else tracks[i].is_meteor = 1;
                     // tracks[i].vitesse[(tracks[i].cur)++] = stats0[tracks[i].end.ID].error;
                     tracks[i].x = tracks[i].end.x;
                     tracks[i].y = tracks[i].end.y;
@@ -412,14 +429,23 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
 
     update_bounding_box(track, buffer[i].stats0, frame-1);
     // saveBoundingBox(path_bounding_box, track->rx, track->ry, track->bb_x, track->bb_y, frame-2);
-
     update_bounding_box(track, buffer[i].stats1, frame);
     // saveBoundingBox(path_bounding_box, track->rx, track->ry, track->bb_x, track->bb_y, frame-1);
 
+
+    float32 dx = (buffer[i].stats1.x - buffer[i].stats0.x);
+    float32 dy = (buffer[i].stats1.y - buffer[i].stats0.y);
+
+    track->a = (dx==0) ? INF : (dy/dx);
+    track->b = buffer[i].stats1.y - track->a * buffer[i].stats1.x;
+    track->dx = dx;
+    track->dy = dy;
+    
     track->end       = last_stats; 
     track->time      = 2; 
     track->timestamp = frame - 2;
     track->state = TRACK_NEW;
+
     // track->vitesse[(track->cur)++] = buffer[i].stats0.error;
     // update_bounding_box(track, last_stats, frame);
 }
@@ -458,6 +484,7 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
         float32 e = stats0[i].error;
         
         int asso = stats0[i].next;
+        
 
         // si mouvement detecté
         if (fabs(e-errMoy) > 4 * eType && asso){
@@ -466,7 +493,8 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
                 PUTS("EXTRAPOLATEED");
                 continue; // Extrapolated
             }
-
+            idisp(i);
+            idisp(stats0[i].ID);
             stats0[i].motion = 1; // debug
             stats0[i].time++;
             stats1[stats0[i].next].time = stats0[i].time ;
@@ -477,7 +505,7 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
 
             }
             if(stats0[i].time == 2){ 
-                // mouvement sur 3 frame055 7 7 268 11s donc création de track + suppression du buff    
+                // mouvement sur 3 frames donc création de track + suppression du buff    
                 for(j = *offset; j <= *last; j++){
                     if(tracks[j].end.ID == stats0[i].ID && tracks[j].end.x == stats0[i].x ){
                         PUTS("BREAK");
@@ -488,6 +516,7 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
                 idisp(k);
                 if(j == *last + 1 || *last == -1){
                     // insertion seulement si dans le buffer (k != -1)
+                    idisp(stats0[i].next);
                     insert_new_track(stats0[i], tracks, last, frame, k);
                     // printTracks(tracks, *last);
                     idisp(stats0[i].ID);
