@@ -211,12 +211,10 @@ void test_validation_routine(int argc, char** argv)
 {
 
     if (find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "usage: %s %s [options] <input_file>\n", argv[0], argv[1]);
         fprintf(stderr, "  -input_tracks : Path vers le fichier avec les tracks\n");
         fprintf(stderr, "  -input_video  : Path vers la video\n");
+        fprintf(stderr, "  -output       : Output de la video\n");
         fprintf(stderr, "  -validation   : Fichier contenant la vérité terrain de la séquence\n");
-        fprintf(stderr, "  -light_min    : Seuil bas filtrage lumineux\n");
-        fprintf(stderr, "  -light_max    : Seuil haut filtrage lumineux\n");
         fprintf(stderr, "  -start_frame  : Image de départ dans la séquence\n");
         fprintf(stderr, "  -end_frame    : Dernière image de la séquence\n");
         exit(1);
@@ -247,12 +245,9 @@ void test_validation_routine(int argc, char** argv)
         exit(1);
     }
 
-    char *path;
     char *filename;
     disp(src_path_video);
-    split_path_file(&path, &filename, src_path_video);
-    disp(filename);
-    get_light_from_tracks_path(src_path, &light_min, &light_max);
+    get_data_from_tracks_path(src_path, &light_min, &light_max, &filename);
 
     Track tracks[SIZE_MAX_TRACKS];
 

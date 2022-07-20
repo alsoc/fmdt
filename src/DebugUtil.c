@@ -147,7 +147,7 @@ void printTracks(Track* tracks, int last)
 
     if (last==-1) return;
 
-    for(int i = 0; i<= last; i++){
+    for(int i = 0; i< last; i++){
                 printf("%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \t %4d \t %4d \t %4d \t %4d \t %4d %4d\n", 
         tracks[i].timestamp, tracks[i].begin.x, tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x , tracks[i].end.y, tracks[i].rx, tracks[i].ry, tracks[i].bb_x, tracks[i].bb_y, tracks[i].is_valid, tracks[i].is_meteor);
 
@@ -1151,7 +1151,7 @@ void split_path_file(char** p, char** f, char *pf)
 }
 
 // =========================================================================================================================================================================
-void get_light_from_tracks_path(char* path, int *light_min, int *light_max) 
+void get_data_from_tracks_path(char* path, int *light_min, int *light_max, char **filename) 
 // =========================================================================================================================================================================
 {
     char *res, *tmp, *min, *max;
@@ -1166,8 +1166,13 @@ void get_light_from_tracks_path(char* path, int *light_min, int *light_max)
     max = strndup(res, tmp - res);
     *light_max = atoi(max);
 
+    res = tmp + 1;
+    tmp = strchr(res, '/');
+    *filename = strndup(res, tmp - res);
+
     idisp(*light_min);
     idisp(*light_max);
+    disp(*filename);
     free(min);
     free(max);
 }
