@@ -53,15 +53,19 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
 // ======================================
 {
     // Parsing Arguments
-    int start        = find_int_arg  (argc, argv, "-start_frame", 1 );
-    int end          = find_int_arg  (argc, argv, "-end_frame", 1000);
-    int light_min    = find_int_arg  (argc, argv, "-light_min",  60 ); // a definir
-    int light_max    = find_int_arg  (argc, argv, "-light_max",  85 ); // a definir
-    int surface_min  = find_int_arg  (argc, argv, "-surface_min",  3); // a definir
-    int surface_max  = find_int_arg  (argc, argv, "-surface_max",500); // a definir
-    char* src_path   = find_char_arg (argc, argv, "-input",      NULL);
-    char* dest_path  = find_char_arg (argc, argv, "-output",     NULL);
-    int debug        = find_arg      (argc, argv, "-debug");
+    int start          = find_int_arg  (argc, argv, "-start_frame",     1 );
+    int end            = find_int_arg  (argc, argv, "-end_frame",     1000);
+    int light_min      = find_int_arg  (argc, argv, "-light_min",      60 ); // a definir
+    int light_max      = find_int_arg  (argc, argv, "-light_max",      85 ); // a definir
+    int surface_min    = find_int_arg  (argc, argv, "-surface_min",      3); // a definir
+    int surface_max    = find_int_arg  (argc, argv, "-surface_max",    500); // a definir
+    int k              = find_int_arg  (argc, argv, "-k",                3); // a definir
+    int r_extrapol     = find_int_arg  (argc, argv, "-r_extrapol",       5); // a definir
+    int d_line         = find_int_arg  (argc, argv, "-d_line",          25); // a definir
+    int diff_deviation = find_int_arg  (argc, argv, "-diff_deviation",   4); // a definir
+    char* src_path     = find_char_arg (argc, argv, "-input",      NULL);
+    char* dest_path    = find_char_arg (argc, argv, "-output",     NULL);
+    int debug          = find_arg      (argc, argv, "-debug");
 
     if(!src_path){
         printf("Input missing\n");
@@ -166,7 +170,7 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
         motion(stats0, stats_shrink, n0, n_shrink, &theta, &tx, &ty);
 
         PUTS("\t Step 6: Tracking");
-        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty);
+        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty, r_extrapol, d_line, diff_deviation);
         
         //--------------------------------------------------------//
         PUTS("\t [DEBUG] Saving frames");
@@ -217,24 +221,31 @@ void meteor_ballon_hyst(int argc, char** argv)
         fprintf(stderr, "  -light_max    : Seuil haut filtrage lumineux\n");
         fprintf(stderr, "  -surface_min  : Surface max des CC en pixels\n");
         fprintf(stderr, "  -surface_max  : Surface min des CC en pixels\n");
+        fprintf(stderr, "  -k            : Le nombre de voisins dans KPPV\n");
+        fprintf(stderr, "  -r_extrapol   : Le rayon de recherche d'une CC dans le cas d'une extrapolation\n");
+        fprintf(stderr, "  -d_line       : Le delta pour lequel un point est toujours considéré comme étant sur une droite\n");
+        fprintf(stderr, "  -diff_deviaton: Le facteur de multiplication de l'ecart type (l'erreur d'une CC doit etre superieure a diff_deviation*ecart_type pour etre considéré en mouvement \n");
         fprintf(stderr, "  -validation   : Fichier contenant la vérité terrain de la séquence\n");
         fprintf(stderr, "  -debug        : save files debug\n");
         exit(1);
     }
 
     // Parsing Arguments
-    int start        = find_int_arg  (argc, argv, "-start_frame", 0 );
-    int end          = find_int_arg  (argc, argv, "-end_frame", 300);
+    int start          = find_int_arg  (argc, argv, "-start_frame",     1 );
+    int end            = find_int_arg  (argc, argv, "-end_frame",     1000);
     int skip         = find_int_arg  (argc, argv, "-skip_frames", 0 );
-    int light_min    = find_int_arg  (argc, argv, "-light_min",  55 ); // a definir
-    int light_max    = find_int_arg  (argc, argv, "-light_max",  80 ); // a definir
-    int surface_min  = find_int_arg  (argc, argv, "-surface_min",  3); // a definir
-    int surface_max  = find_int_arg  (argc, argv, "-surface_max",1000); // a definir
-    char *src_path   = find_char_arg (argc, argv, "-input",      NULL);
-    char *dest_path  = find_char_arg (argc, argv, "-output",     NULL);
+    int light_min      = find_int_arg  (argc, argv, "-light_min",      60 ); // a definir
+    int light_max      = find_int_arg  (argc, argv, "-light_max",      85 ); // a definir
+    int surface_min    = find_int_arg  (argc, argv, "-surface_min",      3); // a definir
+    int surface_max    = find_int_arg  (argc, argv, "-surface_max",    500); // a definir
+    int k              = find_int_arg  (argc, argv, "-k",                3); // a definir
+    int r_extrapol     = find_int_arg  (argc, argv, "-r_extrapol",       5); // a definir
+    int d_line         = find_int_arg  (argc, argv, "-d_line",          25); // a definir
+    int diff_deviation = find_int_arg  (argc, argv, "-diff_deviation",   4); // a definir
+    char* src_path     = find_char_arg (argc, argv, "-input",      NULL);
+    char* dest_path    = find_char_arg (argc, argv, "-output",     NULL);
     char *validation = find_char_arg (argc, argv, "-validation", NULL);
-    int debug        = find_arg      (argc, argv, "-debug");
-
+    int debug          = find_arg      (argc, argv, "-debug");
     if(!src_path){
         printf("Input missing\n");
         exit(1);
@@ -347,7 +358,7 @@ void meteor_ballon_hyst(int argc, char** argv)
 
       	//--------------------------------------------------------//
         PUTS("\t Step 6: Tracking");
-        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty);
+        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty, r_extrapol, d_line, diff_deviation);
         // TrackStars(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset); // Pour matric ROC
         
         //--------------------------------------------------------//

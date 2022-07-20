@@ -315,14 +315,17 @@ void test_validation_routine(int argc, char** argv)
                 if (tracks[i].timestamp <= frame  && frame <= tracks[i].timestamp+tracks[i].time &&
                     tracks[i].xmin <= bb_x  && bb_x <= tracks[i].xmax  &&
                     tracks[i].ymin <= bb_y  && bb_y <= tracks[i].ymax){
+
                         if(validation)
                             color = tracks[i].is_valid ? GREEN : RED;
-                        else
+                        else{
                             // color = ORANGE;
                             color = GREEN;
+
+                            if(tracks[i].is_meteor == 1)
+                                color = YELLOW;
+                        }
                         
-                        if(tracks[i].is_meteor == 1)
-                            color = MISC;
                         addToListBB(rx, ry, bb_x, bb_y, color, cpt++);
                         break;
                 }
