@@ -1188,6 +1188,7 @@ void create_debug_dir(char *output_stats, char *filename, int light_min, int lig
 
         sprintf(tmp_asso,     "%s/debug/assoconflicts/",             output_stats);
         sprintf(tmp_stats,    "%s/debug/stats/",                     output_stats);
+        sprintf(tmp_debug,    "%s/debug",                            output_stats);
 
 
         if ((light_min != -1) && (light_max != -1)){
