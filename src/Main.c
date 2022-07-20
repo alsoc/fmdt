@@ -63,8 +63,8 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     int r_extrapol     = find_int_arg  (argc, argv, "-r_extrapol",       5); // a definir
     int d_line         = find_int_arg  (argc, argv, "-d_line",          25); // a definir
     int diff_deviation = find_int_arg  (argc, argv, "-diff_deviation",   4); // a definir
-    char* src_path     = find_char_arg (argc, argv, "-input",      NULL);
-    char* dest_path    = find_char_arg (argc, argv, "-output",     NULL);
+    char* src_path     = find_char_arg (argc, argv, "-input_video",      NULL);
+    char* dest_path    = find_char_arg (argc, argv, "-output_tracks",     NULL);
     int debug          = find_arg      (argc, argv, "-debug");
 
     if(!src_path){
@@ -212,8 +212,8 @@ void meteor_ballon_hyst(int argc, char** argv)
 {
     // Help
     if (find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "  -input        : Video source\n");
-        fprintf(stderr, "  -output       : path frames output\n");
+        fprintf(stderr, "  -input_video   : Video source\n");
+        fprintf(stderr, "  -output_tracks: path frames output\n");
         fprintf(stderr, "  -start_frame  : Image de départ dans la séquence\n");
         fprintf(stderr, "  -end_frame    : Dernière image de la séquence\n");
         fprintf(stderr, "  -skip_frames  : Nombre d'images à sauter\n");
@@ -242,8 +242,8 @@ void meteor_ballon_hyst(int argc, char** argv)
     int r_extrapol     = find_int_arg  (argc, argv, "-r_extrapol",       5); // a definir
     int d_line         = find_int_arg  (argc, argv, "-d_line",          25); // a definir
     int diff_deviation = find_int_arg  (argc, argv, "-diff_deviation",   4); // a definir
-    char* src_path     = find_char_arg (argc, argv, "-input",      NULL);
-    char* dest_path    = find_char_arg (argc, argv, "-output",     NULL);
+    char* src_path     = find_char_arg (argc, argv, "-input_video",      NULL);
+    char* dest_path    = find_char_arg (argc, argv, "-output_tracks",     NULL);
     char *validation = find_char_arg (argc, argv, "-validation", NULL);
     int debug          = find_arg      (argc, argv, "-debug");
     if(!src_path){
@@ -431,7 +431,7 @@ void meteor_ballon_max(int argc, char** argv)
     // output -> max.pgm
     // Help
     if (find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "  -input        : Video source\n");
+        fprintf(stderr, "  -input_video        : Video source\n");
         fprintf(stderr, "  -start_frame  : Image de départ dans la séquence\n");
         fprintf(stderr, "  -end_frame    : Dernière image de la séquence\n");
         fprintf(stderr, "  -skip_frames  : Nombre d'images à sauter\n");
@@ -442,7 +442,7 @@ void meteor_ballon_max(int argc, char** argv)
     int start        = find_int_arg  (argc, argv, "-start_frame", 0 );
     int end          = find_int_arg  (argc, argv, "-end_frame", 1000);
     int skip         = find_int_arg  (argc, argv, "-skip_frames", 0 );
-    char* src_path   = find_char_arg (argc, argv, "-input",      NULL);
+    char* src_path   = find_char_arg (argc, argv, "-input_video",      NULL);
 
     // sequence
     int frame;
