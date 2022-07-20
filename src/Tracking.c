@@ -303,7 +303,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
         }
     }
     for (i = *offset; i <= *last; i++){
-        if(tracks[i].time > 200){
+        if(tracks[i].time > 150){
             clear_index_Track(tracks, i);
             continue;
         }
