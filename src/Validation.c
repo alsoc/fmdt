@@ -72,7 +72,7 @@ int Validation(char* _inputs_file, Track* _tracks_pool, unsigned _tracks_nb, cha
 
             inputs[i].nb_tracks     = 0;
             inputs[i].hits          = 0;
-            inputs[i].hits          = 1; //tmp
+            inputs[i].hits          = 0; //tmp
             // inputs[i].is_valid      = 0;
             // inputs[i].is_valid_last = -1;
 
@@ -144,6 +144,7 @@ void Validation_free(void)
     
     fclose(out);
     free(dst_path);
+    printf("File %s saved\n", buf);
 }
 
 void Validation_step(unsigned timestamp)

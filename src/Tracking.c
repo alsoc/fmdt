@@ -417,7 +417,7 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
     // saveBoundingBox(path_bounding_box, track->rx, track->ry, track->bb_x, track->bb_y, frame-1);
 
     track->end       = last_stats; 
-    track->time      = 1; 
+    track->time      = 2; 
     track->timestamp = frame - 2;
     track->state = TRACK_NEW;
     // track->vitesse[(track->cur)++] = buffer[i].stats0.error;
@@ -439,8 +439,6 @@ void insert_new_track_stars(MeteorROI last_stats,  MeteorROI begin, Track *track
     track->time      = 1; 
     track->timestamp = frame - 2;
     track->state = TRACK_NEW;
-
-
 }
 
 

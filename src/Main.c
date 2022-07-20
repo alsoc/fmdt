@@ -47,7 +47,7 @@ extern float32 **distances;
 extern elemBB *tabBB[NB_FRAMES];
 
 
-//chaine de traitement qui prend des images
+// NON Testé depuis les dernieres modifs (à check)
 // ======================================
 void meteor_ballon_hyst_frame(int argc, char** argv)
 // ======================================
@@ -60,8 +60,16 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     int surface_min  = find_int_arg  (argc, argv, "-surface_min",  3); // a definir
     int surface_max  = find_int_arg  (argc, argv, "-surface_max",1000); // a definir
     char* src_path   = find_char_arg (argc, argv, "-input",      NULL);
+    char* dest_path  = find_char_arg (argc, argv, "-output",     NULL);
     int debug        = find_arg      (argc, argv, "-debug");
-    int save         = find_arg      (argc, argv, "-save");
+
+    if(!src_path){
+        printf("Input missing\n");
+        exit(1);
+    }
+    if(!dest_path){
+        printf("Output missing -> no video/frames will be saved\n");
+    }
 
     // sequence
     char *filename;
@@ -95,9 +103,8 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     if (src_path != slash) slash++;
     filename = strndup(slash, next-slash);
 
-
   	create_debug_dir (filename, light_min , light_max, -1);
-	create_frames_dir(filename, light_min , light_max, -1);
+	if (dest_path) create_frames_dir(dest_path, filename, light_min , light_max, -1);
     
     // ---------------- //
     // -- ALLOCATION -- //
@@ -124,13 +131,11 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     // ----------------//
 
     while(frame <= end) {        
-        sprintf(src, "%sFF_PH0002_20220531_064850_859_0020224_%03d.pgm", src_path, frame); 
+        sprintf(src, "%s%03d.pgm", src_path, frame); 
         disp(src);
         MLoadPGM_ui8matrix(src, i0, i1, j0, j1, ballon->I0);
 		printf("[Frame] %-4d\n", frame-1);
 
-	    create_debug_files (frame);
-	    create_frames_files(frame);
         
 		//---------------------------------------------------------//
         PUTS("\t Step 1 : seuillage low/high");
@@ -165,13 +170,15 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
         
         //--------------------------------------------------------//
         PUTS("\t [DEBUG] Saving frames");
-        if (save){
+        if (dest_path){
+	        create_frames_files(frame);
             saveFrame_ui32matrix(path_frames_binary, ballon->SH32, i0, i1, j0, j1);
             // saveFrame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
         }
 
         PUTS("\t [DEBUG] Saving stats");
         if (debug){
+	        create_debug_files (frame);
             saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
             // saveMotion(path_motion, theta, tx, ty, frame-1);
             // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
@@ -202,6 +209,7 @@ void meteor_ballon_hyst(int argc, char** argv)
     // Help
     if (find_arg(argc, argv, "-h")) {
         fprintf(stderr, "  -input        : Video source\n");
+        fprintf(stderr, "  -output       : path frames output\n");
         fprintf(stderr, "  -start_frame  : Image de départ dans la séquence\n");
         fprintf(stderr, "  -end_frame    : Dernière image de la séquence\n");
         fprintf(stderr, "  -skip_frames  : Nombre d'images à sauter\n");
@@ -211,22 +219,29 @@ void meteor_ballon_hyst(int argc, char** argv)
         fprintf(stderr, "  -surface_max  : Surface min des CC en pixels\n");
         fprintf(stderr, "  -validation   : Fichier contenant la vérité terrain de la séquence\n");
         fprintf(stderr, "  -debug        : save files debug\n");
-        fprintf(stderr, "  -save         : save video/frames output\n");
         exit(1);
     }
 
     // Parsing Arguments
     int start        = find_int_arg  (argc, argv, "-start_frame", 0 );
-    int end          = find_int_arg  (argc, argv, "-end_frame", 1000);
+    int end          = find_int_arg  (argc, argv, "-end_frame", 300);
     int skip         = find_int_arg  (argc, argv, "-skip_frames", 0 );
     int light_min    = find_int_arg  (argc, argv, "-light_min",  55 ); // a definir
     int light_max    = find_int_arg  (argc, argv, "-light_max",  80 ); // a definir
-    int surface_min  = find_int_arg  (argc, argv, "-surface_min",  5); // a definir
+    int surface_min  = find_int_arg  (argc, argv, "-surface_min",  3); // a definir
     int surface_max  = find_int_arg  (argc, argv, "-surface_max",1000); // a definir
-    char* src_path   = find_char_arg (argc, argv, "-input",      NULL);
-    char* validation = find_char_arg (argc, argv, "-validation", NULL);
+    char *src_path   = find_char_arg (argc, argv, "-input",      NULL);
+    char *dest_path  = find_char_arg (argc, argv, "-output",     NULL);
+    char *validation = find_char_arg (argc, argv, "-validation", NULL);
     int debug        = find_arg      (argc, argv, "-debug");
-    int save         = find_arg      (argc, argv, "-save");
+
+    if(!src_path){
+        printf("Input missing\n");
+        exit(1);
+    }
+    if(!dest_path){
+        printf("Output missing -> no frames will be saved\n");
+    }
 
     // sequence
     char *filename;
@@ -254,8 +269,8 @@ void meteor_ballon_hyst(int argc, char** argv)
     char *path;
     split_path_file(&path, &filename, src_path);
   	create_debug_dir (filename, light_min , light_max, -1);
-	create_frames_dir(filename, light_min , light_max, -1);
-    
+	if (dest_path) create_frames_dir(dest_path, filename, light_min , light_max, -1);
+
     // ------------------------- //
     // -- INITIALISATION VIDEO-- //
     // ------------------------- //
@@ -284,9 +299,8 @@ void meteor_ballon_hyst(int argc, char** argv)
     initTabBB();
 
     if (validation) 
-        Validation(validation,tracks, 1000, "./debug/");
+        Validation(validation,tracks, SIZE_MAX_TRACKS, "./debug/");
 
-    // i1 = 800;
     // ----------------//
     // -- TRAITEMENT --//
     // ----------------//
@@ -301,19 +315,11 @@ void meteor_ballon_hyst(int argc, char** argv)
         frame = video->frame_current-2;
 		printf("[Frame] %-4d\n", frame);
 
-    	create_debug_files (frame);
-	    create_frames_files(frame);
-	    create_videos_files(filename);
 
 		//---------------------------------------------------------//
         PUTS("\t Step 1 : seuillage low/high");
         copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SH); 
         copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SM);
-
-        if (frame == 0){
-            saveFrame_ui32matrix(path_frames_binary, ballon->SH32, i0, i1, j0, j1);
-            // saveFrame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
-        }
 
         threshold_high(ballon->SM, i0, i1, j0, j1, light_min);
         threshold_high(ballon->SH, i0, i1, j0, j1, light_max);
@@ -347,13 +353,15 @@ void meteor_ballon_hyst(int argc, char** argv)
         
         //--------------------------------------------------------//
         PUTS("\t [DEBUG] Saving frames");
-        if (save){
+        if (dest_path){
+	        create_frames_files(frame);
             saveFrame_ui32matrix(path_frames_binary, ballon->SH32, i0, i1, j0, j1);
             // saveFrame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
         }
 
         PUTS("\t [DEBUG] Saving stats");
         if (debug){
+    	    create_debug_files (frame);
             saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
             // saveMotion(path_motion, theta, tx, ty, frame-1);
             // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
@@ -372,6 +380,9 @@ void meteor_ballon_hyst(int argc, char** argv)
     if (validation) 
         Validation_final();
 
+
+    if (debug) printf("Files for debug saved in %s \n", path_debug);
+    if (dest_path) printf("Frames saved in %s \n", dest_path);
     // ----------
     // -- free --
     // ----------
@@ -407,6 +418,7 @@ void max_accumulate(uint8**M, int i0, int i1, int j0, int j1, uint8** I)
 void meteor_ballon_max(int argc, char** argv)
 // ======================================
 {
+    // output -> max.pgm
     // Help
     if (find_arg(argc, argv, "-h")) {
         fprintf(stderr, "  -input        : Video source\n");
