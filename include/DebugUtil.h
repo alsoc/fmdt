@@ -77,7 +77,7 @@ void saveVideoFrame_tracking(const char*filename, uint8** I, Track* tracks, int 
 void saveFrame_tracking(const char*filename, uint8** I, Track* tracks, int tracks_nb, int i0, int i1, int j0, int j1);
 
 void split_path_file(char** p, char** f, char *pf);
-void get_light_from_tracks_path(char* path, int *light_min, int *light_max);
+void get_data_from_tracks_path(char* path, int *light_min, int *light_max, char **filename);
 
 void create_debug_dir(char *output_stats, char *filename, int light_min, int light_max, int edt);
 void create_frames_dir(char *dest_path, char *filename, int light_min, int light_max, int edt);
