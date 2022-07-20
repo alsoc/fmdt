@@ -23,7 +23,6 @@
 #include <stdio.h>
 
 #define SIZE_BUF 10000
-#define R 10
 #define INF 9999999
 
 
@@ -289,7 +288,7 @@ void update_bounding_box(Track* track, MeteorROI stats, int frame)
 }
 
 // -----------------------------------------------------
-void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, int frame, int *offset, int *last, int theta, int tx, int ty)
+void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, int frame, int *offset, int *last, int theta, int tx, int ty, int r_extrapol, int d_line)
 // -----------------------------------------------------
 {
     int next;
@@ -303,7 +302,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
         }
     }
     for (i = *offset; i <= *last; i++){
-        if(tracks[i].time > 200){
+        if(tracks[i].time > 150){
             clear_index_Track(tracks, i);
             continue;
         }
@@ -314,7 +313,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
             if(tracks[i].state == TRACK_EXTRAPOLATED){
                 PUTS("TRACK_EXTRAPOLATED");
                 for(int j = 1; j <= nc1; j++){
-                        if ( (stats0[j].x > tracks[i].x - R) && (stats0[j].x < tracks[i].x + R) && (stats0[j].y < tracks[i].y + R) && (stats0[j].y > tracks[i].y - R)){
+                        if ( (stats0[j].x > tracks[i].x - r_extrapol) && (stats0[j].x < tracks[i].x + r_extrapol) && (stats0[j].y < tracks[i].y + r_extrapol) && (stats0[j].y > tracks[i].y - r_extrapol)){
                             idisp(stats1[j].ID);
                             tracks[i].end = stats0[j];
                             tracks[i].state = TRACK_UPDATED;
@@ -328,7 +327,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                 PUTS("TRACK_LOST");
                 for(int j = 1; j <= nc1; j++){
                     if (!stats1[j].prev){
-                        if ( (stats1[j].x > tracks[i].x - R) && (stats1[j].x < tracks[i].x + R) && (stats1[j].y < tracks[i].y + R) && (stats1[j].y > tracks[i].y - R)){
+                        if ( (stats1[j].x > tracks[i].x - r_extrapol) && (stats1[j].x < tracks[i].x + r_extrapol) && (stats1[j].y < tracks[i].y + r_extrapol) && (stats1[j].y > tracks[i].y - r_extrapol)){
                             tracks[i].state = TRACK_EXTRAPOLATED;
                             tracks[i].time+=2;
                             stats1[j].state = 1;
@@ -352,7 +351,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
 
                     float32 y = tracks[i].a * stats1[next].x + tracks[i].b;
 
-                    if ( (fabs(stats1[next].y - y) < 25) && ((dx*tracks[i].dx >= 0.0f) && (dy*tracks[i].dy >= 0.0f)) && ((a < 0 && tracks[i].a < 0) ||  (a > 0 && tracks[i].a > 0) || ((a == INF) && (tracks[i].a == INF)))){
+                    if ( (fabs(stats1[next].y - y) < d_line) && ((dx*tracks[i].dx >= 0.0f) && (dy*tracks[i].dy >= 0.0f)) && ((a < 0 && tracks[i].a < 0) ||  (a > 0 && tracks[i].a > 0) || ((a == INF) && (tracks[i].a == INF)))){
                         tracks[i].is_meteor = 2;
                         tracks[i].a = a;
                         tracks[i].dx = dx;
@@ -469,7 +468,7 @@ void insert_new_track_stars(MeteorROI last_stats,  MeteorROI begin, Track *track
 
 
 // -----------------------------------------------------
-void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset, int theta, int tx, int ty)
+void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset, int theta, int tx, int ty, int r_extrapol, int d_line, int diff_deviation)
 // -----------------------------------------------------
 {
     int j;
@@ -487,7 +486,7 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
         
 
         // si mouvement detecté
-        if (fabs(e-errMoy) > 4 * eType && asso){
+        if (fabs(e-errMoy) > diff_deviation * eType && asso){
             
             if (stats0[i].state) {
                 PUTS("EXTRAPOLATEED");
@@ -528,7 +527,7 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
     }
 
     // parcourir les track et update si besoin
-    updateTrack(tracks, stats0, stats1, nc1, frame, offset, last, theta, tx, ty);
+    updateTrack(tracks, stats0, stats1, nc1, frame, offset, last, theta, tx, ty, r_extrapol, d_line);
 
     // clear/update le buffer
     update_buffer(frame);
