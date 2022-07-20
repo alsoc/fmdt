@@ -442,7 +442,7 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
     track->dy = dy;
     
     track->end       = last_stats; 
-    track->time      = 1; 
+    track->time      = 2; 
     track->timestamp = frame - 2;
     track->state = TRACK_NEW;
 
@@ -465,8 +465,6 @@ void insert_new_track_stars(MeteorROI last_stats,  MeteorROI begin, Track *track
     track->time      = 1; 
     track->timestamp = frame - 2;
     track->state = TRACK_NEW;
-
-
 }
 
 

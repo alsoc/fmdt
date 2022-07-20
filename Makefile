@@ -33,18 +33,20 @@ tracking : $(OBJ_FILES_TRACK) $(BUILD_DIR)VideoTrack.o lib/ffmpeg-io/lib/libffmp
 VideoTrack.o : $(SRC_DIR)VideoTrack.c
 	$(CC) $(CFLAGS) $(INCLUDES) $(DEFINES)  -o $@ -c $<
 
-test : 
-	./ballon -input ../videos/C0089.MP4 -start_frame 510 -end_frame 512
-
-full : 
-	./ballon -input /dsk/l1/misc/cc3801875/videos/C0089.MP4 -start_frame 0 -end_frame 6000 -validation ./validation/C0089.txt
-
 tau : 
-	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -start_frame 1 -end_frame 5000 -light_min 55 -light_max 80 -surface_min 3 -surface_max 1000 -debug
+	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 
 
+tau_save : 
+	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -output /dsk/l1/misc/mk3800103/output/
 
 tau_validation : 
-	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -start_frame 1 -end_frame 5000 -light_min 55 -light_max 80 -surface_min 3 -surface_max 1000 -debug -validation ./validation/meteor24.txt
+	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -validation ./validation/meteor24.txt
+
+video:
+	./tracking -input_video /users/cao/mk3800103/Téléchargements/meteor24.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/meteor24/tracks.txt -output /dsk/l1/misc/mk3800103/output/
+
+video_validation:
+	./tracking -input_video /users/cao/mk3800103/Téléchargements/meteor24.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/meteor24/tracks.txt -output /dsk/l1/misc/mk3800103/output/ -validation ./validation/meteor24.txt
 
 
 lib/ffmpeg-io/lib/libffmpeg-io.a:

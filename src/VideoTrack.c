@@ -204,6 +204,7 @@ void calc_BB(Track* tracks, int n, int i0, int i1, int j0, int j1)
         if(tracks[i].ymax > i1) tracks[i].ymax = i1;
     }
 }
+
 // ==============================================================================================================================
 void test_validation_routine(int argc, char** argv)
 // ==============================================================================================================================
@@ -222,11 +223,10 @@ void test_validation_routine(int argc, char** argv)
     }
 
     // Parsing Arguments
-    char* src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
-    char* src_path_video    = find_char_arg (argc, argv, "-input_video",    NULL);
-    char* validation        = find_char_arg (argc, argv, "-validation",     NULL);
-    int light_min           = find_int_arg  (argc, argv, "-light_min",      60); 
-    int light_max           = find_int_arg  (argc, argv, "-light_max",      85); 
+    char *src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
+    char *src_path_video    = find_char_arg (argc, argv, "-input_video",    NULL);
+    char *dest_path         = find_char_arg (argc, argv, "-output",         NULL);
+    char *validation        = find_char_arg (argc, argv, "-validation",     NULL);
     int start               = find_int_arg  (argc, argv, "-start_frame",    0);
     int end                 = find_int_arg  (argc, argv, "-end_frame",      10000);
 
@@ -235,9 +235,15 @@ void test_validation_routine(int argc, char** argv)
 	int color = 0;
     int frame, frame_bb;
     int rx, ry, bb_x, bb_y;
+    int light_min, light_max;
 
     if (!src_path || !src_path_video){
         printf("Input(s) missing\n");
+        exit(1);
+    }
+
+    if (!dest_path){
+        printf("output missing\n");
         exit(1);
     }
 
@@ -246,16 +252,17 @@ void test_validation_routine(int argc, char** argv)
     disp(src_path_video);
     split_path_file(&path, &filename, src_path_video);
     disp(filename);
-    
+    get_light_from_tracks_path(src_path, &light_min, &light_max);
+
     Track tracks[SIZE_MAX_TRACKS];
 
     int nb_tracks = 0;
 	init_Track(tracks, SIZE_MAX_TRACKS);
         
     // debug/output paths and files
-  	create_debug_dir (filename, light_min , light_max, -1);
-	create_videos_files(filename);
-	create_frames_dir(filename, light_min , light_max, -1);
+	create_debug_dir (filename, light_min , light_max, -1);
+	create_video_dir (dest_path, filename, light_min , light_max, -1);
+	create_frames_dir(dest_path, filename, light_min , light_max, -1);
 
     disp(path_tracks);
     disp(path_bounding_box);
@@ -294,14 +301,12 @@ void test_validation_routine(int argc, char** argv)
     fgets(lines, 100, file_bb);
     sscanf(lines, "%d %d %d %d %d", &frame_bb, &rx, &ry, &bb_x, &bb_y);
     printf("%d %d %d %d %d \n", frame_bb, rx, ry, bb_x, bb_y);
+
     // parcours de la video
     while(Video_nextFrame(video,I0)) {
         frame = video->frame_current - 1;
 		printf("[Frame] %-4d\n", frame);
         int cpt = 0;
-	    
-        create_debug_files (frame);
-        create_frames_files(frame);
 
         // affiche tous les BB de l'image
         while(frame_bb == frame){
@@ -330,17 +335,16 @@ void test_validation_routine(int argc, char** argv)
             sscanf(lines, "%d %d %d %d %d ", (int*)&frame_bb, (int*)&rx, (int*)&ry, (int*)&bb_x, (int*)&bb_y);
             // printf("%d %d %d %d %d \n", frame_bb, rx, ry, bb_x, bb_y);
         }
+        create_frames_files(frame);
         saveVideoFrame_listBB(path_video_tracking, I0, cpt, i0, i1, j0, j1);
         saveFrame_listBB(path_frames_output, I0, cpt, i0, i1, j0, j1);
-
     }
-    
     free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
 }
 
-
+// ==============================================================================================================================
 void test_max(int argc, char** argv)
-
+// ==============================================================================================================================
 {
 
     if (find_arg(argc, argv, "-h")) {
@@ -386,8 +390,6 @@ void test_max(int argc, char** argv)
         
     // debug/output paths and files
   	create_debug_dir (filename, light_min , light_max, -1);
-	create_videos_files(filename);
-	create_frames_dir(filename, light_min , light_max, -1);
 
     disp(path_tracks);
     disp(path_bounding_box);
@@ -456,127 +458,6 @@ void test_max(int argc, char** argv)
     free_rgb8matrix(img, 0, i1, 0, j1);
     free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
 }
-
-void test_max_2(int argc, char** argv)
-
-{
-
-    if (find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "usage: %s %s [options] <input_file>\n", argv[0], argv[1]);
-        fprintf(stderr, "  -input_video  : Path vers le fichier avec les tracks\n");
-        fprintf(stderr, "  -input_video  : Path vers le fichier avec les tracks\n");
-        fprintf(stderr, "  -validation   : Fichier contenant la vérité terrain de la séquence\n");
-        fprintf(stderr, "  -start_frame  : Image de départ dans la séquence\n");
-        fprintf(stderr, "  -end_frame    : Dernière image de la séquence\n");
-        exit(1);
-    }
-
-    // Parsing Arguments
-    char* src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
-    char* src_path_video    = find_char_arg (argc, argv, "-input_video",    NULL);
-    char* validation        = find_char_arg (argc, argv, "-validation",     NULL);
-    int light_min           = find_int_arg  (argc, argv, "-light_min",      60); 
-    int light_max           = find_int_arg  (argc, argv, "-light_max",      85); 
-
-    long int i0 = 0, i1 = 1200, j0 = 0, j1 = 1900;
-
-    if (!src_path || !src_path_video){
-        printf("Input(s) missing\n");
-        exit(1);
-    }
-
-    char *path;
-    char *filename;
-    disp(src_path_video);
-    split_path_file(&path, &filename, src_path_video);
-    disp(filename);
-    
-    Track tracks[SIZE_MAX_TRACKS];
-
-    int nb_tracks = 0;
-	init_Track(tracks, SIZE_MAX_TRACKS);
-        
-    // debug/output paths and files
-  	create_debug_dir (filename, light_min , light_max, -1);
-	create_videos_files(filename);
-	create_frames_dir(filename, light_min , light_max, -1);
-
-    disp(path_tracks);
-    disp(path_bounding_box);
-    
-    // recupere les tracks
-    parseTracks(path_tracks, tracks, &nb_tracks);
-    printTracks(tracks, nb_tracks);
-    puts("yo");
-    
-
-
-    // uint8 **I0    = ui8matrix(i0-b, i1+b, j0-b, j1+b);
-    puts("yo");
-    // MLoadPGM_ui8matrix("max.pgm", i0, i1, j0, j1, I0);
-
-    rgb8** I0;
-    I0 = load_image_color("out.png", &i0, &i1, &j0, &j1);
-
-    puts("yo");
-    // calculs des BB (bounding box) des tracks 
-    calc_BB(tracks, nb_tracks, i0, i1, j0, j1);
-
-    static ffmpeg_handle writer;
-    if (writer.pipe == NULL) {
-      ffmpeg_init(&writer);
-      writer.input.width = j1 - j0 + 1;
-      writer.input.height = i1 - i0 + 1;
-      writer.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
-      if (!ffmpeg_start_writer(&writer, "out1.png", NULL)) return;
-    }
-    rgb8** img = rgb8matrix(0, i1, 0, j1);
-    for (int i=i0 ; i<=i1 ; i++) {
-        for (int j=j0 ; j<=j1 ; j++) {
-            img[i][j].r = I0[i][j].r;
-            img[i][j].g = I0[i][j].g;
-            img[i][j].b = I0[i][j].b;
-        }
-    }
-
-    // validation pour établir si une track est vrai/faux positif
-    if (validation) {
-        disp(validation);
-        Validation(validation, tracks, nb_tracks, "./debug/");
-        Validation_final();
-        Validation_free();
-    }
-    else {
-        PUTS("NO VALIDATION");
-    }
-    int color;
-
-    for (int i = 0; i <= nb_tracks ; i++){
-        printf("i = %d\n", i);
-        if (tracks[i].is_valid == 1){
-            // color = GREEN;
-            color = YELLOW;
-        plot_bouding_box(img, tracks[i].ymin+5, tracks[i].ymax-5, tracks[i].xmin+5, tracks[i].xmax-5, 2, get_color(color));
-        }
-        // else 
-            // color = RED;
-        // fdisp(tracks[i].ymin);
-        // fdisp(tracks[i].ymax);
-        // fdisp(tracks[i].xmin);
-        // fdisp(tracks[i].xmax);
-    }
-
-    ffmpeg_write2d(&writer, (uint8_t**)img);
-    free_rgb8matrix(img, 0, i1, 0, j1);
-
-
-    // SavePGM_ui8matrix(I0, i0, i1, j0, j1, "out.pgm");
-    // free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
-}
-
-
-
-
 
 int main(int argc, char** argv)
 {
