@@ -163,7 +163,7 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
 
       	//--------------------------------------------------------//
         PUTS("\t Step 4 : mise en correspondance");
-		kppv_routine(stats0, stats_shrink, n0, n_shrink, K);
+		kppv_routine(stats0, stats_shrink, n0, n_shrink, k);
 
       	//--------------------------------------------------------//
         PUTS("\t Step 5 : recalage");
@@ -350,7 +350,7 @@ void meteor_ballon_hyst(int argc, char** argv)
 
       	//--------------------------------------------------------//
         PUTS("\t Step 4 : mise en correspondance");
-		kppv_routine(stats0, stats_shrink, n0, n_shrink, K);
+		kppv_routine(stats0, stats_shrink, n0, n_shrink, k);
 
       	//--------------------------------------------------------//
         PUTS("\t Step 5 : recalage");
