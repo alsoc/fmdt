@@ -24,6 +24,7 @@
 
 #define SIZE_BUF 10000
 #define R 10
+#define INF 9999999
 
 
 static Buf buffer[SIZE_BUF];
@@ -284,7 +285,6 @@ void update_bounding_box(Track* track, MeteorROI stats, int frame)
     ry        = bb_y - stats.ymin + 5;
 
     addToList(rx, ry, bb_x, bb_y, frame-1);
-    // saveBoundingBox(path_bounding_box, rx, ry, bb_x, bb_y, frame);
 
 }
 
@@ -319,7 +319,6 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                             tracks[i].end = stats0[j];
                             tracks[i].state = TRACK_UPDATED;
                             update_bounding_box(tracks+i, stats0[j], frame-1);
-                            // tracks[i].time++;
                         }
                 }
             }
@@ -345,31 +344,22 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
             if(tracks[i].state == TRACK_UPDATED || tracks[i].state == TRACK_NEW){
                 next = stats0[tracks[i].end.ID].next;
                 if(next){
-                    fdisp(stats1[next].x);
-                    fdisp(stats0[tracks[i].end.ID].x);
                     float32 a;
                     float32 dx = (stats1[next].x - stats0[tracks[i].end.ID].x);
-                    if (dx == 0) 
-                        a = 9999999;
-                    else
-                         a = (stats1[next].y - stats0[tracks[i].end.ID].y) / dx;
-                    fdisp(a); 
-                    fdisp(tracks[i].b);
+                    float32 dy = (stats1[next].y - stats0[tracks[i].end.ID].y) ;
+
+                    a = (dx == 0) ? INF : (dy/dx);
+
                     float32 y = tracks[i].a * stats1[next].x + tracks[i].b;
-                    fdisp(y);
-                    fdisp(stats1[next].x);
-                    fdisp(stats1[next].y);
 
-                    fdisp(a);
-                    fdisp(tracks[i].a);
-
-                    if ( (fabs(stats1[next].y - y) < 25) && ((a < 0 && tracks[i].a < 0) || (a > 0 && tracks[i].a > 0) || ((a == 9999999) && (tracks[i].a == 9999999)))){
+                    if ( (fabs(stats1[next].y - y) < 25) && ((dx*tracks[i].dx >= 0.0f) && (dy*tracks[i].dy >= 0.0f)) && ((a < 0 && tracks[i].a < 0) ||  (a > 0 && tracks[i].a > 0) || ((a == INF) && (tracks[i].a == INF)))){
                         tracks[i].is_meteor = 2;
                         tracks[i].a = a;
+                        tracks[i].dx = dx;
+                        tracks[i].dy = dy;
                         tracks[i].b = y - a * stats1[next].x;
                     }
                     else tracks[i].is_meteor = 1;
-                    idisp(tracks[i].is_meteor);
                     // tracks[i].vitesse[(tracks[i].cur)++] = stats0[tracks[i].end.ID].error;
                     tracks[i].x = tracks[i].end.x;
                     tracks[i].y = tracks[i].end.y;
@@ -432,10 +422,6 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
 
     if (i == -1) return;
 
-    idisp(buffer[i].stats0.ID);
-    fdisp(buffer[i].stats0.x);
-    fdisp(buffer[i].stats0.y);
-    idisp(frame);
     track->begin     =  buffer[i].stats0;
     
     track->bb_x      = (uint16)ceil((double)((buffer[i].stats0.xmin + buffer[i].stats0.xmax))/2);
@@ -446,32 +432,20 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
     update_bounding_box(track, buffer[i].stats1, frame);
     // saveBoundingBox(path_bounding_box, track->rx, track->ry, track->bb_x, track->bb_y, frame-1);
 
-    PUTS("#######################################################################");
-    fdisp(buffer[i].stats0.y); 
-    fdisp(buffer[i].stats0.x); 
-    fdisp(buffer[i].stats1.y);
-    fdisp(buffer[i].stats1.x);
 
     float32 dx = (buffer[i].stats1.x - buffer[i].stats0.x);
-    if (dx == 0) 
-        track->a = 9999999;
-    else
-        track->a = (buffer[i].stats1.y - buffer[i].stats0.y) / dx ; 
-    track->b = buffer[i].stats1.y - track->a * buffer[i].stats1.x;
+    float32 dy = (buffer[i].stats1.y - buffer[i].stats0.y);
 
+    track->a = (dx==0) ? INF : (dy/dx);
+    track->b = buffer[i].stats1.y - track->a * buffer[i].stats1.x;
+    track->dx = dx;
+    track->dy = dy;
+    
     track->end       = last_stats; 
     track->time      = 1; 
     track->timestamp = frame - 2;
     track->state = TRACK_NEW;
 
-    fdisp(track->a);
-    fdisp(track->b);
-    fdisp(last_stats.y);
-    fdisp(last_stats.x);
-   
-    idisp(track->is_meteor);
-    PUTS("#######################################################################");
-    
     // track->vitesse[(track->cur)++] = buffer[i].stats0.error;
     // update_bounding_box(track, last_stats, frame);
 }

@@ -21,6 +21,10 @@ typedef struct {
         float32 x;
         float32 y;
 
+        float32 dx;
+        float32 dy;
+
+
         uint32 time;
 
         uint16 bb_x;
