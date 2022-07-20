@@ -7,12 +7,14 @@ project(tau-h)
 # -----------------------------------------------------------------------------
 option(TAH_BALLON_EXE "Compile the detection chain executable." ON)
 option(TAH_TRACKING_EXE "compile the tracking executable." ON)
+option(TAH_VALIDATION_EXE "compile the tracking executable." ON)
 
 # Print CMake options values --------------------------------------------------
 # -----------------------------------------------------------------------------
 message(STATUS "Tau-h options: ")
 message(STATUS "  * TAH_BALLON_EXE: '${TAH_BALLON_EXE}'")
 message(STATUS "  * TAH_TRACKING_EXE: '${TAH_TRACKING_EXE}'")
+message(STATUS "  * TAH_VALIDATION_EXE: '${TAH_VALIDATION_EXE}'")
 
 # Check CMake options ---------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -66,7 +68,12 @@ if(TAH_TRACKING_EXE)
 	add_executable(tah-tracking-exe $<TARGET_OBJECTS:tah-common-obj> ${src_tracking_files})
 	set_target_properties(tah-tracking-exe PROPERTIES OUTPUT_NAME tracking)
 endif()
-
+if(TAH_VALIDATION_EXE)
+	set(src_validation_files
+	    ${src_dir}/main_validation.c)
+	add_executable(tah-validation-exe $<TARGET_OBJECTS:tah-common-obj> ${src_validation_files})
+	set_target_properties(tah-validation-exe PROPERTIES OUTPUT_NAME validation)
+endif()
 # Add and compile sub-projects ------------------------------------------------
 # -----------------------------------------------------------------------------
 # FFmpeg-IO
@@ -88,7 +95,9 @@ endif()
 if(TAH_TRACKING_EXE)
 	target_include_directories(tah-tracking-exe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/)
 endif()
-
+if(TAH_VALIDATION_EXE)
+	target_include_directories(tah-validation-exe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/)
+endif()
 # Link with dependencies ------------------------------------------------------
 # -----------------------------------------------------------------------------
 target_link_libraries(tah-common-obj PRIVATE ffmpeg-io-slib)
@@ -100,4 +109,8 @@ endif()
 if(TAH_TRACKING_EXE)
 	target_link_libraries(tah-tracking-exe PRIVATE ffmpeg-io-slib)
 	target_link_libraries(tah-tracking-exe PRIVATE m)
+endif()
+if(TAH_VALIDATION_EXE)
+	target_link_libraries(tah-validation-exe PRIVATE ffmpeg-io-slib)
+	target_link_libraries(tah-validation-exe PRIVATE m)
 endif()
