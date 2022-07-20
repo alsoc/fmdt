@@ -337,7 +337,6 @@ void test_validation_routine(int argc, char** argv)
     free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
 }
 
-
 void test_max(int argc, char** argv)
 
 {

@@ -35,8 +35,8 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -funroll-loops -fstri
 **Tips**: on Apple Silicon M1 CPUs and with Apple Clang, use `-mcpu=apple-m1` instead of `-march=native`.
 
 The `CMake` file comes with several options:
- * `-DTH_BALLON_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the detection chain executable.
- * `-DTH_TRACKING_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the tracking executable.
+ * `-DTAH_BALLON_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the detection chain executable.
+ * `-DTAH_TRACKING_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the tracking executable.
 
 ## Chaine de traitement
 
