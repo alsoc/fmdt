@@ -23,7 +23,6 @@
 
 #define SEQUENCE_DST_PATH_HIST "hist/"
 #define SEQUENCE_NDIGIT 5
-#define K 3
 
 #define SIZE_MAX_METEORROI 20000
 #define SIZE_MAX_TRACKS 1000
@@ -65,7 +64,7 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     int diff_deviation = find_int_arg  (argc, argv, "-diff_deviation",   4); // a definir
     char* src_path     = find_char_arg (argc, argv, "-input_video",      NULL);
     char* dest_path    = find_char_arg (argc, argv, "-output_tracks",     NULL);
-    int debug          = find_arg      (argc, argv, "-debug");
+    char* output_stats = find_char_arg (argc, argv, "-output_stats", NULL);
 
     if(!src_path){
         printf("Input missing\n");
@@ -107,7 +106,8 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     if (src_path != slash) slash++;
     filename = strndup(slash, next-slash);
 
-  	create_debug_dir (filename, light_min , light_max, -1);
+  	if(output_stats) create_debug_dir (output_stats, filename, light_min , light_max, -1);
+
 	if (dest_path) create_frames_dir(dest_path, filename, light_min , light_max, -1);
     
     // ---------------- //
@@ -181,9 +181,9 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
         }
 
         PUTS("\t [DEBUG] Saving stats");
-        if (debug){
+        if (output_stats){
 	        create_debug_files (frame);
-            saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
+            saveAssoConflicts(output_stats, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
             // saveMotion(path_motion, theta, tx, ty, frame-1);
             // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
             // saveError(path_error, stats0, n0);
@@ -226,7 +226,7 @@ void meteor_ballon_hyst(int argc, char** argv)
         fprintf(stderr, "  -d_line       : Le delta pour lequel un point est toujours considéré comme étant sur une droite\n");
         fprintf(stderr, "  -diff_deviaton: Le facteur de multiplication de l'ecart type (l'erreur d'une CC doit etre superieure a diff_deviation*ecart_type pour etre considéré en mouvement \n");
         fprintf(stderr, "  -validation   : Fichier contenant la vérité terrain de la séquence\n");
-        fprintf(stderr, "  -debug        : save files debug\n");
+        fprintf(stderr, "  -output_stats : save files in output_stats\n");
         exit(1);
     }
 
@@ -244,8 +244,8 @@ void meteor_ballon_hyst(int argc, char** argv)
     int diff_deviation = find_int_arg  (argc, argv, "-diff_deviation",   4); // a definir
     char* src_path     = find_char_arg (argc, argv, "-input_video",      NULL);
     char* dest_path    = find_char_arg (argc, argv, "-output_tracks",     NULL);
-    char *validation = find_char_arg (argc, argv, "-validation", NULL);
-    int debug          = find_arg      (argc, argv, "-debug");
+    char *validation   = find_char_arg (argc, argv, "-validation", NULL);
+    char *output_stats = find_char_arg(argc, argv, "-output_stats", NULL);
     if(!src_path){
         printf("Input missing\n");
         exit(1);
@@ -279,7 +279,8 @@ void meteor_ballon_hyst(int argc, char** argv)
     //path management
     char *path;
     split_path_file(&path, &filename, src_path);
-  	create_debug_dir (filename, light_min , light_max, -1);
+    disp(filename);
+    if(output_stats) create_debug_dir (output_stats, filename, light_min , light_max, -1);
 	if (dest_path) create_frames_dir(dest_path, filename, light_min , light_max, -1);
 
     // ------------------------- //
@@ -370,7 +371,7 @@ void meteor_ballon_hyst(int argc, char** argv)
         }
 
         PUTS("\t [DEBUG] Saving stats");
-        if (debug){
+        if (output_stats){
     	    create_debug_files (frame);
             saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
             // saveMotion(path_motion, theta, tx, ty, frame-1);
@@ -391,7 +392,7 @@ void meteor_ballon_hyst(int argc, char** argv)
         Validation_final();
 
 
-    if (debug) printf("Files for debug saved in %s \n", path_debug);
+    if (output_stats) printf("Files for debug saved in %s \n", output_stats);
     if (dest_path) printf("Frames saved in %s \n", dest_path);
     // ----------
     // -- free --

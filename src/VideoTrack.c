@@ -225,7 +225,7 @@ void test_validation_routine(int argc, char** argv)
     // Parsing Arguments
     char *src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
     char *src_path_video    = find_char_arg (argc, argv, "-input_video",    NULL);
-    char *dest_path         = find_char_arg (argc, argv, "-output",         NULL);
+    char *dest_path         = find_char_arg (argc, argv, "-output_video",   NULL);
     char *validation        = find_char_arg (argc, argv, "-validation",     NULL);
     int start               = find_int_arg  (argc, argv, "-start_frame",    0);
     int end                 = find_int_arg  (argc, argv, "-end_frame",      10000);
@@ -260,7 +260,7 @@ void test_validation_routine(int argc, char** argv)
 	init_Track(tracks, SIZE_MAX_TRACKS);
         
     // debug/output paths and files
-	create_debug_dir (filename, light_min , light_max, -1);
+	create_debug_dir (output_stats,filename, light_min , light_max, -1);
 	create_video_dir (dest_path, filename, light_min , light_max, -1);
 	create_frames_dir(dest_path, filename, light_min , light_max, -1);
 

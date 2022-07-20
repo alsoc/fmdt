@@ -1173,15 +1173,16 @@ void get_light_from_tracks_path(char* path, int *light_min, int *light_max)
 }
 
 // ==========================================================================================================================================================================
-void create_debug_dir(char *filename, int light_min, int light_max, int edt)
+void create_debug_dir(char *output_stats, char *filename, int light_min, int light_max, int edt)
 // ==========================================================================================================================================================================
 {
-        char tmp_asso[50], tmp_stats[50];
-        char path_assoconflicts[80], path_stats[60];
+        char tmp_asso[100], tmp_stats[100];
+        char tmp_debug[100];
+        char path_assoconflicts[100], path_stats[100];
         struct stat status = { 0 };
 
-        sprintf(tmp_asso,     "%sassoconflicts/",             SEQUENCE_DST_PATH_DEBUG);
-        sprintf(tmp_stats,    "%sstats/",                     SEQUENCE_DST_PATH_DEBUG);
+        sprintf(tmp_asso,     "%s/debug/assoconflicts/",             output_stats);
+        sprintf(tmp_stats,    "%s/debug/stats/",                     output_stats);
 
 
         if ((light_min != -1) && (light_max != -1)){
@@ -1203,9 +1204,12 @@ void create_debug_dir(char *filename, int light_min, int light_max, int edt)
         }
         return ; 
 next: 
-        if( stat(SEQUENCE_DST_PATH_DEBUG, &status) == -1 ) {
-              mkdir( SEQUENCE_DST_PATH_DEBUG, 0700 );
+        if( stat(tmp_debug, &status) == -1 ) {
+                mkdir( tmp_debug, 0700 );
         }
+        // if( stat(SEQUENCE_DST_PATH_DEBUG, &status) == -1 ) {
+            //   mkdir( SEQUENCE_DST_PATH_DEBUG, 0700 );
+        // }
         if( stat(tmp_asso, &status) == -1 ) {
                 mkdir( tmp_asso, 0700 );
         }
