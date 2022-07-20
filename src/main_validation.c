@@ -54,6 +54,9 @@ void test_validation(int argc, char** argv)
         exit(1);
     }
 
+    disp(src_path);
+    disp(dest_path);
+    disp(validation);
     get_data_from_tracks_path(src_path, &light_min, &light_max, &filename);
 
     Track tracks[SIZE_MAX_TRACKS];
@@ -71,14 +74,13 @@ void test_validation(int argc, char** argv)
     Validation(validation, tracks, nb_tracks, dest_path);
     Validation_final();
     Validation_free();
-    
+
     free(filename);
 }
 
 int main(int argc, char** argv)
 {
     test_validation(argc, argv);
-    // test_max(argc, argv);
     
     return 0;
 }
