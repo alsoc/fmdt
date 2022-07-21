@@ -246,10 +246,11 @@ void test_validation_routine(int argc, char** argv)
     }
 
     char *filename;
-    char *path_bounding_box;
+    // char *path_bounding_box;
     disp(src_path_video);
     get_data_from_tracks_path(src_path, &light_min, &light_max, &filename);
-    get_bouding_box_path_from_tracks_path(src_path, &path_bounding_box);
+    get_bouding_box_path_from_tracks_path(src_path);
+    disp(path_bounding_box);
 
     Track tracks[SIZE_MAX_TRACKS];
 
@@ -340,7 +341,6 @@ void test_validation_routine(int argc, char** argv)
     free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
 
     free(filename);
-    free(path_bounding_box);
 }
 
 // ==============================================================================================================================
