@@ -23,7 +23,9 @@ extern "C" {
 
 
 // macro de debug
+#ifndef VERBOSE
 #define VERBOSE(X) X
+#endif
 #define PUTS(str) puts(str)
 #define CR putchar('\n');
 #define SHOWNAME(X) #X
@@ -36,8 +38,9 @@ extern "C" {
 
 #else
 
-            
+#ifndef VERBOSE
 #define VERBOSE(X)
+#endif
 #define PUTS(str) 
 #define CR putchar('\n');
 #define SHOWNAME(X) #X          // pas d'appel en mode release

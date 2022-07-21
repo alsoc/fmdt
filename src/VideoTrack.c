@@ -7,8 +7,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <nrc2.h>
 
-#include "nrutil.h"
 #include "Features.h"
 #include "Tracking.h"
 #include "DebugUtil.h"

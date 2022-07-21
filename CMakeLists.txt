@@ -42,15 +42,16 @@ set(src_common_files
     ${src_dir}/Args.c
     ${src_dir}/Features.c
     ${src_dir}/DebugUtil.c
-    ${src_dir}/nrutil.c
     ${src_dir}/Tracking.c
     ${src_dir}/Validation.c
     ${src_dir}/Video.c)
 
 # Create binaries -------------------------------------------------------------
 # -----------------------------------------------------------------------------
-# object
+# objects
 add_library(tah-common-obj OBJECT ${src_common_files})
+list(APPEND tah_targets_list tah-common-obj)
+
 # executables
 if(TAH_BALLON_EXE)
 	set(src_ballon_files
@@ -60,18 +61,21 @@ if(TAH_BALLON_EXE)
 	    ${src_dir}/Threshold.c
 	    ${src_dir}/Main.c)
 	add_executable(tah-ballon-exe $<TARGET_OBJECTS:tah-common-obj> ${src_ballon_files})
+	list(APPEND tah_targets_list tah-ballon-exe)
 	set_target_properties(tah-ballon-exe PROPERTIES OUTPUT_NAME ballon)
 endif()
 if(TAH_TRACKING_EXE)
 	set(src_tracking_files
 	    ${src_dir}/VideoTrack.c)
 	add_executable(tah-tracking-exe $<TARGET_OBJECTS:tah-common-obj> ${src_tracking_files})
+	list(APPEND tah_targets_list tah-tracking-exe)
 	set_target_properties(tah-tracking-exe PROPERTIES OUTPUT_NAME tracking)
 endif()
 if(TAH_VALIDATION_EXE)
 	set(src_validation_files
 	    ${src_dir}/main_validation.c)
 	add_executable(tah-validation-exe $<TARGET_OBJECTS:tah-common-obj> ${src_validation_files})
+	list(APPEND tah_targets_list tah-validation-exe)
 	set_target_properties(tah-validation-exe PROPERTIES OUTPUT_NAME validation)
 endif()
 # Add and compile sub-projects ------------------------------------------------
@@ -82,35 +86,38 @@ if (NOT TARGET ffmpeg-io-slib)
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/ffmpeg-io/)
 endif()
 
+if (NOT TARGET nrc-slib)
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/nrc2/)
+endif()
+
 # Add definitions -------------------------------------------------------------
 # -----------------------------------------------------------------------------
+macro(tah_target_compile_definitions targets privacy dir)
+	foreach(_target IN ITEMS ${targets})
+		target_compile_definitions(${_target} ${privacy} ${dir})
+	endforeach()
+endmacro()
+
 # empty...
 
 # Set include directory -------------------------------------------------------
 # -----------------------------------------------------------------------------
-target_include_directories(tah-common-obj PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/)
-if(TAH_BALLON_EXE)
-	target_include_directories(tah-ballon-exe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/)
-endif()
-if(TAH_TRACKING_EXE)
-	target_include_directories(tah-tracking-exe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/)
-endif()
-if(TAH_VALIDATION_EXE)
-	target_include_directories(tah-validation-exe PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/)
-endif()
+macro(tah_target_include_directories targets privacy dir)
+	foreach(_target IN ITEMS ${targets})
+		target_include_directories(${_target} ${privacy} ${dir})
+	endforeach()
+endmacro()
+
+tah_target_include_directories("${tah_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/)
+
 # Link with dependencies ------------------------------------------------------
 # -----------------------------------------------------------------------------
-target_link_libraries(tah-common-obj PRIVATE ffmpeg-io-slib)
-target_link_libraries(tah-common-obj PRIVATE m)
-if(TAH_BALLON_EXE)
-	target_link_libraries(tah-ballon-exe PRIVATE ffmpeg-io-slib)
-	target_link_libraries(tah-ballon-exe PRIVATE m)
-endif()
-if(TAH_TRACKING_EXE)
-	target_link_libraries(tah-tracking-exe PRIVATE ffmpeg-io-slib)
-	target_link_libraries(tah-tracking-exe PRIVATE m)
-endif()
-if(TAH_VALIDATION_EXE)
-	target_link_libraries(tah-validation-exe PRIVATE ffmpeg-io-slib)
-	target_link_libraries(tah-validation-exe PRIVATE m)
-endif()
+macro(tah_target_link_libraries targets privacy lib)
+	foreach(_target IN ITEMS ${targets})
+		target_link_libraries(${_target} ${privacy} ${lib})
+	endforeach()
+endmacro()
+
+tah_target_link_libraries("${tah_targets_list}" PUBLIC ffmpeg-io-slib)
+tah_target_link_libraries("${tah_targets_list}" PUBLIC m)
+tah_target_link_libraries("${tah_targets_list}" PUBLIC nrc-slib)

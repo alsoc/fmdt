@@ -1,5 +1,3 @@
-#include "nrutil.h"
-#include "nrtype.h"
 #include "Args.h"
 #include "Video.h"
 #include "CCL.h"
@@ -12,14 +10,12 @@
 #include "Ballon.h"
 #include "Validation.h"
 
-
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
-
 
 #define SEQUENCE_DST_PATH_HIST "hist/"
 #define SEQUENCE_NDIGIT 5
