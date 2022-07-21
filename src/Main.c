@@ -106,8 +106,8 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     if (src_path != slash) slash++;
     filename = strndup(slash, next-slash);
 
-  	if(output_path) create_debug_dir (output_path, filename, light_min , light_max, -1);
-	if(dest_path) create_frames_dir(dest_path, filename, light_min , light_max, -1);
+  	if(output_path) create_debug_dir (output_path, filename, light_min , light_max);
+	if(dest_path) create_frames_dir(dest_path, filename, light_min , light_max);
     
     // ---------------- //
     // -- ALLOCATION -- //
@@ -215,7 +215,7 @@ void meteor_ballon_hyst(int argc, char** argv)
         fprintf(stderr, "  -output_tracks: path frames output\n");
         fprintf(stderr, "  -start_frame  : Image de départ dans la séquence\n");
         fprintf(stderr, "  -end_frame    : Dernière image de la séquence\n");
-        fprintf(stderr, "  -skip_frames  : Nombre d'images à sauter\n");
+        fprintf(stderr, "  -skip_frames  : Nomsbre d'images à sauter\n");
         fprintf(stderr, "  -light_min    : Seuil bas filtrage lumineux\n");
         fprintf(stderr, "  -light_max    : Seuil haut filtrage lumineux\n");
         fprintf(stderr, "  -surface_min  : Surface max des CC en pixels\n");
@@ -224,7 +224,6 @@ void meteor_ballon_hyst(int argc, char** argv)
         fprintf(stderr, "  -r_extrapol   : Le rayon de recherche d'une CC dans le cas d'une extrapolation\n");
         fprintf(stderr, "  -d_line       : Le delta pour lequel un point est toujours considéré comme étant sur une droite\n");
         fprintf(stderr, "  -diff_deviaton: Le facteur de multiplication de l'ecart type (l'erreur d'une CC doit etre superieure a diff_deviation*ecart_type pour etre considéré en mouvement \n");
-        fprintf(stderr, "  -validation   : Fichier contenant la vérité terrain de la séquence\n");
         fprintf(stderr, "  -output_path : save files in output_path\n");
         exit(1);
     }
@@ -242,8 +241,7 @@ void meteor_ballon_hyst(int argc, char** argv)
     int d_line         = find_int_arg  (argc, argv, "-d_line",          25); // a definir
     int diff_deviation = find_int_arg  (argc, argv, "-diff_deviation",   4); // a definir
     char* src_path     = find_char_arg (argc, argv, "-input_video",      NULL);
-    char* dest_path    = find_char_arg (argc, argv, "-output_tracks",     NULL);
-    char *validation   = find_char_arg (argc, argv, "-validation", NULL);
+    char* dest_path    = find_char_arg (argc, argv, "-output_frames",     NULL);
     char *output_path = find_char_arg(argc, argv, "-output_path", ".");
     
     if(!src_path){
@@ -280,8 +278,8 @@ void meteor_ballon_hyst(int argc, char** argv)
     char *path;
     split_path_file(&path, &filename, src_path);
     disp(filename);
-    if(output_path) create_debug_dir (output_path, filename, light_min , light_max, -1);
-	if (dest_path) create_frames_dir(dest_path, filename, light_min , light_max, -1);
+    if(output_path) create_debug_dir (output_path, filename, light_min , light_max);
+	if (dest_path) create_frames_dir(dest_path, filename, light_min , light_max);
 
     // ------------------------- //
     // -- INITIALISATION VIDEO-- //
@@ -309,9 +307,6 @@ void meteor_ballon_hyst(int argc, char** argv)
     init_Track(tracks_stars, SIZE_MAX_TRACKS);
     CCL_LSL_init(i0, i1, j0, j1);
     initTabBB();
-
-    if (validation) 
-        Validation(validation,tracks, SIZE_MAX_TRACKS, "./debug/");
 
     // ----------------//
     // -- TRAITEMENT --//
@@ -366,6 +361,7 @@ void meteor_ballon_hyst(int argc, char** argv)
         PUTS("\t [DEBUG] Saving frames");
         if (dest_path){
 	        create_frames_files(frame);
+            disp(path_frames_binary);
             saveFrame_ui32matrix(path_frames_binary, ballon->SH32, i0, i1, j0, j1);
             // saveFrame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
         }
@@ -373,6 +369,7 @@ void meteor_ballon_hyst(int argc, char** argv)
         PUTS("\t [DEBUG] Saving stats");
         if (output_path){
     	    create_debug_files (frame);
+            disp(path_debug);
             saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
             // saveMotion(path_motion, theta, tx, ty, frame-1);
             // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
@@ -388,10 +385,6 @@ void meteor_ballon_hyst(int argc, char** argv)
     saveTabBB(path_bounding_box, tabBB, NB_FRAMES);
     saveTracks(path_tracks, tracks, last);
 
-    if (validation) 
-        Validation_final();
-
-
     if (output_path) printf("Files for debug saved in %s \n", output_path);
     if (dest_path) printf("Frames saved in %s \n", dest_path);
     // ----------
@@ -405,8 +398,6 @@ void meteor_ballon_hyst(int argc, char** argv)
     Video_free(video);
     CCL_LSL_free(i0, i1, j0, j1);
 	kppv_free(0, 50, 0, 50);
-    if (validation) 
-        Validation_free();
 }
 
 

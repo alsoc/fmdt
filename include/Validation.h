@@ -69,10 +69,10 @@ typedef struct input {
     uint16 is_valid_last;
 } ValidationInput;
 
-int Validation(char* inputs_file, Track* _tracks_pool, unsigned _tracks_nb, char* _dst_path);
+int Validation_init(char* _inputs_file);
+void Validation_save(char *dest_path, char *filename);
+void Validation(Track* tracks, int tracks_nb);
 void Validation_free(void);
-void Validation_step(unsigned timestamp);
-void Validation_final(void);
 
 #endif
 

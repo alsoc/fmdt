@@ -441,7 +441,7 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
     track->dy = dy;
     
     track->end       = last_stats; 
-    track->time      = 2; 
+    track->time      = 1; 
     track->timestamp = frame - 2;
     track->state = TRACK_NEW;
 

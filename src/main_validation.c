@@ -33,7 +33,7 @@ void test_validation(int argc, char** argv)
 
     // Parsing Arguments
     char *src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
-    char *dest_path         = find_char_arg (argc, argv, "-output",         NULL);
+    char *dest_path         = find_char_arg (argc, argv, "-output",         ".");
     char *validation        = find_char_arg (argc, argv, "-validation",     NULL);
 
     int light_min, light_max;
@@ -41,11 +41,6 @@ void test_validation(int argc, char** argv)
 
     if (!src_path){
         printf("Input(s) missing\n");
-        exit(1);
-    }
-
-    if (!dest_path){
-        printf("output missing\n");
         exit(1);
     }
 
@@ -68,9 +63,9 @@ void test_validation(int argc, char** argv)
     printTracks(tracks, nb_tracks);
     
     // validation pour établir si une track est vrai/faux positif
-    Validation(validation, tracks, nb_tracks, dest_path);
-    Validation_final();
-    Validation_free();
+    Validation_init(validation);
+    Validation(tracks, nb_tracks);
+    Validation_save(dest_path, filename);
 
     free(filename);
 }

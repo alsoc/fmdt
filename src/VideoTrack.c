@@ -29,7 +29,7 @@
 /*DEBUG*/
 extern char path_video_tracking[200];
 extern char path_bounding_box[200];
-extern char path_tracks[200];
+// extern char path_tracks[200];
 extern char path_frames_output[250];
 
 typedef struct coordBB {
@@ -257,10 +257,9 @@ void test_validation_routine(int argc, char** argv)
 	init_Track(tracks, SIZE_MAX_TRACKS);
         
     // debug/output paths and files
-	create_video_dir (dest_path, filename, light_min , light_max, -1);
-	create_frames_dir(dest_path, filename, light_min , light_max, -1);
+	create_video_dir (dest_path, filename, light_min , light_max);
+	create_frames_dir(dest_path, filename, light_min , light_max);
 
-    disp(path_tracks);
     disp(src_path);
     disp(path_bounding_box);
     
@@ -275,9 +274,8 @@ void test_validation_routine(int argc, char** argv)
     // validation pour établir si une track est vrai/faux positif
     if (validation) {
         disp(validation);
-        Validation(validation, tracks, nb_tracks, "./debug/");
-        Validation_final();
-        Validation_free();
+        Validation_init(validation);
+        Validation(tracks, nb_tracks);
     }
     else {
         PUTS("NO VALIDATION");
@@ -391,11 +389,9 @@ void test_max(int argc, char** argv)
 	init_Track(tracks0, SIZE_MAX_TRACKS);
 	init_Track(tracks1, SIZE_MAX_TRACKS);
         
-    disp(path_tracks);
-    
     // recupere les tracks
-    parseTracks(path_tracks, tracks0, &nb_tracks);
-    parseTracks(path_tracks, tracks1, &nb_tracks);
+    parseTracks(src_path, tracks0, &nb_tracks);
+    parseTracks(src_path, tracks1, &nb_tracks);
 
     uint8 **I0    = ui8matrix(i0-b, i1+b, j0-b, j1+b);
     MLoadPGM_ui8matrix("max.pgm", i0, i1, j0, j1, I0);
@@ -423,17 +419,15 @@ void test_max(int argc, char** argv)
 
     // validation pour établir si une track est vrai/faux positif
     if (validation0) {
-        Validation(validation0, tracks0, nb_tracks, "./debug/");
-        Validation_final();
-        Validation_free();
+        Validation_init(validation0);
+        Validation(tracks0, nb_tracks);
     }
     else {
         PUTS("NO VALIDATION");
     }
     if (validation1) {
-        Validation(validation1, tracks1, nb_tracks, "./debug/");
-        Validation_final();
-        Validation_free();
+        Validation_init(validation1);
+        Validation(tracks1, nb_tracks);
     }
     else {
         PUTS("NO VALIDATION");

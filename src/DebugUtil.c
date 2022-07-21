@@ -304,7 +304,7 @@ void parseTracks(const char*filename, Track* tracks, int* n)
         fgets(lines, 100, file);
         sscanf(lines, "%d %f %f %d %f %f %d %d %d", &t0, &x0, &y0, &t1, &x1, &y1, &bb_x, &bb_y, &is_meteor);
         tracks[i].timestamp = t0;
-        tracks[i].time      = t1-t0+1;
+        tracks[i].time      = t1-t0;
         tracks[i].state     = 0;
         tracks[i].begin.x   = x0;
         tracks[i].begin.y   = y0;
@@ -1201,7 +1201,7 @@ void get_bouding_box_path_from_tracks_path(char* path_tracks, char **path_bb)
 
 
 // ==========================================================================================================================================================================
-void create_debug_dir(char *output_dest, char *filename, int light_min, int light_max, int edt)
+void create_debug_dir(char *output_dest, char *filename, int light_min, int light_max)
 // ==========================================================================================================================================================================
 {
         char tmp_asso[100], tmp_stats[100];
@@ -1257,7 +1257,7 @@ next:
 
 
 // ==========================================================================================================================================================================
-void create_frames_dir(char *dest_path, char *filename, int light_min, int light_max, int edt)
+void create_frames_dir(char *dest_path, char *filename, int light_min, int light_max)
 // ==========================================================================================================================================================================
 {
         char path_frames[100];
@@ -1296,7 +1296,7 @@ next:
 }
 
 // ==========================================================================================================================================================================
-void create_video_dir(char *dest_path, char *filename, int light_min, int light_max, int edt)
+void create_video_dir(char *dest_path, char *filename, int light_min, int light_max)
 // ==========================================================================================================================================================================
 {
         char path_video[150];
