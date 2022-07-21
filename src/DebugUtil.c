@@ -28,7 +28,6 @@
 #include <sys/stat.h>
 
 
-#define SEQUENCE_DST_PATH_DEBUG "debug/"
 #define SIZE_BUF 20
 
 char path_stats_0[250], path_stats_1[250];
@@ -128,7 +127,7 @@ void saveErrorMoy(const char *filename, double errMoy, double eType)
 // ---------------------------------------------------------------------------------------------------
 {
     char path[200];
-    sprintf(path, "%s%s", path_assoconflicts_f, filename);
+    sprintf(path, "%s/%s", path_assoconflicts_f, filename);
     disp(path);
     FILE *f = fopen(path, "a");
     if (f == NULL){
@@ -143,6 +142,7 @@ void saveErrorMoy(const char *filename, double errMoy, double eType)
 void printTracks(Track* tracks, int last)
 // ---------------------------------------------------------------------------------------------------
 {
+    puts("Hello");
     printf("%d\n", last);
 
     if (last==-1) return;
@@ -314,8 +314,11 @@ void parseTracks(const char*filename, Track* tracks, int* n)
         tracks[i].bb_y      = bb_y;
         tracks[i].is_meteor = is_meteor;
     }
+    puts("end");
+    idisp(*n);
     // (*n)--;
     fclose(file);
+    idisp(*n);
 }
 
 // ---------------------------------------------------------------------------------------------------
@@ -1177,31 +1180,50 @@ void get_data_from_tracks_path(char* path, int *light_min, int *light_max, char 
     free(max);
 }
 
+// =========================================================================================================================================================================
+void get_bouding_box_path_from_tracks_path(char* path_tracks, char **path_bb)
+// =========================================================================================================================================================================
+{
+    assert(path_tracks != NULL);
+    assert(path_bb != NULL);
+
+    char *slash = path_tracks, *next;
+    while ((next = strpbrk(slash + 1, "\\/"))) 
+        slash = next;
+
+    if (path_tracks != slash) slash++;
+    next = strndup(path_tracks, slash - path_tracks);
+    
+    *path_bb = malloc(sizeof(strlen(next)) + strlen("/bounding_box.txt") + 1);
+    sprintf(*path_bb, "%sbounding_box.txt", next);
+    free(next);
+}
+
+
 // ==========================================================================================================================================================================
-void create_debug_dir(char *output_stats, char *filename, int light_min, int light_max, int edt)
+void create_debug_dir(char *output_dest, char *filename, int light_min, int light_max, int edt)
 // ==========================================================================================================================================================================
 {
         char tmp_asso[100], tmp_stats[100];
         char tmp_debug[100];
         char path_assoconflicts[100], path_stats[100];
         struct stat status = { 0 };
-
-        sprintf(tmp_asso,     "%s/debug/assoconflicts/",             output_stats);
-        sprintf(tmp_stats,    "%s/debug/stats/",                     output_stats);
-        sprintf(tmp_debug,    "%s/debug",                            output_stats);
+        sprintf(tmp_debug,    "%s/debug",                            output_dest);
+        sprintf(tmp_asso,     "%s/assoconflicts",                   tmp_debug);
+        sprintf(tmp_stats,    "%s/stats",                           tmp_debug);
 
 
         if ((light_min != -1) && (light_max != -1)){
-                sprintf(path_assoconflicts,     "%sSB_%d_SH_%d/",                               tmp_asso, light_min, light_max);
-                sprintf(path_stats,             "%sSB_%d_SH_%d/",                               tmp_stats, light_min, light_max);
-                sprintf(path_assoconflicts_f,   "%s%s/",                                        path_assoconflicts, filename);
-                sprintf(path_stats_f,           "%s%s/",                                        path_stats, filename);
-                sprintf(path_motion,            "%smotion.txt",                                 path_assoconflicts_f);
-                sprintf(path_bounding_box,      "%sbounding_box.txt",                           path_assoconflicts_f);
-                sprintf(path_extraction,        "%sextraction.txt",                             path_assoconflicts_f);
-                sprintf(path_error,             "%serror.txt",                                  path_assoconflicts_f);
-                sprintf(path_tracks,            "%stracks.txt",                                 path_assoconflicts_f);
-                sprintf(path_debug,             "%s%s.txt",                                     path_assoconflicts_f, filename);
+                sprintf(path_assoconflicts,     "%s/SB_%d_SH_%d",                               tmp_asso, light_min, light_max);
+                sprintf(path_stats,             "%s/SB_%d_SH_%d",                               tmp_stats, light_min, light_max);
+                sprintf(path_assoconflicts_f,   "%s/%s",                                        path_assoconflicts, filename);
+                sprintf(path_stats_f,           "%s/%s",                                        path_stats, filename);
+                sprintf(path_motion,            "%s/motion.txt",                                 path_assoconflicts_f);
+                sprintf(path_bounding_box,      "%s/bounding_box.txt",                           path_assoconflicts_f);
+                sprintf(path_extraction,        "%s/extraction.txt",                             path_assoconflicts_f);
+                sprintf(path_error,             "%s/error.txt",                                  path_assoconflicts_f);
+                sprintf(path_tracks,            "%s/tracks.txt",                                 path_assoconflicts_f);
+                sprintf(path_debug,             "%s/%s.txt",                                     path_assoconflicts_f, filename);
                 goto next;
         }
         // default
@@ -1213,9 +1235,6 @@ next:
         if( stat(tmp_debug, &status) == -1 ) {
                 mkdir( tmp_debug, 0700 );
         }
-        // if( stat(SEQUENCE_DST_PATH_DEBUG, &status) == -1 ) {
-            //   mkdir( SEQUENCE_DST_PATH_DEBUG, 0700 );
-        // }
         if( stat(tmp_asso, &status) == -1 ) {
                 mkdir( tmp_asso, 0700 );
         }

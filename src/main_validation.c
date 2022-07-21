@@ -63,11 +63,8 @@ void test_validation(int argc, char** argv)
     int nb_tracks = 0;
 	init_Track(tracks, SIZE_MAX_TRACKS);
         
-    // debug/output paths and files
-	create_debug_dir (filename, light_min , light_max, -1);
-
     // recupere les tracks
-    parseTracks(path_tracks, tracks, &nb_tracks);
+    parseTracks(src_path, tracks, &nb_tracks);
     printTracks(tracks, nb_tracks);
     
     // validation pour établir si une track est vrai/faux positif

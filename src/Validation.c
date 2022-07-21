@@ -116,7 +116,7 @@ void Validation_free(void)
     assert(inputs_file != NULL);
 
     char buf[100];
-    sprintf(buf,"%svalidation.txt",dst_path);
+    sprintf(buf,"%s/validation.txt",dst_path);
     VERBOSE (printf("[Validation] save in file : %s\n",buf); );
     FILE* out = fopen(buf,"a");
     char *filename;

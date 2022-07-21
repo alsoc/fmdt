@@ -213,7 +213,7 @@ void test_validation_routine(int argc, char** argv)
     if (find_arg(argc, argv, "-h")) {
         fprintf(stderr, "  -input_tracks : Path vers le fichier avec les tracks\n");
         fprintf(stderr, "  -input_video  : Path vers la video\n");
-        fprintf(stderr, "  -output       : Output de la video\n");
+        fprintf(stderr, "  -output_video : Output de la video\n");
         fprintf(stderr, "  -validation   : Fichier contenant la vérité terrain de la séquence\n");
         fprintf(stderr, "  -start_frame  : Image de départ dans la séquence\n");
         fprintf(stderr, "  -end_frame    : Dernière image de la séquence\n");
@@ -246,8 +246,10 @@ void test_validation_routine(int argc, char** argv)
     }
 
     char *filename;
+    char *path_bounding_box;
     disp(src_path_video);
     get_data_from_tracks_path(src_path, &light_min, &light_max, &filename);
+    get_bouding_box_path_from_tracks_path(src_path, &path_bounding_box);
 
     Track tracks[SIZE_MAX_TRACKS];
 
@@ -255,15 +257,15 @@ void test_validation_routine(int argc, char** argv)
 	init_Track(tracks, SIZE_MAX_TRACKS);
         
     // debug/output paths and files
-	create_debug_dir (output_stats,filename, light_min , light_max, -1);
 	create_video_dir (dest_path, filename, light_min , light_max, -1);
 	create_frames_dir(dest_path, filename, light_min , light_max, -1);
 
     disp(path_tracks);
+    disp(src_path);
     disp(path_bounding_box);
     
     // recupere les tracks
-    parseTracks(path_tracks, tracks, &nb_tracks);
+    parseTracks(src_path, tracks, &nb_tracks);
     printTracks(tracks, nb_tracks);
     
     // init 
@@ -338,6 +340,9 @@ void test_validation_routine(int argc, char** argv)
         saveFrame_listBB(path_frames_output, I0, cpt, i0, i1, j0, j1);
     }
     free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
+
+    free(filename);
+    free(path_bounding_box);
 }
 
 // ==============================================================================================================================
@@ -386,11 +391,7 @@ void test_max(int argc, char** argv)
 	init_Track(tracks0, SIZE_MAX_TRACKS);
 	init_Track(tracks1, SIZE_MAX_TRACKS);
         
-    // debug/output paths and files
-  	create_debug_dir (filename, light_min , light_max, -1);
-
     disp(path_tracks);
-    disp(path_bounding_box);
     
     // recupere les tracks
     parseTracks(path_tracks, tracks0, &nb_tracks);
