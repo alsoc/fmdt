@@ -86,5 +86,9 @@ void create_debug_files(int frame);
 void create_frames_files(int frame);
 void create_videos_files(char* filename);
 
+void copy_ui8matrix_ui8matrix(uint8 **X, int i0, int i1, int j0, int j1, uint8 **Y);
+void convert_ui8vector_ui32vector(uint8 *X, long nl, long nh, uint32 *Y);
+void convert_ui8matrix_ui32matrix(uint8 **X, int nrl, int nrh, int ncl, int nch, uint32 **Y);
+void WritePNMrow(uint8  *line, int width, FILE  *file); // defined in NRC but private...
 
 #endif //__DEBUGUTIL_H__
