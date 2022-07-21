@@ -230,7 +230,7 @@ void meteor_ballon_hyst(int argc, char** argv)
     }
 
     // Parsing Arguments
-    int start          = find_int_arg  (argc, argv, "-start_frame",     1 );
+    int start          = find_int_arg  (argc, argv, "-start_frame",     0 );
     int end            = find_int_arg  (argc, argv, "-end_frame",     1000);
     int skip           = find_int_arg  (argc, argv, "-skip_frames", 0 );
     int light_min      = find_int_arg  (argc, argv, "-light_min",      55 ); // a definir

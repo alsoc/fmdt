@@ -1181,11 +1181,11 @@ void get_data_from_tracks_path(char* path, int *light_min, int *light_max, char 
 }
 
 // =========================================================================================================================================================================
-void get_bouding_box_path_from_tracks_path(char* path_tracks, char **path_bb)
+void get_bouding_box_path_from_tracks_path(char* path_tracks)
 // =========================================================================================================================================================================
 {
     assert(path_tracks != NULL);
-    assert(path_bb != NULL);
+    // assert(path_bounding_box != NULL);
 
     char *slash = path_tracks, *next;
     while ((next = strpbrk(slash + 1, "\\/"))) 
@@ -1193,9 +1193,12 @@ void get_bouding_box_path_from_tracks_path(char* path_tracks, char **path_bb)
 
     if (path_tracks != slash) slash++;
     next = strndup(path_tracks, slash - path_tracks);
+    disp(next);
     
-    *path_bb = malloc(sizeof(strlen(next)) + strlen("/bounding_box.txt") + 1);
-    sprintf(*path_bb, "%sbounding_box.txt", next);
+    // *path_bb = malloc(sizeof(strlen(next)) + strlen("/bounding_box.txt") + 1);
+    sprintf(path_bounding_box, "%sbounding_box.txt", next);
+    disp(path_bounding_box);
+    disp(next);
     free(next);
 }
 
