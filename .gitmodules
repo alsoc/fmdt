@@ -1,3 +1,6 @@
 [submodule "lib/ffmpeg-io"]
 	path = lib/ffmpeg-io
 	url = git@gitlab.lip6.fr:sog/ffmpeg-io.git
+[submodule "lib/nrc2"]
+	path = lib/nrc2
+	url = git@gitlab.lip6.fr:sog/nrc2.git

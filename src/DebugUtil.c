@@ -5,7 +5,6 @@
  * Copyright (c) 2020-2021, Clara CIOCAN, LIP6 Sorbonne University
  * Copyright (c) 2020-2021, Mathuran KANDEEPAN, LIP6 Sorbonne University
  */
-#include "nrutil.h"
 #include "Args.h"
 #include "Video.h"
 #include "CCL.h"
@@ -18,6 +17,7 @@
 #include "ffmpeg-io/reader.h"
 #include "ffmpeg-io/writer.h"
 
+#include <nrc2.h>
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
@@ -677,7 +677,6 @@ rgb8** load_image_color(const char* filename, long* i0, long* i1, long* j0, long
  * Video *
  *********/
 
-
 // ==========================================================================================================================================================================
 void saveFrame_threshold(const char*filename, uint8**I0, uint8**I1, int i0, int i1, int j0, int j1)
 // ==========================================================================================================================================================================
@@ -722,6 +721,7 @@ void saveFrame_threshold(const char*filename, uint8**I0, uint8**I1, int i0, int 
     for(int i=0; i<=h-1; i++)
       WritePNMrow((uint8*)img[i], 2*w-1, file);
 
+
     /* fermeture du fichier */
     fclose(file);
 
@@ -762,6 +762,7 @@ void saveFrame_ui32matrix(const char*filename, uint32**I, int i0, int i1, int j0
     fwrite(buffer,strlen(buffer),1,file);
     for(int i=0; i<=h-1; i++)
       WritePNMrow((uint8*)img[i], w-1, file);
+
 
     /* fermeture du fichier */
     fclose(file);
@@ -929,6 +930,48 @@ void saveFrame_ui8matrix(const char*filename, uint8**I, int i0, int i1, int j0, 
     fclose(file);
 
     free_rgb8matrix(img, 0, h-1, 0, w-1);
+}
+
+// --------------------------------------------------
+void HsvToRgb(rgb8* pixel, uint8 h, uint8 s, uint8 v)
+// --------------------------------------------------
+{
+    unsigned char region, remainder, p, q, t;
+
+    if (s == 0) {
+        pixel->r = v;
+        pixel->g = v;
+        pixel->b = v;
+        return;
+    }
+
+    region = h / 43;
+    remainder = (h - (region * 43)) * 6;
+
+    p = (v * (255 - s)) >> 8;
+    q = (v * (255 - ((s * remainder) >> 8))) >> 8;
+    t = (v * (255 - ((s * (255 - remainder)) >> 8))) >> 8;
+
+    switch (region) {
+        case 0:
+            pixel->r = v; pixel->g = t; pixel->b = p;
+            break;
+        case 1:
+            pixel->r = q; pixel->g = v; pixel->b = p;
+            break;
+        case 2:
+            pixel->r = p; pixel->g = v; pixel->b = t;
+            break;
+        case 3:
+            pixel->r = p; pixel->g = q; pixel->b = v;
+            break;
+        case 4:
+            pixel->r = t; pixel->g = p; pixel->b = v;
+            break;
+        default:
+            pixel->r = v; pixel->g = p; pixel->b = q;
+            break;
+    }
 }
 
 // ==========================================================================================================================================================================
@@ -1353,3 +1396,43 @@ void create_videos_files(char *filename)
     sprintf(path_video_tracking,    "%s%s.mp4",      path_video_f,     filename);
 }
 
+/* ----------------------------------------------------------------------------- */
+void copy_ui8matrix_ui8matrix(uint8 **X, int i0, int i1, int j0, int j1, uint8 **Y)
+/* ----------------------------------------------------------------------------- */
+{
+    int i, j;
+
+    for(i=i0; i<=i1; i++) {
+        for(j=j0; j<=j1; j++) {
+            Y[i][j] = X[i][j];
+        }
+    }
+}
+
+/* -------------------------------------------------------------------------------- */
+void convert_ui8vector_ui32vector(uint8 *X, long nl, long nh, uint32 *Y)
+/* -------------------------------------------------------------------------------- */
+{
+    long i;
+    for(i=nl; i<=nh; i++)
+        Y[i] = (uint32) X[i];
+}
+
+/* ---------------------------------------------------------------------------------------------------- */
+void convert_ui8matrix_ui32matrix(uint8 **X, int nrl, int nrh, int ncl, int nch, uint32 **Y)
+/* ---------------------------------------------------------------------------------------------------- */
+{
+    long i;
+    for(i=nrl; i<=nrh; i++) {
+        convert_ui8vector_ui32vector(X[i], ncl, nch, Y[i]);
+    }
+}
+
+/* ------------------------------------------------------- */
+void WritePNMrow(uint8  *line, int width, FILE  *file)
+/* ------------------------------------------------------- */
+{
+    /* Le fichier est deja ouvert et ne sera pas ferme a la fin */
+
+    fwrite(&(line[0]), sizeof(byte), 3*sizeof(byte)*width, file);
+}
