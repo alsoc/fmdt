@@ -84,8 +84,8 @@ void printBuffer(Buf *buffer, int n)
 {
     for(int i = 0; i<n; i++){
         if(buffer[i].stats0.ID > 0)
-            printf("%4d \t %4d \t %4d  \n", 
-            buffer[i].stats0.ID, buffer[i].stats0.time, buffer[i].frame);
+            printf("i = %2d \t %4d \t %4d \t %4d  \n", 
+            i, buffer[i].stats0.ID, buffer[i].stats0.time, buffer[i].frame);
     }
     printf("\n");
 }
@@ -143,11 +143,11 @@ void printTracks(Track* tracks, int last)
 // ---------------------------------------------------------------------------------------------------
 {
     puts("Hello");
-    printf("%d\n", last);
+    printf("%d\n", last+1);
 
     if (last==-1) return;
 
-    for(int i = 0; i< last; i++){
+    for(int i = 0; i<= last; i++){
                 printf("%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \t %4d \t %4d \t %4d \t %4d \t %4d %4d\n", 
         tracks[i].timestamp, tracks[i].begin.x, tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x , tracks[i].end.y, tracks[i].rx, tracks[i].ry, tracks[i].bb_x, tracks[i].bb_y, tracks[i].is_valid, tracks[i].is_meteor);
 
