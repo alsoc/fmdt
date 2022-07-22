@@ -206,7 +206,7 @@ void calc_BB(Track* tracks, int n, int i0, int i1, int j0, int j1)
 }
 
 // ==============================================================================================================================
-void test_validation_routine(int argc, char** argv)
+void main_visu(int argc, char** argv)
 // ==============================================================================================================================
 {
 
@@ -225,8 +225,6 @@ void test_validation_routine(int argc, char** argv)
     char *src_path_video    = find_char_arg (argc, argv, "-input_video",    NULL);
     char *dest_path         = find_char_arg (argc, argv, "-output_video",   NULL);
     char *validation        = find_char_arg (argc, argv, "-validation",     NULL);
-    int start               = find_int_arg  (argc, argv, "-start_frame",    0);
-    int end                 = find_int_arg  (argc, argv, "-end_frame",      10000);
 
     int b = 1;
     int i0, i1, j0, j1;
@@ -234,6 +232,8 @@ void test_validation_routine(int argc, char** argv)
     int frame, frame_bb;
     int rx, ry, bb_x, bb_y;
     int light_min, light_max;
+    int start = 0; 
+    int end = 100000;
 
     if (!src_path || !src_path_video){
         printf("Input(s) missing\n");
@@ -454,7 +454,7 @@ void test_max(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
-    test_validation_routine(argc, argv);
+    main_visu(argc, argv);
     // test_max(argc, argv);
     
     return 0;

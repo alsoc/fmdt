@@ -1,21 +1,12 @@
 # Usage
 
-Changer paths des outputs en fonction de votre espace de stockage dans DebugUtil.c (surtout SEQUENCE_DST_PATH_VIDEOS)
 
 ## Dependencies
 
-This project use `ffmpeg-io` project as a submodule:
+This project use `ffmpeg-io` and `nrc2` project as submodules:
 
 ```bash
 git submodule update --init --recursive
-```
-
-## Make
-
-Pour la création des binaires `ballon` et `tracking` :
-
-```shell
-make
 ```
 
 ## CMake
@@ -35,86 +26,99 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -funroll-loops -fstri
 **Tips**: on Apple Silicon M1 CPUs and with Apple Clang, use `-mcpu=apple-m1` instead of `-march=native`.
 
 The `CMake` file comes with several options:
- * `-DTAH_BALLON_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the detection chain executable.
- * `-DTAH_TRACKING_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the tracking executable.
+ * `-DTAH_DETECT_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the detection chain executable.
+ * `-DTAH_VISU_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the visual tracking executable.
+ * `-DTAH_CHECK_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the check executable.
 
-## Chaine de traitement
+## **Détection**
 
-Exécution de la chaine de traitement d'images dans `./ballon`. \
-Input :  video sur laquelle on veut détecter des météores \
-Input2 (optionnelle) : fichier Vérité Terrain \
-Output : fichier tracks.txt avec les météores "détectés" (Vrai et Faux positifs)\  
-Output (friendly user): fichier bounding_box.txt pour les rectangles englobants dans `./tracking`   
-Output2 (optionnelle) : si Input2, alors les résultats des météores détectés par rapport aux Vérités terrains dans /debug/validation.txt \
+Exécutable de la chaine de detection de méteores dans `./exe/meteor-detect`. \
+**Input** `input-video` : video sur laquelle on veut détecter des météores \
+**Output** : `tracks.txt` avec les météores "détectés", par défaut dans "./debug/"\  
 \
 Pour les options : 
 
-`-input`       : Video input où il faut détecter les météores (str)\
-`-output`      : Frames path (str)\
-`-start_frame` : Image de départ de l'input (int)\
-`-end_frame  ` : Image de fin  de l'input (int)\
-`-light_min  ` : Seuil bas du seuillage par hystérésis (int)\
-`-light_max  ` : Seuil haut du seuillage par hystérésis (int)\
-`-surface_min` : Surface min des CC en pixels (int)\
-`-surface_max` : Surface max des CC en pixels (int)\
-`-debug`       : Enregistre des données pour debugger dans debug/ \
-`-validation ` : Fichier contenant la vérité terrain de la séquence (str)
+` -input_video   ` : Video source (str)  \
+` -output_tracks ` : Path frames output (str)  \
+` -output_stats  ` : Save files in output_path (str)  \
+` -start_frame   ` : Image de départ dans la séquence (int)  \
+` -end_frame     ` : Dernière image de la séquence (int)  \
+` -skip_frames   ` : Nombre d'images à sauter (int)  \
+` -light_min     ` : Seuil bas filtrage lumineux (int)  \
+` -light_max     ` : Seuil haut filtrage lumineux (int)  \
+` -surface_min   ` : Surface max des CC en pixels (int)  \
+` -surface_max   ` : Surface min des CC en pixels (int)  \
+` -k             ` : Nombre de voisins dans KPPV (int)  \
+` -r_extrapol    ` : Rayon de recherche d'une CC dans le cas d'une extrapolation (int)  \
+` -d_line        ` : Delta pour lequel un point est toujours considéré comme étant sur une droite (int)  \
+` -diff_deviaton ` : Facteur de multiplication de l'ecart type (l'erreur d'une CC doit etre superieure a diff_deviation*ecart_type pour etre considéré en mouvement (float)  \
 
-## Videos
+## **Visualisation**
 
-Obtention des vidéos outputs dans `./tracking` \
-Input :  video sur laquelle on veut détecter des météores \
-Input :  ficher tracks.txt correspondant à la video input \
-Input2 (optionnelle) : fichier Vérité Terrain \
-Output : si Inputs2, alors vidéo avec rectangles englobants en couleur (Vert = Vrai positif / Rouge = Faux positif) \
-sinon vidéo avec rectangles englobants en orange (pas de distinction entre vrai et faux positif)
+Exécutable de la visualisation de la détection des méteores dans `./exe/meteor-visu`. \
+**Input** ` -input_tracks `:  Video sur laquelle on veut détecter des météores \
+**Input** ` -input_video  `:  Ficher tracks.txt correspondant à la video input \
+**Input2** (optionnelle) ` -validation   ` : Fichier Vérité Terrain \
+**Output** ` -output_video `: Si Inputs2, alors vidéo avec rectangles englobants en couleur (Vert = Vrai positif / Rouge = Faux positif) \
+sinon vidéo avec rectangles englobants en plusieurs teintes de vert selon le niveau de confiance de la détection.  
 
 Pour les options : 
 
-`-input_video` : Video input où il faut détecter les météores (str)\
-`-input_tracks`: Tracks des météores (str)\
-`-output`      : Video outpath path path (str)\
-`-start_frame` : Image de départ de l'input (int)\
-`-end_frame  ` : Image de fin  de l'input (int)\
-`-light_min  ` : Seuil bas du seuillage par hystérésis (int)\
-`-light_max  ` : Seuil haut du seuillage par hystérésis (int)\
-`-surface_min` : Surface min des CC en pixels (int)\
-`-surface_max` : Surface max des CC en pixels (int)\
-`-validation ` : Fichier contenant la vérité terrain de la séquence (str)
+` -input_tracks ` : `tracks.txt` \
+` -input_video  ` : Video source \
+` -output_video ` : Path video output \
+` -validation   ` : Fichier contenant la vérité terrain de la séquence pour mettre les couleurs (Rouge = faux positif / Vert = vrai positif) \
 
-Pour exécuter `./traking`, il faut impérativement avoir lancer `./ballon` sur la même vidéo auparavant pour avoir le fichier tracks.txt et bouding_box.txt
+Pour exécuter `./exe/meteor-visu`, il faut impérativement avoir lancer `./exe/meteor-detect` sur la même vidéo auparavant pour avoir les fichiers `tracks.txt` et `bouding_box.txt`.
+
+## **Validation**
+
+Exécutable de la vérification de la détection des méteores sous format texte dans `./exe/meteor-check`. \
+**Input** ` -input_tracks ` :  video sur laquelle on veut détecter des météores \
+**Input**  ` -validation   ` : Fichier contenant la vérité terrain de la séquence \
+**Output** ` -output` : path du dossier contenant `validation.txt`, par défaut dans le dossier courant\
+
+Pour les options : 
+
+` -input_tracks `: `tracks.txt` \
+` -output       `: path du dossier contenant `validation.txt`, par défaut dans le dossier courant\ \
+` -validation   `: Fichier contenant la vérité terrain de la séquence \
+
+Pour exécuter `./exe/meteor-check`, il faut impérativement avoir lancer `./exe/meteor-detect` sur la même vidéo auparavant pour avoir le fichier `tracks.txt`.
 
 
-## Exemple sur le réseau du LIP6 : 
+## Exemple : 
 
+Téléchargez la vidéo dans la racine du project: https://lip6.fr/Adrien.Cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4
 
-
-### Exemple 1 : récupérer les météores détectés sous format texte dans debug/assoconflicts/
+### Step 1 : Détection de météores
 
 ```shell
-tau : 
-	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 
-
-tau_save : 
-	./ballon -input /users/cao/mk3800103/Téléchargements/meteor24.mp4 -output /dsk/l1/misc/mk3800103/output/
+./exe/meteor-detect -input_video ../2022_05_31_tauh_34_meteors.mp4
 ```
 
-Rajoutez l'option suivante pour comparer les résultats avec la vérité terrain établie à la main:
+Pour avoir les frames en binaire pour debug : 
+
 ```shell
--validation ./validation/meteor24.txt
+./exe/meteor-detect -input_video ../2022_05_31_tauh_34_meteors.mp4 -output_frames ./frames
 ```
 
-Les résultats sont enregistrés dans /debug/validation.txt
-
-### Exemple 2 : récupérer une video des "météores détectés" avec rectangle englobant sans distinction Vrai/Faux positifs
+### Step 2 : Visualisation de la détection
 
 ```shell
-./tracking -input_video /users/cao/mk3800103/Téléchargements/meteor24.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/meteor24/tracks.txt -output /dsk/l1/misc/mk3800103/output/
- ```
+./exe/meteor-visu -input_video ../2022_05_31_tauh_34_meteors.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt -output ../.
+```
 
-### Exemple 3 : récupérer une video des "météores détectés" avec rectangle englobant avec Vrai/Faux positifs
+Pour avoir la visualisation avec la vérité Terrain :
+
+```shell
+./exe/meteor-visu -input_video ../2022_05_31_tauh_34_meteors.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt -output ../ -validation ../validation/meteor24.txt
+```
+
+### Step 3 : Validation par fichier texte
 
 Rajoutez l'option suivante:
 ```shell
--validation ./validation/meteor24.txt
+./exe/meteor-check -input_tracks ./debug/assoconflicts/SB_55_SH_80/meteor24/tracks.txt -validation ../validation/meteor24.txt
 ```
+

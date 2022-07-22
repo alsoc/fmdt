@@ -12,14 +12,12 @@
 #include "DebugUtil.h"
 #include "Validation.h"
 
-#define SIZE_MAX_METEORROI 3000
 #define SIZE_MAX_TRACKS 1000
-#define TOLERANCE_DISTANCEMIN 20
 
 extern char path_tracks[200];
 
 // ==============================================================================================================================
-void test_validation(int argc, char** argv)
+void main_validation(int argc, char** argv)
 // ==============================================================================================================================
 {
 
@@ -32,7 +30,7 @@ void test_validation(int argc, char** argv)
 
     // Parsing Arguments
     char *src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
-    char *dest_path         = find_char_arg (argc, argv, "-output",         ".");
+    char *dest_path         = find_char_arg (argc, argv, "-output",         "../");
     char *validation        = find_char_arg (argc, argv, "-validation",     NULL);
 
     int light_min, light_max;
@@ -71,7 +69,7 @@ void test_validation(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
-    test_validation(argc, argv);
+    main_validation(argc, argv);
     
     return 0;
 }
