@@ -125,13 +125,13 @@ Pour avoir les frames en binaire pour debug :
 Visualisation SANS vérité terrain :
 
 ```shell
-./exe/meteor-visu -input_video ../2022_05_31_tauh_34_meteors.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt -output ../.
+./exe/meteor-visu -input_video ../2022_05_31_tauh_34_meteors.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt -output_video ../.
 ```
 
 Visualisation AVEC vérité terrain :
 
 ```shell
-./exe/meteor-visu -input_video ../2022_05_31_tauh_34_meteors.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt -output ../ -validation ../validation/meteor24.txt
+./exe/meteor-visu -input_video ../2022_05_31_tauh_34_meteors.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt -output_video ../ -validation ../validation/meteor24.txt
 ```
 
 #### Step 3 : Validation par fichier texte
