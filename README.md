@@ -38,7 +38,7 @@ This project generates 3 different executables:
 
 The next sub-sections describe *how to use* the generated executables.
 
-### Détection
+### Détection avec `meteor-detect`
 
 Exécutable de la chaîne de détection de météores dans `./exe/meteor-detect`.
 
@@ -65,8 +65,7 @@ Les options disponibles sont :
 | `-diff_deviaton` | float    | facteur de multiplication de l’écart type (l'erreur d'une CC doit être supérieure a `diff_deviation` x `ecart_type` pour être considéré en mouvement |
 
 
-
-### Visualisation
+### Visualisation avec `meteor-visu`
 
 Exécutable de la visualisation de la détection des météores dans `./exe/meteor-visu`.
 
@@ -87,7 +86,7 @@ Les options disponibles sont :
 
 Note : pour exécuter `./exe/meteor-visu`, il faut impérativement avoir lancé `./exe/meteor-detect` sur la même vidéo auparavant pour avoir les fichiers `tracks.txt` et `bouding_box.txt`.
 
-### Validation
+### Vérification avec `meteor-check`
 
 Exécutable de la vérification de la détection des météores sous format texte dans `./exe/meteor-check`.
 
