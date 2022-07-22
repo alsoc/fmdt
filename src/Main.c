@@ -57,7 +57,7 @@ void meteor_ballon_hyst_frame(int argc, char** argv)
     int k              = find_int_arg  (argc, argv, "-k",                3); // a definir
     int r_extrapol     = find_int_arg  (argc, argv, "-r_extrapol",       5); // a definir
     int d_line         = find_int_arg  (argc, argv, "-d_line",          25); // a definir
-    int diff_deviation = find_int_arg  (argc, argv, "-diff_deviation",   4); // a definir
+    float diff_deviation = find_float_arg  (argc, argv, "-diff_deviation",   3.25); // a definir
     char* src_path     = find_char_arg (argc, argv, "-input_video",      NULL);
     char* dest_path    = find_char_arg (argc, argv, "-output_tracks",     NULL);
     char* output_path = find_char_arg (argc, argv, "-output_path", NULL);
@@ -227,7 +227,7 @@ void meteor_ballon_hyst(int argc, char** argv)
     // Parsing Arguments
     int start          = find_int_arg  (argc, argv, "-start_frame",     0 );
     int end            = find_int_arg  (argc, argv, "-end_frame",     1000);
-    int skip           = find_int_arg  (argc, argv, "-skip_frames", 0 );
+    int skip           = find_int_arg  (argc, argv, "-skip_frames",     0 );
     int light_min      = find_int_arg  (argc, argv, "-light_min",      55 ); // a definir
     int light_max      = find_int_arg  (argc, argv, "-light_max",      80 ); // a definir
     int surface_min    = find_int_arg  (argc, argv, "-surface_min",      3); // a definir
@@ -235,11 +235,11 @@ void meteor_ballon_hyst(int argc, char** argv)
     int k              = find_int_arg  (argc, argv, "-k",                3); // a definir
     int r_extrapol     = find_int_arg  (argc, argv, "-r_extrapol",       5); // a definir
     int d_line         = find_int_arg  (argc, argv, "-d_line",          25); // a definir
-    int diff_deviation = find_int_arg  (argc, argv, "-diff_deviation",   4); // a definir
+    float diff_deviation = find_float_arg  (argc, argv, "-diff_deviation",   3.25); // a definir
     char* src_path     = find_char_arg (argc, argv, "-input_video",      NULL);
     char* dest_path    = find_char_arg (argc, argv, "-output_frames",     NULL);
     char *output_path = find_char_arg(argc, argv, "-output_path", ".");
-    
+
     if(!src_path){
         printf("Input missing\n");
         exit(1);

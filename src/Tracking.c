@@ -468,7 +468,7 @@ void insert_new_track_stars(MeteorROI last_stats,  MeteorROI begin, Track *track
 
 
 // -----------------------------------------------------
-void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset, int theta, int tx, int ty, int r_extrapol, int d_line, int diff_deviation)
+void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset, int theta, int tx, int ty, int r_extrapol, int d_line, float diff_deviation)
 // -----------------------------------------------------
 {
     int j;
@@ -484,7 +484,6 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
         
         int asso = stats0[i].next;
         
-
         // si mouvement detecté
         if (fabs(e-errMoy) > diff_deviation * eType && asso){
             
@@ -501,7 +500,6 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
             if(stats0[i].time == 1){
                 // stocker dans un buf pour savoir si au moins sur 3 frames
                 insert_buffer(stats0[i], stats1[stats0[i].next], frame);
-
             }
             if(stats0[i].time == 2){ 
                 // mouvement sur 3 frames donc création de track + suppression du buff    
@@ -532,10 +530,10 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
     // clear/update le buffer
     update_buffer(frame);
 
-    // printBuffer(buffer, 10);
-    // printTracks(tracks, *last);
     // printStats(stats0, nc0);
     // printStats(stats1,nc1);
+    // printBuffer(buffer, 20);
+    // printTracks(tracks, *last);
 }
 
 void TrackStars(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset)

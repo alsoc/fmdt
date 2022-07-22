@@ -347,7 +347,7 @@ void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, 
 
         if (fabs(stats0[i].error-errMoy) >  eType) {
             stats0[i].motion = 1; 
-            fdisp(stats0[i].error);
+            // fdisp(stats0[i].error);
             cpt1++;
             continue; 
         }
