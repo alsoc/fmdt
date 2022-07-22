@@ -1,5 +1,5 @@
-#include "nrutil.h"
-#include "nrtype.h"
+#include <nrc2.h>
+
 #include "ffmpeg-io/reader.h"
 #include "ffmpeg-io/writer.h"
 
