@@ -42,8 +42,10 @@ The next sub-sections describe *how to use* the generated executables.
 
 Exécutable de la chaîne de détection de météores dans `./exe/meteor-detect`.
 
-  * **Input**  `-input_video` : vidéo sur laquelle on veut détecter des météores
-  * **Output** `tracks.txt`   : avec les météores "détectés", par défaut dans "./debug/"
+  * **Input1**  `-input_video`: vidéo sur laquelle on veut détecter des météores
+  * **Input2**  `-output_frames` (optionnelle): path frames output
+  * **Input3**  `-output_stats` (optionnelle): vidéo sur laquelle on veut détecter des météores
+  * **Output** `tracks.txt`: liste des météores "détectés"
 
 Les options disponibles sont :
 
@@ -51,7 +53,7 @@ Les options disponibles sont :
 | :---             | :---     | :---        | :--- |
 | `-input_video`   | str      | ---         | path vidéo source |
 | `-output_frames` | str      | ---         | path frames output for debug|
-| `-output_stats`  | str      | ./          | path files stats (`tracks.txt` && `bounding_box.txt`) |
+| `-output_stats`  | str      | ./debug     | path files stats (`tracks.txt` && `bounding_box.txt`) |
 | `-start_frame`   | int      | 0           | image de départ dans la séquence |
 | `-end_frame`     | int      | 200000      | dernière image de la séquence |
 | `-skip_frames`   | int      | 0           | nombre d'images à sauter |
@@ -62,7 +64,7 @@ Les options disponibles sont :
 | `-k`             | int      | 3           | nombre de voisins dans KPPV |
 | `-r_extrapol`    | int      | 5           | rayon de recherche d'une CC dans le cas d'une extrapolation |
 | `-d_line`        | int      | 25          | delta pour lequel un point est toujours considéré comme étant sur une droite |
-| `-diff_deviaton` | float    | 4.0         | facteur de multiplication de l’écart type (l'erreur d'une CC doit être supérieure a `diff_deviation` x `ecart_type` pour être considéré en mouvement |
+| `-diff_deviaton` | float    | 4.0         | facteur de multiplication de l’écart type (l'erreur d'une CC doit être supérieure a `diff_deviation` x `ecart_type` pour être considéré en mouvement)|
 
 
 ### Visualisation avec `meteor-visu`
@@ -77,12 +79,12 @@ Exécutable de la visualisation de la détection des météores dans `./exe/mete
 
 Les options disponibles sont :
 
-| **Argument**    | **Type** | **Description** |
-| :---            | :---     | :--- |
-| `-input_tracks` | str      | `tracks.txt` |
-| `-input_video`  | str      | vidéo source |
-| `-output_video` | str      | path vidéo output |
-| `-validation`   | str      | fichier contenant la vérité terrain de la séquence pour mettre les couleurs (Rouge = faux positif / Vert = vrai positif) |
+| **Argument**    | **Type** | **Default** | **Description** |
+| :---            | :---     | :---        |:--- |
+| `-input_tracks` | str      | ---         |`tracks.txt` |
+| `-input_video`  | str      | ---         |vidéo source |
+| `-output_video` | str      | ../         |path vidéo output |
+| `-validation`   | str      | ---         |fichier contenant la vérité terrain de la séquence pour mettre les couleurs (Rouge = faux positif / Vert = vrai positif) |
 
 Note : pour exécuter `./exe/meteor-visu`, il faut impérativement avoir lancé `./exe/meteor-detect` sur la même vidéo auparavant pour avoir les fichiers `tracks.txt` et `bouding_box.txt`.
 
@@ -96,11 +98,11 @@ Exécutable de la vérification de la détection des météores sous format text
 
 Les options disponibles sont :
 
-| **Argument**    | **Type** | **Description** |
-| :---            | :---     | :--- |
-| `-input_tracks` | str      | `tracks.txt` |
-| `-output`       | str      | path du dossier contenant `validation.txt`, par défaut dans le dossier courant |
-| `-validation`   | str      | Fichier contenant la vérité terrain de la séquence |
+| **Argument**    | **Type** | **Default** |**Description** |
+| :---            | :---     | :---        |:--- |
+| `-input_tracks` | str      |  ---        |`tracks.txt` |
+| `-output`       | str      |  "../"      |path du dossier contenant `validation.txt` |
+| `-validation`   | str      |  ---        |Fichier contenant la vérité terrain de la séquence |
 
 Note : pour exécuter `./exe/meteor-check`, il faut impérativement avoir lancé `./exe/meteor-detect` sur la même vidéo auparavant pour avoir le fichier `tracks.txt`.
 
