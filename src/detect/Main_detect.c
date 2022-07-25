@@ -58,7 +58,7 @@ void main_detect_frame(int argc, char** argv)
     float diff_deviation = find_float_arg  (argc, argv, "-diff_deviation",   3.25); // a definir
     char* src_path     = find_char_arg (argc, argv, "-input_video",      NULL);
     char* output_frames    = find_char_arg (argc, argv, "output_frames",     NULL);
-    char* output_stats = find_char_arg (argc, argv, "-output_stats", NULL);
+    char* output_tracks = find_char_arg (argc, argv, "-output_tracks", NULL);
 
     if(!src_path){
         printf("Input missing\n");
@@ -100,7 +100,7 @@ void main_detect_frame(int argc, char** argv)
     if (src_path != slash) slash++;
     filename = strndup(slash, next-slash);
 
-  	if(output_stats) create_debug_dir (output_stats, filename, light_min , light_max);
+  	if(output_tracks) create_debug_dir (output_tracks, filename, light_min , light_max);
 	if(output_frames) create_frames_dir(output_frames, filename, light_min , light_max);
     
     // ---------------- //
@@ -174,9 +174,9 @@ void main_detect_frame(int argc, char** argv)
         }
 
         PUTS("\t [DEBUG] Saving stats");
-        if (output_stats){
+        if (output_tracks){
 	        create_debug_files (frame);
-            saveAssoConflicts(output_stats, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
+            saveAssoConflicts(output_tracks, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
             // saveMotion(path_motion, theta, tx, ty, frame-1);
             // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
             // saveError(path_error, stats0, n0);
@@ -236,11 +236,11 @@ void main_detect(int argc, char** argv)
     float diff_deviation    = find_float_arg  (argc, argv, "-diff_deviation",   3.25); // a definir
     char* input_video       = find_char_arg (argc, argv, "-input_video",      NULL);
     char* output_frames     = find_char_arg (argc, argv, "-output_frames",     NULL);
-    char *output_stats      = find_char_arg(argc, argv, "-output_stats", ".");
+    char *output_tracks      = find_char_arg(argc, argv, "-output_tracks", ".");
 
     printf("input_video              = %s\n", input_video);
     printf("output_frames            = %s\n", output_frames);
-    printf("output_stats             = %s\n", output_stats);
+    printf("output_tracks             = %s\n", output_tracks);
     printf("start_frame              = %d\n", start);
     printf("end_frame                = %d\n", end);
     printf("skip_frames              = %d\n", skip);
@@ -287,7 +287,7 @@ void main_detect(int argc, char** argv)
     char *path;
     split_path_file(&path, &filename, input_video);
     disp(filename);
-    if(output_stats) create_debug_dir (output_stats, filename, light_min , light_max);
+    if(output_tracks) create_debug_dir (output_tracks, filename, light_min , light_max);
 	if (output_frames) create_frames_dir(output_frames, filename, light_min , light_max);
 
     // ------------------------- //
@@ -376,7 +376,7 @@ void main_detect(int argc, char** argv)
         }
 
         PUTS("\t [DEBUG] Saving stats");
-        if (output_stats){
+        if (output_tracks){
     	    create_debug_files (frame);
             disp(path_debug);
             saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
@@ -394,7 +394,7 @@ void main_detect(int argc, char** argv)
     saveTabBB(path_bounding_box, tabBB, NB_FRAMES);
     saveTracks(path_tracks, tracks, last);
 
-    if (output_stats) printf("Files for debug saved in %s \n", output_stats);
+    if (output_tracks) printf("Files for debug saved in %s \n", output_tracks);
     if (output_frames) printf("Frames saved in %s \n", output_frames);
     // ----------
     // -- free --

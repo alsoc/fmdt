@@ -44,27 +44,27 @@ Exécutable de la chaîne de détection de météores dans `./exe/meteor-detect`
 
   * **Input1**  `-input_video`: vidéo sur laquelle on veut détecter des météores
   * **Input2**  `-output_frames` (optionnelle): path frames output
-  * **Input3**  `-output_stats` (optionnelle): vidéo sur laquelle on veut détecter des météores
+  * **Input3**  `-output_tracks` (optionnelle): path files stats (`tracks.txt` && `bounding_box.txt`)
   * **Output** `tracks.txt`: liste des météores "détectés"
 
 Les options disponibles sont :
 
-| **Argument**     | **Type** | **Default** | **Description** |
-| :---             | :---     | :---        | :--- |
-| `-input_video`   | str      | ---         | path vidéo source |
-| `-output_frames` | str      | ---         | path frames output for debug|
-| `-output_stats`  | str      | ./debug     | path files stats (`tracks.txt` && `bounding_box.txt`) |
-| `-start_frame`   | int      | 0           | image de départ dans la séquence |
-| `-end_frame`     | int      | 200000      | dernière image de la séquence |
-| `-skip_frames`   | int      | 0           | nombre d'images à sauter |
-| `-light_min`     | int      | 55          | seuil bas filtrage lumineux |
-| `-light_max`     | int      | 80          | seuil haut filtrage lumineux |
-| `-surface_min`   | int      | 3           | surface min des CC en pixels |
-| `-surface_max`   | int      | 1000        | surface max des CC en pixels |
-| `-k`             | int      | 3           | nombre de voisins dans KPPV |
-| `-r_extrapol`    | int      | 5           | rayon de recherche d'une CC dans le cas d'une extrapolation |
-| `-d_line`        | int      | 25          | delta pour lequel un point est toujours considéré comme étant sur une droite |
-| `-diff_deviaton` | float    | 4.0         | facteur de multiplication de l’écart type (l'erreur d'une CC doit être supérieure a `diff_deviation` x `ecart_type` pour être considéré en mouvement)|
+| **Argument**     | **Type** | **Defaut**  | **Necessaire** |**Description** |
+| :---             | :---     | :---        |    :---        |:--- |
+| `-input_video`   | str      | None        | Oui            |path vidéo source |
+| `-output_frames` | str      | None        | Non            |path frames output for debug|
+| `-output_tracks` | str      | ./debug     | Non            |path files stats (`tracks.txt` && `bounding_box.txt`) |
+| `-start_frame`   | int      | 0           | Non            |image de départ dans la séquence |
+| `-end_frame`     | int      | 200000      | Non            |dernière image de la séquence |
+| `-skip_frames`   | int      | 0           | Non            |nombre d'images à sauter |
+| `-light_min`     | int      | 55          | Non            |seuil bas filtrage lumineux |
+| `-light_max`     | int      | 80          | Non            |seuil haut filtrage lumineux |
+| `-surface_min`   | int      | 3           | Non            |surface min des CC en pixels |
+| `-surface_max`   | int      | 1000        | Non            |surface max des CC en pixels |
+| `-k`             | int      | 3           | Non            |nombre de voisins dans KPPV |
+| `-r_extrapol`    | int      | 5           | Non            |rayon de recherche d'une CC dans le cas d'une extrapolation |
+| `-d_line`        | int      | 25          | Non            |delta pour lequel un point est toujours considéré comme étant sur une droite |
+| `-diff_deviaton` | float    | 4.0         | Non            |facteur de multiplication de l’écart type (l'erreur d'une CC doit être supérieure a `diff_deviation` x `ecart_type` pour être considéré en mouvement)|
 
 
 ### Visualisation avec `meteor-visu`
@@ -79,12 +79,12 @@ Exécutable de la visualisation de la détection des météores dans `./exe/mete
 
 Les options disponibles sont :
 
-| **Argument**    | **Type** | **Default** | **Description** |
-| :---            | :---     | :---        |:--- |
-| `-input_tracks` | str      | ---         |`tracks.txt` |
-| `-input_video`  | str      | ---         |vidéo source |
-| `-output_video` | str      | ../         |path vidéo output |
-| `-validation`   | str      | ---         |fichier contenant la vérité terrain de la séquence pour mettre les couleurs (Rouge = faux positif / Vert = vrai positif) |
+| **Argument**    | **Type** | **Defaut** | **Necessaire** | **Description** |
+| :---            | :---     | :---       |  :---          |:--- |
+| `-input_tracks` | str      | None       |  Oui           |`tracks.txt` |
+| `-input_video`  | str      | None       |  Oui           |vidéo source |
+| `-output_video` | str      | "../"      |  Non           |path vidéo output |
+| `-validation`   | str      | None       |  Non           |fichier contenant la vérité terrain de la séquence pour mettre les couleurs (Rouge = faux positif / Vert = vrai positif) |
 
 Note : pour exécuter `./exe/meteor-visu`, il faut impérativement avoir lancé `./exe/meteor-detect` sur la même vidéo auparavant pour avoir les fichiers `tracks.txt` et `bouding_box.txt`.
 
@@ -98,11 +98,11 @@ Exécutable de la vérification de la détection des météores sous format text
 
 Les options disponibles sont :
 
-| **Argument**    | **Type** | **Default** |**Description** |
-| :---            | :---     | :---        |:--- |
-| `-input_tracks` | str      |  ---        |`tracks.txt` |
-| `-output`       | str      |  "../"      |path du dossier contenant `validation.txt` |
-| `-validation`   | str      |  ---        |Fichier contenant la vérité terrain de la séquence |
+| **Argument**    | **Type** | **Defaut** | **Necessaire** | **Description** |
+| :---            | :---     | :---       |    :---        |:--- |
+| `-input_tracks` | str      |  None      |   Oui          |`tracks.txt` |
+| `-output`       | str      |  "../"     |   Non          |path du dossier contenant `validation.txt` |
+| `-validation`   | str      |  None      |   Oui          |Fichier contenant la vérité terrain de la séquence |
 
 Note : pour exécuter `./exe/meteor-check`, il faut impérativement avoir lancé `./exe/meteor-detect` sur la même vidéo auparavant pour avoir le fichier `tracks.txt`.
 
@@ -133,7 +133,7 @@ Visualisation SANS vérité terrain :
 Visualisation AVEC vérité terrain :
 
 ```shell
-./exe/meteor-visu -input_video ../2022_05_31_tauh_34_meteors.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt -output_video ../ -validation ../validation/2022_05_31_tauh_34_meteors.txt.txt
+./exe/meteor-visu -input_video ../2022_05_31_tauh_34_meteors.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt -output_video ../ -validation ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 
 #### Step 3 : Validation par fichier texte
@@ -141,6 +141,6 @@ Visualisation AVEC vérité terrain :
 Utiliser `meteor-check` avec les options suivantes :
 
 ```shell
-./exe/meteor-check -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors.txt/tracks.txt -validation ../validation/2022_05_31_tauh_34_meteors.txt.txt
+./exe/meteor-check -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors.txt/tracks.txt -validation ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 
