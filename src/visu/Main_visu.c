@@ -215,15 +215,13 @@ void main_visu(int argc, char** argv)
         fprintf(stderr, "  -input_video  : Path vers la video\n");
         fprintf(stderr, "  -output_video : Output de la video\n");
         fprintf(stderr, "  -validation   : Fichier contenant la vérité terrain de la séquence\n");
-        fprintf(stderr, "  -start_frame  : Image de départ dans la séquence\n");
-        fprintf(stderr, "  -end_frame    : Dernière image de la séquence\n");
         exit(1);
     }
 
     // Parsing Arguments
     char *src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
     char *src_path_video    = find_char_arg (argc, argv, "-input_video",    NULL);
-    char *dest_path         = find_char_arg (argc, argv, "-output_video",   NULL);
+    char *dest_path         = find_char_arg (argc, argv, "-output_video",   "../.");
     char *validation        = find_char_arg (argc, argv, "-validation",     NULL);
 
     int b = 1;
