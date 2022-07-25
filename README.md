@@ -47,22 +47,22 @@ Exécutable de la chaîne de détection de météores dans `./exe/meteor-detect`
 
 Les options disponibles sont :
 
-| **Argument**     | **Type** | **Description** |
-| :---             | :---     | :--- |
-| `-input_video`   | str      | path vidéo source |
-| `-output_tracks` | str      | path frames output |
-| `-output_stats`  | str      | save files in output_path |
-| `-start_frame`   | int      | image de départ dans la séquence |
-| `-end_frame`     | int      | dernière image de la séquence |
-| `-skip_frames`   | int      | nombre d'images à sauter |
-| `-light_min`     | int      | seuil bas filtrage lumineux |
-| `-light_max`     | int      | seuil haut filtrage lumineux |
-| `-surface_min`   | int      | surface max des CC en pixels |
-| `-surface_max`   | int      | surface min des CC en pixels |
-| `-k`             | int      | nombre de voisins dans KPPV |
-| `-r_extrapol`    | int      | rayon de recherche d'une CC dans le cas d'une extrapolation |
-| `-d_line`        | int      | delta pour lequel un point est toujours considéré comme étant sur une droite |
-| `-diff_deviaton` | float    | facteur de multiplication de l’écart type (l'erreur d'une CC doit être supérieure a `diff_deviation` x `ecart_type` pour être considéré en mouvement |
+| **Argument**     | **Type** | **Default** | **Description** |
+| :---             | :---     | :---        | :--- |
+| `-input_video`   | str      | ---         | path vidéo source |
+| `-output_frames` | str      | ---         | path frames output for debug|
+| `-output_stats`  | str      | ./          | path files stats (`tracks.txt` && `bounding_box.txt`) |
+| `-start_frame`   | int      | 0           | image de départ dans la séquence |
+| `-end_frame`     | int      | 200000      | dernière image de la séquence |
+| `-skip_frames`   | int      | 0           | nombre d'images à sauter |
+| `-light_min`     | int      | 55          | seuil bas filtrage lumineux |
+| `-light_max`     | int      | 80          | seuil haut filtrage lumineux |
+| `-surface_min`   | int      | 3           | surface min des CC en pixels |
+| `-surface_max`   | int      | 1000        | surface max des CC en pixels |
+| `-k`             | int      | 3           | nombre de voisins dans KPPV |
+| `-r_extrapol`    | int      | 5           | rayon de recherche d'une CC dans le cas d'une extrapolation |
+| `-d_line`        | int      | 25          | delta pour lequel un point est toujours considéré comme étant sur une droite |
+| `-diff_deviaton` | float    | 4.0         | facteur de multiplication de l’écart type (l'erreur d'une CC doit être supérieure a `diff_deviation` x `ecart_type` pour être considéré en mouvement |
 
 
 ### Visualisation avec `meteor-visu`
@@ -131,7 +131,7 @@ Visualisation SANS vérité terrain :
 Visualisation AVEC vérité terrain :
 
 ```shell
-./exe/meteor-visu -input_video ../2022_05_31_tauh_34_meteors.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt -output_video ../ -validation ../validation/meteor24.txt
+./exe/meteor-visu -input_video ../2022_05_31_tauh_34_meteors.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt -output_video ../ -validation ../validation/2022_05_31_tauh_34_meteors.txt.txt
 ```
 
 #### Step 3 : Validation par fichier texte
@@ -139,6 +139,6 @@ Visualisation AVEC vérité terrain :
 Utiliser `meteor-check` avec les options suivantes :
 
 ```shell
-./exe/meteor-check -input_tracks ./debug/assoconflicts/SB_55_SH_80/meteor24/tracks.txt -validation ../validation/meteor24.txt
+./exe/meteor-check -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors.txt/tracks.txt -validation ../validation/2022_05_31_tauh_34_meteors.txt.txt
 ```
 
