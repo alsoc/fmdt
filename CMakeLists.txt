@@ -9,12 +9,15 @@ option(TAH_DETECT_EXE "compile the detection chain executable." ON)
 option(TAH_VISU_EXE "compile the visualization executable." ON)
 option(TAH_CHECK_EXE "compile the checking executable." ON)
 
+OPTION(DEFINE_DEBUG "Build the project using debugging code" OFF)
+
 # Print CMake options values --------------------------------------------------
 # -----------------------------------------------------------------------------
 message(STATUS "Tau-h options: ")
 message(STATUS "  * TAH_DETECT_EXE: '${TAH_DETECT_EXE}'")
 message(STATUS "  * TAH_VISU_EXE: '${TAH_VISU_EXE}'")
 message(STATUS "  * TAH_CHECK_EXE: '${TAH_CHECK_EXE}'")
+message(STATUS "  * DEBUG: '${TAH_CHECK_EXE}'")
 
 # Check CMake options ---------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -51,6 +54,9 @@ set(src_common_files
 # objects
 add_library(tah-common-obj OBJECT ${src_common_files})
 list(APPEND tah_targets_list tah-common-obj)
+
+
+
 
 # executables
 if(TAH_DETECT_EXE)
@@ -91,13 +97,22 @@ if (NOT TARGET nrc-slib)
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/nrc2/)
 endif()
 
+
+if(CMAKE_BUILD_TYPE STREQUAL "DEBUG")
+	message("Adding Debug flag...")
+	message("Build type is " ${CMAKE_BUILD_TYPE})
+else()
+	message("Release Mode")
+endif()
 # Add definitions -------------------------------------------------------------
 # -----------------------------------------------------------------------------
 macro(tah_target_compile_definitions targets privacy dir)
 	foreach(_target IN ITEMS ${targets})
-		target_compile_definitions(${_target} ${privacy} ${dir})
+		target_compile_definitions(${_target} ${privacy} ${dir} )
 	endforeach()
 endmacro()
+
+
 
 # empty...
 
