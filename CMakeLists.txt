@@ -5,9 +5,9 @@ project(tau-h)
 
 # CMake options ---------------------------------------------------------------
 # -----------------------------------------------------------------------------
-option(TAH_DETECT_EXE "Compile the detection chain executable." ON)
-option(TAH_VISU_EXE "compile the tracking executable." ON)
-option(TAH_CHECK_EXE "compile the tracking executable." ON)
+option(TAH_DETECT_EXE "compile the detection chain executable." ON)
+option(TAH_VISU_EXE "compile the visualization executable." ON)
+option(TAH_CHECK_EXE "compile the checking executable." ON)
 
 # Print CMake options values --------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -38,21 +38,13 @@ set(EXECUTABLE_OUTPUT_PATH ${exe_dir})
 
 # Declare source files to compile ---------------------------------------------
 # -----------------------------------------------------------------------------
-# set(src_common_files
-#     ${src_dir}/Args.c
-#     ${src_dir}/Features.c
-#     ${src_dir}/DebugUtil.c
-#     ${src_dir}/Tracking.c
-#     ${src_dir}/Validation.c
-#     ${src_dir}/Video.c)
-
 set(src_common_files
-	${src_dir}/common/Args.c
-	${src_dir}/common/Features.c
-	${src_dir}/common/DebugUtil.c
-	${src_dir}/common/Tracking.c
-	${src_dir}/common/Validation.c
-	${src_dir}/common/Video.c)
+    ${src_dir}/common/Args.c
+    ${src_dir}/common/Features.c
+    ${src_dir}/common/DebugUtil.c
+    ${src_dir}/common/Tracking.c
+    ${src_dir}/common/Validation.c
+    ${src_dir}/common/Video.c)
 
 # Create binaries -------------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -62,30 +54,31 @@ list(APPEND tah_targets_list tah-common-obj)
 
 # executables
 if(TAH_DETECT_EXE)
-	set(src_ballon_files
-		${src_dir}/detect/Ballon.c
-		${src_dir}/detect/CCL_LSL.c
-		${src_dir}/detect/KPPV.c
-		${src_dir}/detect/Threshold.c
-		${src_dir}/detect/Main_detect.c)
-	add_executable(tah-ballon-exe $<TARGET_OBJECTS:tah-common-obj> ${src_ballon_files})
-	list(APPEND tah_targets_list tah-ballon-exe)
-	set_target_properties(tah-ballon-exe PROPERTIES OUTPUT_NAME meteor-detect)
+	set(src_detect_files
+	    ${src_dir}/detect/Ballon.c
+	    ${src_dir}/detect/CCL_LSL.c
+	    ${src_dir}/detect/KPPV.c
+	    ${src_dir}/detect/Threshold.c
+	    ${src_dir}/detect/Main_detect.c)
+	add_executable(tah-detect-exe $<TARGET_OBJECTS:tah-common-obj> ${src_detect_files})
+	list(APPEND tah_targets_list tah-detect-exe)
+	set_target_properties(tah-detect-exe PROPERTIES OUTPUT_NAME meteor-detect)
 endif()
 if(TAH_VISU_EXE)
-	set(src_tracking_files
+	set(src_visu_files
 	    ${src_dir}/visu/Main_visu.c)
-	add_executable(tah-tracking-exe $<TARGET_OBJECTS:tah-common-obj> ${src_tracking_files})
-	list(APPEND tah_targets_list tah-tracking-exe)
-	set_target_properties(tah-tracking-exe PROPERTIES OUTPUT_NAME meteor-visu)
+	add_executable(tah-visu-exe $<TARGET_OBJECTS:tah-common-obj> ${src_visu_files})
+	list(APPEND tah_targets_list tah-visu-exe)
+	set_target_properties(tah-visu-exe PROPERTIES OUTPUT_NAME meteor-visu)
 endif()
 if(TAH_CHECK_EXE)
-	set(src_validation_files
+	set(src_check_files
 	    ${src_dir}/check/Main_check.c)
-	add_executable(tah-validation-exe $<TARGET_OBJECTS:tah-common-obj> ${src_validation_files})
-	list(APPEND tah_targets_list tah-validation-exe)
-	set_target_properties(tah-validation-exe PROPERTIES OUTPUT_NAME meteor-check)
+	add_executable(tah-check-exe $<TARGET_OBJECTS:tah-common-obj> ${src_check_files})
+	list(APPEND tah_targets_list tah-check-exe)
+	set_target_properties(tah-check-exe PROPERTIES OUTPUT_NAME meteor-check)
 endif()
+
 # Add and compile sub-projects ------------------------------------------------
 # -----------------------------------------------------------------------------
 # FFmpeg-IO
