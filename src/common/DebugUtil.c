@@ -1311,10 +1311,10 @@ void create_frames_dir(char *dest_path, char *filename, int light_min, int light
         struct stat status = { 0 };
 
         if ((light_min != -1) && (light_max != -1)){
-                sprintf(path_frames,            "%sSB_%d_SH_%d/",                 dest_path, light_min, light_max);
-                sprintf(path_frames_f,          "%s%s/",                          path_frames, filename);
-                sprintf(path_frames_binary_dir, "%sbinary/",                      path_frames_f);
-                sprintf(path_frames_output_dir, "%soutput/",                      path_frames_f);
+                sprintf(path_frames,            "%s/SB_%d_SH_%d",                 dest_path, light_min, light_max);
+                sprintf(path_frames_f,          "%s/%s",                          path_frames, filename);
+                sprintf(path_frames_binary_dir, "%s/binary",                      path_frames_f);
+                sprintf(path_frames_output_dir, "%s/output",                      path_frames_f);
                 goto next;
         }
         // default
@@ -1350,8 +1350,8 @@ void create_video_dir(char *dest_path, char *filename, int light_min, int light_
 
 
         if ((light_min != -1) && (light_max != -1)){
-                sprintf(path_video,            "%sSB_%d_SH_%d/",                               dest_path, light_min, light_max);
-                sprintf(path_video_f,          "%s%s/",                                        path_video, filename);
+                sprintf(path_video,            "%s/SB_%d_SH_%d",                               dest_path, light_min, light_max);
+                sprintf(path_video_f,          "%s/%s",                                        path_video, filename);
                 goto next;
         }
         // default
@@ -1377,23 +1377,23 @@ next:
 void create_debug_files(int frame)
 // ==========================================================================================================================================================================
 {
-    sprintf(path_stats_0,           "%s%05d.txt",      path_stats_f, frame);
-    sprintf(path_stats_1,           "%s%05d.txt",      path_stats_f, frame+1);
+    sprintf(path_stats_0,           "%s/%05d.txt",      path_stats_f, frame);
+    sprintf(path_stats_1,           "%s/%05d.txt",      path_stats_f, frame+1);
 }
 
 // ==========================================================================================================================================================================
 void create_frames_files(int frame)
 // ==========================================================================================================================================================================
 {
-    sprintf(path_frames_binary,     "%s%05d.ppm",      path_frames_binary_dir, frame);
-    sprintf(path_frames_output,     "%s%05d.ppm",      path_frames_output_dir, frame);
+    sprintf(path_frames_binary,     "%s/%05d.ppm",      path_frames_binary_dir, frame);
+    sprintf(path_frames_output,     "%s/%05d.ppm",      path_frames_output_dir, frame);
 }
 
 // ==========================================================================================================================================================================
 void create_videos_files(char *filename)
 // ==========================================================================================================================================================================
 {
-    sprintf(path_video_tracking,    "%s%s.mp4",      path_video_f,     filename);
+    sprintf(path_video_tracking,    "%s/%s.mp4",      path_video_f,     filename);
 }
 
 /* ----------------------------------------------------------------------------- */
