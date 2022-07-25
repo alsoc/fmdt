@@ -33,6 +33,11 @@ void main_validation(int argc, char** argv)
     char *dest_path         = find_char_arg (argc, argv, "-output",         "../");
     char *validation        = find_char_arg (argc, argv, "-validation",     NULL);
 
+    printf("input_tracks           = %s\n", src_path);
+    printf("output                 = %s\n", dest_path);
+    printf("validation             = %s\n", validation);
+
+
     int light_min, light_max;
     char *filename;
 

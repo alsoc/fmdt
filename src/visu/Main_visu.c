@@ -224,6 +224,11 @@ void main_visu(int argc, char** argv)
     char *dest_path         = find_char_arg (argc, argv, "-output_video",   "../.");
     char *validation        = find_char_arg (argc, argv, "-validation",     NULL);
 
+    printf("input_tracks           = %s\n", src_path);
+    printf("input_video            = %s\n", src_path_video);
+    printf("output_video           = %s\n", dest_path);
+    printf("validation             = %s\n", validation);
+
     int b = 1;
     int i0, i1, j0, j1;
 	int color = 0;
