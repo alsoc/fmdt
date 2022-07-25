@@ -19,6 +19,12 @@
 #ifndef __BALLON_H__
 #define __BALLON_H__
 
+
+
+#define SIZE_MAX_METEORROI 20000
+#define SIZE_MAX_TRACKS 1000
+#define SIZE_MAX_KPPV 200
+
 typedef struct {
     uint8 **I0, **I1;       // frame t e t+1
     uint8 **SB, **SM, **SH; // hysteresis

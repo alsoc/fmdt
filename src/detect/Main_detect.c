@@ -20,9 +20,7 @@
 #define SEQUENCE_DST_PATH_HIST "hist/"
 #define SEQUENCE_NDIGIT 5
 
-#define SIZE_MAX_METEORROI 20000
-#define SIZE_MAX_TRACKS 1000
-#define SIZE_MAX_KPPV 200
+
 
 /*DEBUG*/
 extern char path_stats_0[200];
@@ -210,17 +208,17 @@ void main_detect(int argc, char** argv)
         fprintf(stderr, "  -input_video     : Video source\n");
         fprintf(stderr, "  -output_frames   : path frames output for debug\n");
         fprintf(stderr, "  -output_stats    : save files in output_stats\n");
-        fprintf(stderr, "  -start_frame     : Image de départ dans la séquence\n");
-        fprintf(stderr, "  -end_frame       : Dernière image de la séquence\n");
-        fprintf(stderr, "  -skip_frames     : Nomsbre d'images à sauter\n");
-        fprintf(stderr, "  -light_min       : Seuil bas filtrage lumineux\n");
-        fprintf(stderr, "  -light_max       : Seuil haut filtrage lumineux\n");
-        fprintf(stderr, "  -surface_min     : Surface max des CC en pixels\n");
-        fprintf(stderr, "  -surface_max     : Surface min des CC en pixels\n");
-        fprintf(stderr, "  -k               : Le nombre de voisins dans KPPV\n");
-        fprintf(stderr, "  -r_extrapol      : Le rayon de recherche d'une CC dans le cas d'une extrapolation\n");
-        fprintf(stderr, "  -d_line          : Le delta pour lequel un point est toujours considéré comme étant sur une droite\n");
-        fprintf(stderr, "  -diff_deviaton   : Le facteur de multiplication de l'ecart type (l'erreur d'une CC doit etre superieure a diff_deviation*ecart_type pour etre considéré en mouvement \n");
+        fprintf(stderr, "  -start_frame     : Starting point of the video\n");
+        fprintf(stderr, "  -end_frame       : Ending point of the video\n");
+        fprintf(stderr, "  -skip_frames     : Number of skipped frames\n");
+        fprintf(stderr, "  -light_min       : Low hysteresis threshold\n");
+        fprintf(stderr, "  -light_max       : High hysteresis threshold \n");
+        fprintf(stderr, "  -surface_min     : Maximum area of the CC\n");
+        fprintf(stderr, "  -surface_max     : Minimum area of the CC\n");
+        fprintf(stderr, "  -k               : Number of neighbours\n");
+        fprintf(stderr, "  -r_extrapol      : Search radius for the next CC in case of extrapolation\n");
+        fprintf(stderr, "  -d_line          : Position tolerance of a point going through a line \n");
+        fprintf(stderr, "  -diff_deviaton   : Differential deviation factor for motion detection (motion error of one CC has to be superior to diff_deviation * standard deviation \n");
         exit(1);
     }
 
