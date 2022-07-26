@@ -83,6 +83,7 @@ void get_bouding_box_path_from_tracks_path(char* path_tracks);
 void create_debug_dir(char *output_stats);
 void create_frames_dir(char *dest_path);
 void create_video_dir(char *dest_path);
+void create_tracks_dir(char *output_dest);
 void create_debug_files(int frame);
 void create_frames_files(int frame);
 void create_videos_files(char* filename);

@@ -358,7 +358,10 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                         tracks[i].dy = dy;
                         tracks[i].b = y - a * stats1[next].x;
                     }
-                    else tracks[i].is_meteor = 1;
+                    else {
+                        clear_index_Track(tracks, i);
+                        continue;
+                    }
                     // tracks[i].vitesse[(tracks[i].cur)++] = stats0[tracks[i].end.ID].error;
                     tracks[i].x = tracks[i].end.x;
                     tracks[i].y = tracks[i].end.y;
@@ -477,7 +480,7 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
     double eType = ecartType(stats0, nc0, errMoy);
 
 
-    saveErrorMoy("second_error.txt", errMoy, eType);
+    // saveErrorMoy("second_error.txt", errMoy, eType);
 
     for(int i = 1; i <= nc0; i++){
         float32 e = stats0[i].error;

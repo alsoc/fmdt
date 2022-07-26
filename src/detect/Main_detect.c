@@ -212,16 +212,18 @@ void main_detect(int argc, char** argv)
     int   def_k              =              3;
     int   def_r_extrapol     =              5;
     int   def_d_line         =             25;
-    float def_diff_deviation =          3.25f;
+    float def_diff_deviation =            4.f;
     char* def_input_video    =           NULL;
     char* def_output_frames  =           NULL;
     char* def_output_tracks  = "./out_detect";
+    char* def_output_stats   =           NULL;
 
     // Help
     if (find_arg(argc, argv, "-h")) {
         fprintf(stderr, "  --input-video       Video source                                                         [%s]\n", def_input_video   );
         fprintf(stderr, "  --output-frames     Path frames output for debug                                         [%s]\n", def_output_frames );
-        fprintf(stderr, "  --output-tracks     Save files in output_stats                                           [%s]\n", def_output_tracks );
+        fprintf(stderr, "  --output-tracks     TODO!                                                                [%s]\n", def_output_tracks );
+        fprintf(stderr, "  --output-stats      TODO!                                                                [%s]\n", def_output_stats  );
         fprintf(stderr, "  --start-frame       Starting point of the video                                          [%d]\n", def_start_frame   );
         fprintf(stderr, "  --end-frame         Ending point of the video                                            [%d]\n", def_end_frame     );
         fprintf(stderr, "  --skip-frames       Number of skipped frames                                             [%d]\n", def_skip_frames   );
@@ -252,7 +254,8 @@ void main_detect(int argc, char** argv)
     float diff_deviation = find_float_arg(argc, argv, "--diff-deviation", def_diff_deviation);
     char* input_video    = find_char_arg (argc, argv, "--input-video",    def_input_video   );
     char* output_frames  = find_char_arg (argc, argv, "--output-frames",  def_output_frames );
-    char *output_tracks  = find_char_arg (argc, argv, "--output-tracks",  def_output_tracks );
+    char* output_tracks  = find_char_arg (argc, argv, "--output-tracks",  def_output_tracks );
+    char* output_stats   = find_char_arg (argc, argv, "--output-stats",   def_output_stats  );
 
     // heading display
     printf(" -----------------------\n");
@@ -264,6 +267,7 @@ void main_detect(int argc, char** argv)
     printf(" * input-video   = %s\n",    input_video);
     printf(" * output-frames = %s\n",    output_frames);
     printf(" * output-tracks = %s\n",    output_tracks);
+    printf(" * output-stats  = %s\n",    output_stats);
     printf(" * start-frame   = %d\n",    start);
     printf(" * end-frame     = %d\n",    end);
     printf(" * skip-frames   = %d\n",    skip);
@@ -276,6 +280,8 @@ void main_detect(int argc, char** argv)
     printf(" * d-line        = %d\n",    d_line);
     printf(" * diff-deviaton = %4.2f\n", diff_deviation);
     printf("\n");
+
+
     
     if(!input_video){
         printf("(EE) Input missing\n");
@@ -283,6 +289,10 @@ void main_detect(int argc, char** argv)
     }
     if(!output_frames){
         printf("(II) output_frames missing -> no frames will be saved\n");
+    }
+
+    if(!output_stats){
+        printf("(II) output_stats missing -> no stats will be saved\n");
     }
 
     // sequence
@@ -311,8 +321,9 @@ void main_detect(int argc, char** argv)
     char *path;
     split_path_file(&path, &filename, input_video);
     disp(filename);
-    if(output_tracks) create_debug_dir (output_tracks);
-	if (output_frames) create_frames_dir(output_frames);
+    if(output_stats) create_debug_dir (output_stats);
+	if(output_frames) create_frames_dir(output_frames);
+    if(output_tracks) create_tracks_dir(output_tracks);
 
     // ------------------------- //
     // -- INITIALISATION VIDEO-- //
@@ -340,6 +351,8 @@ void main_detect(int argc, char** argv)
     init_Track(tracks_stars, SIZE_MAX_TRACKS);
     CCL_LSL_init(i0, i1, j0, j1);
     initTabBB();
+
+    disp(path_tracks);
 
     // ----------------//
     // -- TRAITEMENT --//
@@ -401,7 +414,7 @@ void main_detect(int argc, char** argv)
         }
 
         PUTS("\t [DEBUG] Saving stats");
-        if (output_tracks){
+        if (output_stats){
     	    create_debug_files (frame);
             disp(path_debug);
             saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
