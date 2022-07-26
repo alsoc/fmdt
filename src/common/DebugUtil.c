@@ -1200,6 +1200,8 @@ void split_path_file(char** p, char** f, char *pf)
 void get_data_from_tracks_path(char* path, int *light_min, int *light_max, char **filename) 
 // =========================================================================================================================================================================
 {
+
+    disp(path);
     char *res, *tmp, *min, *max;
     res = strstr(path, "SB_");
     res += 3;
@@ -1214,6 +1216,12 @@ void get_data_from_tracks_path(char* path, int *light_min, int *light_max, char 
 
     res = tmp + 1;
     tmp = strchr(res, '/');
+    // *filename = strndup(res, tmp - res);
+
+    tmp = strchr(res, '_');
+    res = tmp + 1;
+    tmp = strchr(res, '.');
+
     *filename = strndup(res, tmp - res);
 
     idisp(*light_min);
@@ -1224,7 +1232,7 @@ void get_data_from_tracks_path(char* path, int *light_min, int *light_max, char 
 }
 
 // =========================================================================================================================================================================
-void get_bouding_box_path_from_tracks_path(char* path_tracks)
+void get_bouding_box_path_from_tracks_path(char* path_tracks, char* filename)
 // =========================================================================================================================================================================
 {
     assert(path_tracks != NULL);
@@ -1239,7 +1247,7 @@ void get_bouding_box_path_from_tracks_path(char* path_tracks)
     disp(next);
     
     // *path_bb = malloc(sizeof(strlen(next)) + strlen("/bounding_box.txt") + 1);
-    sprintf(path_bounding_box, "%sbounding_box.txt", next);
+    sprintf(path_bounding_box, "%sbounding_box_%s.txt", next, filename);
     disp(path_bounding_box);
     disp(next);
     free(next);
@@ -1254,7 +1262,7 @@ void create_debug_dir(char *output_dest, char *filename, int light_min, int ligh
         char tmp_debug[100];
         char path_assoconflicts[100], path_stats[100];
         struct stat status = { 0 };
-        sprintf(tmp_debug,    "%s/debug",                            output_dest);
+        sprintf(tmp_debug,    "%s/debug",                           output_dest);
         sprintf(tmp_asso,     "%s/assoconflicts",                   tmp_debug);
         sprintf(tmp_stats,    "%s/stats",                           tmp_debug);
 
@@ -1265,10 +1273,10 @@ void create_debug_dir(char *output_dest, char *filename, int light_min, int ligh
                 sprintf(path_assoconflicts_f,   "%s/%s",                                        path_assoconflicts, filename);
                 sprintf(path_stats_f,           "%s/%s",                                        path_stats, filename);
                 sprintf(path_motion,            "%s/motion.txt",                                 path_assoconflicts_f);
-                sprintf(path_bounding_box,      "%s/bounding_box.txt",                           path_assoconflicts_f);
+                // sprintf(path_bounding_box,      "%s/bounding_box.txt",                           path_assoconflicts_f);
                 sprintf(path_extraction,        "%s/extraction.txt",                             path_assoconflicts_f);
                 sprintf(path_error,             "%s/error.txt",                                  path_assoconflicts_f);
-                sprintf(path_tracks,            "%s/tracks.txt",                                 path_assoconflicts_f);
+                // sprintf(path_tracks,            "%s/tracks.txt",                                 path_assoconflicts_f);
                 sprintf(path_debug,             "%s/%s.txt",                                     path_assoconflicts_f, filename);
                 goto next;
         }
@@ -1298,6 +1306,35 @@ next:
         }
         if( stat(path_stats_f, &status) == -1 ) {
                 mkdir(path_stats_f, 0700 );
+        }
+}
+
+// ==========================================================================================================================================================================
+void create_tracks_dir(char *output_dest, char *filename, int light_min, int light_max)
+// ==========================================================================================================================================================================
+{
+        char tmp_asso[100];
+        char tmp_debug[100];
+        char path_assoconflicts[100], path_stats[100];
+        struct stat status = { 0 };
+
+        sprintf(tmp_debug, "%s/tracks", output_dest);
+        
+        if ((light_min != -1) && (light_max != -1)){
+                sprintf(tmp_asso,               "%s/SB_%d_SH_%d",                               tmp_debug, light_min, light_max);
+                sprintf(path_bounding_box,      "%s/bounding_box_%s.txt",            tmp_asso, filename);
+                sprintf(path_tracks,            "%s/tracks_%s.txt",                  tmp_asso, filename);
+                goto next;
+        }
+        return ; 
+next: 
+
+        if( stat(tmp_debug, &status) == -1 ) {
+                mkdir(tmp_debug, 0700 );
+        }
+        
+        if( stat(tmp_asso, &status) == -1 ) {
+                mkdir(tmp_asso, 0700 );
         }
 }
 

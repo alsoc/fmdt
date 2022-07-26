@@ -816,7 +816,7 @@ void motion(MeteorROI *stats0, MeteorROI *stats1, int n0, int n1, double *theta,
     double errMoy = errorMoy(stats0, n0);
     double eType = ecartType(stats0, n0, errMoy);
 
-    saveErrorMoy("first_error.txt", errMoy, eType);
+    // saveErrorMoy("first_error.txt", errMoy, eType);
 
     rigid_registration_corrected(stats0, stats1, n0, n1, theta, tx, ty, errMoy, eType);
     motion_extraction(stats0, stats1, n0, *theta, *tx, *ty);

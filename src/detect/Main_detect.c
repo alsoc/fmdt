@@ -223,20 +223,39 @@ void main_detect(int argc, char** argv)
     }
 
     // Parsing Arguments
-    int start            = find_int_arg  (argc, argv, "--start-frame",       0);
-    int end              = find_int_arg  (argc, argv, "--end-frame",    200000);
-    int skip             = find_int_arg  (argc, argv, "--skip-frames",       0);
-    int light_min        = find_int_arg  (argc, argv, "--light-min",        55);
-    int light_max        = find_int_arg  (argc, argv, "--light-max",        80);
-    int surface_min      = find_int_arg  (argc, argv, "--surface-min",       3);
-    int surface_max      = find_int_arg  (argc, argv, "--surface-max",    1000);
-    int k                = find_int_arg  (argc, argv, "-k",                  3);
-    int r_extrapol       = find_int_arg  (argc, argv, "--r-extrapol",        5);
-    int d_line           = find_int_arg  (argc, argv, "--d-line",           25);
-    float diff_deviation = find_float_arg(argc, argv, "--diff-deviation", 3.25);
-    char* input_video    = find_char_arg (argc, argv, "--input-video",    NULL);
-    char* output_frames  = find_char_arg (argc, argv, "--output-frames",  NULL);
-    char *output_tracks  = find_char_arg (argc, argv, "--output-tracks",   ".");
+    
+    int start               = find_int_arg  (argc, argv, "-start_frame",     0 );
+    int end                 = find_int_arg  (argc, argv, "-end_frame",     200000);
+    int skip                = find_int_arg  (argc, argv, "-skip_frames",     0 );
+    int light_min           = find_int_arg  (argc, argv, "-light_min",      55 ); // a definir
+    int light_max           = find_int_arg  (argc, argv, "-light_max",      80 ); // a definir
+    int surface_min         = find_int_arg  (argc, argv, "-surface_min",      3); // a definir
+    int surface_max         = find_int_arg  (argc, argv, "-surface_max",    1000); // a definir
+    int k                   = find_int_arg  (argc, argv, "-k",                3); // a definir
+    int r_extrapol          = find_int_arg  (argc, argv, "-r_extrapol",       5); // a definir
+    int d_line              = find_int_arg  (argc, argv, "-d_line",          25); // a definir
+    float diff_deviation    = find_float_arg  (argc, argv, "-diff_deviation",   4); // a definir
+    char* input_video       = find_char_arg (argc, argv, "-input_video",      NULL);
+    char* output_frames     = find_char_arg (argc, argv, "-output_frames",     NULL);
+    char *output_tracks      = find_char_arg(argc, argv, "-output_tracks", ".");
+    char *output_stats      = find_char_arg(argc, argv, "-output_stats", NULL);
+
+    printf("input_video              = %s\n", input_video);
+    printf("output_frames            = %s\n", output_frames);
+    printf("output_tracks            = %s\n", output_tracks);
+    printf("output_stats             = %s\n", output_stats);
+    printf("start_frame              = %d\n", start);
+    printf("end_frame                = %d\n", end);
+    printf("skip_frames              = %d\n", skip);
+    printf("light_min                = %d\n", light_min);
+    printf("light_max                = %d\n", light_max);
+    printf("surface_min              = %d\n", surface_min);
+    printf("surface_max              = %d\n", surface_max);
+    printf("k                        = %d\n", k);
+    printf("r_extrapol               = %d\n", r_extrapol);
+    printf("d_line                   = %d\n", d_line);
+    printf("diff_deviaton            = %4.2f\n", diff_deviation);
+
 
     // heading display
     printf(" -----------------------\n");
@@ -260,6 +279,8 @@ void main_detect(int argc, char** argv)
     printf("d-line        = %d\n",    d_line);
     printf("diff-deviaton = %4.2f\n", diff_deviation);
     printf("\n");
+
+
     
     if(!input_video){
         printf("Input missing\n");
@@ -267,6 +288,10 @@ void main_detect(int argc, char** argv)
     }
     if(!output_frames){
         printf("output_frames missing -> no frames will be saved\n");
+    }
+
+    if(!output_stats){
+        printf("output_stats missing -> no stats will be saved\n");
     }
 
     // sequence
@@ -295,8 +320,9 @@ void main_detect(int argc, char** argv)
     char *path;
     split_path_file(&path, &filename, input_video);
     disp(filename);
-    if(output_tracks) create_debug_dir (output_tracks, filename, light_min , light_max);
-	if (output_frames) create_frames_dir(output_frames, filename, light_min , light_max);
+    if(output_stats) create_debug_dir  (output_stats,  filename, light_min, light_max);
+	if(output_frames) create_frames_dir(output_frames, filename, light_min, light_max);
+    if(output_tracks) create_tracks_dir(output_tracks, filename, light_min, light_max);
 
     // ------------------------- //
     // -- INITIALISATION VIDEO-- //
@@ -324,6 +350,8 @@ void main_detect(int argc, char** argv)
     init_Track(tracks_stars, SIZE_MAX_TRACKS);
     CCL_LSL_init(i0, i1, j0, j1);
     initTabBB();
+
+    disp(path_tracks);
 
     // ----------------//
     // -- TRAITEMENT --//
@@ -384,7 +412,7 @@ void main_detect(int argc, char** argv)
         }
 
         PUTS("\t [DEBUG] Saving stats");
-        if (output_tracks){
+        if (output_stats){
     	    create_debug_files (frame);
             disp(path_debug);
             saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
@@ -401,6 +429,7 @@ void main_detect(int argc, char** argv)
     
     saveTabBB(path_bounding_box, tabBB, NB_FRAMES);
     saveTracks(path_tracks, tracks, last);
+
 
     if (output_tracks) printf("Files for debug saved in %s \n", output_tracks);
     if (output_frames) printf("Frames saved in %s \n", output_frames);
