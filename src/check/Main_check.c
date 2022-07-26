@@ -30,7 +30,7 @@ void main_validation(int argc, char** argv)
 
     // Parsing Arguments
     char *src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
-    char *dest_path         = find_char_arg (argc, argv, "-output",         "../");
+    char *dest_path         = find_char_arg (argc, argv, "-output",         "./output_check/");
     char *validation        = find_char_arg (argc, argv, "-validation",     NULL);
 
     printf("input_tracks           = %s\n", src_path);

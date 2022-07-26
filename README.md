@@ -68,12 +68,12 @@ The meteors visualization program is located here: `./exe/meteor-visu`.
 
 The list of available arguments:
 
-| **Argument**    | **Type** | **Default** | **Required** | **Description** |
-| :---            | :---     | :---        | :---         | :--- |
-| `-input_tracks` | str      | None        | Yes          | The `tracks.txt` file corresponding to the input video (generated from `meteor-detect`). |
-| `-input_video`  | str      | None        | Yes          | Input video path. |
-| `-output_video` | str      | "../"       | No           | Path of the output video with meteor tracking colored rectangles. If `-validation` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `-validation` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
-| `-validation`   | str      | None        | No           | File containing the ground truth. |
+| **Argument**    | **Type** | **Default**      | **Required** | **Description** |
+| :---            | :---     | :---             | :---         | :--- |
+| `-input_tracks` | str      | None             | Yes          | The `tracks.txt` file corresponding to the input video (generated from `meteor-detect`). |
+| `-input_video`  | str      | None             | Yes          | Input video path. |
+| `-output_video` | str      | "./output_visu/" | No           | Path of the output video with meteor tracking colored rectangles. If `-validation` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `-validation` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
+| `-validation`   | str      | None             | No           | File containing the ground truth. |
 
 Note: to run `./exe/meteor-visu`, it is required to run `./exe/meteor-detect` before and on the same input video. This will generate the required `tracks.txt` and `bouding_box.txt` files.
 
@@ -83,11 +83,11 @@ The meteors checking program is located here: `./exe/meteor-check`.
 
 The list of available arguments:
 
-| **Argument**    | **Type** | **Default** | **Required** | **Description** |
-| :---            | :---     | :---        | :---         | :--- |
-| `-input_tracks` | str      |  None       | Yes          | The `tracks.txt` file corresponding to the input video (generated from `meteor-detect`). |
-| `-validation`   | str      |  None       | Yes          | File containing the ground truth. |
-| `-output`       | str      |  "../"      | No           | Path of the folder containing the result of the checking (`validation.txt` file). |
+| **Argument**    | **Type** | **Default**        | **Required** | **Description** |
+| :---            | :---     | :---               | :---         | :--- |
+| `-input_tracks` | str      |  None              | Yes          | The `tracks.txt` file corresponding to the input video (generated from `meteor-detect`). |
+| `-validation`   | str      |  None              | Yes          | File containing the ground truth. |
+| `-output`       | str      |  "./output_check/" | No           | Path of the folder containing the result of the checking (`validation.txt` file). |
 
 Note: to run `./exe/meteor-check`, it is required to run `./exe/meteor-detect` before. This will generate the required `tracks.txt` file.
 

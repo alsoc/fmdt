@@ -221,7 +221,7 @@ void main_visu(int argc, char** argv)
     // Parsing Arguments
     char *src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
     char *src_path_video    = find_char_arg (argc, argv, "-input_video",    NULL);
-    char *dest_path         = find_char_arg (argc, argv, "-output_video",   "../.");
+    char *dest_path         = find_char_arg (argc, argv, "-output_video",   "./output_visu/");
     char *validation        = find_char_arg (argc, argv, "-validation",     NULL);
 
     printf("input_tracks           = %s\n", src_path);
@@ -367,8 +367,8 @@ void test_max(int argc, char** argv)
     char* src_path_video    = find_char_arg (argc, argv, "-input_video",    NULL);
     char* validation0       = find_char_arg (argc, argv, "-validation0",    NULL);
     char* validation1       = find_char_arg (argc, argv, "-validation1",    NULL);
-    int light_min           = find_int_arg  (argc, argv, "-light_min",      55); 
-    int light_max           = find_int_arg  (argc, argv, "-light_max",      80); 
+    // int light_min           = find_int_arg  (argc, argv, "-light_min",      55);
+    // int light_max           = find_int_arg  (argc, argv, "-light_max",      80);
 
     int b = 1;
     int i0 = 0, i1 = 1200, j0 = 0, j1 = 1900;
