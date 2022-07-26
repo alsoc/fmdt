@@ -22,21 +22,28 @@ void main_validation(int argc, char** argv)
 {
 
     if (find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "  -input_tracks : Path vers le fichier avec les tracks\n");
-        fprintf(stderr, "  -output       : Output de la video\n");
-        fprintf(stderr, "  -validation   : Fichier contenant la vérité terrain de la séquence\n");
+        fprintf(stderr, "  --input-tracks: Path vers le fichier avec les tracks\n");
+        fprintf(stderr, "  --output:       Output de la video\n");
+        fprintf(stderr, "  --validation:   Fichier contenant la vérité terrain de la séquence\n");
         exit(1);
     }
 
     // Parsing Arguments
-    char *src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
-    char *dest_path         = find_char_arg (argc, argv, "-output",         "./output_check/");
-    char *validation        = find_char_arg (argc, argv, "-validation",     NULL);
+    char *src_path   = find_char_arg (argc, argv, "--input-tracks",   NULL);
+    char *dest_path  = find_char_arg (argc, argv, "--output",         "./output_check/");
+    char *validation = find_char_arg (argc, argv, "--validation",     NULL);
 
-    printf("input_tracks           = %s\n", src_path);
-    printf("output                 = %s\n", dest_path);
-    printf("validation             = %s\n", validation);
-
+    // heading display
+    printf(" ----------------------\n");
+    printf("| --* METEOR-CHECK *-- |\n");
+    printf(" ----------------------\n");
+    printf("\n");
+    printf("Parameters:\n");
+    printf("-----------\n");
+    printf("input-tracks = %s\n", src_path);
+    printf("output       = %s\n", dest_path);
+    printf("validation   = %s\n", validation);
+    printf("\n");
 
     int light_min, light_max;
     char *filename;

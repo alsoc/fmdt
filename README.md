@@ -44,22 +44,22 @@ The meteors detection chain is located here: `./exe/meteor-detect`.
 
 The list of available arguments:
 
-| **Argument**     | **Type** | **Default** | **Required** | **Description** |
-| :---             | :---     | :---        | :---         | :--- |
-| `-input_video`   | str      | None        | Yes          | Input video path where we want to detect meteors. |
-| `-output_frames` | str      | None        | No           | Path of the output frames for debug. |
-| `-output_tracks` | str      | "./debug"   | No           | Path of the output tracks (the list of the detected meteors are in `tracks.txt` and additional statistics are saved in `bounding_box.txt`). |
-| `-start_frame`   | int      | 0           | No           | First frame id to start the detection in the video sequence. |
-| `-end_frame`     | int      | 200000      | No           | Last frame id to stop the detection in the video sequence. |
-| `-skip_frames`   | int      | 0           | No           | Number of frames to skip. |
-| `-light_min`     | int      | 55          | No           | Minimum light intensity hysteresis threshold. |
-| `-light_max`     | int      | 80          | No           | Maximum light intensity hysteresis threshold. |
-| `-surface_min`   | int      | 3           | No           | Minimum surface of the CCs in pixel. |
-| `-surface_max`   | int      | 1000        | No           | Maximum surface of the CCs in pixel. |
-| `-k`             | int      | 3           | No           | Number of neighbors in the k-nearest neighbor matching (KPPV algorithm). |
-| `-r_extrapol`    | int      | 5           | No           | Search radius for CC extrapolation (piece-wise tracking). |
-| `-d_line`        | int      | 25          | No           | Approximation factor of the rectilinear trajectory of meteors. |
-| `-diff_deviaton` | float    | 4.0         | No           | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
+| **Argument**      | **Type** | **Default** | **Required** | **Description** |
+| :---              | :---     | :---        | :---         | :--- |
+| `--input-video`   | str      | None        | Yes          | Input video path where we want to detect meteors. |
+| `--output-frames` | str      | None        | No           | Path of the output frames for debug. |
+| `--output-tracks` | str      | "./debug"   | No           | Path of the output tracks (the list of the detected meteors are in `tracks.txt` and additional statistics are saved in `bounding_box.txt`). |
+| `--start-frame`   | int      | 0           | No           | First frame id to start the detection in the video sequence. |
+| `--end-frame`     | int      | 200000      | No           | Last frame id to stop the detection in the video sequence. |
+| `--skip-frames`   | int      | 0           | No           | Number of frames to skip. |
+| `--light-min`     | int      | 55          | No           | Minimum light intensity hysteresis threshold. |
+| `--light-max`     | int      | 80          | No           | Maximum light intensity hysteresis threshold. |
+| `--surface-min`   | int      | 3           | No           | Minimum surface of the CCs in pixel. |
+| `--surface-max`   | int      | 1000        | No           | Maximum surface of the CCs in pixel. |
+| `-k`              | int      | 3           | No           | Number of neighbors in the k-nearest neighbor matching (KPPV algorithm). |
+| `--r-extrapol`    | int      | 5           | No           | Search radius for CC extrapolation (piece-wise tracking). |
+| `--d-line`        | int      | 25          | No           | Approximation factor of the rectilinear trajectory of meteors. |
+| `--diff-deviaton` | float    | 4.0         | No           | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
 
 
 ### Visualization with `meteor-visu`
@@ -68,12 +68,12 @@ The meteors visualization program is located here: `./exe/meteor-visu`.
 
 The list of available arguments:
 
-| **Argument**    | **Type** | **Default**      | **Required** | **Description** |
-| :---            | :---     | :---             | :---         | :--- |
-| `-input_tracks` | str      | None             | Yes          | The `tracks.txt` file corresponding to the input video (generated from `meteor-detect`). |
-| `-input_video`  | str      | None             | Yes          | Input video path. |
-| `-output_video` | str      | "./output_visu/" | No           | Path of the output video with meteor tracking colored rectangles. If `-validation` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `-validation` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
-| `-validation`   | str      | None             | No           | File containing the ground truth. |
+| **Argument**     | **Type** | **Default**      | **Required** | **Description** |
+| :---             | :---     | :---             | :---         | :--- |
+| `--input-tracks` | str      | None             | Yes          | The `tracks.txt` file corresponding to the input video (generated from `meteor-detect`). |
+| `--input-video`  | str      | None             | Yes          | Input video path. |
+| `--output-video` | str      | "./output_visu/" | No           | Path of the output video with meteor tracking colored rectangles. If `--validation` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--validation` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
+| `--validation`   | str      | None             | No           | File containing the ground truth. |
 
 Note: to run `./exe/meteor-visu`, it is required to run `./exe/meteor-detect` before and on the same input video. This will generate the required `tracks.txt` and `bouding_box.txt` files.
 
@@ -83,11 +83,11 @@ The meteors checking program is located here: `./exe/meteor-check`.
 
 The list of available arguments:
 
-| **Argument**    | **Type** | **Default**        | **Required** | **Description** |
-| :---            | :---     | :---               | :---         | :--- |
-| `-input_tracks` | str      |  None              | Yes          | The `tracks.txt` file corresponding to the input video (generated from `meteor-detect`). |
-| `-validation`   | str      |  None              | Yes          | File containing the ground truth. |
-| `-output`       | str      |  "./output_check/" | No           | Path of the folder containing the result of the checking (`validation.txt` file). |
+| **Argument**     | **Type** | **Default**        | **Required** | **Description** |
+| :---             | :---     | :---               | :---         | :--- |
+| `--input-tracks` | str      |  None              | Yes          | The `tracks.txt` file corresponding to the input video (generated from `meteor-detect`). |
+| `--validation`   | str      |  None              | Yes          | File containing the ground truth. |
+| `--output`       | str      |  "./output_check/" | No           | Path of the folder containing the result of the checking (`validation.txt` file). |
 
 Note: to run `./exe/meteor-check`, it is required to run `./exe/meteor-detect` before. This will generate the required `tracks.txt` file.
 
@@ -98,13 +98,13 @@ Download a video sequence containing meteors here: https://lip6.fr/adrien.cassag
 #### Step 1: Meteors detection
 
 ```shell
-./exe/meteor-detect -input_video ../2022_05_31_tauh_34_meteors.mp4
+./exe/meteor-detect --input-video ./2022_05_31_tauh_34_meteors.mp4
 ```
 
 Enable debug frames output:
 
 ```shell
-./exe/meteor-detect -input_video ../2022_05_31_tauh_34_meteors.mp4 -output_frames ./frames
+./exe/meteor-detect --input-video ./2022_05_31_tauh_34_meteors.mp4 --output-tracks ./output_detect --output-frames ./output_detect
 ```
 
 #### Step 2: Visualization
@@ -112,13 +112,13 @@ Enable debug frames output:
 Visualization **WITHOUT** ground truth:
 
 ```shell
-./exe/meteor-visu -input_video ../2022_05_31_tauh_34_meteors.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt -output_video ../.
+./exe/meteor-visu --input-video ./2022_05_31_tauh_34_meteors.mp4 --input-tracks ./output_detect/debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt --output-video ./output_visu/
 ```
 
 Visualization **WITH** ground truth:
 
 ```shell
-./exe/meteor-visu -input_video ../2022_05_31_tauh_34_meteors.mp4 -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt -output_video ../ -validation ../validation/2022_05_31_tauh_34_meteors.txt
+./exe/meteor-visu --input-video ./2022_05_31_tauh_34_meteors.mp4 --input-tracks ./output_detect/debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt --output-video ./output_visu/ --validation ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 
 #### Step 3: Offline checking
@@ -126,6 +126,6 @@ Visualization **WITH** ground truth:
 Use `meteor-check` with the following arguments:
 
 ```shell
-./exe/meteor-check -input_tracks ./debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors.txt/tracks.txt -validation ../validation/2022_05_31_tauh_34_meteors.txt
+./exe/meteor-check --input-tracks ./output_detect/debug/assoconflicts/SB_55_SH_80/2022_05_31_tauh_34_meteors/tracks.txt --validation ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 

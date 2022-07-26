@@ -211,23 +211,31 @@ void main_visu(int argc, char** argv)
 {
 
     if (find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "  -input_tracks : Path vers le fichier avec les tracks\n");
-        fprintf(stderr, "  -input_video  : Path vers la video\n");
-        fprintf(stderr, "  -output_video : Output de la video\n");
-        fprintf(stderr, "  -validation   : Fichier contenant la vérité terrain de la séquence\n");
+        fprintf(stderr, "  --input-tracks: Path vers le fichier avec les tracks\n");
+        fprintf(stderr, "  --input-video:  Path vers la video\n");
+        fprintf(stderr, "  --output-video: Output de la video\n");
+        fprintf(stderr, "  --validation:   Fichier contenant la vérité terrain de la séquence\n");
         exit(1);
     }
 
     // Parsing Arguments
-    char *src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
-    char *src_path_video    = find_char_arg (argc, argv, "-input_video",    NULL);
-    char *dest_path         = find_char_arg (argc, argv, "-output_video",   "./output_visu/");
-    char *validation        = find_char_arg (argc, argv, "-validation",     NULL);
+    char *src_path       = find_char_arg (argc, argv, "--input-tracks",   NULL);
+    char *src_path_video = find_char_arg (argc, argv, "--input-video",    NULL);
+    char *dest_path      = find_char_arg (argc, argv, "--output-video",   "./output_visu/");
+    char *validation     = find_char_arg (argc, argv, "--validation",     NULL);
 
-    printf("input_tracks           = %s\n", src_path);
-    printf("input_video            = %s\n", src_path_video);
-    printf("output_video           = %s\n", dest_path);
-    printf("validation             = %s\n", validation);
+    // heading display
+    printf(" ---------------------\n");
+    printf("| --* METEOR-VISU *-- |\n");
+    printf(" ---------------------\n");
+    printf("\n");
+    printf("Parameters:\n");
+    printf("-----------\n");
+    printf("input-tracks = %s\n", src_path);
+    printf("input-video  = %s\n", src_path_video);
+    printf("output-video = %s\n", dest_path);
+    printf("validation   = %s\n", validation);
+    printf("\n");
 
     int b = 1;
     int i0, i1, j0, j1;
@@ -353,22 +361,22 @@ void test_max(int argc, char** argv)
 
     if (find_arg(argc, argv, "-h")) {
         fprintf(stderr, "usage: %s %s [options] <input_file>\n", argv[0], argv[1]);
-        fprintf(stderr, "  -input_video  : Path vers le fichier avec les tracks\n");
-        fprintf(stderr, "  -input_video  : Path vers le fichier avec les tracks\n");
-        fprintf(stderr, "  -validation0   : Fichier contenant la vérité terrain de la séquence\n");
-        fprintf(stderr, "  -validation1 : Fichier contenant la 2eme vérité terrain de la séquence\n");
-        fprintf(stderr, "  -start_frame  : Image de départ dans la séquence\n");
-        fprintf(stderr, "  -end_frame    : Dernière image de la séquence\n");
+        fprintf(stderr, "  --input-video  : Path vers le fichier avec les tracks\n");
+        fprintf(stderr, "  --input-video  : Path vers le fichier avec les tracks\n");
+        fprintf(stderr, "  --validation0   : Fichier contenant la vérité terrain de la séquence\n");
+        fprintf(stderr, "  --validation1 : Fichier contenant la 2eme vérité terrain de la séquence\n");
+        fprintf(stderr, "  --start-frame  : Image de départ dans la séquence\n");
+        fprintf(stderr, "  --end-frame    : Dernière image de la séquence\n");
         exit(1);
     }
 
     // Parsing Arguments
-    char* src_path          = find_char_arg (argc, argv, "-input_tracks",   NULL);
-    char* src_path_video    = find_char_arg (argc, argv, "-input_video",    NULL);
-    char* validation0       = find_char_arg (argc, argv, "-validation0",    NULL);
-    char* validation1       = find_char_arg (argc, argv, "-validation1",    NULL);
-    // int light_min           = find_int_arg  (argc, argv, "-light_min",      55);
-    // int light_max           = find_int_arg  (argc, argv, "-light_max",      80);
+    char* src_path          = find_char_arg (argc, argv, "--input-tracks",   NULL);
+    char* src_path_video    = find_char_arg (argc, argv, "--input-video",    NULL);
+    char* validation0       = find_char_arg (argc, argv, "--validation0",    NULL);
+    char* validation1       = find_char_arg (argc, argv, "--validation1",    NULL);
+    // int light_min           = find_int_arg  (argc, argv, "--light-min",      55);
+    // int light_max           = find_int_arg  (argc, argv, "--light-max",      80);
 
     int b = 1;
     int i0 = 0, i1 = 1200, j0 = 0, j1 = 1900;
