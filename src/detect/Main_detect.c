@@ -46,19 +46,19 @@ void main_detect_frame(int argc, char** argv)
 // ======================================
 {
     // Parsing Arguments
-    int start          = find_int_arg  (argc, argv, "-start_frame",     1 );
-    int end            = find_int_arg  (argc, argv, "-end_frame",     1000);
-    int light_min      = find_int_arg  (argc, argv, "-light_min",      60 ); // a definir
-    int light_max      = find_int_arg  (argc, argv, "-light_max",      85 ); // a definir
-    int surface_min    = find_int_arg  (argc, argv, "-surface_min",      3); // a definir
-    int surface_max    = find_int_arg  (argc, argv, "-surface_max",    500); // a definir
-    int k              = find_int_arg  (argc, argv, "-k",                3); // a definir
-    int r_extrapol     = find_int_arg  (argc, argv, "-r_extrapol",       5); // a definir
-    int d_line         = find_int_arg  (argc, argv, "-d_line",          25); // a definir
-    float diff_deviation = find_float_arg  (argc, argv, "-diff_deviation",   3.25); // a definir
-    char* src_path     = find_char_arg (argc, argv, "-input_video",      NULL);
-    char* output_frames    = find_char_arg (argc, argv, "output_frames",     NULL);
-    char* output_tracks = find_char_arg (argc, argv, "-output_tracks", NULL);
+    int start            = find_int_arg  (argc, argv, "--start-frame",       1);
+    int end              = find_int_arg  (argc, argv, "--end-frame",      1000);
+    int light_min        = find_int_arg  (argc, argv, "--light-min",        60);
+    int light_max        = find_int_arg  (argc, argv, "--light-max",        85);
+    int surface_min      = find_int_arg  (argc, argv, "--surface-min",       3);
+    int surface_max      = find_int_arg  (argc, argv, "--surface-max",     500);
+    int k                = find_int_arg  (argc, argv, "-k",                  3);
+    int r_extrapol       = find_int_arg  (argc, argv, "--r-extrapol",        5);
+    int d_line           = find_int_arg  (argc, argv, "--d-line",           25);
+    float diff_deviation = find_float_arg(argc, argv, "--diff-deviation", 3.25);
+    char* src_path       = find_char_arg (argc, argv, "--input-video",    NULL);
+    char* output_frames  = find_char_arg (argc, argv, "--output-frames",  NULL);
+    char* output_tracks  = find_char_arg (argc, argv, "--output-tracks",  NULL);
 
     if(!src_path){
         printf("Input missing\n");
@@ -205,24 +205,25 @@ void main_detect(int argc, char** argv)
 {
     // Help
     if (find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "  -input_video     : Video source\n");
-        fprintf(stderr, "  -output_frames   : path frames output for debug\n");
-        fprintf(stderr, "  -output_stats    : save files in output_stats\n");
-        fprintf(stderr, "  -start_frame     : Starting point of the video\n");
-        fprintf(stderr, "  -end_frame       : Ending point of the video\n");
-        fprintf(stderr, "  -skip_frames     : Number of skipped frames\n");
-        fprintf(stderr, "  -light_min       : Low hysteresis threshold\n");
-        fprintf(stderr, "  -light_max       : High hysteresis threshold \n");
-        fprintf(stderr, "  -surface_min     : Maximum area of the CC\n");
-        fprintf(stderr, "  -surface_max     : Minimum area of the CC\n");
-        fprintf(stderr, "  -k               : Number of neighbours\n");
-        fprintf(stderr, "  -r_extrapol      : Search radius for the next CC in case of extrapolation\n");
-        fprintf(stderr, "  -d_line          : Position tolerance of a point going through a line \n");
-        fprintf(stderr, "  -diff_deviaton   : Differential deviation factor for motion detection (motion error of one CC has to be superior to diff_deviation * standard deviation \n");
+        fprintf(stderr, "  --input-video:   Video source\n");
+        fprintf(stderr, "  --output-frames: Path frames output for debug\n");
+        fprintf(stderr, "  --output-stats:  Save files in output_stats\n");
+        fprintf(stderr, "  --start-frame:   Starting point of the video\n");
+        fprintf(stderr, "  --end-frame:     Ending point of the video\n");
+        fprintf(stderr, "  --skip-frames:   Number of skipped frames\n");
+        fprintf(stderr, "  --light-min:     Low hysteresis threshold\n");
+        fprintf(stderr, "  --light-max:     High hysteresis threshold \n");
+        fprintf(stderr, "  --surface-min:   Maximum area of the CC\n");
+        fprintf(stderr, "  --surface-max:   Minimum area of the CC\n");
+        fprintf(stderr, "  -k:              Number of neighbours\n");
+        fprintf(stderr, "  --r-extrapol:    Search radius for the next CC in case of extrapolation\n");
+        fprintf(stderr, "  --d-line:        Position tolerance of a point going through a line \n");
+        fprintf(stderr, "  --diff-deviaton: Differential deviation factor for motion detection (motion error of one CC has to be superior to diff_deviation * standard deviation \n");
         exit(1);
     }
 
     // Parsing Arguments
+    
     int start               = find_int_arg  (argc, argv, "-start_frame",     0 );
     int end                 = find_int_arg  (argc, argv, "-end_frame",     200000);
     int skip                = find_int_arg  (argc, argv, "-skip_frames",     0 );
@@ -254,6 +255,32 @@ void main_detect(int argc, char** argv)
     printf("r_extrapol               = %d\n", r_extrapol);
     printf("d_line                   = %d\n", d_line);
     printf("diff_deviaton            = %4.2f\n", diff_deviation);
+
+
+    // heading display
+    printf(" -----------------------\n");
+    printf("| --* METEOR-DETECT *-- |\n");
+    printf(" -----------------------\n");
+    printf("\n");
+    printf("Parameters:\n");
+    printf("-----------\n");
+    printf("input-video   = %s\n",    input_video);
+    printf("output-frames = %s\n",    output_frames);
+    printf("output-tracks = %s\n",    output_tracks);
+    printf("start-frame   = %d\n",    start);
+    printf("end-frame     = %d\n",    end);
+    printf("skip-frames   = %d\n",    skip);
+    printf("light-min     = %d\n",    light_min);
+    printf("light-max     = %d\n",    light_max);
+    printf("surface-min   = %d\n",    surface_min);
+    printf("surface-max   = %d\n",    surface_max);
+    printf("k             = %d\n",    k);
+    printf("r-extrapol    = %d\n",    r_extrapol);
+    printf("d-line        = %d\n",    d_line);
+    printf("diff-deviaton = %4.2f\n", diff_deviation);
+    printf("\n");
+
+
     
     if(!input_video){
         printf("Input missing\n");
