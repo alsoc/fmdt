@@ -116,13 +116,13 @@ Enable debug frames output:
 Visualization **WITHOUT** ground truth:
 
 ```shell
-./exe/meteor-visu --input-video ./2022_05_31_tauh_34_meteors.mp4 --input-tracks ./out_detect/assoconflicts/tracks.txt
+./exe/meteor-visu --input-video ./2022_05_31_tauh_34_meteors.mp4 --input-tracks ./out_detect/tracks.txt
 ```
 
 Visualization **WITH** ground truth:
 
 ```shell
-./exe/meteor-visu --input-video ./2022_05_31_tauh_34_meteors.mp4 --input-tracks ./out_detect/assoconflicts/tracks.txt --validation ../validation/2022_05_31_tauh_34_meteors.txt
+./exe/meteor-visu --input-video ./2022_05_31_tauh_34_meteors.mp4 --input-tracks ./out_detect/tracks.txt --validation ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 
 **Note**: by default, the resulting video will be written in the `./out_visu.mp4` file (this behavior can be overloaded with the `--output-video` argument).
@@ -132,7 +132,7 @@ Visualization **WITH** ground truth:
 Use `meteor-check` with the following arguments:
 
 ```shell
-./exe/meteor-check --input-tracks ./output_detect/assoconflicts/tracks.txt --validation ../validation/2022_05_31_tauh_34_meteors.txt
+./exe/meteor-check --input-tracks ./output_detect/tracks.txt --validation ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 
 **Note**: by default, the resulting video will be written in the `./out_check.txt` file (this behavior can be overloaded with the `--output` argument).
