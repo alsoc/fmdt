@@ -49,6 +49,7 @@ The list of available arguments:
 | `--input-video`   | str      | None         | Yes     | Input video path where we want to detect meteors. |
 | `--output-frames` | str      | None         | No      | Path of the output frames for debug. |
 | `--output-tracks` | str      | "out_detect" | No      | Path of the output tracks (the list of the detected meteors are in `tracks.txt` and additional statistics are saved in `bounding_box.txt`). |
+| `--output-stats`  | str      | None         | No      | TODO. |
 | `--start-frame`   | int      | 0            | No      | First frame id to start the detection in the video sequence. |
 | `--end-frame`     | int      | 200000       | No      | Last frame id to stop the detection in the video sequence. |
 | `--skip-frames`   | int      | 0            | No      | Number of frames to skip. |
