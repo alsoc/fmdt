@@ -284,8 +284,6 @@ void main_visu(int argc, char** argv)
 	   create_video_dir (dest_path_frames);
     create_videos_files(dest_path_video);
 
-    printf("path_video_tracking = %s\n", path_video_tracking);
-
     if (dest_path_frames)
 	   create_frames_dir(dest_path_frames);
 
