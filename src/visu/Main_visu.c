@@ -210,19 +210,28 @@ void main_visu(int argc, char** argv)
 // ==============================================================================================================================
 {
 
+    char* def_input_tracks  =             NULL;
+    char* def_input_video   =             NULL;
+    char* def_output_video  = "./out_visu.mp4";
+    char* def_output_frames =             NULL;
+    char* def_validation    =             NULL;
+
     if (find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "  --input-tracks: Path vers le fichier avec les tracks\n");
-        fprintf(stderr, "  --input-video:  Path vers la video\n");
-        fprintf(stderr, "  --output-video: Output de la video\n");
-        fprintf(stderr, "  --validation:   Fichier contenant la vérité terrain de la séquence\n");
+        fprintf(stderr, "  --input-tracks     Path vers le fichier avec les tracks                [%s]\n", def_input_tracks );
+        fprintf(stderr, "  --input-video      Path vers la video                                  [%s]\n", def_input_video  );
+        fprintf(stderr, "  --output-video     Output de la video (MPEG-4 format)                  [%s]\n", def_output_video );
+        fprintf(stderr, "  --output-frames    Path to the frames output                           [%s]\n", def_output_frames);
+        fprintf(stderr, "  --validation       Fichier contenant la vérité terrain de la séquence  [%s]\n", def_validation   );
+        fprintf(stderr, "  -h                 This help                                               \n"                   );
         exit(1);
     }
 
     // Parsing Arguments
-    char *src_path       = find_char_arg (argc, argv, "--input-tracks",   NULL);
-    char *src_path_video = find_char_arg (argc, argv, "--input-video",    NULL);
-    char *dest_path      = find_char_arg (argc, argv, "--output-video",   "./output_visu/");
-    char *validation     = find_char_arg (argc, argv, "--validation",     NULL);
+    char *src_path         = find_char_arg (argc, argv, "--input-tracks",  def_input_tracks);
+    char *src_path_video   = find_char_arg (argc, argv, "--input-video",   def_input_video);
+    char *dest_path_video  = find_char_arg (argc, argv, "--output-video",  def_output_video);
+    char *dest_path_frames = find_char_arg (argc, argv, "--output-frames", def_output_frames);
+    char *validation       = find_char_arg (argc, argv, "--validation",    def_validation);
 
     // heading display
     printf(" ---------------------\n");
@@ -231,10 +240,11 @@ void main_visu(int argc, char** argv)
     printf("\n");
     printf("Parameters:\n");
     printf("-----------\n");
-    printf("input-tracks = %s\n", src_path);
-    printf("input-video  = %s\n", src_path_video);
-    printf("output-video = %s\n", dest_path);
-    printf("validation   = %s\n", validation);
+    printf(" * input-tracks  = %s\n", src_path);
+    printf(" * input-video   = %s\n", src_path_video);
+    printf(" * output-video  = %s\n", dest_path_video);
+    printf(" * output-frames = %s\n", dest_path_frames);
+    printf(" * validation    = %s\n", validation);
     printf("\n");
 
     int b = 1;
@@ -242,24 +252,25 @@ void main_visu(int argc, char** argv)
 	int color = 0;
     int frame, frame_bb;
     int rx, ry, bb_x, bb_y;
-    int light_min, light_max;
     int start = 0; 
     int end = 100000;
 
     if (!src_path || !src_path_video){
-        printf("Input(s) missing\n");
+        printf("(EE) Input(s) missing\n");
         exit(1);
     }
 
-    if (!dest_path){
-        printf("output missing\n");
+    if (!dest_path_video){
+        printf("(EE) output missing\n");
         exit(1);
     }
 
-    char *filename;
+    if(!dest_path_frames){
+        printf("(II) Output missing -> no frames will be saved\n");
+    }
+
     // char *path_bounding_box;
     disp(src_path_video);
-    get_data_from_tracks_path(src_path, &light_min, &light_max, &filename);
     get_bouding_box_path_from_tracks_path(src_path);
     disp(path_bounding_box);
 
@@ -269,8 +280,14 @@ void main_visu(int argc, char** argv)
 	init_Track(tracks, SIZE_MAX_TRACKS);
         
     // debug/output paths and files
-	create_video_dir (dest_path, filename, light_min , light_max);
-	create_frames_dir(dest_path, filename, light_min , light_max);
+    if(dest_path_frames)
+	   create_video_dir (dest_path_frames);
+    create_videos_files(dest_path_video);
+
+    printf("path_video_tracking = %s\n", path_video_tracking);
+
+    if (dest_path_frames)
+	   create_frames_dir(dest_path_frames);
 
     disp(src_path);
     disp(path_bounding_box);
@@ -281,7 +298,7 @@ void main_visu(int argc, char** argv)
     
     // init 
     Video* video = Video_init_from_file(src_path_video, start, end, 0, &i0, &i1, &j0, &j1);
-    uint8 **I0    = ui8matrix(i0-b, i1+b, j0-b, j1+b);
+    uint8 **I0   = ui8matrix(i0-b, i1+b, j0-b, j1+b);
     
     // validation pour établir si une track est vrai/faux positif
     if (validation) {
@@ -296,7 +313,7 @@ void main_visu(int argc, char** argv)
     // open BB pour l'affichage des rectangles englobants
     FILE * file_bb = fopen(path_bounding_box, "r"); 
     if (file_bb == NULL) {
-        fprintf(stderr, "cannot open file yo\n");
+        fprintf(stderr, "(EE) cannot open file yo\n");
         return;
     }
 
@@ -312,7 +329,8 @@ void main_visu(int argc, char** argv)
     // parcours de la video
     while(Video_nextFrame(video,I0)) {
         frame = video->frame_current - 1;
-		printf("[Frame] %-4d\n", frame);
+		printf("[Frame] n°%-4d\r", frame);
+        fflush(stdout);
         int cpt = 0;
 
         // affiche tous les BB de l'image
@@ -345,13 +363,14 @@ void main_visu(int argc, char** argv)
             sscanf(lines, "%d %d %d %d %d ", (int*)&frame_bb, (int*)&rx, (int*)&ry, (int*)&bb_x, (int*)&bb_y);
             // printf("%d %d %d %d %d \n", frame_bb, rx, ry, bb_x, bb_y);
         }
-        create_frames_files(frame);
+        if (dest_path_frames)
+        {
+            create_frames_files(frame);
+            saveFrame_listBB(path_frames_output, I0, cpt, i0, i1, j0, j1);
+        }
         saveVideoFrame_listBB(path_video_tracking, I0, cpt, i0, i1, j0, j1);
-        saveFrame_listBB(path_frames_output, I0, cpt, i0, i1, j0, j1);
     }
     free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
-
-    free(filename);
 }
 
 // ==============================================================================================================================
@@ -361,22 +380,20 @@ void test_max(int argc, char** argv)
 
     if (find_arg(argc, argv, "-h")) {
         fprintf(stderr, "usage: %s %s [options] <input_file>\n", argv[0], argv[1]);
-        fprintf(stderr, "  --input-video  : Path vers le fichier avec les tracks\n");
-        fprintf(stderr, "  --input-video  : Path vers le fichier avec les tracks\n");
-        fprintf(stderr, "  --validation0   : Fichier contenant la vérité terrain de la séquence\n");
-        fprintf(stderr, "  --validation1 : Fichier contenant la 2eme vérité terrain de la séquence\n");
-        fprintf(stderr, "  --start-frame  : Image de départ dans la séquence\n");
-        fprintf(stderr, "  --end-frame    : Dernière image de la séquence\n");
+        fprintf(stderr, "  --input-video Path vers le fichier avec les tracks\n");
+        fprintf(stderr, "  --input-video Path vers le fichier avec les tracks\n");
+        fprintf(stderr, "  --validation0 Fichier contenant la vérité terrain de la séquence\n");
+        fprintf(stderr, "  --validation1 Fichier contenant la 2eme vérité terrain de la séquence\n");
+        fprintf(stderr, "  --start-frame Image de départ dans la séquence\n");
+        fprintf(stderr, "  --end-frame   Dernière image de la séquence\n");
         exit(1);
     }
 
     // Parsing Arguments
-    char* src_path          = find_char_arg (argc, argv, "--input-tracks",   NULL);
-    char* src_path_video    = find_char_arg (argc, argv, "--input-video",    NULL);
-    char* validation0       = find_char_arg (argc, argv, "--validation0",    NULL);
-    char* validation1       = find_char_arg (argc, argv, "--validation1",    NULL);
-    // int light_min           = find_int_arg  (argc, argv, "--light-min",      55);
-    // int light_max           = find_int_arg  (argc, argv, "--light-max",      80);
+    char* src_path       = find_char_arg (argc, argv, "--input-tracks", NULL);
+    char* src_path_video = find_char_arg (argc, argv, "--input-video",  NULL);
+    char* validation0    = find_char_arg (argc, argv, "--validation0",  NULL);
+    char* validation1    = find_char_arg (argc, argv, "--validation1",  NULL);
 
     int b = 1;
     int i0 = 0, i1 = 1200, j0 = 0, j1 = 1900;

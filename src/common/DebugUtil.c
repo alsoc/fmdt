@@ -1247,129 +1247,66 @@ void get_bouding_box_path_from_tracks_path(char* path_tracks)
 
 
 // ==========================================================================================================================================================================
-void create_debug_dir(char *output_dest, char *filename, int light_min, int light_max)
+void create_debug_dir(char *output_dest)
 // ==========================================================================================================================================================================
 {
-        char tmp_asso[100], tmp_stats[100];
-        char tmp_debug[100];
-        char path_assoconflicts[100], path_stats[100];
-        struct stat status = { 0 };
-        sprintf(tmp_debug,    "%s/debug",                            output_dest);
-        sprintf(tmp_asso,     "%s/assoconflicts",                   tmp_debug);
-        sprintf(tmp_stats,    "%s/stats",                           tmp_debug);
+    char tmp_asso[100], tmp_stats[100];
+    struct stat status = { 0 };
+    sprintf(tmp_asso,  "%s/assoconflicts", output_dest);
+    sprintf(tmp_stats, "%s/stats",         output_dest);
 
+    sprintf(path_assoconflicts_f, "%s/",                 tmp_asso);
+    sprintf(path_stats_f,         "%s/",                 tmp_stats);
+    sprintf(path_motion,          "%s/motion.txt",       path_assoconflicts_f);
+    sprintf(path_bounding_box,    "%s/bounding_box.txt", path_assoconflicts_f);
+    sprintf(path_extraction,      "%s/extraction.txt",   path_assoconflicts_f);
+    sprintf(path_error,           "%s/error.txt",        path_assoconflicts_f);
+    sprintf(path_tracks,          "%s/tracks.txt",       path_assoconflicts_f);
+    sprintf(path_debug,           "%s/debug.txt",        path_assoconflicts_f);
 
-        if ((light_min != -1) && (light_max != -1)){
-                sprintf(path_assoconflicts,     "%s/SB_%d_SH_%d",                               tmp_asso, light_min, light_max);
-                sprintf(path_stats,             "%s/SB_%d_SH_%d",                               tmp_stats, light_min, light_max);
-                sprintf(path_assoconflicts_f,   "%s/%s",                                        path_assoconflicts, filename);
-                sprintf(path_stats_f,           "%s/%s",                                        path_stats, filename);
-                sprintf(path_motion,            "%s/motion.txt",                                 path_assoconflicts_f);
-                sprintf(path_bounding_box,      "%s/bounding_box.txt",                           path_assoconflicts_f);
-                sprintf(path_extraction,        "%s/extraction.txt",                             path_assoconflicts_f);
-                sprintf(path_error,             "%s/error.txt",                                  path_assoconflicts_f);
-                sprintf(path_tracks,            "%s/tracks.txt",                                 path_assoconflicts_f);
-                sprintf(path_debug,             "%s/%s.txt",                                     path_assoconflicts_f, filename);
-                goto next;
-        }
-        // default
-        if( stat("./debug", &status) == -1 ) {
-              mkdir( "./debug", 0700 );
-        }
-        return ; 
-next: 
-        if( stat(tmp_debug, &status) == -1 ) {
-                mkdir( tmp_debug, 0700 );
-        }
-        if( stat(tmp_asso, &status) == -1 ) {
-                mkdir( tmp_asso, 0700 );
-        }
-        if( stat(tmp_stats, &status) == -1 ) {
-                mkdir( tmp_stats, 0700 );
-        }        
-        if( stat(path_assoconflicts, &status) == -1 ) {
-                mkdir(path_assoconflicts, 0700 );
-        }
-        if( stat(path_assoconflicts_f, &status) == -1 ) {
-                mkdir(path_assoconflicts_f, 0700 );
-        }
-        if( stat(path_stats, &status) == -1 ) {
-                mkdir(path_stats, 0700 );
-        }
-        if( stat(path_stats_f, &status) == -1 ) {
-                mkdir(path_stats_f, 0700 );
-        }
+    if( stat(output_dest, &status) == -1 ) {
+        mkdir( output_dest, 0700 );
+    }
+    if( stat(tmp_asso, &status) == -1 ) {
+        mkdir( tmp_asso, 0700 );
+    }
+    if( stat(tmp_stats, &status) == -1 ) {
+        mkdir( tmp_stats, 0700 );
+    }
 }
 
 
 // ==========================================================================================================================================================================
-void create_frames_dir(char *dest_path, char *filename, int light_min, int light_max)
+void create_frames_dir(char *dest_path)
 // ==========================================================================================================================================================================
 {
-        char path_frames[100];
-        char path_frames_f[150];
-        struct stat status = { 0 };
+    struct stat status = { 0 };
 
-        if ((light_min != -1) && (light_max != -1)){
-                sprintf(path_frames,            "%s/SB_%d_SH_%d",                 dest_path, light_min, light_max);
-                sprintf(path_frames_f,          "%s/%s",                          path_frames, filename);
-                sprintf(path_frames_binary_dir, "%s/binary",                      path_frames_f);
-                sprintf(path_frames_output_dir, "%s/output",                      path_frames_f);
-                goto next;
-        }
-        // default
-        if( stat("./frames", &status) == -1 ) {
-              mkdir( "./frames", 0700 );
-        }
+    sprintf(path_frames_binary_dir, "%s/", dest_path);
+    sprintf(path_frames_output_dir, "%s/", dest_path);
 
-        return ; 
-next: 
-        if( stat(dest_path, &status) == -1 ) {
-              mkdir( dest_path, 0700 );
-        }
-        if( stat(path_frames, &status) == -1 ) {
-                mkdir( path_frames, 0700 );
-        }
-        if( stat(path_frames_f, &status) == -1 ) {
-                mkdir( path_frames_f, 0700 );
-        }
-        if( stat(path_frames_binary_dir, &status) == -1 ) {
-                mkdir( path_frames_binary_dir, 0700 );
-        }
-        if( stat(path_frames_output_dir, &status) == -1 ) {
-                mkdir( path_frames_output_dir, 0700 );
-        }
+    if( stat(dest_path, &status) == -1 ) {
+        mkdir( dest_path, 0700 );
+    }
+    if( stat(path_frames_binary_dir, &status) == -1 ) {
+        mkdir( path_frames_binary_dir, 0700 );
+    }
+    if( stat(path_frames_output_dir, &status) == -1 ) {
+        mkdir( path_frames_output_dir, 0700 );
+    }
 }
 
 // ==========================================================================================================================================================================
-void create_video_dir(char *dest_path, char *filename, int light_min, int light_max)
+void create_video_dir(char *dest_path)
 // ==========================================================================================================================================================================
 {
-        char path_video[150];
-        struct stat status = { 0 };
+    struct stat status = { 0 };
 
+    sprintf(path_video_f, "%s/", dest_path);
 
-        if ((light_min != -1) && (light_max != -1)){
-                sprintf(path_video,            "%s/SB_%d_SH_%d",                               dest_path, light_min, light_max);
-                sprintf(path_video_f,          "%s/%s",                                        path_video, filename);
-                goto next;
-        }
-        // default
-        if( stat("./debug", &status) == -1 ) {
-              mkdir( "./debug", 0700 );
-        }
-        return ; 
-next: 
-        if( stat(dest_path, &status) == -1 ) {
-              mkdir( dest_path, 0700 );
-        }
-        if( stat(path_video, &status) == -1 ) {
-                mkdir(path_video, 0700 );
-        }
-        if( stat(path_video_f, &status) == -1 ) {
-                mkdir( path_video_f, 0700 );
-        }
-        create_videos_files(filename);
+    if( stat(path_video_f, &status) == -1 ) {
+        mkdir(path_video_f, 0700 );
+    }
 }
 
 
@@ -1377,23 +1314,23 @@ next:
 void create_debug_files(int frame)
 // ==========================================================================================================================================================================
 {
-    sprintf(path_stats_0,           "%s/%05d.txt",      path_stats_f, frame);
-    sprintf(path_stats_1,           "%s/%05d.txt",      path_stats_f, frame+1);
+    sprintf(path_stats_0, "%s/%05d.txt", path_stats_f, frame);
+    sprintf(path_stats_1, "%s/%05d.txt", path_stats_f, frame+1);
 }
 
 // ==========================================================================================================================================================================
 void create_frames_files(int frame)
 // ==========================================================================================================================================================================
 {
-    sprintf(path_frames_binary,     "%s/%05d.ppm",      path_frames_binary_dir, frame);
-    sprintf(path_frames_output,     "%s/%05d.ppm",      path_frames_output_dir, frame);
+    sprintf(path_frames_binary, "%s/%05d.ppm", path_frames_binary_dir, frame);
+    sprintf(path_frames_output, "%s/%05d.ppm", path_frames_output_dir, frame);
 }
 
 // ==========================================================================================================================================================================
 void create_videos_files(char *filename)
 // ==========================================================================================================================================================================
 {
-    sprintf(path_video_tracking,    "%s/%s.mp4",      path_video_f,     filename);
+    sprintf(path_video_tracking, "%s", filename);
 }
 
 /* ----------------------------------------------------------------------------- */
