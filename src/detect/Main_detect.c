@@ -233,14 +233,16 @@ void main_detect(int argc, char** argv)
     int k                   = find_int_arg  (argc, argv, "-k",                3); // a definir
     int r_extrapol          = find_int_arg  (argc, argv, "-r_extrapol",       5); // a definir
     int d_line              = find_int_arg  (argc, argv, "-d_line",          25); // a definir
-    float diff_deviation    = find_float_arg  (argc, argv, "-diff_deviation",   3.25); // a definir
+    float diff_deviation    = find_float_arg  (argc, argv, "-diff_deviation",   4); // a definir
     char* input_video       = find_char_arg (argc, argv, "-input_video",      NULL);
     char* output_frames     = find_char_arg (argc, argv, "-output_frames",     NULL);
     char *output_tracks      = find_char_arg(argc, argv, "-output_tracks", ".");
+    char *output_stats      = find_char_arg(argc, argv, "-output_stats", NULL);
 
     printf("input_video              = %s\n", input_video);
     printf("output_frames            = %s\n", output_frames);
-    printf("output_tracks             = %s\n", output_tracks);
+    printf("output_tracks            = %s\n", output_tracks);
+    printf("output_stats             = %s\n", output_stats);
     printf("start_frame              = %d\n", start);
     printf("end_frame                = %d\n", end);
     printf("skip_frames              = %d\n", skip);
@@ -259,6 +261,10 @@ void main_detect(int argc, char** argv)
     }
     if(!output_frames){
         printf("output_frames missing -> no frames will be saved\n");
+    }
+
+    if(!output_stats){
+        printf("output_stats missing -> no stats will be saved\n");
     }
 
     // sequence
@@ -287,8 +293,9 @@ void main_detect(int argc, char** argv)
     char *path;
     split_path_file(&path, &filename, input_video);
     disp(filename);
-    if(output_tracks) create_debug_dir (output_tracks, filename, light_min , light_max);
-	if (output_frames) create_frames_dir(output_frames, filename, light_min , light_max);
+    if(output_stats) create_debug_dir  (output_stats,  filename, light_min, light_max);
+	if(output_frames) create_frames_dir(output_frames, filename, light_min, light_max);
+    if(output_tracks) create_tracks_dir(output_tracks, filename, light_min, light_max);
 
     // ------------------------- //
     // -- INITIALISATION VIDEO-- //
@@ -316,6 +323,8 @@ void main_detect(int argc, char** argv)
     init_Track(tracks_stars, SIZE_MAX_TRACKS);
     CCL_LSL_init(i0, i1, j0, j1);
     initTabBB();
+
+    disp(path_tracks);
 
     // ----------------//
     // -- TRAITEMENT --//
@@ -376,7 +385,7 @@ void main_detect(int argc, char** argv)
         }
 
         PUTS("\t [DEBUG] Saving stats");
-        if (output_tracks){
+        if (output_stats){
     	    create_debug_files (frame);
             disp(path_debug);
             saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
@@ -393,6 +402,7 @@ void main_detect(int argc, char** argv)
     
     saveTabBB(path_bounding_box, tabBB, NB_FRAMES);
     saveTracks(path_tracks, tracks, last);
+
 
     if (output_tracks) printf("Files for debug saved in %s \n", output_tracks);
     if (output_frames) printf("Frames saved in %s \n", output_frames);

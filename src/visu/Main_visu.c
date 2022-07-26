@@ -252,7 +252,7 @@ void main_visu(int argc, char** argv)
     // char *path_bounding_box;
     disp(src_path_video);
     get_data_from_tracks_path(src_path, &light_min, &light_max, &filename);
-    get_bouding_box_path_from_tracks_path(src_path);
+    get_bouding_box_path_from_tracks_path(src_path, filename);
     disp(path_bounding_box);
 
     Track tracks[SIZE_MAX_TRACKS];
