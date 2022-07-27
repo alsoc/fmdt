@@ -20,7 +20,7 @@ extern char path_tracks[200];
 void main_validation(int argc, char** argv)
 // ==============================================================================================================================
 {
-
+    // default values
     char* def_input_tracks =              NULL;
     char* def_output       = "./out_check.txt";
     char* def_validation   =              NULL;
@@ -39,16 +39,18 @@ void main_validation(int argc, char** argv)
     char *validation = find_char_arg (argc, argv, "--validation",   def_validation);
 
     // heading display
-    printf(" ----------------------\n");
-    printf("| --* METEOR-CHECK *-- |\n");
-    printf(" ----------------------\n");
-    printf("\n");
-    printf("Parameters:\n");
-    printf("-----------\n");
-    printf(" * input-tracks = %s\n", src_path);
-    printf(" * output       = %s\n", dest_path);
-    printf(" * validation   = %s\n", validation);
-    printf("\n");
+    printf("#  ----------------------\n");
+    printf("# |         ----*        |\n");
+    printf("# | --* METEOR-CHECK --* |\n");
+    printf("# |   -------*           |\n");
+    printf("#  ----------------------\n");
+    printf("#\n");
+    printf("# Parameters:\n");
+    printf("# -----------\n");
+    printf("#  * input-tracks = %s\n", src_path);
+    printf("#  * output       = %s\n", dest_path);
+    printf("#  * validation   = %s\n", validation);
+    printf("#\n");
 
     if (!src_path){
         printf("(EE) Input(s) missing\n");
@@ -60,6 +62,8 @@ void main_validation(int argc, char** argv)
         exit(1);
     }
 
+    printf("# The program is running...\n");
+
     disp(src_path);
     disp(dest_path);
     disp(validation);
@@ -70,12 +74,14 @@ void main_validation(int argc, char** argv)
         
     // recupere les tracks
     parseTracks(src_path, tracks, &nb_tracks);
-    printTracks(tracks, nb_tracks);
+    //printTracks(tracks, nb_tracks);
     
     // validation pour établir si une track est vrai/faux positif
     Validation_init(validation);
     Validation(tracks, nb_tracks);
     Validation_save(dest_path);
+
+    printf("# End of the program, exiting.\n");
 }
 
 int main(int argc, char** argv)

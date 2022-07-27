@@ -77,7 +77,7 @@ The list of available arguments:
 | `--output-frames` | str      | "out_visu"     | No      | Path of the output frames for debug. |
 | `--validation`    | str      | None           | No      | File containing the ground truth. |
 
-**Note**: to run `./exe/meteor-visu`, it is required to run `./exe/meteor-detect` before and on the same input video. This will generate the required `tracks.txt` and `bouding_box.txt` files.
+**Note**: to run `meteor-visu`, it is required to run `meteor-detect` before and on the same input video. This will generate the required `tracks.txt` and `bounding_box.txt` files.
 
 ### Checking with `meteor-check`
 
@@ -91,7 +91,7 @@ The list of available arguments:
 | `--validation`   | str      |  None        | Yes     | File containing the ground truth. |
 | `--output`       | str      |  "out_check" | No      | Path of the folder containing the result of the checking (`validation.txt` file). |
 
-**Note**: to run `./exe/meteor-check`, it is required to run `./exe/meteor-detect` before. This will generate the required `tracks.txt` file.
+**Note**: to run `meteor-check`, it is required to run `meteor-detect` before. This will generate the required `tracks.txt` file.
 
 ### Examples of use
 
@@ -132,7 +132,7 @@ Visualization **WITH** ground truth:
 Use `meteor-check` with the following arguments:
 
 ```shell
-./exe/meteor-check --input-tracks ./output_detect/tracks.txt --validation ../validation/2022_05_31_tauh_34_meteors.txt
+./exe/meteor-check --input-tracks ./out_detect/tracks.txt --validation ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 
 **Note**: by default, the resulting video will be written in the `./out_check.txt` file (this behavior can be overloaded with the `--output` argument).
