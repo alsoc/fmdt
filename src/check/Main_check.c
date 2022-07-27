@@ -21,7 +21,7 @@ void main_validation(int argc, char** argv)
 // ==============================================================================================================================
 {
     // default values
-    char* def_input_tracks = "./out_detect/tracks.txt";
+    char* def_input_tracks = NULL;
     char* def_validation   = NULL;
 
     if (find_arg(argc, argv, "-h")) {
@@ -49,12 +49,12 @@ void main_validation(int argc, char** argv)
     printf("#\n");
 
     if (!src_path){
-        printf("(EE) Input(s) missing\n");
+        printf("# (EE) Input(s) missing\n");
         exit(1);
     }
 
     if (!validation) {
-        printf("(EE) Validation missing\n");
+        printf("# (EE) Validation missing\n");
         exit(1);
     }
 
