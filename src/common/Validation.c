@@ -97,34 +97,39 @@ int Validation_init(char* _inputs_file)
     return inputs_nb;
 }
 
-void Validation_save(char *dest_path)
+void Validation_print()
 {
-    assert(dest_path != NULL);
-
-    FILE* out = fopen(dest_path,"a");
-
+    unsigned int nb_tracks = 0;
     if(inputs)
     {
+        printf("# -----||--------------||---------------||--------\n");
+        printf("#  Obj ||     Hits     ||   GT frames   || Tracks \n");
+        printf("# -----||--------------||---------------||--------\n");
+        printf("# -----||--------|-----||-------|-------||--------\n");
+        printf("#   Id || Detect |  GT || Start |  Stop ||      # \n");
+        printf("# -----||--------|-----||-------|-------||--------\n");
         for(int i=0;i<inputs_nb;i++)
         {
             int expected_hits = inputs[i].t1-inputs[i].t0+1;
+            nb_tracks += inputs[i].nb_tracks;
 
             // tmp
             if (inputs[i].hits== 1) inputs[i].hits = 0;
             // VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1 ); );
             VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d \t %4d \t %4d \t %6.1f \t %6.1f \t %6.1f \t %6.1f\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1, inputs[i].track_t0, inputs[i].track_t1, inputs[i].track_x0, inputs[i].track_y0 ,inputs[i].track_x1, inputs[i].track_y1 ); );
 
-           fprintf(out, "Input %-2d : hits = %3d / %3d \t Frames = %5d - %5d\n", i, inputs[i].hits, expected_hits, inputs[i].t0, inputs[i].t1 );
+            printf("   %3d ||    %3d | %3d || %5d | %5d ||  %5d  \n", i, inputs[i].hits, expected_hits, inputs[i].t0, inputs[i].t1, inputs[i].nb_tracks);
         }
         free(inputs);
     } else {
-        fprintf(out, "%-2d\t%-3d\t%-3d\t%-3d\t%-3d\n", 0, 0, 0, positiveTrue, positiveFalse);
+        printf("(WW) no inputs\n");
     }
 
-    fprintf(out, "True positives = %-4d\n", positiveTrue);
-    fprintf(out, "False positives = %-4d\n", positiveFalse);
-    
-    fclose(out);
+    printf("Statistics: \n");
+    printf("  - Number of obj (GT) = %3d\n", inputs_nb);
+    printf("  - Number of tracks   = %3d\n", nb_tracks);
+    printf("  - True positives     = %3d\n", positiveTrue);
+    printf("  - False positives    = %3d\n", positiveFalse);
 }
 
 void Validation_free(void)

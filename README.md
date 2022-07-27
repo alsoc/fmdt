@@ -85,11 +85,10 @@ The meteors checking program is located here: `./exe/meteor-check`.
 
 The list of available arguments:
 
-| **Argument**     | **Type** | **Default**  | **Req** | **Description** |
-| :---             | :---     | :---         | :---    | :--- |
-| `--input-tracks` | str      |  None        | Yes     | The `tracks.txt` file corresponding to the input video (generated from `meteor-detect`). |
-| `--validation`   | str      |  None        | Yes     | File containing the ground truth. |
-| `--output`       | str      |  "out_check" | No      | Path of the folder containing the result of the checking (`validation.txt` file). |
+| **Argument**     | **Type** | **Default**              | **Req** | **Description** |
+| :---             | :---     | :---                     | :---    | :--- |
+| `--input-tracks` | str      |  "out_detect/tracks.txt" | Yes     | The `tracks.txt` file corresponding to the input video (generated from `meteor-detect`). |
+| `--validation`   | str      |  None                    | Yes     | File containing the ground truth. |
 
 **Note**: to run `meteor-check`, it is required to run `meteor-detect` before. This will generate the required `tracks.txt` file.
 
@@ -135,5 +134,5 @@ Use `meteor-check` with the following arguments:
 ./exe/meteor-check --input-tracks ./out_detect/tracks.txt --validation ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 
-**Note**: by default, the resulting video will be written in the `./out_check.txt` file (this behavior can be overloaded with the `--output` argument).
+**Note**: the output result will be printed in the standard output.
 

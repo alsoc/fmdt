@@ -292,7 +292,7 @@ void parseTracks(const char*filename, Track* tracks, int* n)
     int is_meteor;
     FILE * file = fopen(filename, "r"); 
     if (file == NULL) {
-        fprintf(stderr, "(EE) cannot open file\n");
+        fprintf(stderr, "(EE) cannot open file '%s'\n", filename);
         exit(-1);
     }
     
