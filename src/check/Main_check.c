@@ -21,17 +21,22 @@ void main_validation(int argc, char** argv)
 // ==============================================================================================================================
 {
 
+    char* def_input_tracks =              NULL;
+    char* def_output       = "./out_check.txt";
+    char* def_validation   =              NULL;
+
     if (find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "  --input-tracks: Path vers le fichier avec les tracks\n");
-        fprintf(stderr, "  --output:       Output de la video\n");
-        fprintf(stderr, "  --validation:   Fichier contenant la vérité terrain de la séquence\n");
+        fprintf(stderr, "  --input-tracks    Path vers le fichier avec les tracks                [%s]\n", def_input_tracks);
+        fprintf(stderr, "  --output          Output report file                                  [%s]\n", def_output      );
+        fprintf(stderr, "  --validation      Fichier contenant la vérité terrain de la séquence  [%s]\n", def_validation  );
+        fprintf(stderr, "  -h                This help                                               \n"                  );
         exit(1);
     }
 
     // Parsing Arguments
-    char *src_path   = find_char_arg (argc, argv, "--input-tracks",   NULL);
-    char *dest_path  = find_char_arg (argc, argv, "--output",         "./output_check/");
-    char *validation = find_char_arg (argc, argv, "--validation",     NULL);
+    char *src_path   = find_char_arg (argc, argv, "--input-tracks", def_input_tracks);
+    char *dest_path  = find_char_arg (argc, argv, "--output",       def_output);
+    char *validation = find_char_arg (argc, argv, "--validation",   def_validation);
 
     // heading display
     printf(" ----------------------\n");
@@ -40,28 +45,24 @@ void main_validation(int argc, char** argv)
     printf("\n");
     printf("Parameters:\n");
     printf("-----------\n");
-    printf("input-tracks = %s\n", src_path);
-    printf("output       = %s\n", dest_path);
-    printf("validation   = %s\n", validation);
+    printf(" * input-tracks = %s\n", src_path);
+    printf(" * output       = %s\n", dest_path);
+    printf(" * validation   = %s\n", validation);
     printf("\n");
 
-    int light_min, light_max;
-    char *filename;
-
     if (!src_path){
-        printf("Input(s) missing\n");
+        printf("(EE) Input(s) missing\n");
         exit(1);
     }
 
     if (!validation) {
-        printf("Validation missing\n");
+        printf("(EE) Validation missing\n");
         exit(1);
     }
 
     disp(src_path);
     disp(dest_path);
     disp(validation);
-    get_data_from_tracks_path(src_path, &light_min, &light_max, &filename);
 
     Track tracks[SIZE_MAX_TRACKS];
     int nb_tracks = 0;
@@ -74,9 +75,7 @@ void main_validation(int argc, char** argv)
     // validation pour établir si une track est vrai/faux positif
     Validation_init(validation);
     Validation(tracks, nb_tracks);
-    Validation_save(dest_path, filename);
-
-    free(filename);
+    Validation_save(dest_path);
 }
 
 int main(int argc, char** argv)

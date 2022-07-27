@@ -97,16 +97,12 @@ int Validation_init(char* _inputs_file)
     return inputs_nb;
 }
 
-void Validation_save(char *dest_path, char *filename)
+void Validation_save(char *dest_path)
 {
     assert(dest_path != NULL);
 
-    char buf[200];
-    sprintf(buf,"%s/validation.txt",dest_path);
+    FILE* out = fopen(dest_path,"a");
 
-    FILE* out = fopen(buf,"a");
-
-    fprintf(out, "%s\n",  filename);
     if(inputs)
     {
         for(int i=0;i<inputs_nb;i++)
@@ -128,7 +124,7 @@ void Validation_save(char *dest_path, char *filename)
     fprintf(out, "\tFalse Positives = %-4d\n", positiveFalse);
     
     fclose(out);
-    printf("[Validation] File %s saved\n", buf);
+    printf("[Validation] File %s saved\n", dest_path);
 }
 
 void Validation_free(void)
