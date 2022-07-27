@@ -142,7 +142,7 @@ void saveErrorMoy(const char *filename, double errMoy, double eType)
 void printTracks(Track* tracks, int last)
 // ---------------------------------------------------------------------------------------------------
 {
-    puts("Hello");
+    //puts("Hello");
     printf("%d\n", last+1);
 
     if (last==-1) return;
@@ -154,7 +154,7 @@ void printTracks(Track* tracks, int last)
         // printf("%4d \t %5f \t %5f \t %4d \t %5f \t %5f \t d\n", 
         // tracks[i].timestamp, tracks[i].begin.x , tracks[i].begin.y, tracks[i].timestamp+tracks[i].time - 1, tracks[i].end.x , tracks[i].end.y);
     }
-    printf("\n");
+    //printf("\n");
 }
 
 
@@ -292,8 +292,8 @@ void parseTracks(const char*filename, Track* tracks, int* n)
     int is_meteor;
     FILE * file = fopen(filename, "r"); 
     if (file == NULL) {
-        fprintf(stderr, "cannot open file\n");
-        return;
+        fprintf(stderr, "(EE) cannot open file\n");
+        exit(-1);
     }
     
     fgets(lines, 100, file);
@@ -314,7 +314,7 @@ void parseTracks(const char*filename, Track* tracks, int* n)
         tracks[i].bb_y      = bb_y;
         tracks[i].is_meteor = is_meteor;
     }
-    puts("end");
+    //puts("end");
     idisp(*n);
     // (*n)--;
     fclose(file);

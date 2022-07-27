@@ -236,7 +236,7 @@ void main_detect(int argc, char** argv)
         fprintf(stderr, "  --d-line            Position tolerance of a point going through a line                   [%d]\n", def_d_line        );
         fprintf(stderr, "  --diff-deviation    Differential deviation factor for motion detection (motion error of      \n"                    );
         fprintf(stderr, "                      one CC has to be superior to diff_deviation * standard deviation)    [%f]\n", def_diff_deviation);
-        fprintf(stderr, "  -h                  This help\n");
+        fprintf(stderr, "  -h                  This help                                                                \n"                    );
         exit(1);
     }
 
@@ -258,31 +258,31 @@ void main_detect(int argc, char** argv)
     char* output_stats   = find_char_arg (argc, argv, "--output-stats",   def_output_stats  );
 
     // heading display
-    printf(" -----------------------\n");
-    printf("| --* METEOR-DETECT *-- |\n");
-    printf(" -----------------------\n");
-    printf("\n");
-    printf("Parameters:\n");
-    printf("-----------\n");
-    printf(" * input-video   = %s\n",    input_video);
-    printf(" * output-frames = %s\n",    output_frames);
-    printf(" * output-tracks = %s\n",    output_tracks);
-    printf(" * output-stats  = %s\n",    output_stats);
-    printf(" * start-frame   = %d\n",    start);
-    printf(" * end-frame     = %d\n",    end);
-    printf(" * skip-frames   = %d\n",    skip);
-    printf(" * light-min     = %d\n",    light_min);
-    printf(" * light-max     = %d\n",    light_max);
-    printf(" * surface-min   = %d\n",    surface_min);
-    printf(" * surface-max   = %d\n",    surface_max);
-    printf(" * k             = %d\n",    k);
-    printf(" * r-extrapol    = %d\n",    r_extrapol);
-    printf(" * d-line        = %d\n",    d_line);
-    printf(" * diff-deviaton = %4.2f\n", diff_deviation);
-    printf("\n");
+    printf("#  -----------------------\n");
+    printf("# |          ----*        |\n");
+    printf("# | --* METEOR-DETECT --* |\n");
+    printf("# |   -------*            |\n");
+    printf("#  -----------------------\n");
+    printf("#\n");
+    printf("# Parameters:\n");
+    printf("# -----------\n");
+    printf("#  * input-video   = %s\n",    input_video);
+    printf("#  * output-frames = %s\n",    output_frames);
+    printf("#  * output-tracks = %s\n",    output_tracks);
+    printf("#  * output-stats  = %s\n",    output_stats);
+    printf("#  * start-frame   = %d\n",    start);
+    printf("#  * end-frame     = %d\n",    end);
+    printf("#  * skip-frames   = %d\n",    skip);
+    printf("#  * light-min     = %d\n",    light_min);
+    printf("#  * light-max     = %d\n",    light_max);
+    printf("#  * surface-min   = %d\n",    surface_min);
+    printf("#  * surface-max   = %d\n",    surface_max);
+    printf("#  * k             = %d\n",    k);
+    printf("#  * r-extrapol    = %d\n",    r_extrapol);
+    printf("#  * d-line        = %d\n",    d_line);
+    printf("#  * diff-deviaton = %4.2f\n", diff_deviation);
+    printf("#\n");
 
-
-    
     if(!input_video){
         printf("(EE) Input missing\n");
         exit(1);

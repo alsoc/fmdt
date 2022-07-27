@@ -209,7 +209,7 @@ void calc_BB(Track* tracks, int n, int i0, int i1, int j0, int j1)
 void main_visu(int argc, char** argv)
 // ==============================================================================================================================
 {
-
+    // default values
     char* def_input_tracks  =             NULL;
     char* def_input_video   =             NULL;
     char* def_output_video  = "./out_visu.mp4";
@@ -234,18 +234,20 @@ void main_visu(int argc, char** argv)
     char *validation       = find_char_arg (argc, argv, "--validation",    def_validation);
 
     // heading display
-    printf(" ---------------------\n");
-    printf("| --* METEOR-VISU *-- |\n");
-    printf(" ---------------------\n");
-    printf("\n");
-    printf("Parameters:\n");
-    printf("-----------\n");
-    printf(" * input-tracks  = %s\n", src_path);
-    printf(" * input-video   = %s\n", src_path_video);
-    printf(" * output-video  = %s\n", dest_path_video);
-    printf(" * output-frames = %s\n", dest_path_frames);
-    printf(" * validation    = %s\n", validation);
-    printf("\n");
+    printf("#  ---------------------\n");
+    printf("# |        ----*        |\n");
+    printf("# | --* METEOR-VISU --* |\n");
+    printf("# |  -------*           |\n");
+    printf("#  ---------------------\n");
+    printf("#\n");
+    printf("# Parameters:\n");
+    printf("# -----------\n");
+    printf("#  * input-tracks  = %s\n", src_path);
+    printf("#  * input-video   = %s\n", src_path_video);
+    printf("#  * output-video  = %s\n", dest_path_video);
+    printf("#  * output-frames = %s\n", dest_path_frames);
+    printf("#  * validation    = %s\n", validation);
+    printf("#\n");
 
     int b = 1;
     int i0, i1, j0, j1;

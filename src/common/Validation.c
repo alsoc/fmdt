@@ -114,17 +114,17 @@ void Validation_save(char *dest_path)
             // VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1 ); );
             VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d \t %4d \t %4d \t %6.1f \t %6.1f \t %6.1f \t %6.1f\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1, inputs[i].track_t0, inputs[i].track_t1, inputs[i].track_x0, inputs[i].track_y0 ,inputs[i].track_x1, inputs[i].track_y1 ); );
 
-           fprintf(out, "\t Input %-2d : hits = %3d / %3d \t Frames = %5d - %5d\n", i, inputs[i].hits, expected_hits, inputs[i].t0, inputs[i].t1 );
+           fprintf(out, "Input %-2d : hits = %3d / %3d \t Frames = %5d - %5d\n", i, inputs[i].hits, expected_hits, inputs[i].t0, inputs[i].t1 );
         }
         free(inputs);
     } else {
-        fprintf(out, "\t%-2d\t%-3d\t%-3d\t%-3d\t%-3d\n", 0, 0, 0, positiveTrue, positiveFalse);
+        fprintf(out, "%-2d\t%-3d\t%-3d\t%-3d\t%-3d\n", 0, 0, 0, positiveTrue, positiveFalse);
     }
 
-    fprintf(out, "\tFalse Positives = %-4d\n", positiveFalse);
+    fprintf(out, "True positives = %-4d\n", positiveTrue);
+    fprintf(out, "False positives = %-4d\n", positiveFalse);
     
     fclose(out);
-    printf("[Validation] File %s saved\n", dest_path);
 }
 
 void Validation_free(void)
@@ -136,16 +136,16 @@ void Validation(Track* tracks, int tracks_nb)
 {
     Track* track;
     idisp(tracks_nb);
-    for(int t = 0; t < tracks_nb ;t++) {
+    for(int t = 0; t < tracks_nb; t++) {
         track = &tracks[t];
         
         if (track->timestamp == 0) continue;
 
         ValidationInput* input = NULL;
-        for(int i = 0; i < inputs_nb ;i++) {
+        for(int i = 0; i < inputs_nb; i++) {
             if(inputs[i].t0_min <= track->timestamp && track->timestamp+track->time <= inputs[i].t1_max &&
-                inputs[i].bb_x0 <= track->begin.x && track->end.x <= inputs[i].bb_x1 &&
-                inputs[i].bb_y0 <= track->begin.y && track->end.y <= inputs[i].bb_y1) {
+               inputs[i].bb_x0 <= track->begin.x && track->end.x <= inputs[i].bb_x1 &&
+               inputs[i].bb_y0 <= track->begin.y && track->end.y <= inputs[i].bb_y1) {
                 input = &inputs[i];
 
                 inputs[i].track_t0 = track->timestamp;
@@ -162,12 +162,12 @@ void Validation(Track* tracks, int tracks_nb)
 
         // Piste matche avec un input
         if(input) {
-
-                input->nb_tracks++;
-                input->hits = track->time + input->hits + 1;
-                track->is_valid = 1;
+            input->nb_tracks++;
+            input->hits = track->time + input->hits + 1;
+            track->is_valid = 1;
+            positiveTrue++;
         } else { // Piste ne matche pas avec input
-                positiveFalse++;
+            positiveFalse++;
         }
 
     }
