@@ -157,6 +157,39 @@ void printTracks(Track* tracks, int last)
     //printf("\n");
 }
 
+// ---------------------------------------------------------------------------------------------------
+void printTracks2(Track* tracks, int n)
+// ---------------------------------------------------------------------------------------------------
+{
+    printf("# -------||---------------------------||---------------------------||-----------------||---------\n");
+    printf("#  Track ||            Begin          ||             End           ||   Bounding box  ||  Object \n");
+    printf("# -------||---------------------------||---------------------------||-----------------||---------\n");
+    printf("# -------||---------|--------|--------||---------|--------|--------||--------|--------||---------\n");
+    printf("#     Id || Frame # |      x |      y || Frame # |      x |      y ||      x |      y ||    Type \n");
+    printf("# -------||---------|--------|--------||---------|--------|--------||--------|--------||---------\n");
+
+    char* type_lut[3] = {"unknown",  // 0
+                         "unknown",  // 1
+                         " meteor"}; // 2
+    unsigned track_id = 0;
+    for(int i = 0; i<= n; i++){
+        if(tracks[i].time){
+            printf("   %5d || %7d | %6.1f | %6.1f || %7d | %6.1f | %6.1f || %6d | %6d || %s \n",
+                   track_id,
+                   tracks[i].timestamp,
+                   tracks[i].begin.x,
+                   tracks[i].begin.y,
+                   tracks[i].timestamp+tracks[i].time,
+                   tracks[i].end.x,
+                   tracks[i].end.y,
+                   tracks[i].bb_x,
+                   tracks[i].bb_y,
+                   type_lut[tracks[i].is_meteor]);
+            track_id++;
+        }
+    }
+}
+
 
 // ---------------------------------------------------------------------------------------------------
 void parseStats(const char*filename, MeteorROI* stats, int* n)

@@ -40,6 +40,7 @@
 
 void printTabBB(elemBB **tabBB, int n);
 void printTracks(Track* tracks, int last);
+void printTracks2(Track* tracks, int n);
 void printStats(MeteorROI* stats, int n);
 void printBuffer(Buf *buffer, int n);
 

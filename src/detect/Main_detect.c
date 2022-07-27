@@ -363,6 +363,8 @@ void main_detect(int argc, char** argv)
         exit(1);
     }
 
+    printf("# The program is running...\n");
+    unsigned n_frames = 0;
     while(Video_nextFrame(video,ballon->I1)) {
         
         frame = video->frame_current-2;
@@ -427,10 +429,19 @@ void main_detect(int argc, char** argv)
         SWAP_UI8(ballon->I0, ballon->I1);
         SWAP_STATS(stats0, stats_shrink, n_shrink);
         n0 = n_shrink;
+        n_frames++;
     }
+
+    int n_tracks = 0;
+    for(int i = 0; i <= last; i++){
+        if(tracks[i].time)
+            n_tracks++;
+    }
+    printf("# %d frames have been processed and %d tracks were found:\n", n_frames, n_tracks);
     
     saveTabBB(path_bounding_box, tabBB, NB_FRAMES);
     saveTracks(path_tracks, tracks, last);
+    printTracks2(tracks, last);
 
     // ----------
     // -- free --
@@ -443,6 +454,7 @@ void main_detect(int argc, char** argv)
     Video_free(video);
     CCL_LSL_free(i0, i1, j0, j1);
 	kppv_free(0, 50, 0, 50);
+    printf("# End of the program, exiting.\n");
 }
 
 
