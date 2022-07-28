@@ -122,7 +122,7 @@ void Validation_print()
         }
         free(inputs);
     } else {
-        printf("(WW) no inputs\n");
+        fprintf(stderr, "(WW) no objects\n");
     }
 
     printf("Statistics: \n");

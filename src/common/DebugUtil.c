@@ -108,7 +108,7 @@ void saveTabBB(const char *filename, elemBB **tabBB, int n)
 
     FILE *f = fopen(filename, "w");
     if (f == NULL){
-        printf("error ouverture %s \n", filename);
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
         exit(1);
     }
 
@@ -131,7 +131,7 @@ void saveErrorMoy(const char *filename, double errMoy, double eType)
     disp(path);
     FILE *f = fopen(path, "a");
     if (f == NULL){
-        printf("error ouverture %s \n", path);
+        fprintf(stderr, "(EE) error ouverture %s \n", path);
         exit(1);
     }
     fprintf(f, "%5.2f \t %5.2f \n", errMoy, eType); 
@@ -200,7 +200,7 @@ void parseStats(const char*filename, MeteorROI* stats, int* n)
     FILE * file = fopen(filename, "r"); 
     // printf("%s\n", filename);
     if (file == NULL) { 
-        fprintf(stderr, "cannot open file\n");
+        fprintf(stderr, "(EE) cannot open file '%s'\n", filename);
         return;
     }
     
@@ -255,7 +255,7 @@ void saveStats(const char*filename, MeteorROI* stats, int n)
 {
     FILE *f = fopen(filename, "w");
     if (f == NULL){
-        printf("error ouverture %s \n", filename);
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
         exit(1);
     }
 
@@ -271,7 +271,7 @@ void saveTracks(const char*filename, Track* tracks, int n)
 {
     FILE *f = fopen(filename, "w");
     if (f == NULL){
-        printf("error ouverture %s \n", filename);
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
         exit(1);
     }
 
@@ -301,7 +301,7 @@ void saveBoundingBox(const char*filename, uint16 rx, uint16 ry, uint16 bb_x, uin
 {
     FILE *f = fopen(filename, "a");
     if (f == NULL){
-        printf("error ouverture %s \n", filename);
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
         exit(1);
     }
 
@@ -324,7 +324,7 @@ void parseTracks(const char*filename, Track* tracks, int* n)
     fp = fopen(filename, "r");
     if (fp == NULL)
     {
-        printf("# (EE) Can't open '%s'\n", filename);
+        fprintf(stderr, "(EE) Can't open '%s'\n", filename);
         exit(EXIT_FAILURE);
     }
 
@@ -367,7 +367,7 @@ void saveMotion(const char*filename, double theta, double tx, double ty, int fra
 {
     FILE *f = fopen(filename, "a");
     if (f == NULL){
-        printf("error ouverture %s \n", filename);
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
         exit(1);
     }
 
@@ -386,7 +386,7 @@ void saveError(const char *filename, MeteorROI *stats, int n)
     int cpt = 0;
     FILE *f = fopen(filename, "a");
     if (f == NULL){
-        printf("error ouverture %s \n", filename);
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
         exit(1);
     }
 
@@ -449,7 +449,7 @@ void saveAsso(const char*filename, uint32 **Nearest, float32 **distances, int nc
 {
     FILE *f = fopen(filename, "w");
     if (f == NULL){
-        printf("error ouverture %s \n", filename);
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
         exit(1);
     }
     
@@ -485,7 +485,7 @@ void saveAsso_VT(const char*filename, int nc0, MeteorROI *stats, int frame)
 {
     FILE *f = fopen(filename, "a");
     if (f == NULL){
-        printf("error ouverture %s \n", filename);
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
         exit(1);
     }
     fprintf(f, "%05d_%05d\n", frame, frame+1);
@@ -512,7 +512,7 @@ void saveConflicts(const char*filename, uint32 *conflicts, uint32 **Nearest, flo
 {
     FILE *f = fopen(filename, "w");
     if (f == NULL){
-        printf("error ouverture %s \n", filename);
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
         exit(1);
     }
 
@@ -548,7 +548,7 @@ void saveAssoConflicts(const char*filename, int frame, uint32 *conflicts, uint32
 {
     FILE *f = fopen(filename, "a");
     if (f == NULL){
-        printf("error ouverture %s \n", filename);
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
         exit(1);
     }
 
@@ -696,7 +696,7 @@ rgb8** load_image_color(const char* filename, long* i0, long* i1, long* j0, long
     options.debug = 1;
     
     if(!ffmpeg_probe(&reader, filename, &options)) {
-        fprintf(stderr, "Error in load_image_color: %s (%d)\n", ffmpeg_error2str(reader.error), reader.error);
+        fprintf(stderr, "(EE) Error in load_image_color: %s (%d)\n", ffmpeg_error2str(reader.error), reader.error);
         exit(0);
     }
     reader.output.pixfmt = ffmpeg_str2pixfmt("rgb24");

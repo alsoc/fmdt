@@ -284,15 +284,15 @@ void main_detect(int argc, char** argv)
     printf("#\n");
 
     if(!input_video){
-        printf("# (EE) Input missing\n");
+        fprintf(stderr, "(EE) '--input-video' is missing\n");
         exit(1);
     }
     if(!output_frames){
-        printf("# (II) output_frames missing -> no frames will be saved\n");
+        fprintf(stderr, "(II) '--output-frames' is missing -> no frames will be saved\n");
     }
 
     if(!output_stats){
-        printf("# (II) output_stats missing -> no stats will be saved\n");
+        fprintf(stderr, "(II) '--output-stats' is missing -> no stats will be saved\n");
     }
 
     // sequence
@@ -368,8 +368,8 @@ void main_detect(int argc, char** argv)
     while(Video_nextFrame(video,ballon->I1)) {
         
         frame = video->frame_current-2;
-		printf("# [Frame] n°%-4d\r", frame);
-        fflush(stdout);
+		fprintf(stderr, "(II) Frame n°%-4d\r", frame);
+        fflush(stderr);
 
 		//---------------------------------------------------------//
         PUTS("\t Step 1 : seuillage low/high");
