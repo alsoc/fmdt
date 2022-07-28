@@ -100,6 +100,7 @@ int Validation_init(char* _inputs_file)
 void Validation_print()
 {
     unsigned int nb_tracks = 0;
+    float tracking_rate;
     if(inputs)
     {
         printf("# -----||--------------||---------------||--------\n");

@@ -53,8 +53,8 @@ The list of available arguments:
 | `--start-frame`   | int      | 0           | No      | First frame id to start the detection in the video sequence. |
 | `--end-frame`     | int      | 200000      | No      | Last frame id to stop the detection in the video sequence. |
 | `--skip-frames`   | int      | 0           | No      | Number of frames to skip. |
-| `--light-min`     | int      | 55          | No      | Minimum light intensity hysteresis threshold. |
-| `--light-max`     | int      | 80          | No      | Maximum light intensity hysteresis threshold. |
+| `--light-min`     | int      | 55          | No      | Minimum light intensity hysteresis threshold (grayscale [0;255]). |
+| `--light-max`     | int      | 80          | No      | Maximum light intensity hysteresis threshold (grayscale [0;255]). |
 | `--surface-min`   | int      | 3           | No      | Minimum surface of the CCs in pixel. |
 | `--surface-max`   | int      | 1000        | No      | Maximum surface of the CCs in pixel. |
 | `-k`              | int      | 3           | No      | Number of neighbors in the k-nearest neighbor matching (KPPV algorithm). |

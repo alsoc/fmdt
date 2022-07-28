@@ -227,8 +227,8 @@ void main_detect(int argc, char** argv)
         fprintf(stderr, "  --start-frame       Starting point of the video                                          [%d]\n", def_start_frame   );
         fprintf(stderr, "  --end-frame         Ending point of the video                                            [%d]\n", def_end_frame     );
         fprintf(stderr, "  --skip-frames       Number of skipped frames                                             [%d]\n", def_skip_frames   );
-        fprintf(stderr, "  --light-min         Low hysteresis threshold                                             [%d]\n", def_light_min     );
-        fprintf(stderr, "  --light-max         High hysteresis threshold                                            [%d]\n", def_light_max     );
+        fprintf(stderr, "  --light-min         Low hysteresis threshold (grayscale [0;255])                         [%d]\n", def_light_min     );
+        fprintf(stderr, "  --light-max         High hysteresis threshold (grayscale [0;255])                        [%d]\n", def_light_max     );
         fprintf(stderr, "  --surface-min       Maximum area of the CC                                               [%d]\n", def_surface_min   );
         fprintf(stderr, "  --surface-max       Minimum area of the CC                                               [%d]\n", def_surface_max   );
         fprintf(stderr, "  -k                  Number of neighbours                                                 [%d]\n", def_k             );
