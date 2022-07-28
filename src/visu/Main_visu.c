@@ -211,6 +211,7 @@ void main_visu(int argc, char** argv)
 {
     // default values
     char* def_input_tracks  =             NULL;
+    char* def_input_bb      =             NULL;
     char* def_input_video   =             NULL;
     char* def_output_video  = "./out_visu.mp4";
     char* def_output_frames =             NULL;
@@ -218,6 +219,7 @@ void main_visu(int argc, char** argv)
 
     if (find_arg(argc, argv, "-h")) {
         fprintf(stderr, "  --input-tracks     Path vers le fichier avec les tracks                [%s]\n", def_input_tracks );
+        fprintf(stderr, "  --input-bb         Path vers le fichier avec les bounding boxes        [%s]\n", def_input_bb     );
         fprintf(stderr, "  --input-video      Path vers la video                                  [%s]\n", def_input_video  );
         fprintf(stderr, "  --output-video     Output de la video (MPEG-4 format)                  [%s]\n", def_output_video );
         fprintf(stderr, "  --output-frames    Path to the frames output                           [%s]\n", def_output_frames);
@@ -228,6 +230,7 @@ void main_visu(int argc, char** argv)
 
     // Parsing Arguments
     char *src_path         = find_char_arg (argc, argv, "--input-tracks",  def_input_tracks);
+    char *input_bb         = find_char_arg (argc, argv, "--input-bb",      def_input_bb);
     char *src_path_video   = find_char_arg (argc, argv, "--input-video",   def_input_video);
     char *dest_path_video  = find_char_arg (argc, argv, "--output-video",  def_output_video);
     char *dest_path_frames = find_char_arg (argc, argv, "--output-frames", def_output_frames);
@@ -243,6 +246,7 @@ void main_visu(int argc, char** argv)
     printf("# Parameters:\n");
     printf("# -----------\n");
     printf("#  * input-tracks  = %s\n", src_path);
+    printf("#  * input-bb      = %s\n", input_bb);
     printf("#  * input-video   = %s\n", src_path_video);
     printf("#  * output-video  = %s\n", dest_path_video);
     printf("#  * output-frames = %s\n", dest_path_frames);
@@ -258,22 +262,27 @@ void main_visu(int argc, char** argv)
     int end = 100000;
 
     if (!src_path || !src_path_video){
-        printf("(EE) Input(s) missing\n");
+        printf("# (EE) Input(s) missing\n");
+        exit(1);
+    }
+
+    if (!input_bb){
+        printf("# (EE) Bounding boxes input is missing\n");
         exit(1);
     }
 
     if (!dest_path_video){
-        printf("(EE) output missing\n");
+        printf("# (EE) output missing\n");
         exit(1);
     }
 
     if(!dest_path_frames){
-        printf("(II) Output missing -> no frames will be saved\n");
+        printf("# (II) Output missing -> no frames will be saved\n");
     }
 
     // char *path_bounding_box;
     disp(src_path_video);
-    get_bouding_box_path_from_tracks_path(src_path);
+    sprintf(path_bounding_box, "%s", input_bb);
     disp(path_bounding_box);
 
     Track tracks[SIZE_MAX_TRACKS];
@@ -294,7 +303,7 @@ void main_visu(int argc, char** argv)
     
     // recupere les tracks
     parseTracks(src_path, tracks, &nb_tracks);
-    printTracks(tracks, nb_tracks);
+    //printTracks(tracks, nb_tracks);
     
     // init 
     Video* video = Video_init_from_file(src_path_video, start, end, 0, &i0, &i1, &j0, &j1);
@@ -324,8 +333,9 @@ void main_visu(int argc, char** argv)
     char lines[1000];
     fgets(lines, 100, file_bb);
     sscanf(lines, "%d %d %d %d %d", &frame_bb, &rx, &ry, &bb_x, &bb_y);
-    printf("%d %d %d %d %d \n", frame_bb, rx, ry, bb_x, bb_y);
+    //printf("%d %d %d %d %d \n", frame_bb, rx, ry, bb_x, bb_y);
 
+    printf("# The program is running...\n");
     // parcours de la video
     while(Video_nextFrame(video,I0)) {
         frame = video->frame_current - 1;
@@ -371,6 +381,9 @@ void main_visu(int argc, char** argv)
         saveVideoFrame_listBB(path_video_tracking, I0, cpt, i0, i1, j0, j1);
     }
     free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
+
+    printf("# The video has been written.\n");
+    printf("# End of the program, exiting.\n");
 }
 
 // ==============================================================================================================================

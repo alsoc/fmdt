@@ -40,6 +40,7 @@
 
 void printTabBB(elemBB **tabBB, int n);
 void printTracks(Track* tracks, int last);
+void printTracks2(Track* tracks, int n);
 void printStats(MeteorROI* stats, int n);
 void printBuffer(Buf *buffer, int n);
 
@@ -87,6 +88,7 @@ void create_tracks_dir(char *output_dest);
 void create_debug_files(int frame);
 void create_frames_files(int frame);
 void create_videos_files(char* filename);
+void create_bb_file(char *filename);
 
 void copy_ui8matrix_ui8matrix(uint8 **X, int i0, int i1, int j0, int j1, uint8 **Y);
 void convert_ui8vector_ui32vector(uint8 *X, long nl, long nh, uint32 *Y);

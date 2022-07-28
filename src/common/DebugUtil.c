@@ -157,6 +157,37 @@ void printTracks(Track* tracks, int last)
     //printf("\n");
 }
 
+// ---------------------------------------------------------------------------------------------------
+void printTracks2(Track* tracks, int n)
+// ---------------------------------------------------------------------------------------------------
+{
+    printf("# -------||---------------------------||---------------------------||---------\n");
+    printf("#  Track ||           Begin           ||            End            ||  Object \n");
+    printf("# -------||---------------------------||---------------------------||---------\n");
+    printf("# -------||---------|--------|--------||---------|--------|--------||---------\n");
+    printf("#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type \n");
+    printf("# -------||---------|--------|--------||---------|--------|--------||---------\n");
+
+    char* type_lut[3] = {"unknown",  // 0
+                         "unknown",  // 1
+                         " meteor"}; // 2
+    unsigned track_id = 0;
+    for(int i = 0; i<= n; i++){
+        if(tracks[i].time){
+            printf("   %5d || %7d | %6.1f | %6.1f || %7d | %6.1f | %6.1f || %s \n",
+                   track_id,
+                   tracks[i].timestamp,
+                   tracks[i].begin.x,
+                   tracks[i].begin.y,
+                   tracks[i].timestamp+tracks[i].time,
+                   tracks[i].end.x,
+                   tracks[i].end.y,
+                   type_lut[tracks[i].is_meteor]);
+            track_id++;
+        }
+    }
+}
+
 
 // ---------------------------------------------------------------------------------------------------
 void parseStats(const char*filename, MeteorROI* stats, int* n)
@@ -285,40 +316,49 @@ void saveBoundingBox(const char*filename, uint16 rx, uint16 ry, uint16 bb_x, uin
 void parseTracks(const char*filename, Track* tracks, int* n)
 // ---------------------------------------------------------------------------------------------------
 {
-    char lines[100];
-    int t0, t1;
+    FILE * fp;
+    char * line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    fp = fopen(filename, "r");
+    if (fp == NULL)
+    {
+        printf("# (EE) Can't open '%s'\n", filename);
+        exit(EXIT_FAILURE);
+    }
+
+    int tid, t0, t1;
     float32 x0, x1, y0, y1;
-    int bb_x, bb_y;
-    int is_meteor;
-    FILE * file = fopen(filename, "r"); 
-    if (file == NULL) {
-        fprintf(stderr, "(EE) cannot open file\n");
-        exit(-1);
+    //int bb_x, bb_y;
+    //int is_meteor;
+    char obj_type[1024];
+
+    *n = 0;
+    while ((read = getline(&line, &len, fp)) != -1) {
+        //printf("Retrieved line of length %zu:\n", read);
+        if (line[0] != '#')
+        {
+            sscanf(line, "%d || %d | %f | %f || %d | %f | %f || %s ", &tid, &t0, &x0, &y0, &t1, &x1, &y1, obj_type);
+
+            tracks[tid].timestamp = t0;
+            tracks[tid].time      = t1-t0;
+            tracks[tid].state     = 0;
+            tracks[tid].begin.x   = x0;
+            tracks[tid].begin.y   = y0;
+            tracks[tid].end.x     = x1;
+            tracks[tid].end.y     = y1;
+            // tracks[tid].bb_x   = bb_x;
+            // tracks[tid].bb_y   = bb_y;
+            tracks[tid].is_meteor = 2; //is_meteor;
+
+            *n = tid+1;
+        }
     }
-    
-    fgets(lines, 100, file);
-    sscanf(lines, "%d", n);
-    // while (fgets(lines, 100, file)){
-    // printf("%d\n", *n);
-    for(int i = 0; i< *n; i++){
-        fgets(lines, 100, file);
-        sscanf(lines, "%d %f %f %d %f %f %d %d %d", &t0, &x0, &y0, &t1, &x1, &y1, &bb_x, &bb_y, &is_meteor);
-        tracks[i].timestamp = t0;
-        tracks[i].time      = t1-t0;
-        tracks[i].state     = 0;
-        tracks[i].begin.x   = x0;
-        tracks[i].begin.y   = y0;
-        tracks[i].end.x     = x1;
-        tracks[i].end.y     = y1;
-        tracks[i].bb_x      = bb_x;
-        tracks[i].bb_y      = bb_y;
-        tracks[i].is_meteor = is_meteor;
-    }
-    //puts("end");
-    idisp(*n);
-    // (*n)--;
-    fclose(file);
-    idisp(*n);
+
+    fclose(fp);
+    if (line)
+        free(line);
 }
 
 // ---------------------------------------------------------------------------------------------------
@@ -1295,6 +1335,12 @@ void create_tracks_dir(char *output_dest)
     }
 }
 
+// ==========================================================================================================================================================================
+void create_bb_file(char *filename)
+// ==========================================================================================================================================================================
+{
+    sprintf(path_bounding_box, "%s", filename);
+}
 
 // ==========================================================================================================================================================================
 void create_frames_dir(char *dest_path)

@@ -70,7 +70,7 @@ typedef struct input {
 } ValidationInput;
 
 int Validation_init(char* _inputs_file);
-void Validation_save(char *dest_path);
+void Validation_print();
 void Validation(Track* tracks, int tracks_nb);
 void Validation_free(void);
 

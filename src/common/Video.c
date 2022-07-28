@@ -41,7 +41,7 @@ inline Video* Video_init_from_file(char* filename, int start, int end, int skip,
 static int Video_getFrame(Video* video, uint8** I)
 {
     if(video->frame_current > video->frame_end || video->ffmpeg.error || !ffmpeg_read2d(&video->ffmpeg, I)) {
-        fprintf(stderr, "Error: %s\n", ffmpeg_error2str(video->ffmpeg.error));
+        //fprintf(stderr, "Error: %s\n", ffmpeg_error2str(video->ffmpeg.error));
         return 0;
     }
     video->frame_current++;

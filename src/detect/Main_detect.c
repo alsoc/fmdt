@@ -202,27 +202,27 @@ void main_detect(int argc, char** argv)
 // ======================================
 {
     // default values
-    int   def_start_frame    =              0;
-    int   def_end_frame      =         200000;
-    int   def_skip_frames    =              0;
-    int   def_light_min      =             55;
-    int   def_light_max      =             80;
-    int   def_surface_min    =              3;
-    int   def_surface_max    =           1000;
-    int   def_k              =              3;
-    int   def_r_extrapol     =              5;
-    int   def_d_line         =             25;
-    float def_diff_deviation =            4.f;
-    char* def_input_video    =           NULL;
-    char* def_output_frames  =           NULL;
-    char* def_output_tracks  = "./out_detect";
-    char* def_output_stats   =           NULL;
+    int   def_start_frame    =      0;
+    int   def_end_frame      = 200000;
+    int   def_skip_frames    =      0;
+    int   def_light_min      =     55;
+    int   def_light_max      =     80;
+    int   def_surface_min    =      3;
+    int   def_surface_max    =   1000;
+    int   def_k              =      3;
+    int   def_r_extrapol     =      5;
+    int   def_d_line         =     25;
+    float def_diff_deviation =    4.f;
+    char* def_input_video    =   NULL;
+    char* def_output_frames  =   NULL;
+    char* def_output_bb      =   NULL;
+    char* def_output_stats   =   NULL;
 
     // Help
     if (find_arg(argc, argv, "-h")) {
         fprintf(stderr, "  --input-video       Video source                                                         [%s]\n", def_input_video   );
         fprintf(stderr, "  --output-frames     Path frames output for debug                                         [%s]\n", def_output_frames );
-        fprintf(stderr, "  --output-tracks     TODO!                                                                [%s]\n", def_output_tracks );
+        fprintf(stderr, "  --output-bb         Path to the file containing the bounding boxes (frame by frame)      [%s]\n", def_output_bb     );
         fprintf(stderr, "  --output-stats      TODO!                                                                [%s]\n", def_output_stats  );
         fprintf(stderr, "  --start-frame       Starting point of the video                                          [%d]\n", def_start_frame   );
         fprintf(stderr, "  --end-frame         Ending point of the video                                            [%d]\n", def_end_frame     );
@@ -254,7 +254,7 @@ void main_detect(int argc, char** argv)
     float diff_deviation = find_float_arg(argc, argv, "--diff-deviation", def_diff_deviation);
     char* input_video    = find_char_arg (argc, argv, "--input-video",    def_input_video   );
     char* output_frames  = find_char_arg (argc, argv, "--output-frames",  def_output_frames );
-    char* output_tracks  = find_char_arg (argc, argv, "--output-tracks",  def_output_tracks );
+    char* output_bb      = find_char_arg (argc, argv, "--output-bb",      def_output_bb     );
     char* output_stats   = find_char_arg (argc, argv, "--output-stats",   def_output_stats  );
 
     // heading display
@@ -268,7 +268,7 @@ void main_detect(int argc, char** argv)
     printf("# -----------\n");
     printf("#  * input-video   = %s\n",    input_video);
     printf("#  * output-frames = %s\n",    output_frames);
-    printf("#  * output-tracks = %s\n",    output_tracks);
+    printf("#  * output-bb     = %s\n",    output_bb);
     printf("#  * output-stats  = %s\n",    output_stats);
     printf("#  * start-frame   = %d\n",    start);
     printf("#  * end-frame     = %d\n",    end);
@@ -284,15 +284,15 @@ void main_detect(int argc, char** argv)
     printf("#\n");
 
     if(!input_video){
-        printf("(EE) Input missing\n");
+        printf("# (EE) Input missing\n");
         exit(1);
     }
     if(!output_frames){
-        printf("(II) output_frames missing -> no frames will be saved\n");
+        printf("# (II) output_frames missing -> no frames will be saved\n");
     }
 
     if(!output_stats){
-        printf("(II) output_stats missing -> no stats will be saved\n");
+        printf("# (II) output_stats missing -> no stats will be saved\n");
     }
 
     // sequence
@@ -323,7 +323,7 @@ void main_detect(int argc, char** argv)
     disp(filename);
     if(output_stats) create_debug_dir (output_stats);
 	if(output_frames) create_frames_dir(output_frames);
-    if(output_tracks) create_tracks_dir(output_tracks);
+    if(output_bb) create_bb_file(output_bb);
 
     // ------------------------- //
     // -- INITIALISATION VIDEO-- //
@@ -363,10 +363,12 @@ void main_detect(int argc, char** argv)
         exit(1);
     }
 
+    printf("# The program is running...\n");
+    unsigned n_frames = 0;
     while(Video_nextFrame(video,ballon->I1)) {
         
         frame = video->frame_current-2;
-		printf("[Frame] n°%-4d\r", frame);
+		printf("# [Frame] n°%-4d\r", frame);
         fflush(stdout);
 
 		//---------------------------------------------------------//
@@ -427,10 +429,21 @@ void main_detect(int argc, char** argv)
         SWAP_UI8(ballon->I0, ballon->I1);
         SWAP_STATS(stats0, stats_shrink, n_shrink);
         n0 = n_shrink;
+        n_frames++;
     }
+
+    int n_tracks = 0;
+    for(int i = 0; i <= last; i++){
+        if(tracks[i].time)
+            n_tracks++;
+    }
+    printf("# -> Processed frames: %d\n", n_frames);
+    printf("# -> Number of tracks: %d\n", n_tracks);
     
-    saveTabBB(path_bounding_box, tabBB, NB_FRAMES);
-    saveTracks(path_tracks, tracks, last);
+    if (output_bb)
+        saveTabBB(path_bounding_box, tabBB, NB_FRAMES);
+    //saveTracks(path_tracks, tracks, last);
+    printTracks2(tracks, last);
 
     // ----------
     // -- free --
@@ -443,6 +456,7 @@ void main_detect(int argc, char** argv)
     Video_free(video);
     CCL_LSL_free(i0, i1, j0, j1);
 	kppv_free(0, 50, 0, 50);
+    printf("# End of the program, exiting.\n");
 }
 
 

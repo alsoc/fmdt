@@ -362,6 +362,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                         clear_index_Track(tracks, i);
                         continue;
                     }
+
                     // tracks[i].vitesse[(tracks[i].cur)++] = stats0[tracks[i].end.ID].error;
                     tracks[i].x = tracks[i].end.x;
                     tracks[i].y = tracks[i].end.y;
