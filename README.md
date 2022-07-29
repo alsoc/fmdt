@@ -28,13 +28,15 @@ The `CMake` file comes with several options:
  * `-DTAH_DETECT_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the detection chain executable.
  * `-DTAH_VISU_EXE`   [default=`ON`] {possible:`ON`,`OFF`}: compile the visual tracking executable.
  * `-DTAH_CHECK_EXE`  [default=`ON`] {possible:`ON`,`OFF`}: compile the check executable.
+ * `-DTAH_MAXRED_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the max accumulator executable.
 
 ## Short User Documentation
 
-This project generates 3 different executables:
+This project generates 4 different executables:
   - `meteor-detect`: meteors detection chain.
   - `meteor-visu`: visualization of the detected meteors.
   - `meteor-check`: validation of the detected meteors with the field truth.
+  - `meteor-maxred`: accumulator of grayscale on a video.
 
 The next sub-sections describe *how to use* the generated executables.
 
@@ -93,6 +95,19 @@ The list of available arguments:
 
 **Note**: to run `meteor-check`, it is required to run `meteor-detect` before. This will generate the required `tracks.txt` file.
 
+### Checking with `meteor-maxred`
+
+The meteors checking program is located here: `./exe/meteor-maxred`.
+
+The list of available arguments:
+
+| **Argument**     | **Type** | **Default** | **Req** | **Description** |
+| :---             | :---     | :---        | :---    | :--- |
+| `--input-video`  | str      |  None       | Yes     | Input video path. |
+| `--output-frame` | str      |  None       | Yes     | Path of the output frame (PGM format). |
+| `--start-frame`  | int      | 0           | No      | First frame id to start the detection in the video sequence. |
+| `--end-frame`    | int      | 200000      | No      | Last frame id to stop the detection in the video sequence. |
+
 ### Examples of use
 
 Download a video sequence containing meteors here: https://lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4.
@@ -131,4 +146,12 @@ Use `meteor-check` with the following arguments:
 
 ```shell
 ./exe/meteor-check --input-tracks ./out_detect_tracks.txt --validation ../validation/2022_05_31_tauh_34_meteors.txt
+```
+
+#### Step 4: Offline checking
+
+Use `meteor-maxred` with the following arguments:
+
+```shell
+./exe/meteor-maxred --input-video ./2022_05_31_tauh_34_meteors.mp4 --output-frame .
 ```
