@@ -365,6 +365,7 @@ void main_detect(int argc, char** argv)
 
     printf("# The program is running...\n");
     unsigned n_frames = 0;
+    unsigned n_tracks = 0;
     while(Video_nextFrame(video,ballon->I1)) {
         
         frame = video->frame_current-2;
@@ -430,16 +431,17 @@ void main_detect(int argc, char** argv)
         n0 = n_shrink;
         n_frames++;
 
-        fprintf(stderr, " -- # tracks = %4d\r", last);
+        n_tracks = 0;
+        for(int i = 0; i <= last; i++){
+            if(tracks[i].time)
+                n_tracks++;
+        }
+        fprintf(stderr, " -- # of tracks = %4d -- # of real tracks = %4d\r", last, n_tracks);
         fflush(stderr);
     }
 
-    int n_tracks = 0;
-    for(int i = 0; i <= last; i++){
-        if(tracks[i].time)
-            n_tracks++;
-    }
-    printf("# -> Processed frames: %d                            \n", n_frames);
+    fprintf(stderr, "\n");
+    printf("# -> Processed frames: %d\n", n_frames);
     printf("# -> Number of tracks: %d\n", n_tracks);
     
     if (output_bb)
