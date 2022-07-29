@@ -155,7 +155,7 @@ uint32 CCL_LSL(uint32** img, int i0, int i1, int j0, int j1)
         }
     }
 
-    assert(("Reached number of maximum CC allowed...Too much noise! Change hysteresys thresholds and try again!", trueN < SIZE_MAX_METEORROI));
+    assert(trueN < SIZE_MAX_METEORROI);
 
     return trueN;
 }

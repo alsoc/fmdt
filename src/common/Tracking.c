@@ -11,6 +11,7 @@
 #include "DebugUtil.h"
 #include "macro_debug.h"
 #include "Tracking.h"
+#include "Ballon.h"
 
 #include "ffmpeg-io/reader.h"
 #include "ffmpeg-io/writer.h"
@@ -21,6 +22,7 @@
 #include <time.h>
 #include <math.h>
 #include <stdio.h>
+#include <assert.h>
 
 #define SIZE_BUF 10000
 #define INF 9999999
@@ -414,13 +416,12 @@ void updateTrackStars(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int n
     }
 }
 
-
-
 // à modifier pour optimisation
 // -----------------------------------------------------
 void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame, int i)
 // -----------------------------------------------------
 {
+    assert((*last)+1 < SIZE_MAX_TRACKS);
     Track *track = &tracks[++(*last)];
 
     if (i == -1) return;

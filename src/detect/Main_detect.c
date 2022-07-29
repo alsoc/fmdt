@@ -368,8 +368,7 @@ void main_detect(int argc, char** argv)
     while(Video_nextFrame(video,ballon->I1)) {
         
         frame = video->frame_current-2;
-		fprintf(stderr, "(II) Frame n°%-4d\r", frame);
-        fflush(stderr);
+		fprintf(stderr, "(II) Frame n°%4d", frame);
 
 		//---------------------------------------------------------//
         PUTS("\t Step 1 : seuillage low/high");
@@ -430,6 +429,9 @@ void main_detect(int argc, char** argv)
         SWAP_STATS(stats0, stats_shrink, n_shrink);
         n0 = n_shrink;
         n_frames++;
+
+        fprintf(stderr, " -- # tracks = %4d\r", last);
+        fflush(stderr);
     }
 
     int n_tracks = 0;
@@ -437,7 +439,7 @@ void main_detect(int argc, char** argv)
         if(tracks[i].time)
             n_tracks++;
     }
-    printf("# -> Processed frames: %d\n", n_frames);
+    printf("# -> Processed frames: %d                            \n", n_frames);
     printf("# -> Number of tracks: %d\n", n_tracks);
     
     if (output_bb)
