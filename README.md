@@ -148,7 +148,7 @@ Use `meteor-check` with the following arguments:
 ./exe/meteor-check --input-tracks ./out_detect_tracks.txt --validation ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 
-#### Step 4: Offline checking
+#### Step 4: Max reduction
 
 Use `meteor-maxred` with the following arguments:
 
