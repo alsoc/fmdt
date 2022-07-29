@@ -161,7 +161,7 @@ void main_detect_frame(int argc, char** argv)
         motion(stats0, stats_shrink, n0, n_shrink, &theta, &tx, &ty);
 
         PUTS("\t Step 6: Tracking");
-        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty, r_extrapol, d_line, diff_deviation);
+        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty, r_extrapol, d_line, diff_deviation, 0);
         
         //--------------------------------------------------------//
         PUTS("\t [DEBUG] Saving frames");
@@ -236,6 +236,7 @@ void main_detect(int argc, char** argv)
         fprintf(stderr, "  --d-line            Position tolerance of a point going through a line                   [%d]\n", def_d_line        );
         fprintf(stderr, "  --diff-deviation    Differential deviation factor for motion detection (motion error of      \n"                    );
         fprintf(stderr, "                      one CC has to be superior to diff_deviation * standard deviation)    [%f]\n", def_diff_deviation);
+        fprintf(stderr, "  --track-all         Track all objects (stars, meteors, misc)                                 \n"                    );
         fprintf(stderr, "  -h                  This help                                                                \n"                    );
         exit(1);
     }
@@ -256,6 +257,7 @@ void main_detect(int argc, char** argv)
     char* output_frames  = find_char_arg (argc, argv, "--output-frames",  def_output_frames );
     char* output_bb      = find_char_arg (argc, argv, "--output-bb",      def_output_bb     );
     char* output_stats   = find_char_arg (argc, argv, "--output-stats",   def_output_stats  );
+    int   track_all      = find_arg      (argc, argv, "--track-all"                         );
 
     // heading display
     printf("#  -----------------------\n");
@@ -368,8 +370,8 @@ void main_detect(int argc, char** argv)
     while(Video_nextFrame(video,ballon->I1)) {
         
         frame = video->frame_current-2;
-		printf("# [Frame] n°%-4d\r", frame);
-        fflush(stdout);
+		// printf("# [Frame] n°%-4d\n", frame);
+        // fflush(stdout);
 
 		//---------------------------------------------------------//
         PUTS("\t Step 1 : seuillage low/high");
@@ -403,8 +405,7 @@ void main_detect(int argc, char** argv)
 
       	//--------------------------------------------------------//
         PUTS("\t Step 6: Tracking");
-        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty, r_extrapol, d_line, diff_deviation);
-        // TrackStars(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset); // Pour matric ROC
+        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty, r_extrapol, d_line, diff_deviation, track_all);
         
         //--------------------------------------------------------//
         PUTS("\t [DEBUG] Saving frames");

@@ -85,7 +85,7 @@ void printBuffer(Buf *buffer, int n)
     for(int i = 0; i<n; i++){
         if(buffer[i].stats0.ID > 0)
             printf("i = %2d \t %4d \t %4d \t %4d  \n", 
-            i, buffer[i].stats0.ID, buffer[i].stats0.time, buffer[i].frame);
+            i, buffer[i].stats0.ID, buffer[i].stats1.time, buffer[i].frame);
     }
     printf("\n");
 }
@@ -168,9 +168,10 @@ void printTracks2(Track* tracks, int n)
     printf("#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type \n");
     printf("# -------||---------|--------|--------||---------|--------|--------||---------\n");
 
-    char* type_lut[3] = {"unknown",  // 0
-                         "unknown",  // 1
-                         " meteor"}; // 2
+    char* type_lut[4] = {"unknown",  // 0
+                         "noise",  // 1
+                         "meteor",
+                         "star"}; // 2
     unsigned track_id = 0;
     for(int i = 0; i<= n; i++){
         if(tracks[i].time){
@@ -311,7 +312,6 @@ void saveBoundingBox(const char*filename, uint16 rx, uint16 ry, uint16 bb_x, uin
 }
 
 
-
 // ---------------------------------------------------------------------------------------------------
 void parseTracks(const char*filename, Track* tracks, int* n)
 // ---------------------------------------------------------------------------------------------------
@@ -350,7 +350,12 @@ void parseTracks(const char*filename, Track* tracks, int* n)
             tracks[tid].end.y     = y1;
             // tracks[tid].bb_x   = bb_x;
             // tracks[tid].bb_y   = bb_y;
-            tracks[tid].is_meteor = 2; //is_meteor;
+            if(!strcmp(obj_type, "noise"))
+                    tracks[tid].is_meteor = 1; 
+            if(!strcmp(obj_type, "meteor"))            
+                    tracks[tid].is_meteor = 2; 
+            if(!strcmp(obj_type, "star"))
+                    tracks[tid].is_meteor = 3; 
 
             *n = tid+1;
         }

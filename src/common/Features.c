@@ -34,6 +34,7 @@ void init_MeteorROI (MeteorROI *stats, int n)
                 stats[i].prev = 0;
                 stats[i].next = 0;
                 stats[i].time = 0;
+                stats[i].time_motion = 0;
                 stats[i].motion = 0;
                 stats[i].state = 0;
 
@@ -64,6 +65,7 @@ void extract_features(uint32** img, int i0, int i1, int j0, int j1, MeteorROI* s
         stats[i].prev = 0;
         stats[i].next = 0;
         stats[i].time = 0;
+        stats[i].time_motion = 0;
         stats[i].motion = 0;
         stats[i].state = 0;
     }
@@ -218,6 +220,7 @@ int shrink_stats(MeteorROI *stats_src, MeteorROI *stats_dest, int n)
             stats_dest[cpt].prev = stats_src[i].prev  ;
             stats_dest[cpt].next = stats_src[i].next  ;
             stats_dest[cpt].time = stats_src[i].time  ;
+            stats_dest[cpt].time_motion = stats_src[i].time_motion  ;
             stats_dest[cpt].motion = stats_src[i].motion  ;
             stats_dest[cpt].state = stats_src[i].state  ;
 
