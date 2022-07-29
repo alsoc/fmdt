@@ -261,23 +261,28 @@ void main_visu(int argc, char** argv)
     int start = 0; 
     int end = 100000;
 
-    if (!src_path || !src_path_video){
-        printf("# (EE) Input(s) missing\n");
+    if (!src_path_video){
+        fprintf(stderr, "(EE) '--input-video' is missing\n");
+        exit(1);
+    }
+
+    if (!src_path){
+        fprintf(stderr, "(EE) '--input-tracks' is missing\n");
         exit(1);
     }
 
     if (!input_bb){
-        printf("# (EE) Bounding boxes input is missing\n");
+        fprintf(stderr, "(EE) '--input-bb' is missing\n");
         exit(1);
     }
 
     if (!dest_path_video){
-        printf("# (EE) output missing\n");
+        fprintf(stderr, "(EE) '--output-video' is missing\n");
         exit(1);
     }
 
     if(!dest_path_frames){
-        printf("# (II) Output missing -> no frames will be saved\n");
+        fprintf(stderr, "(II) '--output-frames' is missing -> no frames will be saved\n");
     }
 
     // char *path_bounding_box;
@@ -339,8 +344,8 @@ void main_visu(int argc, char** argv)
     // parcours de la video
     while(Video_nextFrame(video,I0)) {
         frame = video->frame_current - 1;
-		printf("[Frame] n°%-4d\r", frame);
-        fflush(stdout);
+		fprintf(stderr, "(II) Frame n°%-4d\r", frame);
+        fflush(stderr);
         int cpt = 0;
 
         // affiche tous les BB de l'image

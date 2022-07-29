@@ -6,14 +6,13 @@ inline Video* Video_init_from_file(char* filename, int start, int end, int skip,
 {
     Video* video = malloc(sizeof(Video));
     if(!video) {
-        fprintf(stderr, "Error : can't allocate Video structure\n");
+        fprintf(stderr, "(EE) can't allocate Video structure\n");
         exit(1);
     }
 
     ffmpeg_init(&video->ffmpeg);
     if(!ffmpeg_probe(&video->ffmpeg, filename, NULL)) {
-        puts("test");
-        fprintf(stderr, "Error : can't open file %s\n", filename);
+        fprintf(stderr, "(EE) can't open file %s\n", filename);
         free(video);
         exit(1);
     }
@@ -25,7 +24,7 @@ inline Video* Video_init_from_file(char* filename, int start, int end, int skip,
     video->ffmpeg.output.pixfmt = ffmpeg_str2pixfmt("gray");
     
     if(!ffmpeg_start_reader(&video->ffmpeg, filename, NULL)) {
-        fprintf(stderr, "Error : can't open file %s\n", filename);
+        fprintf(stderr, "(EE) can't open file %s\n", filename);
         free(video);
         exit(1);
     }
@@ -41,7 +40,8 @@ inline Video* Video_init_from_file(char* filename, int start, int end, int skip,
 static int Video_getFrame(Video* video, uint8** I)
 {
     if(video->frame_current > video->frame_end || video->ffmpeg.error || !ffmpeg_read2d(&video->ffmpeg, I)) {
-        //fprintf(stderr, "Error: %s\n", ffmpeg_error2str(video->ffmpeg.error));
+        if (video->ffmpeg.error != 22) // 22 == EOF
+            fprintf(stderr, "(EE) %s\n", ffmpeg_error2str(video->ffmpeg.error));
         return 0;
     }
     video->frame_current++;

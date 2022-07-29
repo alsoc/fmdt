@@ -227,8 +227,8 @@ void main_detect(int argc, char** argv)
         fprintf(stderr, "  --start-frame       Starting point of the video                                          [%d]\n", def_start_frame   );
         fprintf(stderr, "  --end-frame         Ending point of the video                                            [%d]\n", def_end_frame     );
         fprintf(stderr, "  --skip-frames       Number of skipped frames                                             [%d]\n", def_skip_frames   );
-        fprintf(stderr, "  --light-min         Low hysteresis threshold                                             [%d]\n", def_light_min     );
-        fprintf(stderr, "  --light-max         High hysteresis threshold                                            [%d]\n", def_light_max     );
+        fprintf(stderr, "  --light-min         Low hysteresis threshold (grayscale [0;255])                         [%d]\n", def_light_min     );
+        fprintf(stderr, "  --light-max         High hysteresis threshold (grayscale [0;255])                        [%d]\n", def_light_max     );
         fprintf(stderr, "  --surface-min       Maximum area of the CC                                               [%d]\n", def_surface_min   );
         fprintf(stderr, "  --surface-max       Minimum area of the CC                                               [%d]\n", def_surface_max   );
         fprintf(stderr, "  -k                  Number of neighbours                                                 [%d]\n", def_k             );
@@ -284,15 +284,15 @@ void main_detect(int argc, char** argv)
     printf("#\n");
 
     if(!input_video){
-        printf("# (EE) Input missing\n");
+        fprintf(stderr, "(EE) '--input-video' is missing\n");
         exit(1);
     }
     if(!output_frames){
-        printf("# (II) output_frames missing -> no frames will be saved\n");
+        fprintf(stderr, "(II) '--output-frames' is missing -> no frames will be saved\n");
     }
 
     if(!output_stats){
-        printf("# (II) output_stats missing -> no stats will be saved\n");
+        fprintf(stderr, "(II) '--output-stats' is missing -> no stats will be saved\n");
     }
 
     // sequence
@@ -365,11 +365,11 @@ void main_detect(int argc, char** argv)
 
     printf("# The program is running...\n");
     unsigned n_frames = 0;
+    unsigned n_tracks = 0;
     while(Video_nextFrame(video,ballon->I1)) {
         
         frame = video->frame_current-2;
-		printf("# [Frame] n°%-4d\r", frame);
-        fflush(stdout);
+		fprintf(stderr, "(II) Frame n°%4d", frame);
 
 		//---------------------------------------------------------//
         PUTS("\t Step 1 : seuillage low/high");
@@ -430,13 +430,17 @@ void main_detect(int argc, char** argv)
         SWAP_STATS(stats0, stats_shrink, n_shrink);
         n0 = n_shrink;
         n_frames++;
+
+        n_tracks = 0;
+        for(int i = 0; i <= last; i++){
+            if(tracks[i].time)
+                n_tracks++;
+        }
+        fprintf(stderr, " -- # of tracks = %4d -- # of real tracks = %4d\r", last, n_tracks);
+        fflush(stderr);
     }
 
-    int n_tracks = 0;
-    for(int i = 0; i <= last; i++){
-        if(tracks[i].time)
-            n_tracks++;
-    }
+    fprintf(stderr, "\n");
     printf("# -> Processed frames: %d\n", n_frames);
     printf("# -> Number of tracks: %d\n", n_tracks);
     

@@ -47,14 +47,14 @@ The list of available arguments:
 | **Argument**      | **Type** | **Default** | **Req** | **Description** |
 | :---              | :---     | :---        | :---    | :--- |
 | `--input-video`   | str      | None        | Yes     | Input video path where we want to detect meteors. |
-| `--output-frames` | str      | None        | No      | Path of the output frames for debug (PPM format). |
 | `--output-bb`     | str      | None        | No      | Path to the bounding boxes file required by `meteor-visu` to draw detection rectangles. |
+| `--output-frames` | str      | None        | No      | Path of the output frames for debug (PPM format). |
 | `--output-stats`  | str      | None        | No      | TODO. |
 | `--start-frame`   | int      | 0           | No      | First frame id to start the detection in the video sequence. |
 | `--end-frame`     | int      | 200000      | No      | Last frame id to stop the detection in the video sequence. |
 | `--skip-frames`   | int      | 0           | No      | Number of frames to skip. |
-| `--light-min`     | int      | 55          | No      | Minimum light intensity hysteresis threshold. |
-| `--light-max`     | int      | 80          | No      | Maximum light intensity hysteresis threshold. |
+| `--light-min`     | int      | 55          | No      | Minimum light intensity hysteresis threshold (grayscale [0;255]). |
+| `--light-max`     | int      | 80          | No      | Maximum light intensity hysteresis threshold (grayscale [0;255]). |
 | `--surface-min`   | int      | 3           | No      | Minimum surface of the CCs in pixel. |
 | `--surface-max`   | int      | 1000        | No      | Maximum surface of the CCs in pixel. |
 | `-k`              | int      | 3           | No      | Number of neighbors in the k-nearest neighbor matching (KPPV algorithm). |
@@ -71,9 +71,9 @@ The list of available arguments:
 
 | **Argument**      | **Type** | **Default**    | **Req** | **Description** |
 | :---              | :---     | :---           | :---    | :--- |
+| `--input-video`   | str      | None           | Yes     | Input video path. |
 | `--input-tracks`  | str      | None           | Yes     | The track file corresponding to the input video (generated from `meteor-detect`). |
 | `--input-bb`      | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `meteor-detect`). |
-| `--input-video`   | str      | None           | Yes     | Input video path. |
 | `--output-video`  | str      | "out_visu.mp4" | No      | Path of the output video (MPEG-4 format) with meteor tracking colored rectangles. If `--validation` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--validation` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
 | `--output-frames` | str      | None           | No      | Path of the output frames for debug (PPM format). |
 | `--validation`    | str      | None           | No      | File containing the ground truth. |
