@@ -457,7 +457,7 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
 }
 
 // -----------------------------------------------------
-void insert_new_track_stars(MeteorROI last_stats,  MeteorROI begin, Track *tracks, int *last, int frame)
+void insert_new_track_stars(MeteorROI last_stats,  MeteorROI begin, Track *tracks, int *last, int frame, int frame_star)
 // -----------------------------------------------------
 {
     Track *track = &tracks[++(*last)];
@@ -469,14 +469,14 @@ void insert_new_track_stars(MeteorROI last_stats,  MeteorROI begin, Track *track
 
     track->end       = last_stats; 
     track->time      = 1; 
-    track->timestamp = frame - 2;
+    track->timestamp = frame - frame_star;
     track->state = TRACK_NEW;
     track->is_meteor = 3;
 }
 
 
 // -----------------------------------------------------
-void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset, int theta, int tx, int ty, int r_extrapol, int d_line, float diff_deviation, int track_all)
+void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset, int theta, int tx, int ty, int r_extrapol, int d_line, float diff_deviation, int track_all, int frame_star)
 // -----------------------------------------------------
 {
     int j;
@@ -491,7 +491,6 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
         float32 e = stats0[i].error;
         
         int asso = stats0[i].next;
-        }
         // si mouvement detecté
         if (fabs(e-errMoy) > diff_deviation * eType && asso){
 
@@ -502,13 +501,10 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
             }
             stats0[i].motion = 1; // debug
             stats0[i].time_motion++;
-            idisp(stats0[i].time_motion);
             stats1[stats0[i].next].time_motion = stats0[i].time_motion ;
             if(stats0[i].time_motion == 1){
                 // stocker dans un buf pour savoir si au moins sur 3 frames
                 insert_buffer(stats0[i], stats1[stats0[i].next], frame);
-                PUTS("Insertion dans le buffer de ");
-                idisp(stats0[i].ID);
             }
             if(stats0[i].time_motion == 2){ 
                 // mouvement sur 3 frames donc création de track + suppression du buff    
@@ -521,8 +517,6 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
                 if(j == *last + 1 || *last == -1){
                     // insertion seulement si dans le buffer (k != -1)
                     insert_new_track(stats0[i], tracks, last, frame, k);
-                    // printTracks(tracks, *last);
-                    idisp(stats0[i].ID);
                     clear_index_buffer(k);
                 }
                 
@@ -530,48 +524,19 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
         }
         else{
             if(asso && track_all){
-                idisp(stats0[i].ID);
-                idisp(stats0[i].time);
                 stats0[i].time++;
                 stats1[stats0[i].next].time = stats0[i].time ;
-
-                if(stats0[i].time == 3){
-                    insert_new_track_stars(stats0[i], stats1[stats0[i].next], tracks, last, frame);
+                idisp(frame_star);
+                if(stats0[i].time == frame_star){
+                    insert_new_track_stars(stats0[i], stats1[stats0[i].next], tracks, last, frame, frame_star);
                 
                 }
             } 
-        } 
+        }
     }
 
     // parcourir les track et update si besoin
     updateTrack(tracks, stats0, stats1, nc1, frame, offset, last, theta, tx, ty, r_extrapol, d_line, track_all);
-
-    // clear/update le buffer
     update_buffer(frame);
-
-    // printStats(stats1,nc1);
-    // printStats(stats0, nc0);
-    // printBuffer(buffer, 20);
-    // printTracks(tracks, *last);
 }
 
-void TrackStars(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset)
-{
-
-    for(int i = 1; i <= nc0; i++){
-        int asso = stats0[i].next;
-
-        if (asso){
-            
-            stats0[i].time++;
-            stats1[stats0[i].next].time = stats0[i].time ;
-           
-            if(stats0[i].time == 3)
-                insert_new_track_stars(stats0[i], stats1[stats0[i].next], tracks, last, frame);
-        } 
-    }
-
-    // parcourir les track et update si besoin
-    updateTrackStars(tracks, stats0, stats1, nc1, frame, offset, last);
-
-}

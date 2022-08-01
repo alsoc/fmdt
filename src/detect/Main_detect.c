@@ -40,6 +40,7 @@ extern float32 **distances;
 extern elemBB *tabBB[NB_FRAMES];
 
 
+/*
 // NON Testé depuis les dernieres modifs (à check)
 // ======================================
 void main_detect_frame(int argc, char** argv)
@@ -196,6 +197,8 @@ void main_detect_frame(int argc, char** argv)
     CCL_LSL_free(i0, i1, j0, j1);
 	kppv_free(0, 50, 0, 50);
 }
+*/
+
 
 // ======================================
 void main_detect(int argc, char** argv)
@@ -212,6 +215,7 @@ void main_detect(int argc, char** argv)
     int   def_k              =      3;
     int   def_r_extrapol     =      5;
     int   def_d_line         =     25;
+    int   def_frame_star     =     3;
     float def_diff_deviation =    4.f;
     char* def_input_video    =   NULL;
     char* def_output_frames  =   NULL;
@@ -234,6 +238,7 @@ void main_detect(int argc, char** argv)
         fprintf(stderr, "  -k                  Number of neighbours                                                 [%d]\n", def_k             );
         fprintf(stderr, "  --r-extrapol        Search radius for the next CC in case of extrapolation               [%d]\n", def_r_extrapol    );
         fprintf(stderr, "  --d-line            Position tolerance of a point going through a line                   [%d]\n", def_d_line        );
+        fprintf(stderr, "  --frame_star        Minimum number of frames required to track a CC                      [%d]\n", def_frame_star    );
         fprintf(stderr, "  --diff-deviation    Differential deviation factor for motion detection (motion error of      \n"                    );
         fprintf(stderr, "                      one CC has to be superior to diff_deviation * standard deviation)    [%f]\n", def_diff_deviation);
         fprintf(stderr, "  --track-all         Track all objects (stars, meteors, misc)                                 \n"                    );
@@ -252,6 +257,7 @@ void main_detect(int argc, char** argv)
     int k                = find_int_arg  (argc, argv, "-k",               def_k             );
     int r_extrapol       = find_int_arg  (argc, argv, "--r-extrapol",     def_r_extrapol    );
     int d_line           = find_int_arg  (argc, argv, "--d-line",         def_d_line        );
+    int frame_star       = find_int_arg  (argc, argv, "--frame-star",     def_frame_star    );
     float diff_deviation = find_float_arg(argc, argv, "--diff-deviation", def_diff_deviation);
     char* input_video    = find_char_arg (argc, argv, "--input-video",    def_input_video   );
     char* output_frames  = find_char_arg (argc, argv, "--output-frames",  def_output_frames );
@@ -282,6 +288,7 @@ void main_detect(int argc, char** argv)
     printf("#  * k             = %d\n",    k);
     printf("#  * r-extrapol    = %d\n",    r_extrapol);
     printf("#  * d-line        = %d\n",    d_line);
+    printf("#  * frame_star    = %d\n",    frame_star);
     printf("#  * diff-deviaton = %4.2f\n", diff_deviation);
     printf("#\n");
 
@@ -405,7 +412,7 @@ void main_detect(int argc, char** argv)
 
       	//--------------------------------------------------------//
         PUTS("\t Step 6: Tracking");
-        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty, r_extrapol, d_line, diff_deviation, track_all);
+        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty, r_extrapol, d_line, diff_deviation, track_all, frame_star);
         
         //--------------------------------------------------------//
         PUTS("\t [DEBUG] Saving frames");
