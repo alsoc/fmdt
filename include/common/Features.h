@@ -38,6 +38,7 @@ typedef struct {
   float32  error;  
 
   int time;
+  int time_motion;
   int prev;          // associated CC from t-1 -> t -> t+1         
   int next;          // associated CC from t-1 -> t -> t+1
 

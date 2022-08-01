@@ -308,7 +308,7 @@ void main_visu(int argc, char** argv)
     
     // recupere les tracks
     parseTracks(src_path, tracks, &nb_tracks);
-    //printTracks(tracks, nb_tracks);
+    printTracks(tracks, nb_tracks);
     
     // init 
     Video* video = Video_init_from_file(src_path_video, start, end, 0, &i0, &i1, &j0, &j1);
@@ -362,8 +362,19 @@ void main_visu(int argc, char** argv)
                             // color = ORANGE;
                             color = GREEN;
 
-                            if(tracks[i].is_meteor == 1)
-                                color = YELLOW;
+                            switch(tracks[i].is_meteor){
+                                case 1:
+                                    color = YELLOW;
+                                    break;
+                                case 2:
+                                    color = GREEN;
+                                    break;
+                                case 3:
+                                    color = ORANGE;
+                                    break;
+                                default:
+                                    break;
+                            }
                         }
                         
                         addToListBB(rx, ry, bb_x, bb_y, color, cpt++);
