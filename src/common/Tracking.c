@@ -495,10 +495,6 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
         // si mouvement detecté
         if (fabs(e-errMoy) > diff_deviation * eType && asso){
 
-            if(stats0[i].ID == 23 && frame == 140){
-                PUTS("HELLOOOOOOOOOO");
-            }
-
             
             if (stats0[i].state) {
                 PUTS("EXTRAPOLATEED");
