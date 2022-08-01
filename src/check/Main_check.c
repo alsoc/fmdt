@@ -49,12 +49,12 @@ void main_validation(int argc, char** argv)
     printf("#\n");
 
     if (!src_path){
-        printf("# (EE) Input(s) missing\n");
+        fprintf(stderr, "(EE) '--input-tracks' is missing\n");
         exit(1);
     }
 
     if (!validation) {
-        printf("# (EE) Validation missing\n");
+        fprintf(stderr, "(EE) '--validation' is missing\n");
         exit(1);
     }
 

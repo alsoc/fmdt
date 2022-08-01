@@ -231,8 +231,8 @@ void main_detect(int argc, char** argv)
         fprintf(stderr, "  --start-frame       Starting point of the video                                          [%d]\n", def_start_frame   );
         fprintf(stderr, "  --end-frame         Ending point of the video                                            [%d]\n", def_end_frame     );
         fprintf(stderr, "  --skip-frames       Number of skipped frames                                             [%d]\n", def_skip_frames   );
-        fprintf(stderr, "  --light-min         Low hysteresis threshold                                             [%d]\n", def_light_min     );
-        fprintf(stderr, "  --light-max         High hysteresis threshold                                            [%d]\n", def_light_max     );
+        fprintf(stderr, "  --light-min         Low hysteresis threshold (grayscale [0;255])                         [%d]\n", def_light_min     );
+        fprintf(stderr, "  --light-max         High hysteresis threshold (grayscale [0;255])                        [%d]\n", def_light_max     );
         fprintf(stderr, "  --surface-min       Maximum area of the CC                                               [%d]\n", def_surface_min   );
         fprintf(stderr, "  --surface-max       Minimum area of the CC                                               [%d]\n", def_surface_max   );
         fprintf(stderr, "  -k                  Number of neighbours                                                 [%d]\n", def_k             );
@@ -293,15 +293,15 @@ void main_detect(int argc, char** argv)
     printf("#\n");
 
     if(!input_video){
-        printf("# (EE) Input missing\n");
+        fprintf(stderr, "(EE) '--input-video' is missing\n");
         exit(1);
     }
     if(!output_frames){
-        printf("# (II) output_frames missing -> no frames will be saved\n");
+        fprintf(stderr, "(II) '--output-frames' is missing -> no frames will be saved\n");
     }
 
     if(!output_stats){
-        printf("# (II) output_stats missing -> no stats will be saved\n");
+        fprintf(stderr, "(II) '--output-stats' is missing -> no stats will be saved\n");
     }
 
     // sequence
@@ -374,11 +374,12 @@ void main_detect(int argc, char** argv)
 
     printf("# The program is running...\n");
     unsigned n_frames = 0;
+    unsigned n_tracks = 0;
     while(Video_nextFrame(video,ballon->I1)) {
         
         frame = video->frame_current-2;
-		// printf("# [Frame] n°%-4d\n", frame);
-        // fflush(stdout);
+
+		fprintf(stderr, "(II) Frame n°%4d", frame);
 
 		//---------------------------------------------------------//
         PUTS("\t Step 1 : seuillage low/high");
@@ -438,13 +439,17 @@ void main_detect(int argc, char** argv)
         SWAP_STATS(stats0, stats_shrink, n_shrink);
         n0 = n_shrink;
         n_frames++;
+
+        n_tracks = 0;
+        for(int i = 0; i <= last; i++){
+            if(tracks[i].time)
+                n_tracks++;
+        }
+        fprintf(stderr, " -- # of tracks = %4d -- # of real tracks = %4d\r", last, n_tracks);
+        fflush(stderr);
     }
 
-    int n_tracks = 0;
-    for(int i = 0; i <= last; i++){
-        if(tracks[i].time)
-            n_tracks++;
-    }
+    fprintf(stderr, "\n");
     printf("# -> Processed frames: %d\n", n_frames);
     printf("# -> Number of tracks: %d\n", n_tracks);
     
@@ -467,98 +472,10 @@ void main_detect(int argc, char** argv)
     printf("# End of the program, exiting.\n");
 }
 
-
-// ---------------------------------------------------------------------
-void max_accumulate(uint8**M, int i0, int i1, int j0, int j1, uint8** I)
-// ---------------------------------------------------------------------
-{
-    for(int i = i0; i <= i1; i++) {
-        for(int j = j0; j <= j1; j++) {
-            uint8 x = I[i][j];
-            uint8 m = M[i][j];
-            if(x > m) {
-                M[i][j] = x;
-            }
-        }
-    }
-}
-
-// ======================================
-void meteor_ballon_max(int argc, char** argv)
-// ======================================
-{
-    // output -> max.pgm
-    // Help
-    if (find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "  -input_video        : Video source\n");
-        fprintf(stderr, "  -start_frame  : Image de départ dans la séquence\n");
-        fprintf(stderr, "  -end_frame    : Dernière image de la séquence\n");
-        fprintf(stderr, "  -skip_frames  : Nombre d'images à sauter\n");
-        exit(1);
-    }
-
-    // Parsing Arguments
-    int start        = find_int_arg  (argc, argv, "-start_frame", 0 );
-    int end          = find_int_arg  (argc, argv, "-end_frame", 1000);
-    int skip         = find_int_arg  (argc, argv, "-skip_frames", 0 );
-    char* src_path   = find_char_arg (argc, argv, "-input_video",      NULL);
-
-    // sequence
-    int frame;
-
-    // image
-    int b = 1;                  
-    int i0, i1, j0, j1;
-
-    // ------------------------- //
-    // -- INITIALISATION VIDEO-- //
-    // ------------------------- //
-    PUTS("INIT VIDEO");
-    Video* video = Video_init_from_file(src_path, start, end, skip, &i0, &i1, &j0, &j1);
-    
-    // ---------------- //
-    // -- ALLOCATION -- //
-    // ---------------- //
-    PUTS("ALLOC");
-    Ballon* ballon = allocBallon(i0, i1, j0, j1, b);
-
-    // -------------------------- //
-    // -- INITIALISATION MATRIX-- //
-    // -------------------------- //
-    initBallon(ballon, i0, i1, j0, j1, b);
-
-    // ----------------//
-    // -- TRAITEMENT --//
-    // ----------------//
-    PUTS("LOOP");
-	// if(!Video_nextFrame(video,ballon->I0)) { 
-        // exit(1);
-    // }
-
-    while(Video_nextFrame(video,ballon->I1)) {
-        frame = video->frame_current - 1;
-		printf("[Frame] %-4d\n", frame);
-        max_accumulate(ballon->I0, i0, i1, j0, j1, ballon->I1);
-    
-    }
-
-    SavePGM_ui8matrix(ballon->I0, i0, i1, j0, j1, "max.pgm");
-    
-    // ----------
-    // -- free --
-    // ----------
-    freeBallon(ballon, i0, i1, j0, j1, b);
-    Video_free(video);
-}
-
-
-
 int main(int argc, char** argv)
 {
     // main_detect_frame(argc, argv); // 
     main_detect(argc, argv); // 
-    // meteor_ballon_max(argc, argv); // 
-
     return 0;
 }
 

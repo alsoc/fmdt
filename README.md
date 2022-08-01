@@ -28,13 +28,15 @@ The `CMake` file comes with several options:
  * `-DTAH_DETECT_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the detection chain executable.
  * `-DTAH_VISU_EXE`   [default=`ON`] {possible:`ON`,`OFF`}: compile the visual tracking executable.
  * `-DTAH_CHECK_EXE`  [default=`ON`] {possible:`ON`,`OFF`}: compile the check executable.
+ * `-DTAH_MAXRED_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the max accumulator executable.
 
 ## Short User Documentation
 
-This project generates 3 different executables:
+This project generates 4 different executables:
   - `meteor-detect`: meteors detection chain.
   - `meteor-visu`: visualization of the detected meteors.
   - `meteor-check`: validation of the detected meteors with the field truth.
+  - `meteor-maxred`: accumulator of grayscale on a video.
 
 The next sub-sections describe *how to use* the generated executables.
 
@@ -47,14 +49,14 @@ The list of available arguments:
 | **Argument**      | **Type** | **Default** | **Req** | **Description** |
 | :---              | :---     | :---        | :---    | :--- |
 | `--input-video`   | str      | None        | Yes     | Input video path where we want to detect meteors. |
-| `--output-frames` | str      | None        | No      | Path of the output frames for debug (PPM format). |
 | `--output-bb`     | str      | None        | No      | Path to the bounding boxes file required by `meteor-visu` to draw detection rectangles. |
+| `--output-frames` | str      | None        | No      | Path of the output frames for debug (PPM format). |
 | `--output-stats`  | str      | None        | No      | TODO. |
 | `--start-frame`   | int      | 0           | No      | First frame id to start the detection in the video sequence. |
 | `--end-frame`     | int      | 200000      | No      | Last frame id to stop the detection in the video sequence. |
 | `--skip-frames`   | int      | 0           | No      | Number of frames to skip. |
-| `--light-min`     | int      | 55          | No      | Minimum light intensity hysteresis threshold. |
-| `--light-max`     | int      | 80          | No      | Maximum light intensity hysteresis threshold. |
+| `--light-min`     | int      | 55          | No      | Minimum light intensity hysteresis threshold (grayscale [0;255]). |
+| `--light-max`     | int      | 80          | No      | Maximum light intensity hysteresis threshold (grayscale [0;255]). |
 | `--surface-min`   | int      | 3           | No      | Minimum surface of the CCs in pixel. |
 | `--surface-max`   | int      | 1000        | No      | Maximum surface of the CCs in pixel. |
 | `-k`              | int      | 3           | No      | Number of neighbors in the k-nearest neighbor matching (KPPV algorithm). |
@@ -71,9 +73,9 @@ The list of available arguments:
 
 | **Argument**      | **Type** | **Default**    | **Req** | **Description** |
 | :---              | :---     | :---           | :---    | :--- |
+| `--input-video`   | str      | None           | Yes     | Input video path. |
 | `--input-tracks`  | str      | None           | Yes     | The track file corresponding to the input video (generated from `meteor-detect`). |
 | `--input-bb`      | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `meteor-detect`). |
-| `--input-video`   | str      | None           | Yes     | Input video path. |
 | `--output-video`  | str      | "out_visu.mp4" | No      | Path of the output video (MPEG-4 format) with meteor tracking colored rectangles. If `--validation` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--validation` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
 | `--output-frames` | str      | None           | No      | Path of the output frames for debug (PPM format). |
 | `--validation`    | str      | None           | No      | File containing the ground truth. |
@@ -92,6 +94,19 @@ The list of available arguments:
 | `--validation`   | str      |  None       | Yes     | File containing the ground truth. |
 
 **Note**: to run `meteor-check`, it is required to run `meteor-detect` before. This will generate the required `tracks.txt` file.
+
+### Checking with `meteor-maxred`
+
+The meteors checking program is located here: `./exe/meteor-maxred`.
+
+The list of available arguments:
+
+| **Argument**     | **Type** | **Default** | **Req** | **Description** |
+| :---             | :---     | :---        | :---    | :--- |
+| `--input-video`  | str      |  None       | Yes     | Input video path. |
+| `--output-frame` | str      |  None       | Yes     | Path of the output frame (PGM format). |
+| `--start-frame`  | int      | 0           | No      | First frame id to start the detection in the video sequence. |
+| `--end-frame`    | int      | 200000      | No      | Last frame id to stop the detection in the video sequence. |
 
 ### Examples of use
 
@@ -131,4 +146,12 @@ Use `meteor-check` with the following arguments:
 
 ```shell
 ./exe/meteor-check --input-tracks ./out_detect_tracks.txt --validation ../validation/2022_05_31_tauh_34_meteors.txt
+```
+
+#### Step 4: Max reduction
+
+Use `meteor-maxred` with the following arguments:
+
+```shell
+./exe/meteor-maxred --input-video ./2022_05_31_tauh_34_meteors.mp4 --output-frame .
 ```
