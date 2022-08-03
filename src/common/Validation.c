@@ -16,6 +16,8 @@ static struct input* inputs = NULL;
 
 static int positiveTrue [N_OBJ_TYPES] = {0};
 static int positiveFalse[N_OBJ_TYPES] = {0};
+static int negativeTrue [N_OBJ_TYPES] = {0};
+static int negativeFalse[N_OBJ_TYPES] = {0};
 
 int Validation_init(char* _inputs_file)
 {
@@ -157,9 +159,13 @@ void Validation_print(const Track* tracks, const int tracks_nb)
 
     int allPositiveFalse = 0;
     int allPositiveTrue = 0;
+    int allNegativeFalse = 0;
+    int allNegativeTrue = 0;
     for (int i = 0; i < N_OBJ_TYPES; i++) {
         allPositiveTrue  += positiveTrue[i];
         allPositiveFalse += positiveFalse[i];
+        allNegativeFalse += negativeFalse[i];
+        allNegativeTrue += negativeTrue[i];
     }
 
     unsigned n_tracks = 0, n_track_stars = 0, n_track_meteors = 0, n_track_noise = 0;
@@ -167,7 +173,6 @@ void Validation_print(const Track* tracks, const int tracks_nb)
 
     unsigned n_gt_objs = 0, n_gt_stars = 0, n_gt_meteors = 0, n_gt_noise = 0;
     n_gt_objs = gt_count_objects(inputs, inputs_nb, &n_gt_stars, &n_gt_meteors, &n_gt_noise);
-
 
     for (int i = 0; i < N_OBJ_TYPES +1; i++)
         tracking_rate[i] = (float)total_tracked_frames[i] / (float)total_gt_frames[i];
@@ -177,6 +182,8 @@ void Validation_print(const Track* tracks, const int tracks_nb)
     printf("  - Number of tracks  = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'total': %4d]\n", n_track_meteors,       n_track_stars,       n_track_noise,        n_tracks        );
     printf("  - True positives    = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'total': %4d]\n", positiveTrue [METEOR], positiveTrue [STAR], positiveTrue [NOISE], allPositiveTrue );
     printf("  - False positives   = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'total': %4d]\n", positiveFalse[METEOR], positiveFalse[STAR], positiveFalse[NOISE], allPositiveFalse);
+    printf("  - True negative     = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'total': %4d]\n", negativeTrue [METEOR], negativeTrue [STAR], negativeTrue [NOISE], allNegativeTrue );
+    printf("  - False negative    = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'total': %4d]\n", negativeFalse[METEOR], negativeFalse[STAR], negativeFalse[NOISE], allNegativeFalse);
     printf("  - Tracking rate     = ['meteor': %4.2f, 'star': %4.2f, 'noise': %4.2f, 'total': %4.2f]\n", tracking_rate[METEOR], tracking_rate[STAR], tracking_rate[NOISE], tracking_rate[N_OBJ_TYPES]);
 }
 
@@ -216,13 +223,36 @@ void Validation(Track* tracks, int tracks_nb)
         // Piste matche avec un input
         if(input) {
             input->nb_tracks++;
-            input->hits = track->time + input->hits + 1;
+            input->hits = track->time + input->hits +1;
             track->is_valid = 1;
             positiveTrue[track->obj_type]++;
         } else { // Piste ne matche pas avec input
             positiveFalse[track->obj_type]++;
         }
+    }
 
+    for(int i = 0; i < inputs_nb; i++) {
+        if (!inputs[i].nb_tracks) {
+            negativeFalse[inputs[i].obj_type]++;
+            for(int t = 0; t < tracks_nb; t++) {
+                if (track->timestamp == 0) continue;
+                if(inputs[i].t0_min <= tracks[t].timestamp && tracks[t].timestamp+tracks[t].time <= inputs[i].t1_max &&
+                   inputs[i].bb_x0 <= tracks[t].begin.x && tracks[t].end.x <= inputs[i].bb_x1 &&
+                   inputs[i].bb_y0 <= tracks[t].begin.y && tracks[t].end.y <= inputs[i].bb_y1) {
+                    tracks[t].false_negative = inputs[i].obj_type;
+                }
+            }
+        }
+    }
+
+    for(int t = 0; t < tracks_nb; t++) {
+        if (track->timestamp == 0) continue;
+        for (int ot = 1; ot < N_OBJ_TYPES; ot++) {
+            if (( tracks[t].false_negative && ot != tracks[t].false_negative) ||
+                (!tracks[t].false_negative && ot != tracks[t].obj_type)) {
+                negativeTrue[ot]++;
+            }
+        }
     }
 }
 

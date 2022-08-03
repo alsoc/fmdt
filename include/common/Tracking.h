@@ -54,6 +54,8 @@ typedef struct {
         // Juste pour afficher les vitesses
         float32 vitesse[300];
         int cur;
+
+        enum Obj_type false_negative;
 } Track;
 
 // Tracks states

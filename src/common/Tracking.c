@@ -62,17 +62,18 @@ void init_Track(Track *tracks, int n)
 // ---------------------------------------------------------------------------------------------------
 {
     for (int i = 0; i < n ; i++){
-        tracks[i].timestamp = 0;
-        tracks[i].time      = 0;
-        tracks[i].state     = 0;
-        tracks[i].x         = 0;
-        tracks[i].y         = 0;
-        tracks[i].rx        = 0;
-        tracks[i].ry        = 0;
-        tracks[i].bb_x      = 0;
-        tracks[i].bb_y      = 0;
-        tracks[i].is_valid  = 0;
-        tracks[i].obj_type  = UNKNOWN;
+        tracks[i].timestamp      = 0;
+        tracks[i].time           = 0;
+        tracks[i].state          = 0;
+        tracks[i].x              = 0;
+        tracks[i].y              = 0;
+        tracks[i].rx             = 0;
+        tracks[i].ry             = 0;
+        tracks[i].bb_x           = 0;
+        tracks[i].bb_y           = 0;
+        tracks[i].is_valid       = 0;
+        tracks[i].obj_type       = UNKNOWN;
+        tracks[i].false_negative = UNKNOWN;
     }
 }
 
@@ -80,18 +81,18 @@ void init_Track(Track *tracks, int n)
 void clear_index_Track(Track *tracks, int i)
 // ---------------------------------------------------------------------------------------------------
 {
-    tracks[i].timestamp = 0;
-    tracks[i].time      = 0;
-    tracks[i].state     = 0;
-    tracks[i].x         = 0;
-    tracks[i].y         = 0;
-    tracks[i].rx        = 0;
-    tracks[i].ry        = 0;
-    tracks[i].bb_x      = 0;
-    tracks[i].bb_y      = 0;
-    tracks[i].is_valid  = 0;
-    tracks[i].obj_type  = UNKNOWN;
-
+    tracks[i].timestamp      = 0;
+    tracks[i].time           = 0;
+    tracks[i].state          = 0;
+    tracks[i].x              = 0;
+    tracks[i].y              = 0;
+    tracks[i].rx             = 0;
+    tracks[i].ry             = 0;
+    tracks[i].bb_x           = 0;
+    tracks[i].bb_y           = 0;
+    tracks[i].is_valid       = 0;
+    tracks[i].obj_type       = UNKNOWN;
+    tracks[i].false_negative = UNKNOWN;
 }
 
 // ---------------------------------------------------------------------------------------------------
