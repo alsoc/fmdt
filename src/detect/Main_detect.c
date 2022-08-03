@@ -215,7 +215,7 @@ void main_detect(int argc, char** argv)
     int   def_k              =      3;
     int   def_r_extrapol     =      5;
     int   def_d_line         =     25;
-    int   def_frame_star     =     3;
+    int   def_frame_star     =      3;
     float def_diff_deviation =    4.f;
     char* def_input_video    =   NULL;
     char* def_output_frames  =   NULL;
@@ -238,10 +238,10 @@ void main_detect(int argc, char** argv)
         fprintf(stderr, "  -k                  Number of neighbours                                                 [%d]\n", def_k             );
         fprintf(stderr, "  --r-extrapol        Search radius for the next CC in case of extrapolation               [%d]\n", def_r_extrapol    );
         fprintf(stderr, "  --d-line            Position tolerance of a point going through a line                   [%d]\n", def_d_line        );
-        fprintf(stderr, "  --frame_star        Minimum number of frames required to track a CC                      [%d]\n", def_frame_star    );
+        fprintf(stderr, "  --frame-star        Minimum number of frames required to track a CC                      [%d]\n", def_frame_star    );
         fprintf(stderr, "  --diff-deviation    Differential deviation factor for motion detection (motion error of      \n"                    );
         fprintf(stderr, "                      one CC has to be superior to diff_deviation * standard deviation)    [%f]\n", def_diff_deviation);
-        fprintf(stderr, "  --track-all         Track all objects (stars, meteors, misc)                                 \n"                    );
+        fprintf(stderr, "  --track-all         Track all object types (star, meteor or noise)                           \n"                    );
         fprintf(stderr, "  -h                  This help                                                                \n"                    );
         exit(1);
     }

@@ -63,7 +63,6 @@ void main_maxred(int argc, char** argv)
     printf("#  * output-frame = %s\n", dest_path_frame);
     printf("#  * start-frame  = %d\n", start          );
     printf("#  * end-frame    = %d\n", end            );
-
     printf("#\n");
 
     if (!input_video){

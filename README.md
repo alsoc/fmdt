@@ -64,7 +64,8 @@ The list of available arguments:
 | `--r-extrapol`    | int      | 5           | No      | Search radius for CC extrapolation (piece-wise tracking). |
 | `--d-line`        | int      | 25          | No      | Approximation factor of the rectilinear trajectory of meteors. |
 | `--diff-deviaton` | float    | 4.0         | No      | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
-
+| `--track-all`     | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`stars`, `meteor` or `noise`). |
+| `--frame-star`    | int      | 3           | No      | Minimum number of frames required to track an object (CC). |
 
 ### Visualization with `meteor-visu`
 

@@ -168,10 +168,10 @@ void printTracks2(Track* tracks, int n)
     printf("#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type \n");
     printf("# -------||---------|--------|--------||---------|--------|--------||---------\n");
 
-    char* type_lut[4] = {"unknown",  // 0
-                         "noise",  // 1
-                         "meteor",
-                         "star"}; // 2
+    char* type_lut[4] = {"unknown", // 0
+                         "noise",   // 1
+                         "meteor",  // 2
+                         "star"};   // 3
     unsigned track_id = 0;
     for(int i = 0; i<= n; i++){
         if(tracks[i].time){
