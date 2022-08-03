@@ -11,7 +11,7 @@
 #include "DebugUtil.h"
 
 // ---------------------------------------------------------------------
-void max_accumulate(uint8**M, int i0, int i1, int j0, int j1, uint8** I)
+void max_reduce(uint8**M, int i0, int i1, int j0, int j1, uint8** I)
 // ---------------------------------------------------------------------
 {
     for(int i = i0; i <= i1; i++) {
@@ -30,25 +30,25 @@ void main_maxred(int argc, char** argv)
 // ==============================================================================================================================
 {
     // default values
-    char* def_input_video    =    NULL;
-    char* def_output_frame   =    NULL;
-    int   def_start_frame    =       0;
-    int   def_end_frame      =  200000;
+    char* def_input_video  =    NULL;
+    char* def_output_frame =    NULL;
+    int   def_start_frame  =       0;
+    int   def_end_frame    =  200000;
 
     if (find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "  --input-video     Video source                                        [%s]\n", def_input_video);
-        fprintf(stderr, "  --output-frame    Path to the frames output                           [%s]\n", def_output_frame);
-        fprintf(stderr, "  --start-frame     Starting point of the video                         [%d]\n", def_start_frame);
-        fprintf(stderr, "  --end-frame       Ending point of the video                           [%d]\n", def_end_frame);
-        fprintf(stderr, "  -h                This help                                               \n"               );
+        fprintf(stderr, "  --input-video     Video source                 [%s]\n", def_input_video );
+        fprintf(stderr, "  --output-frame    Path to the frames output    [%s]\n", def_output_frame);
+        fprintf(stderr, "  --start-frame     Starting frame in the video  [%d]\n", def_start_frame );
+        fprintf(stderr, "  --end-frame       Ending frame in the video    [%d]\n", def_end_frame   );
+        fprintf(stderr, "  -h                This help                        \n"                  );
         exit(1);
     }
 
     // Parsing Arguments
-    char* input_video      = find_char_arg (argc, argv, "--input-video",    def_input_video   );
-    char *dest_path_frame  = find_char_arg (argc, argv, "--output-frame",  def_output_frame   );
-    int start              = find_int_arg  (argc, argv, "--start-frame",    def_start_frame   );
-    int end                = find_int_arg  (argc, argv, "--end-frame",      def_end_frame     );
+    char* input_video      = find_char_arg (argc, argv, "--input-video",  def_input_video );
+    char* dest_path_frame  = find_char_arg (argc, argv, "--output-frame", def_output_frame);
+    int start              = find_int_arg  (argc, argv, "--start-frame",  def_start_frame );
+    int end                = find_int_arg  (argc, argv, "--end-frame",    def_end_frame   );
 
     // heading display
     printf("#  -----------------------\n");
@@ -59,8 +59,11 @@ void main_maxred(int argc, char** argv)
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
-    printf("#  * input-video   = %s\n",input_video);
+    printf("#  * input-video  = %s\n", input_video    );
     printf("#  * output-frame = %s\n", dest_path_frame);
+    printf("#  * start-frame  = %d\n", start          );
+    printf("#  * end-frame    = %d\n", end            );
+
     printf("#\n");
 
     if (!input_video){
@@ -83,7 +86,7 @@ void main_maxred(int argc, char** argv)
     int skip = 0;
 
     // image
-    int b = 1;                  
+    // int b = 1;
     int i0, i1, j0, j1;
 
     // ------------------------- //
@@ -105,11 +108,12 @@ void main_maxred(int argc, char** argv)
     PUTS("LOOP");
     while(Video_nextFrame(video,img)) {
         frame = video->frame_current - 1;
-		printf("[Frame] %-4d\n", frame);
-        max_accumulate(Max, i0, i1, j0, j1, img);
+        fprintf(stderr, "(II) Frame n°%4d\r", frame);
+        max_reduce(Max, i0, i1, j0, j1, img);
     }
+    fprintf(stderr, "\n");
 
-    SavePGM_ui8matrix(Max, i0, i1, j0, j1, "max.pgm");
+    SavePGM_ui8matrix(Max, i0, i1, j0, j1, dest_path_frame);
 
     // ----------
     // -- free --

@@ -8,9 +8,8 @@ project(tau-h)
 option(TAH_DETECT_EXE "compile the detection chain executable." ON)
 option(TAH_VISU_EXE "compile the visualization executable." ON)
 option(TAH_CHECK_EXE "compile the checking executable." ON)
-option(TAH_MAXRED_EXE "compile the max accumulator executable." ON)
-
-OPTION(DEFINE_DEBUG "Build the project using debugging code" OFF)
+option(TAH_MAXRED_EXE "compile the max reduction executable." ON)
+OPTION(TAH_DEBUG "build the project using debugging code" OFF)
 
 # Print CMake options values --------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -19,7 +18,7 @@ message(STATUS "  * TAH_DETECT_EXE: '${TAH_DETECT_EXE}'")
 message(STATUS "  * TAH_VISU_EXE: '${TAH_VISU_EXE}'")
 message(STATUS "  * TAH_CHECK_EXE: '${TAH_CHECK_EXE}'")
 message(STATUS "  * TAH_MAXRED_EXE: '${TAH_MAXRED_EXE}'")
-message(STATUS "  * DEBUG: '${TAH_CHECK_EXE}'")
+message(STATUS "  * TAH_DEBUG: '${TAH_DEBUG}'")
 message(STATUS "Tau-h info: ")
 message(STATUS "  * CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 
@@ -113,7 +112,9 @@ macro(tah_target_compile_definitions targets privacy dir)
 	endforeach()
 endmacro()
 
-# empty...
+if (TAH_DEBUG)
+	tah_target_compile_definitions("${tah_targets_list}" PUBLIC ENABLE_DEBUG)
+endif()
 
 # Set include directory -------------------------------------------------------
 # -----------------------------------------------------------------------------

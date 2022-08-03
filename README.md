@@ -25,10 +25,11 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -funroll-loops -fstri
 **Tips**: on Apple Silicon M1 CPUs and with Apple Clang, use `-mcpu=apple-m1` instead of `-march=native`.
 
 The `CMake` file comes with several options:
- * `-DTAH_DETECT_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the detection chain executable.
- * `-DTAH_VISU_EXE`   [default=`ON`] {possible:`ON`,`OFF`}: compile the visual tracking executable.
- * `-DTAH_CHECK_EXE`  [default=`ON`] {possible:`ON`,`OFF`}: compile the check executable.
- * `-DTAH_MAXRED_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the max accumulator executable.
+ * `-DTAH_DETECT_EXE` [default=`ON` ] {possible:`ON`,`OFF`}: compile the detection chain executable.
+ * `-DTAH_VISU_EXE`   [default=`ON` ] {possible:`ON`,`OFF`}: compile the visual tracking executable.
+ * `-DTAH_CHECK_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the check executable.
+ * `-DTAH_MAXRED_EXE` [default=`ON` ] {possible:`ON`,`OFF`}: compile the max reduction executable.
+ * `-DTAH_DEBUG`      [default=`OFF`] {possible:`ON`,`OFF`}: build the project using debugging code.
 
 ## Short User Documentation
 
@@ -36,7 +37,7 @@ This project generates 4 different executables:
   - `meteor-detect`: meteors detection chain.
   - `meteor-visu`: visualization of the detected meteors.
   - `meteor-check`: validation of the detected meteors with the field truth.
-  - `meteor-maxred`: accumulator of grayscale on a video.
+  - `meteor-maxred`: max reduction of grayscale pixels on a video.
 
 The next sub-sections describe *how to use* the generated executables.
 
@@ -95,9 +96,9 @@ The list of available arguments:
 
 **Note**: to run `meteor-check`, it is required to run `meteor-detect` before. This will generate the required `tracks.txt` file.
 
-### Checking with `meteor-maxred`
+### Generating a max-reduction image with `meteor-maxred`
 
-The meteors checking program is located here: `./exe/meteor-maxred`.
+The max-reduction generation program is located here: `./exe/meteor-maxred`.
 
 The list of available arguments:
 
@@ -105,8 +106,8 @@ The list of available arguments:
 | :---             | :---     | :---        | :---    | :--- |
 | `--input-video`  | str      |  None       | Yes     | Input video path. |
 | `--output-frame` | str      |  None       | Yes     | Path of the output frame (PGM format). |
-| `--start-frame`  | int      | 0           | No      | First frame id to start the detection in the video sequence. |
-| `--end-frame`    | int      | 200000      | No      | Last frame id to stop the detection in the video sequence. |
+| `--start-frame`  | int      | 0           | No      | First frame id to start the max-reduction in the video sequence. |
+| `--end-frame`    | int      | 200000      | No      | Last frame id to stop the max-reduction in the video sequence. |
 
 ### Examples of use
 
@@ -153,5 +154,5 @@ Use `meteor-check` with the following arguments:
 Use `meteor-maxred` with the following arguments:
 
 ```shell
-./exe/meteor-maxred --input-video ./2022_05_31_tauh_34_meteors.mp4 --output-frame .
+./exe/meteor-maxred --input-video ./2022_05_31_tauh_34_meteors.mp4 --output-frame out_maxred.pgm
 ```
