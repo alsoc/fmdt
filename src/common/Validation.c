@@ -14,8 +14,8 @@
 static unsigned inputs_nb = 0;
 static struct input* inputs = NULL;
 
-static int positiveTrue = 0;
-static int positiveFalse = 0;
+static int positiveTrue [4] = {0};
+static int positiveFalse[4] = {0};
 
 int Validation_init(char* _inputs_file)
 {
@@ -116,19 +116,18 @@ int Validation_init(char* _inputs_file)
     return inputs_nb;
 }
 
-void Validation_print()
+void Validation_print(const Track* tracks, const int tracks_nb)
 {
     char* type_lut[4] = {"unknown",  // 0
                          "  noise",  // 1
                          " meteor",  // 2
                          "   star"}; // 3
 
-    unsigned int nb_tracks = 0;
     //float tracking_rate;
     if(inputs)
     {
         printf("# ---------------||--------------||---------------||--------\n");
-        printf("#     Object     ||     Hits     ||   GT frames   || Tracks \n");
+        printf("#    GT Object   ||     Hits     ||   GT Frames   || Tracks \n");
         printf("# ---------------||--------------||---------------||--------\n");
         printf("# -----|---------||--------|-----||-------|-------||--------\n");
         printf("#   Id |    Type || Detect |  GT || Start |  Stop ||      # \n");
@@ -136,13 +135,11 @@ void Validation_print()
         for(int i=0;i<inputs_nb;i++)
         {
             int expected_hits = inputs[i].t1-inputs[i].t0+1;
-            nb_tracks += inputs[i].nb_tracks;
 
             // tmp
             if (inputs[i].hits== 1) inputs[i].hits = 0;
             // VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1 ); );
             VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d \t %4d \t %4d \t %6.1f \t %6.1f \t %6.1f \t %6.1f\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1, inputs[i].track_t0, inputs[i].track_t1, inputs[i].track_x0, inputs[i].track_y0 ,inputs[i].track_x1, inputs[i].track_y1 ); );
-
             printf("   %3d | %s ||    %3d | %3d || %5d | %5d ||  %5d  \n", i, type_lut[inputs[i].obj_type], inputs[i].hits, expected_hits, inputs[i].t0, inputs[i].t1, inputs[i].nb_tracks);
         }
         free(inputs);
@@ -150,16 +147,28 @@ void Validation_print()
         fprintf(stderr, "(WW) no objects\n");
     }
 
+    int allPositiveFalse = 0;
+    int allPositiveTrue = 0;
+    for (int i = 0; i < N_OBJ_TYPES; i++) {
+        allPositiveTrue  += positiveTrue[i];
+        allPositiveFalse += positiveFalse[i];
+    }
+
+    unsigned n_tracks = 0, n_track_stars = 0, n_track_meteors = 0, n_track_noise = 0;
+    n_tracks = track_count_objects(tracks, tracks_nb, &n_track_stars, &n_track_meteors, &n_track_noise);
+
+    unsigned n_gt_objs = 0, n_gt_stars = 0, n_gt_meteors = 0, n_gt_noise = 0;
+    n_gt_objs = gt_count_objects(inputs, inputs_nb, &n_gt_stars, &n_gt_meteors, &n_gt_noise);
+
     printf("Statistics: \n");
-    printf("  - Number of obj (GT) = %3d\n", inputs_nb);
-    printf("  - Number of tracks   = %3d\n", nb_tracks);
-    printf("  - True positives     = %3d\n", positiveTrue);
-    printf("  - False positives    = %3d\n", positiveFalse);
+    printf("  - Number of GT objs = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\n", n_gt_meteors,          n_gt_stars,          n_gt_noise,           n_gt_objs       );
+    printf("  - Number of tracks  = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\n", n_track_meteors,       n_track_stars,       n_track_noise,        n_tracks        );
+    printf("  - True positives    = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\n", positiveTrue [METEOR], positiveTrue [STAR], positiveTrue [NOISE], allPositiveTrue );
+    printf("  - False positives   = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\n", positiveFalse[METEOR], positiveFalse[STAR], positiveFalse[NOISE], allPositiveFalse);
 }
 
 void Validation_free(void)
 {
-
 }
 
 void Validation(Track* tracks, int tracks_nb)
@@ -168,14 +177,15 @@ void Validation(Track* tracks, int tracks_nb)
     idisp(tracks_nb);
     for(int t = 0; t < tracks_nb; t++) {
         track = &tracks[t];
-        
+
         if (track->timestamp == 0) continue;
 
         ValidationInput* input = NULL;
         for(int i = 0; i < inputs_nb; i++) {
             if(inputs[i].t0_min <= track->timestamp && track->timestamp+track->time <= inputs[i].t1_max &&
                inputs[i].bb_x0 <= track->begin.x && track->end.x <= inputs[i].bb_x1 &&
-               inputs[i].bb_y0 <= track->begin.y && track->end.y <= inputs[i].bb_y1) {
+               inputs[i].bb_y0 <= track->begin.y && track->end.y <= inputs[i].bb_y1 &&
+               track->obj_type == inputs[i].obj_type) {
                 input = &inputs[i];
 
                 inputs[i].track_t0 = track->timestamp;
@@ -195,11 +205,37 @@ void Validation(Track* tracks, int tracks_nb)
             input->nb_tracks++;
             input->hits = track->time + input->hits + 1;
             track->is_valid = 1;
-            positiveTrue++;
+            positiveTrue[track->obj_type]++;
         } else { // Piste ne matche pas avec input
-            positiveFalse++;
+            positiveFalse[track->obj_type]++;
         }
 
     }
+}
 
+// ---------------------------------------------------------------------------------------------------
+unsigned gt_count_objects(const ValidationInput* gt_objs, const unsigned n_gt_objs, unsigned *n_stars, unsigned *n_meteors, unsigned *n_noise)
+// ---------------------------------------------------------------------------------------------------
+{
+    (*n_stars) = 0;
+    (*n_meteors) = 0;
+    (*n_noise) = 0;
+    for(int i = 0; i < n_gt_objs; i++){
+        switch (gt_objs[i].obj_type){
+            case STAR:
+                (*n_stars)++;
+                break;
+            case METEOR:
+                (*n_meteors)++;
+                break;
+            case NOISE:
+                (*n_noise)++;
+                break;
+            default:
+                fprintf(stderr, "(EE) This should never happen ('gt_objs[i].obj_type = %d', 'i = %d')\n", gt_objs[i].obj_type, i);
+                exit(1);
+        }
+    }
+
+    return (*n_stars) + (*n_meteors) + (*n_noise);
 }

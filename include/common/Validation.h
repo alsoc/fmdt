@@ -72,9 +72,11 @@ typedef struct input {
 } ValidationInput;
 
 int Validation_init(char* _inputs_file);
-void Validation_print();
+void Validation_print(const Track* tracks, const int tracks_nb);
 void Validation(Track* tracks, int tracks_nb);
 void Validation_free(void);
+
+unsigned gt_count_objects(const ValidationInput* gt_objs, const unsigned n_gt_objs, unsigned *n_stars, unsigned *n_meteors, unsigned *n_noise);
 
 #endif
 

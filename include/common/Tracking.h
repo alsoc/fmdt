@@ -13,7 +13,7 @@
  */
 
 // Enums
-enum Obj_type {UNKNOWN = 0, STAR, METEOR, NOISE};
+enum Obj_type {UNKNOWN = 0, STAR, METEOR, NOISE, N_OBJ_TYPES};
 
 typedef struct {
         // unsigned state;
@@ -85,6 +85,9 @@ typedef struct elemBB{
 void init_Track(Track *tracks, int n);
 void initTabBB();
 void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset, int theta, int tx, int ty, int r_extrapol, int d_line, float diff_deviation, int track_all, int frame_star);
+
+// return the real number of tracks
+unsigned track_count_objects(const Track* tracks, const int n_tracks, unsigned *n_stars, unsigned *n_meteors, unsigned *n_noise);
 
 #endif
 

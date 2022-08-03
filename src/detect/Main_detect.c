@@ -441,7 +441,7 @@ void main_detect(int argc, char** argv)
         n0 = n_shrink;
         n_frames++;
 
-        n_tracks = count_objects(tracks, (unsigned)last, &n_stars, &n_meteors, &n_noise);
+        n_tracks = track_count_objects(tracks, (unsigned)last, &n_stars, &n_meteors, &n_noise);
         fprintf(stderr, " -- # of tracks = %4d -- # of meteors = %4d -- # of stars = %4d -- # of noise = %4d \r", n_tracks, n_meteors, n_stars, n_noise);
         fflush(stderr);
     }

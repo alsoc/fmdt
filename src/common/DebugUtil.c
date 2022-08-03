@@ -190,35 +190,6 @@ void printTracks2(Track* tracks, int n, int track_all)
 }
 
 // ---------------------------------------------------------------------------------------------------
-unsigned count_objects(const Track* tracks, const int n_tracks, unsigned *n_stars, unsigned *n_meteors, unsigned *n_noise)
-// ---------------------------------------------------------------------------------------------------
-{
-    (*n_stars) = 0;
-    (*n_meteors) = 0;
-    (*n_noise) = 0;
-    for(int i = 0; i <= n_tracks; i++){
-        if (tracks[i].time){
-            switch (tracks[i].obj_type){
-                case STAR:
-                    (*n_stars)++;
-                    break;
-                case METEOR:
-                    (*n_meteors)++;
-                    break;
-                case NOISE:
-                    (*n_noise)++;
-                    break;
-                default:
-                    fprintf(stderr, "(EE) This should never happen ('tracks[i].obj_type = %d', 'i = %d')\n", tracks[i].obj_type, i);
-                    exit(1);
-            }
-        }
-    }
-
-    return (*n_stars) + (*n_meteors) + (*n_noise);
-}
-
-// ---------------------------------------------------------------------------------------------------
 void parseStats(const char*filename, MeteorROI* stats, int* n)
 // ---------------------------------------------------------------------------------------------------
 {

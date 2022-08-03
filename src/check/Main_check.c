@@ -68,21 +68,13 @@ void main_validation(int argc, char** argv)
     // recupere les tracks
     parseTracks(src_path, tracks, &nb_tracks);
     //printTracks(tracks, nb_tracks);
-    unsigned n_tracks = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
-    n_tracks = count_objects(tracks, nb_tracks, &n_stars, &n_meteors, &n_noise);
-
-    printf("# Read from tracks file:\n");
-    printf("# -> Number of meteor objects: %5d\n", n_meteors);
-    printf("# -> Number of star objects:   %5d\n", n_stars);
-    printf("# -> Number of noise objects:  %5d\n", n_noise);
-    printf("# -> Total number of objects:  %5d\n", n_tracks);
     
     printf("# The program is running...\n");
 
     // validation pour établir si une track est vrai/faux positif
     Validation_init(validation);
     Validation(tracks, nb_tracks);
-    Validation_print();
+    Validation_print(tracks, nb_tracks);
 
     printf("# End of the program, exiting.\n");
 }
