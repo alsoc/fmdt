@@ -441,8 +441,8 @@ void main_detect(int argc, char** argv)
         n0 = n_shrink;
         n_frames++;
 
-        n_tracks = track_count_objects(tracks, (unsigned)last, &n_stars, &n_meteors, &n_noise);
-        fprintf(stderr, " -- # of tracks = %4d -- # of meteors = %4d -- # of stars = %4d -- # of noise = %4d \r", n_tracks, n_meteors, n_stars, n_noise);
+        n_tracks = track_count_objects(tracks, (unsigned)last+1, &n_stars, &n_meteors, &n_noise);
+        fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\r", n_meteors, n_stars, n_noise, n_tracks);
         fflush(stderr);
     }
     fprintf(stderr, "\n");
@@ -453,11 +453,8 @@ void main_detect(int argc, char** argv)
     printTracks2(tracks, last, track_all);
 
     printf("# Statistics:\n");
-    printf("# -> Processed frames:         %5d\n", n_frames);
-    printf("# -> Number of meteor objects: %5d\n", n_meteors);
-    printf("# -> Number of star objects:   %5d\n", n_stars);
-    printf("# -> Number of noise objects:  %5d\n", n_noise);
-    printf("# -> Total number of objects:  %5d\n", n_tracks);
+    printf("# -> Processed frames = %4d\n", n_frames);
+    printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\n", n_meteors, n_stars, n_noise, n_tracks);
 
     // ----------
     // -- free --
