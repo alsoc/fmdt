@@ -371,14 +371,14 @@ void main_visu(int argc, char** argv)
                             // color = ORANGE;
                             color = GREEN;
 
-                            switch(tracks[i].is_meteor){
-                                case 1:
+                            switch(tracks[i].obj_type){
+                                case STAR:
                                     color = YELLOW;
                                     break;
-                                case 2:
+                                case METEOR:
                                     color = GREEN;
                                     break;
-                                case 3:
+                                case NOISE:
                                     color = ORANGE;
                                     break;
                                 default:

@@ -11,6 +11,9 @@
  * Clara Ciocan/ Mathuran Kandeepan
  */
 
+// Enums
+enum Track_obj_type {UNKNOWN, STAR, METEOR, NOISE};
+
 typedef struct {
         // unsigned state;
         unsigned timestamp;
@@ -43,8 +46,8 @@ typedef struct {
         float32 ymax;
 
         int state;
+        enum Track_obj_type obj_type;
         // Resultat validation (bad design)
-        uint8 is_meteor;
         uint8 is_valid;
 
         // Juste pour afficher les vitesses

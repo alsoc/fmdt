@@ -22,7 +22,6 @@
 #ifndef __DEBUGUTIL_H__
 #define __DEBUGUTIL_H__
 
-
 // Timing
 
 #define BENCH(X, n, cpp)  do { struct_timespec t0, t1; double dt; int iter = 100; t0=getCycles();  for(int k=0; k<iter; k++) { X; } t1=getCycles(); dt=diff_ns(t0, t1);  cpp = dt/(iter*n*n);  } while(0)

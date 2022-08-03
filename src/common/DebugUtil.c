@@ -149,7 +149,7 @@ void printTracks(Track* tracks, int last)
 
     for(int i = 0; i<= last; i++){
                 printf("%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \t %4d \t %4d \t %4d \t %4d \t %4d %4d\n", 
-        tracks[i].timestamp, tracks[i].begin.x, tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x , tracks[i].end.y, tracks[i].rx, tracks[i].ry, tracks[i].bb_x, tracks[i].bb_y, tracks[i].is_valid, tracks[i].is_meteor);
+        tracks[i].timestamp, tracks[i].begin.x, tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x , tracks[i].end.y, tracks[i].rx, tracks[i].ry, tracks[i].bb_x, tracks[i].bb_y, tracks[i].is_valid, tracks[i].obj_type);
 
         // printf("%4d \t %5f \t %5f \t %4d \t %5f \t %5f \t d\n", 
         // tracks[i].timestamp, tracks[i].begin.x , tracks[i].begin.y, tracks[i].timestamp+tracks[i].time - 1, tracks[i].end.x , tracks[i].end.y);
@@ -174,7 +174,7 @@ void printTracks2(Track* tracks, int n, int track_all)
                          "   star"}; // 3
     unsigned track_id = 0;
     for(int i = 0; i<= n; i++){
-        if(tracks[i].time && (track_all || (!track_all && tracks[i].is_meteor == 2))) {
+        if(tracks[i].time && (track_all || (!track_all && tracks[i].obj_type == METEOR))) {
             printf("   %5d || %7d | %6.1f | %6.1f || %7d | %6.1f | %6.1f || %s \n",
                    track_id,
                    tracks[i].timestamp,
@@ -183,7 +183,7 @@ void printTracks2(Track* tracks, int n, int track_all)
                    tracks[i].timestamp+tracks[i].time,
                    tracks[i].end.x,
                    tracks[i].end.y,
-                   type_lut[tracks[i].is_meteor]);
+                   type_lut[tracks[i].obj_type]);
             track_id++;
         }
     }
@@ -198,18 +198,18 @@ unsigned count_objects(const Track* tracks, const int n_tracks, unsigned *n_star
     (*n_noise) = 0;
     for(int i = 0; i <= n_tracks; i++){
         if (tracks[i].time){
-            switch (tracks[i].is_meteor){
-                case 1:
+            switch (tracks[i].obj_type){
+                case STAR:
                     (*n_stars)++;
                     break;
-                case 2:
+                case METEOR:
                     (*n_meteors)++;
                     break;
-                case 3:
+                case NOISE:
                     (*n_noise)++;
                     break;
                 default:
-                    fprintf(stderr, "(EE) This should never happen ('tracks[i].is_meteor = %d', 'i = %d')\n", tracks[i].is_meteor, i);
+                    fprintf(stderr, "(EE) This should never happen ('tracks[i].obj_type = %d', 'i = %d')\n", tracks[i].obj_type, i);
                     exit(1);
             }
         }
@@ -316,7 +316,7 @@ void saveTracks(const char*filename, Track* tracks, int n)
         for(int i = 0; i<= n; i++){
             if(tracks[i].time){
                 fprintf(f, "%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \t %4d \t %4d \t %4d\n", 
-                tracks[i].timestamp, tracks[i].begin.x , tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x, tracks[i].end.y, tracks[i].bb_x, tracks[i].bb_y, tracks[i].is_meteor);
+                tracks[i].timestamp, tracks[i].begin.x , tracks[i].begin.y, tracks[i].timestamp+tracks[i].time , tracks[i].end.x, tracks[i].end.y, tracks[i].bb_x, tracks[i].bb_y, tracks[i].obj_type);
             }
     
         }
@@ -359,15 +359,15 @@ void parseTracks(const char*filename, Track* tracks, int* n)
     int tid, t0, t1;
     float32 x0, x1, y0, y1;
     //int bb_x, bb_y;
-    //int is_meteor;
-    char obj_type[1024];
+    //int obj_type;
+    char obj_type_str[1024];
 
     *n = 0;
     while ((read = getline(&line, &len, fp)) != -1) {
         //printf("Retrieved line of length %zu:\n", read);
         if (line[0] != '#')
         {
-            sscanf(line, "%d || %d | %f | %f || %d | %f | %f || %s ", &tid, &t0, &x0, &y0, &t1, &x1, &y1, obj_type);
+            sscanf(line, "%d || %d | %f | %f || %d | %f | %f || %s ", &tid, &t0, &x0, &y0, &t1, &x1, &y1, obj_type_str);
 
             tracks[tid].timestamp = t0;
             tracks[tid].time      = t1-t0;
@@ -378,12 +378,12 @@ void parseTracks(const char*filename, Track* tracks, int* n)
             tracks[tid].end.y     = y1;
             // tracks[tid].bb_x   = bb_x;
             // tracks[tid].bb_y   = bb_y;
-            if(!strcmp(obj_type, "noise"))
-                    tracks[tid].is_meteor = 1; 
-            if(!strcmp(obj_type, "meteor"))            
-                    tracks[tid].is_meteor = 2; 
-            if(!strcmp(obj_type, "star"))
-                    tracks[tid].is_meteor = 3; 
+            if(!strcmp(obj_type_str, "noise"))
+                tracks[tid].obj_type = NOISE;
+            if(!strcmp(obj_type_str, "meteor"))
+                tracks[tid].obj_type = METEOR;
+            if(!strcmp(obj_type_str, "star"))
+                tracks[tid].obj_type = STAR;
 
             *n = tid+1;
         }

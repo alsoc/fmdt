@@ -62,17 +62,17 @@ void init_Track(Track *tracks, int n)
 // ---------------------------------------------------------------------------------------------------
 {
     for (int i = 0; i < n ; i++){
-        tracks[i].timestamp   = 0;
-        tracks[i].time        = 0;
-        tracks[i].state       = 0;
-        tracks[i].x           = 0;
-        tracks[i].y           = 0;
-        tracks[i].rx          = 0;
-        tracks[i].ry          = 0;
-        tracks[i].bb_x        = 0;
-        tracks[i].bb_y        = 0;
-        tracks[i].is_valid    = 0;
-        tracks[i].is_meteor   = 0;
+        tracks[i].timestamp = 0;
+        tracks[i].time      = 0;
+        tracks[i].state     = 0;
+        tracks[i].x         = 0;
+        tracks[i].y         = 0;
+        tracks[i].rx        = 0;
+        tracks[i].ry        = 0;
+        tracks[i].bb_x      = 0;
+        tracks[i].bb_y      = 0;
+        tracks[i].is_valid  = 0;
+        tracks[i].obj_type  = UNKNOWN;
     }
 }
 
@@ -90,7 +90,7 @@ void clear_index_Track(Track *tracks, int i)
     tracks[i].bb_x      = 0;
     tracks[i].bb_y      = 0;
     tracks[i].is_valid  = 0;
-    tracks[i].is_meteor  = 0;
+    tracks[i].obj_type  = UNKNOWN;
 
 }
 
@@ -352,7 +352,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                     float32 y = tracks[i].a * stats1[next].x + tracks[i].b;
 
                     if ( (fabs(stats1[next].y - y) < d_line) && ((dx*tracks[i].dx >= 0.0f) && (dy*tracks[i].dy >= 0.0f)) && ((a < 0 && tracks[i].a < 0) ||  (a > 0 && tracks[i].a > 0) || ((a == INF) && (tracks[i].a == INF)))){
-                        tracks[i].is_meteor = 2;
+                        tracks[i].obj_type = METEOR;
                         tracks[i].a = a;
                         tracks[i].dx = dx;
                         tracks[i].dy = dy;
@@ -363,8 +363,8 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                             // clear_index_Track(tracks, i);
                             // continue;
                         }
-                        if(tracks[i].is_meteor == 2)
-                            tracks[i].is_meteor=1;
+                        if(tracks[i].obj_type == METEOR)
+                            tracks[i].obj_type = STAR;
                     }
 
                     // tracks[i].vitesse[(tracks[i].cur)++] = stats0[tracks[i].end.ID].error;
@@ -450,8 +450,8 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
     track->end       = last_stats; 
     track->time      = 1; 
     track->timestamp = frame - 2;
-    track->state = TRACK_NEW;
-    track->is_meteor = 2;
+    track->state     = TRACK_NEW;
+    track->obj_type  = METEOR;
 
     // track->vitesse[(track->cur)++] = buffer[i].stats0.error;
     // update_bounding_box(track, last_stats, frame);
@@ -472,7 +472,7 @@ void insert_new_track_stars(MeteorROI last_stats,  MeteorROI begin, Track *track
     track->time      = 1; 
     track->timestamp = frame - frame_star;
     track->state = TRACK_NEW;
-    track->is_meteor = 3;
+    track->obj_type  = NOISE;
 }
 
 
