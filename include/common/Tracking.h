@@ -2,17 +2,18 @@
 // --- Tracking.h ---
 // ------------------
 
-#include "Features.h"
-
 #ifndef _TRACKING_
 #define _TRACKING_
+
+#include "Features.h"
+
 /*
  * Maxime Millet
  * Clara Ciocan/ Mathuran Kandeepan
  */
 
 // Enums
-enum Track_obj_type {UNKNOWN, STAR, METEOR, NOISE};
+enum Obj_type {UNKNOWN = 0, STAR, METEOR, NOISE};
 
 typedef struct {
         // unsigned state;
@@ -46,7 +47,7 @@ typedef struct {
         float32 ymax;
 
         int state;
-        enum Track_obj_type obj_type;
+        enum Obj_type obj_type;
         // Resultat validation (bad design)
         uint8 is_valid;
 

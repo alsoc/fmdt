@@ -5,11 +5,11 @@
  * Maxime MILLET
  */
 
-#include "Features.h"
-#include "Tracking.h"
-
 #ifndef _VALIDATION_
 #define _VALIDATION_
+
+#include "Features.h"
+#include "Tracking.h"
 
 #define VALIDATION_MIN_STDDEV       2.0
 #define VALIDATION_MAX_STDDEV       30.0
@@ -67,6 +67,8 @@ typedef struct input {
     uint16 hits;
     uint16 is_valid;
     uint16 is_valid_last;
+
+    enum Obj_type obj_type;
 } ValidationInput;
 
 int Validation_init(char* _inputs_file);

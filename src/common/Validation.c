@@ -26,23 +26,36 @@ int Validation_init(char* _inputs_file)
         return -1;
     } 
 
-    if(fscanf(file, "%u\n", &inputs_nb) < 1 || inputs_nb<1)
+    // count the number of lines
+    char tmp_obj_type[1024];
+    sint16 tmp_t0;
+    float32 tmp_x0;
+    float32 tmp_y0;
+    sint16 tmp_t1;
+    float32 tmp_x1;
+    float32 tmp_y1;
+    inputs_nb = 0;
+    while(!feof(file) && fscanf(file, "%s %hu \t %f \t %f \t %hu \t %f \t %f \n", tmp_obj_type, &tmp_t0, &tmp_x0, &tmp_y0, &tmp_t1, &tmp_x1, &tmp_y1))
+        inputs_nb++;
+    fseek(file, 0, SEEK_SET);
+
+    if(inputs_nb < 1)
     {
         VERBOSE (printf("[Validation] aucun meteore a suivre dans le fichier input donne !\n"); );
         return 0;
     }
     else
-    { 
+    {
         VERBOSE (printf("[Validation] %4hu entrees dans le fichier d'input\n", (unsigned short)inputs_nb); );
     }
-    
+
     inputs = (struct input*)malloc(inputs_nb * sizeof(struct input));
     
     int i=0;
     idisp(inputs_nb);
     while(i<inputs_nb && !feof(file))
     {
-        if(fscanf(file, "%hu \t %f \t %f \t %hu \t %f \t %f \n", &inputs[i].t0, &inputs[i].x0, &inputs[i].y0, &inputs[i].t1, &inputs[i].x1, &inputs[i].y1))
+        if(fscanf(file, "%s %hu \t %f \t %f \t %hu \t %f \t %f \n", tmp_obj_type, &inputs[i].t0, &inputs[i].x0, &inputs[i].y0, &inputs[i].t1, &inputs[i].x1, &inputs[i].y1))
         {
             inputs[i].t0_min = inputs[i].t0 - 5;
             inputs[i].t1_max = inputs[i].t1 + 5;
@@ -68,25 +81,31 @@ int Validation_init(char* _inputs_file)
             // idisp(inputs[i].dirX);
 
             if(inputs[i].dirX){
-                    if(inputs[i].dirY){
-                        inputs[i].bb_y0   = inputs[i].y0 - TOLERANCE_DISTANCEMIN;   inputs[i].bb_x0   = inputs[i].x0 - TOLERANCE_DISTANCEMIN;
-                        inputs[i].bb_y1   = inputs[i].y1 + TOLERANCE_DISTANCEMIN;   inputs[i].bb_x1   = inputs[i].x1 + TOLERANCE_DISTANCEMIN;
-                    }else {
-                        inputs[i].bb_y0   = inputs[i].y1 - TOLERANCE_DISTANCEMIN;   inputs[i].bb_x0   = inputs[i].x0 - TOLERANCE_DISTANCEMIN;
-                        inputs[i].bb_y1   = inputs[i].y0 + TOLERANCE_DISTANCEMIN;   inputs[i].bb_x1   = inputs[i].x1 + TOLERANCE_DISTANCEMIN;
-                    }
-                    
+                if(inputs[i].dirY){
+                    inputs[i].bb_y0 = inputs[i].y0 - TOLERANCE_DISTANCEMIN; inputs[i].bb_x0 = inputs[i].x0 - TOLERANCE_DISTANCEMIN;
+                    inputs[i].bb_y1 = inputs[i].y1 + TOLERANCE_DISTANCEMIN; inputs[i].bb_x1 = inputs[i].x1 + TOLERANCE_DISTANCEMIN;
+                }else {
+                    inputs[i].bb_y0 = inputs[i].y1 - TOLERANCE_DISTANCEMIN; inputs[i].bb_x0 = inputs[i].x0 - TOLERANCE_DISTANCEMIN;
+                    inputs[i].bb_y1 = inputs[i].y0 + TOLERANCE_DISTANCEMIN; inputs[i].bb_x1 = inputs[i].x1 + TOLERANCE_DISTANCEMIN;
+                }
             } else {
-                    if(inputs[i].dirY) {
-                        inputs[i].bb_y0   = inputs[i].y0 - TOLERANCE_DISTANCEMIN;   inputs[i].bb_x0   = inputs[i].x1 - TOLERANCE_DISTANCEMIN;
-                        inputs[i].bb_y1   = inputs[i].y1 + TOLERANCE_DISTANCEMIN;   inputs[i].bb_x1   = inputs[i].x0 + TOLERANCE_DISTANCEMIN;
-                    }else{
-                        inputs[i].bb_y0   = inputs[i].y1 - TOLERANCE_DISTANCEMIN;   inputs[i].bb_x0   = inputs[i].x1 - TOLERANCE_DISTANCEMIN;
-                        inputs[i].bb_y1   = inputs[i].y0 + TOLERANCE_DISTANCEMIN;   inputs[i].bb_x1   = inputs[i].x0 + TOLERANCE_DISTANCEMIN;
-                    }
-
-
+                if(inputs[i].dirY) {
+                    inputs[i].bb_y0 = inputs[i].y0 - TOLERANCE_DISTANCEMIN; inputs[i].bb_x0 = inputs[i].x1 - TOLERANCE_DISTANCEMIN;
+                    inputs[i].bb_y1 = inputs[i].y1 + TOLERANCE_DISTANCEMIN; inputs[i].bb_x1 = inputs[i].x0 + TOLERANCE_DISTANCEMIN;
+                }else{
+                    inputs[i].bb_y0 = inputs[i].y1 - TOLERANCE_DISTANCEMIN; inputs[i].bb_x0 = inputs[i].x1 - TOLERANCE_DISTANCEMIN;
+                    inputs[i].bb_y1 = inputs[i].y0 + TOLERANCE_DISTANCEMIN; inputs[i].bb_x1 = inputs[i].x0 + TOLERANCE_DISTANCEMIN;
+                }
             }
+
+            if(!strcmp(tmp_obj_type, "noise"))
+                inputs[i].obj_type = NOISE;
+            else if(!strcmp(tmp_obj_type, "meteor"))
+                inputs[i].obj_type = METEOR;
+            else if(!strcmp(tmp_obj_type, "star"))
+                inputs[i].obj_type = STAR;
+            else
+                inputs[i].obj_type = UNKNOWN;
             i++;
         }
     }
@@ -99,16 +118,21 @@ int Validation_init(char* _inputs_file)
 
 void Validation_print()
 {
+    char* type_lut[4] = {"unknown",  // 0
+                         "  noise",  // 1
+                         " meteor",  // 2
+                         "   star"}; // 3
+
     unsigned int nb_tracks = 0;
     //float tracking_rate;
     if(inputs)
     {
-        printf("# -----||--------------||---------------||--------\n");
-        printf("#  Obj ||     Hits     ||   GT frames   || Tracks \n");
-        printf("# -----||--------------||---------------||--------\n");
-        printf("# -----||--------|-----||-------|-------||--------\n");
-        printf("#   Id || Detect |  GT || Start |  Stop ||      # \n");
-        printf("# -----||--------|-----||-------|-------||--------\n");
+        printf("# ---------------||--------------||---------------||--------\n");
+        printf("#     Object     ||     Hits     ||   GT frames   || Tracks \n");
+        printf("# ---------------||--------------||---------------||--------\n");
+        printf("# -----|---------||--------|-----||-------|-------||--------\n");
+        printf("#   Id |    Type || Detect |  GT || Start |  Stop ||      # \n");
+        printf("# -----|---------||--------|-----||-------|-------||--------\n");
         for(int i=0;i<inputs_nb;i++)
         {
             int expected_hits = inputs[i].t1-inputs[i].t0+1;
@@ -119,7 +143,7 @@ void Validation_print()
             // VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1 ); );
             VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d \t %4d \t %4d \t %6.1f \t %6.1f \t %6.1f \t %6.1f\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1, inputs[i].track_t0, inputs[i].track_t1, inputs[i].track_x0, inputs[i].track_y0 ,inputs[i].track_x1, inputs[i].track_y1 ); );
 
-            printf("   %3d ||    %3d | %3d || %5d | %5d ||  %5d  \n", i, inputs[i].hits, expected_hits, inputs[i].t0, inputs[i].t1, inputs[i].nb_tracks);
+            printf("   %3d | %s ||    %3d | %3d || %5d | %5d ||  %5d  \n", i, type_lut[inputs[i].obj_type], inputs[i].hits, expected_hits, inputs[i].t0, inputs[i].t1, inputs[i].nb_tracks);
         }
         free(inputs);
     } else {

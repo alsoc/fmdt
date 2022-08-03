@@ -380,10 +380,12 @@ void parseTracks(const char*filename, Track* tracks, int* n)
             // tracks[tid].bb_y   = bb_y;
             if(!strcmp(obj_type_str, "noise"))
                 tracks[tid].obj_type = NOISE;
-            if(!strcmp(obj_type_str, "meteor"))
+            else if(!strcmp(obj_type_str, "meteor"))
                 tracks[tid].obj_type = METEOR;
-            if(!strcmp(obj_type_str, "star"))
+            else if(!strcmp(obj_type_str, "star"))
                 tracks[tid].obj_type = STAR;
+            else
+                tracks[tid].obj_type = UNKNOWN;
 
             *n = tid+1;
         }

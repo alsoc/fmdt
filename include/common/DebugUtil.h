@@ -5,6 +5,10 @@
  * Copyright (c) 2020-2021, Clara CIOCAN, LIP6 Sorbonne University
  * Copyright (c) 2020-2021, Mathuran KANDEEPAN, LIP6 Sorbonne University
  */
+
+#ifndef __DEBUGUTIL_H__
+#define __DEBUGUTIL_H__
+
 #include "nrutil.h"
 #include "Args.h"
 #include "Video.h"
@@ -19,11 +23,8 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdint.h>
-#ifndef __DEBUGUTIL_H__
-#define __DEBUGUTIL_H__
 
 // Timing
-
 #define BENCH(X, n, cpp)  do { struct_timespec t0, t1; double dt; int iter = 100; t0=getCycles();  for(int k=0; k<iter; k++) { X; } t1=getCycles(); dt=diff_ns(t0, t1);  cpp = dt/(iter*n*n);  } while(0)
 #define BENCH_TOTAL(X, n, cpp)  do { struct_timespec t0, t1; double dt; int iter = 1; t0=getCycles();  for(int k=0; k<iter; k++) { X; } t1=getCycles(); dt=diff_ns(t0, t1); cpp = dt/(iter*n);  } while(0)
 
