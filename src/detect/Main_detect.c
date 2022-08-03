@@ -288,9 +288,9 @@ void main_detect(int argc, char** argv)
     printf("#  * k             = %d\n",    k);
     printf("#  * r-extrapol    = %d\n",    r_extrapol);
     printf("#  * d-line        = %d\n",    d_line);
-    printf("#  * frame_star    = %d\n",    frame_star);
+    printf("#  * frame-star    = %d\n",    frame_star);
     printf("#  * diff-deviaton = %4.2f\n", diff_deviation);
-    printf("#  * track_all     = %d\n",    track_all);
+    printf("#  * track-all     = %d\n",    track_all);
     printf("#\n");
 
     if(!input_video){
@@ -375,7 +375,7 @@ void main_detect(int argc, char** argv)
 
     printf("# The program is running...\n");
     unsigned n_frames = 0;
-    unsigned n_tracks = 0;
+    unsigned n_tracks = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     while(Video_nextFrame(video,ballon->I1)) {
         
         frame = video->frame_current-2;
@@ -441,23 +441,23 @@ void main_detect(int argc, char** argv)
         n0 = n_shrink;
         n_frames++;
 
-        n_tracks = 0;
-        for(int i = 0; i <= last; i++){
-            if(tracks[i].time && (track_all || (!track_all && tracks[i].is_meteor == 2)))
-                n_tracks++;
-        }
-        fprintf(stderr, " -- # of tracks = %4d -- # of real tracks = %4d\r", (last+1), n_tracks);
+        n_tracks = count_objects(tracks, (unsigned)last, &n_stars, &n_meteors, &n_noise);
+        fprintf(stderr, " -- # of tracks = %4d -- # of meteors = %4d -- # of stars = %4d -- # of noise = %4d \r", n_tracks, n_meteors, n_stars, n_noise);
         fflush(stderr);
     }
-
     fprintf(stderr, "\n");
-    printf("# -> Processed frames: %d\n", n_frames);
-    printf("# -> Number of tracks: %d\n", n_tracks);
     
     if (output_bb)
         saveTabBB(path_bounding_box, tabBB, NB_FRAMES);
     //saveTracks(path_tracks, tracks, last);
     printTracks2(tracks, last, track_all);
+
+    printf("# Statistics:\n");
+    printf("# -> Processed frames:         %5d\n", n_frames);
+    printf("# -> Number of meteor objects: %5d\n", n_meteors);
+    printf("# -> Number of star objects:   %5d\n", n_stars);
+    printf("# -> Number of noise objects:  %5d\n", n_noise);
+    printf("# -> Total number of objects:  %5d\n", n_tracks);
 
     // ----------
     // -- free --

@@ -95,4 +95,7 @@ void convert_ui8vector_ui32vector(uint8 *X, long nl, long nh, uint32 *Y);
 void convert_ui8matrix_ui32matrix(uint8 **X, int nrl, int nrh, int ncl, int nch, uint32 **Y);
 void WritePNMrow(uint8  *line, int width, FILE  *file); // defined in NRC but private...
 
+// return the real number of tracks
+unsigned count_objects(const Track* tracks, const int n_tracks, unsigned *n_stars, unsigned *n_meteors, unsigned *n_noise);
+
 #endif //__DEBUGUTIL_H__

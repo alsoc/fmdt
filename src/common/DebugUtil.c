@@ -189,6 +189,34 @@ void printTracks2(Track* tracks, int n, int track_all)
     }
 }
 
+// ---------------------------------------------------------------------------------------------------
+unsigned count_objects(const Track* tracks, const int n_tracks, unsigned *n_stars, unsigned *n_meteors, unsigned *n_noise)
+// ---------------------------------------------------------------------------------------------------
+{
+    (*n_stars) = 0;
+    (*n_meteors) = 0;
+    (*n_noise) = 0;
+    for(int i = 0; i <= n_tracks; i++){
+        if (tracks[i].time){
+            switch (tracks[i].is_meteor){
+                case 1:
+                    (*n_stars)++;
+                    break;
+                case 2:
+                    (*n_meteors)++;
+                    break;
+                case 3:
+                    (*n_noise)++;
+                    break;
+                default:
+                    fprintf(stderr, "(EE) This should never happen ('tracks[i].is_meteor = %d', 'i = %d')\n", tracks[i].is_meteor, i);
+                    exit(1);
+            }
+        }
+    }
+
+    return (*n_stars) + (*n_meteors) + (*n_noise);
+}
 
 // ---------------------------------------------------------------------------------------------------
 void parseStats(const char*filename, MeteorROI* stats, int* n)
