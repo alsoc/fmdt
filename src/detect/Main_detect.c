@@ -290,6 +290,7 @@ void main_detect(int argc, char** argv)
     printf("#  * d-line        = %d\n",    d_line);
     printf("#  * frame_star    = %d\n",    frame_star);
     printf("#  * diff-deviaton = %4.2f\n", diff_deviation);
+    printf("#  * track_all     = %d\n",    track_all);
     printf("#\n");
 
     if(!input_video){
@@ -442,10 +443,10 @@ void main_detect(int argc, char** argv)
 
         n_tracks = 0;
         for(int i = 0; i <= last; i++){
-            if(tracks[i].time)
+            if(tracks[i].time && (track_all || (!track_all && tracks[i].is_meteor == 2)))
                 n_tracks++;
         }
-        fprintf(stderr, " -- # of tracks = %4d -- # of real tracks = %4d\r", last, n_tracks);
+        fprintf(stderr, " -- # of tracks = %4d -- # of real tracks = %4d\r", (last+1), n_tracks);
         fflush(stderr);
     }
 
@@ -456,7 +457,7 @@ void main_detect(int argc, char** argv)
     if (output_bb)
         saveTabBB(path_bounding_box, tabBB, NB_FRAMES);
     //saveTracks(path_tracks, tracks, last);
-    printTracks2(tracks, last);
+    printTracks2(tracks, last, track_all);
 
     // ----------
     // -- free --

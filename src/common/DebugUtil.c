@@ -158,7 +158,7 @@ void printTracks(Track* tracks, int last)
 }
 
 // ---------------------------------------------------------------------------------------------------
-void printTracks2(Track* tracks, int n)
+void printTracks2(Track* tracks, int n, int track_all)
 // ---------------------------------------------------------------------------------------------------
 {
     printf("# -------||---------------------------||---------------------------||---------\n");
@@ -168,13 +168,13 @@ void printTracks2(Track* tracks, int n)
     printf("#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type \n");
     printf("# -------||---------|--------|--------||---------|--------|--------||---------\n");
 
-    char* type_lut[4] = {"unknown", // 0
-                         "noise",   // 1
-                         "meteor",  // 2
-                         "star"};   // 3
+    char* type_lut[4] = {"unknown",  // 0
+                         "  noise",  // 1
+                         " meteor",  // 2
+                         "   star"}; // 3
     unsigned track_id = 0;
     for(int i = 0; i<= n; i++){
-        if(tracks[i].time){
+        if(tracks[i].time && (track_all || (!track_all && tracks[i].is_meteor == 2))) {
             printf("   %5d || %7d | %6.1f | %6.1f || %7d | %6.1f | %6.1f || %s \n",
                    track_id,
                    tracks[i].timestamp,
