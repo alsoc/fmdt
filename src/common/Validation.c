@@ -178,13 +178,13 @@ void Validation_print(const Track* tracks, const int tracks_nb)
         tracking_rate[i] = (float)total_tracked_frames[i] / (float)total_gt_frames[i];
 
     printf("Statistics: \n");
-    printf("  - Number of GT objs = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'total': %4d]\n", n_gt_meteors,          n_gt_stars,          n_gt_noise,           n_gt_objs       );
-    printf("  - Number of tracks  = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'total': %4d]\n", n_track_meteors,       n_track_stars,       n_track_noise,        n_tracks        );
-    printf("  - True positives    = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'total': %4d]\n", positiveTrue [METEOR], positiveTrue [STAR], positiveTrue [NOISE], allPositiveTrue );
-    printf("  - False positives   = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'total': %4d]\n", positiveFalse[METEOR], positiveFalse[STAR], positiveFalse[NOISE], allPositiveFalse);
-    printf("  - True negative     = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'total': %4d]\n", negativeTrue [METEOR], negativeTrue [STAR], negativeTrue [NOISE], allNegativeTrue );
-    printf("  - False negative    = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'total': %4d]\n", negativeFalse[METEOR], negativeFalse[STAR], negativeFalse[NOISE], allNegativeFalse);
-    printf("  - Tracking rate     = ['meteor': %4.2f, 'star': %4.2f, 'noise': %4.2f, 'total': %4.2f]\n", tracking_rate[METEOR], tracking_rate[STAR], tracking_rate[NOISE], tracking_rate[N_OBJ_TYPES]);
+    printf("  - Number of GT objs = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", n_gt_meteors,          n_gt_stars,          n_gt_noise,           n_gt_objs       );
+    printf("  - Number of tracks  = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", n_track_meteors,       n_track_stars,       n_track_noise,        n_tracks        );
+    printf("  - True positives    = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", positiveTrue [METEOR], positiveTrue [STAR], positiveTrue [NOISE], allPositiveTrue );
+    printf("  - False positives   = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", positiveFalse[METEOR], positiveFalse[STAR], positiveFalse[NOISE], allPositiveFalse);
+    printf("  - True negative     = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", negativeTrue [METEOR], negativeTrue [STAR], negativeTrue [NOISE], allNegativeTrue );
+    printf("  - False negative    = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", negativeFalse[METEOR], negativeFalse[STAR], negativeFalse[NOISE], allNegativeFalse);
+    printf("  - Tracking rate     = ['meteor': %4.2f, 'star': %4.2f, 'noise': %4.2f, 'all': %4.2f]\n", tracking_rate[METEOR], tracking_rate[STAR], tracking_rate[NOISE], tracking_rate[N_OBJ_TYPES]);
 }
 
 void Validation_free(void)
