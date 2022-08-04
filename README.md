@@ -5,10 +5,10 @@
 [1. Dependencies](#dependencies)  
 [2. Compilation with CMake](#compilation-with-cmake)  
 [3. User Documentation](#user-documentation)  
-[3.1. Detection](#detection)  
-[3.2. Visualization](#visualization)  
-[3.3. Checking](#checking)  
-[3.4. Max-reduction](#max-reduction)  
+[3.1. Detection Executable](#detection-executable)  
+[3.2. Visualization Executable](#visualization-executable)  
+[3.3. Checking Executable](#checking-executable)  
+[3.4. Max-reduction Executable](#max-reduction-executable)  
 [3.5. Examples of use](#examples-of-use)  
 [3.6. Input and Output Text Formats](#input-and-output-text-formats)  
 
@@ -53,7 +53,7 @@ This project generates 4 different executables:
 
 The next sub-sections describe *how to use* the generated executables.
 
-### Detection
+### Detection Executable
 
 The meteors detection chain is located here: `./exe/meteor-detect`.
 
@@ -76,12 +76,12 @@ The list of available arguments:
 | `--r-extrapol`    | int      | 5           | No      | Search radius for CC extrapolation (piece-wise tracking). |
 | `--d-line`        | int      | 25          | No      | Approximation factor of the rectilinear trajectory of meteors. |
 | `--diff-deviaton` | float    | 4.0         | No      | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
-| `--track-all`     | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`stars`, `meteor` or `noise`). |
+| `--track-all`     | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`meteor`, `star` or `noise`). |
 | `--frame-star`    | int      | 3           | No      | Minimum number of frames required to track a star. |
 
 Output text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.
 
-### Visualization
+### Visualization Executable
 
 The meteors visualization program is located here: `./exe/meteor-visu`.
 
@@ -100,7 +100,7 @@ The list of available arguments:
 
 Input text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.
 
-### Checking
+### Checking Executable
 
 The meteors checking program is located here: `./exe/meteor-check`.
 
@@ -115,7 +115,7 @@ The list of available arguments:
 
 Input/output text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.
 
-### Max-reduction
+### Max-reduction Executable
 
 The max-reduction generation program is located here: `./exe/meteor-maxred`.
 
