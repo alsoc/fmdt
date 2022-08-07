@@ -41,7 +41,7 @@ The `CMake` file comes with several options:
  * `-DTAH_VISU_EXE`   [default=`ON` ] {possible:`ON`,`OFF`}: compile the visual tracking executable.
  * `-DTAH_CHECK_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the check executable.
  * `-DTAH_MAXRED_EXE` [default=`ON` ] {possible:`ON`,`OFF`}: compile the max reduction executable.
- * `-DTAH_DEBUG`      [default=`OFF`] {possible:`ON`,`OFF`}: build the project using debugging code.
+ * `-DTAH_DEBUG`      [default=`OFF`] {possible:`ON`,`OFF`}: build the project using debugging prints: these additional prints will be output on `stderr` and prefixed by `(DBG)`.
 
 ## User Documentation
 

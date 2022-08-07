@@ -43,12 +43,12 @@ int Validation_init(char* _inputs_file)
 
     if(inputs_nb < 1)
     {
-        VERBOSE (printf("[Validation] aucun meteore a suivre dans le fichier input donne !\n"); );
+        VERBOSE (fprintf(stderr, "(DBG) [Validation] aucun meteore a suivre dans le fichier input donne !\n"); );
         return 0;
     }
     else
     {
-        VERBOSE (printf("[Validation] %4hu entrees dans le fichier d'input\n", (unsigned short)inputs_nb); );
+        VERBOSE (fprintf(stderr, "(DBG) [Validation] %4hu entrees dans le fichier d'input\n", (unsigned short)inputs_nb); );
     }
 
     inputs = (struct input*)malloc(inputs_nb * sizeof(struct input));
@@ -65,7 +65,7 @@ int Validation_init(char* _inputs_file)
             inputs[i].a = (float)(inputs[i].y1-inputs[i].y0)/(float)(inputs[i].x1-inputs[i].x0);
             inputs[i].b = inputs[i].y1 - inputs[i].a * inputs[i].x1;
             
-            VERBOSE (printf("[Validation] Input %-2d : t0=%-4d x0=%6.1f y0=%6.1f t1=%-4d x1=%6.1f y1=%6.1f\tf(x)=%-3.3f*x+%-3.3f\n", i, inputs[i].t0, inputs[i].x0, inputs[i].y0, inputs[i].t1, inputs[i].x1, inputs[i].y1, inputs[i].a, inputs[i].b); ); 
+            VERBOSE (fprintf(stderr, "(DBG) [Validation] Input %-2d : t0=%-4d x0=%6.1f y0=%6.1f t1=%-4d x1=%6.1f y1=%6.1f\tf(x)=%-3.3f*x+%-3.3f\n", i, inputs[i].t0, inputs[i].x0, inputs[i].y0, inputs[i].t1, inputs[i].x1, inputs[i].y1, inputs[i].a, inputs[i].b); );
 
             inputs[i].track = NULL;
             inputs[i].xt = inputs[i].x0;
@@ -143,7 +143,7 @@ void Validation_print(const Track* tracks, const int tracks_nb)
             // tmp
             if (inputs[i].hits== 1) inputs[i].hits = 0; // TODO: what is this?!
             // VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1 ); );
-            VERBOSE (printf("[Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d \t %4d \t %4d \t %6.1f \t %6.1f \t %6.1f \t %6.1f\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1, inputs[i].track_t0, inputs[i].track_t1, inputs[i].track_x0, inputs[i].track_y0 ,inputs[i].track_x1, inputs[i].track_y1 ); );
+            VERBOSE (fprintf(stderr, "(DBG) [Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d \t %4d \t %4d \t %6.1f \t %6.1f \t %6.1f \t %6.1f\n", i, inputs[i].hits, expected_hits, inputs[i].nb_tracks, inputs[i].t0, inputs[i].t1, inputs[i].track_t0, inputs[i].track_t1, inputs[i].track_x0, inputs[i].track_y0 ,inputs[i].track_x1, inputs[i].track_y1 ); );
             printf("   %3d | %s ||    %3d | %3d || %5d | %5d ||  %5d  \n", i, type_lut[inputs[i].obj_type], inputs[i].hits, expected_hits, inputs[i].t0, inputs[i].t1, inputs[i].nb_tracks);
 
             unsigned tmp = (inputs[i].hits <= expected_hits) ? inputs[i].hits : expected_hits - (inputs[i].hits - expected_hits);
@@ -203,14 +203,14 @@ void Validation(Track* tracks, int tracks_nb)
                inputs[i].bb_x0 <= track->begin.x && track->end.x <= inputs[i].bb_x1 &&
                inputs[i].bb_y0 <= track->begin.y && track->end.y <= inputs[i].bb_y1 &&
                track->obj_type == inputs[i].obj_type) {
-
+#ifdef ENABLE_DEBUG
                 inputs[i].track_t0 = track->timestamp;
                 inputs[i].track_t1 = track->timestamp+track->time;
                 inputs[i].track_x0 = track->begin.x;
                 inputs[i].track_y0 = track->begin.y;
                 inputs[i].track_x1 = track->end.x;
                 inputs[i].track_y1 = track->end.y;
-
+#endif
                 input = &inputs[i];
                 if (inputs[i].nb_tracks == 0)
                     break; // maybe

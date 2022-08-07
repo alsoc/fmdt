@@ -33,12 +33,14 @@ typedef struct input {
     sint16 t0_min;
     sint16 t1_max;
 
+#ifdef ENABLE_DEBUG
     int track_t0;
     int track_t1;
     float32 track_y0;
     float32 track_x0;
     float32 track_x1;
     float32 track_y1;
+#endif
     
     // Rectangle englobant
     float32 bb_x0, bb_x1;

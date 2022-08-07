@@ -26,15 +26,14 @@ extern "C" {
 #ifndef VERBOSE
 #define VERBOSE(X) X
 #endif
-#define PUTS(str) puts(str)
+#define PUTS(str) fprintf(stderr, "(DBG) %s\n", str)
 #define CR putchar('\n');
 #define SHOWNAME(X) #X
 
 
-
-#define idisp(x) printf("%s = %3d\n", #x, x)
-#define fdisp(x) printf("%s = %3f\n", #x, x)
-#define disp(x) printf("%s = %s\n", #x, x)
+#define idisp(x) fprintf(stderr, "(DBG) %s = %3d\n", #x, x)
+#define fdisp(x) fprintf(stderr, "(DBG) %s = %3f\n", #x, x)
+#define disp(x) fprintf(stderr, "(DBG) %s = %s\n", #x, x)
 
 #else
 
