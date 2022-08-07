@@ -197,16 +197,12 @@ void Validation(Track* tracks, int tracks_nb)
     idisp(tracks_nb);
     for(int t = 0; t < tracks_nb; t++) {
         track = &tracks[t];
-
-        if (track->timestamp == 0) continue;
-
         ValidationInput* input = NULL;
         for(int i = 0; i < inputs_nb; i++) {
             if(inputs[i].t0_min <= track->timestamp && track->timestamp+track->time <= inputs[i].t1_max &&
                inputs[i].bb_x0 <= track->begin.x && track->end.x <= inputs[i].bb_x1 &&
                inputs[i].bb_y0 <= track->begin.y && track->end.y <= inputs[i].bb_y1 &&
                track->obj_type == inputs[i].obj_type) {
-                input = &inputs[i];
 
                 inputs[i].track_t0 = track->timestamp;
                 inputs[i].track_t1 = track->timestamp+track->time;
@@ -215,6 +211,7 @@ void Validation(Track* tracks, int tracks_nb)
                 inputs[i].track_x1 = track->end.x;
                 inputs[i].track_y1 = track->end.y;
 
+                input = &inputs[i];
                 if (inputs[i].nb_tracks == 0)
                     break; // maybe
             }
@@ -231,29 +228,14 @@ void Validation(Track* tracks, int tracks_nb)
         }
     }
 
-    for(int i = 0; i < inputs_nb; i++) {
-        if (!inputs[i].nb_tracks) {
+    for(int i = 0; i < inputs_nb; i++)
+        if (!inputs[i].nb_tracks)
             negativeFalse[inputs[i].obj_type]++;
-            for(int t = 0; t < tracks_nb; t++) {
-                if (track->timestamp == 0) continue;
-                if(inputs[i].t0_min <= tracks[t].timestamp && tracks[t].timestamp+tracks[t].time <= inputs[i].t1_max &&
-                   inputs[i].bb_x0 <= tracks[t].begin.x && tracks[t].end.x <= inputs[i].bb_x1 &&
-                   inputs[i].bb_y0 <= tracks[t].begin.y && tracks[t].end.y <= inputs[i].bb_y1) {
-                    tracks[t].false_negative = inputs[i].obj_type;
-                }
-            }
-        }
-    }
 
-    for(int t = 0; t < tracks_nb; t++) {
-        if (track->timestamp == 0) continue;
-        for (int ot = 1; ot < N_OBJ_TYPES; ot++) {
-            if (( tracks[t].false_negative && ot != tracks[t].false_negative) ||
-                (!tracks[t].false_negative && ot != tracks[t].obj_type)) {
+    for(int t = 0; t < tracks_nb; t++)
+        for (int ot = 1; ot < N_OBJ_TYPES; ot++)
+            if (ot != tracks[t].obj_type)
                 negativeTrue[ot]++;
-            }
-        }
-    }
 }
 
 // ---------------------------------------------------------------------------------------------------
