@@ -241,11 +241,19 @@ void saveStats_file(FILE *f, MeteorROI* stats, int n)
         if(stats[i].S != 0)
             cpt++;
     }
-    fprintf(f, "%d\n", cpt);
+    fprintf(f, "# Regions of interest (ROI) [%d]: \n", cpt);
+    if (cpt) {
+        fprintf(f, "# -------------------||---------------------------||---------------------------||-------------------\n");
+        fprintf(f, "#      Identifier    ||        Bounding Box       ||          Surface          ||      Center       \n");
+        fprintf(f, "# -------------------||---------------------------||---------------------------||-------------------\n");
+        fprintf(f, "# -----|------|------||------|------|------|------||-----|----------|----------||---------|---------\n");
+        fprintf(f, "#  cur | prev | next || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y \n");
+        fprintf(f, "# -----|------|------||------|------|------|------||-----|----------|----------||---------|---------\n");
+    }
     for(int i = 1; i<= n; i++){
         if(stats[i].S != 0)
-            fprintf(f, "%4d \t %4d \t %4d \t %4d \t %4d \t %3d \t %8d \t %8d \t %8.1f \t %8.1f \t %8.1f \t %8.1f \t %8.1f \t %4d \t %4d\n", 
-            stats[i].ID, stats[i].xmin, stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx, stats[i].Sy, stats[i].x, stats[i].y, stats[i].dx, stats[i].dy, stats[i].error, stats[i].prev, stats[i].next);
+            fprintf(f, "  %4d | %4d | %4d || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f \n",
+            stats[i].ID, stats[i].prev, stats[i].next, stats[i].xmin, stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx, stats[i].Sy, stats[i].x, stats[i].y);
     }
 }
 
@@ -549,24 +557,27 @@ void saveConflicts(const char*filename, uint32 *conflicts, uint32 **Nearest, flo
 
 
 // ---------------------------------------------------------------------------------------------------
-void saveAssoConflicts(const char*filename, int frame, uint32 *conflicts, uint32 **Nearest, float32 **distances, int n_asso, int n_conflict, MeteorROI *stats0, MeteorROI *stats1)
+void saveAssoConflicts(const char* path, int frame, uint32 *conflicts, uint32 **Nearest, float32 **distances, int n_asso, int n_conflict, MeteorROI *stats0, MeteorROI *stats1)
 // ---------------------------------------------------------------------------------------------------
 {
-    FILE *f = fopen(filename, "a");
+    assert(frame >= 0);
+
+    char filename[1024];
+
+    sprintf(filename, "%s/%05d_%05d.txt", path, frame, frame +1);
+
+    FILE *f = fopen(filename, "w");
     if (f == NULL){
         fprintf(stderr, "(EE) error ouverture %s \n", filename);
         exit(1);
     }
-
-    // frames
-    fprintf(f, "%05d_%05d\n", frame, frame+1);
-    
     
     // stats
-    fprintf(f, "%05d.txt\n", frame);
+    fprintf(f, "# Frame n°%05d\n", frame);
     saveStats_file(f, stats0, n_asso);
-    fprintf(f, "%05d.txt\n", frame+1);
+    fprintf(f, "#\n# Frame n°%05d\n", frame+1);
     saveStats_file(f, stats1, n_conflict);
+    fprintf(f, "#\n");
 
     // Asso
     int cpt = 0;
@@ -574,24 +585,34 @@ void saveAssoConflicts(const char*filename, int frame, uint32 *conflicts, uint32
         if( stats0[i].next != 0)
             cpt++;
     }
-    fprintf(f, "Assos\n%d\n", cpt);
+    fprintf(f, "# Associations [%d]:\n", cpt);
     int j; 
 
-    double errMoy = errorMoy(stats0, n_asso);
-    double eType = ecartType(stats0, n_asso, errMoy);
-    fprintf(f, "error moy : %.3f \t ecart type : %.3f\n", errMoy, eType);
+    if (cpt) {
+        double errMoy = errorMoy(stats0, n_asso);
+        double eType = ecartType(stats0, n_asso, errMoy);
+        fprintf(f, "# * mean error    = %.3f\n", errMoy);
+        fprintf(f, "# * std deviation = %.3f\n", eType);
 
+        fprintf(f, "# ------------||---------------||------------------------\n");
+        fprintf(f, "#  Identifier ||    Distance   ||          Error         \n");
+        fprintf(f, "# ------------||---------------||------------------------\n");
+        fprintf(f, "# -----|------||--------|------||-------|-------|--------\n");
+        fprintf(f, "#  cur | next ||      d | k-nn ||    dx |    dy |      e \n");
+        fprintf(f, "# -----|------||--------|------||-------|-------|--------\n");
+    }
     for(int i = 1; i<= n_asso; i++){
         if (stats0[i].S == 0) continue;
         
         j = stats0[i].next; 
-        if(j == 0 ){
-                fprintf(f, "%4d \t ->   pas d'association\n", i);
-        }
-        else {
+        // if(j == 0 ){
+        //         fprintf(f, "%4d \t ->   pas d'association\n", i);
+        // }
+        // else {
+        if(j != 0 ){
             float32 dx = stats0[i].dx;
             float32 dy = stats0[i].dy;
-            fprintf(f, "%4d \t -> %4d \t  : distance = %10.2f \t ; %4d-voisin \t dx = %4.1f \t dy = %4.1f \t error: %.3f\n", i, j, distances[i][j], Nearest[i][j], dx , dy , stats0[i].error);
+            fprintf(f, "  %4d | %4d || %6.2f | %4d || %5.1f | %5.1f | %6.3f\n", i, j, distances[i][j], Nearest[i][j], dx , dy , stats0[i].error);
         }
     }
 
@@ -615,7 +636,6 @@ void saveAssoConflicts(const char*filename, int frame, uint32 *conflicts, uint32
     //         fprintf(f, "\n");
     //     }
     // }
-    fprintf(f, "\n------------------------------------------------------------------------------------------------------------\n");
     fclose(f);
 }
 
@@ -1304,26 +1324,12 @@ void get_bouding_box_path_from_tracks_path(char* path_tracks)
 void create_debug_dir(char *output_dest)
 // ==========================================================================================================================================================================
 {
-    char tmp_asso[100], tmp_stats[100];
     struct stat status = { 0 };
-    sprintf(tmp_asso,  "%s/assoconflicts", output_dest);
-    sprintf(tmp_stats, "%s/stats",         output_dest);
 
-    sprintf(path_assoconflicts_f, "%s/",               tmp_asso);
-    sprintf(path_stats_f,         "%s/",               tmp_stats);
-    sprintf(path_motion,          "%s/motion.txt",     path_assoconflicts_f);
-    sprintf(path_extraction,      "%s/extraction.txt", path_assoconflicts_f);
-    sprintf(path_error,           "%s/error.txt",      path_assoconflicts_f);
-    sprintf(path_debug,           "%s/debug.txt",      path_assoconflicts_f);
+    sprintf(path_debug, "%s/", output_dest);
 
     if( stat(output_dest, &status) == -1 ) {
         mkdir( output_dest, 0700 );
-    }
-    if( stat(tmp_asso, &status) == -1 ) {
-        mkdir( tmp_asso, 0700 );
-    }
-    if( stat(tmp_stats, &status) == -1 ) {
-        mkdir( tmp_stats, 0700 );
     }
 }
 

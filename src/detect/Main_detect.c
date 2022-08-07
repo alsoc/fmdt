@@ -427,9 +427,9 @@ void main_detect(int argc, char** argv)
 
         PUTS("\t [DEBUG] Saving stats");
         if (output_stats){
-    	    create_debug_files (frame);
+    	    //create_debug_files (frame);
             disp(path_debug);
-            saveAssoConflicts(path_debug, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
+            saveAssoConflicts(path_debug, frame, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink);
             // saveMotion(path_motion, theta, tx, ty, frame-1);
             // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
             // saveError(path_error, stats0, n0);
