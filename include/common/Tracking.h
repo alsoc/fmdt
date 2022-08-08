@@ -19,6 +19,8 @@ typedef struct {
         // unsigned state;
         unsigned timestamp;
 
+        uint16 id;
+
         MeteorROI begin;
         MeteorROI end;
 
@@ -78,6 +80,7 @@ typedef struct elemBB{
     uint16 bb_y;
     uint16 rx;
     uint16 ry;
+    uint16 track_id;
     struct elemBB *next;
 } elemBB;
 

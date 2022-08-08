@@ -50,7 +50,7 @@ void parseTracks(const char*filename, Track* tracks, int* n);
 void saveMotion(const char*filename, double theta, double tx, double ty, int frame);
 void saveStats(const char*filename, MeteorROI* stats, int n);
 void saveTracks(const char*filename, Track* tracks, int n);
-void saveTabBB(const char *filename, elemBB **tabBB, int n);
+void saveTabBB(const char *filename, elemBB **tabBB, Track* tracks, int n, int track_all);
 void saveBoundingBox(const char*filename, uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, int frame);
 void saveAsso(const char*filename, uint32 **Nearest, float32 **distances, int nc0, MeteorROI *stats);
 void saveAsso_VT(const char*filename, int nc0, MeteorROI *stats, int frame);
@@ -61,7 +61,7 @@ void saveErrorMoy(const char *filename, double errMoy, double eType);
 void saveMotionExtraction(char *filename, MeteorROI *stats0, MeteorROI *stats1, int nc0, double theta, double tx, double ty, int frame);
 
 int sursegmentation(MeteorROI *stats, int n);
-void plot_bouding_box(rgb8** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8 color);
+void plot_bounding_box(rgb8** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8 color);
 
 // Analysing
 void filter_speed_binarize(uint32** in, int i0, int i1, int j0, int j1, uint8** out, MeteorROI* stats);

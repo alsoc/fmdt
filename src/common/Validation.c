@@ -227,10 +227,13 @@ void Validation(Track* tracks, int tracks_nb)
         if(input) {
             input->nb_tracks++;
             input->hits = track->time + input->hits +1;
-            track->is_valid = 1;
             positiveTrue[track->obj_type]++;
+            if (track->obj_type == METEOR)
+                track->is_valid = 1;
         } else { // Piste ne matche pas avec input
             positiveFalse[track->obj_type]++;
+            if (track->obj_type == METEOR)
+                track->is_valid = 2;
         }
     }
 

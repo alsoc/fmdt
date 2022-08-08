@@ -448,7 +448,7 @@ void main_detect(int argc, char** argv)
     fprintf(stderr, "\n");
     
     if (output_bb)
-        saveTabBB(path_bounding_box, tabBB, NB_FRAMES);
+        saveTabBB(path_bounding_box, tabBB, tracks, NB_FRAMES, track_all);
     //saveTracks(path_tracks, tracks, last);
     printTracks2(tracks, last, track_all);
 

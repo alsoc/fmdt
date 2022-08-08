@@ -44,17 +44,17 @@ void initTabBB()
     }
 }
 
-static void addToList(uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, int frame)
+static void addToList(uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, uint16 track_id, int frame)
 {
-
+    assert(frame < NB_FRAMES);
     elemBB *newE = (elemBB*)malloc(sizeof(elemBB));
     newE->rx = rx;
     newE->ry = ry;
     newE->bb_x = bb_x;
     newE->bb_y = bb_y;
+    newE->track_id = track_id;
     newE->next = tabBB[frame];
     *(tabBB+frame) = newE;
-
 }
 
 // ---------------------------------------------------------------------------------------------------
@@ -62,6 +62,7 @@ void init_Track(Track *tracks, int n)
 // ---------------------------------------------------------------------------------------------------
 {
     for (int i = 0; i < n ; i++){
+        tracks[i].id        = 0;
         tracks[i].timestamp = 0;
         tracks[i].time      = 0;
         tracks[i].state     = 0;
@@ -80,6 +81,7 @@ void init_Track(Track *tracks, int n)
 void clear_index_Track(Track *tracks, int i)
 // ---------------------------------------------------------------------------------------------------
 {
+    tracks[i].id        = 0;
     tracks[i].timestamp = 0;
     tracks[i].time      = 0;
     tracks[i].state     = 0;
@@ -100,25 +102,25 @@ void clear_buffer()
     MeteorROI *b; 
     for(int i = 0; i < SIZE_BUF; i++){
         b = &buffer[i].stats0;
-        b->ID   = 0;
-        b->S    = 0;
-        b->x    = 0;
-        b->y    = 0;
-        b->Sx   = 0;
-        b->Sy   = 0;
-        b->Sx2  = 0;
-        b->Sy2  = 0;
-        b->Sxy  = 0;
-        b->xmin = 0;
-        b->ymin = 0;
-        b->xmax = 0;
-        b->ymax = 0;
-        b->dx   = 0.0;
-        b->dy   = 0.0;
-        b->error= 0.0;
-        b->prev = 0;
-        b->next = 0;
-        b->time = 0;
+        b->ID     = 0;
+        b->S      = 0;
+        b->x      = 0;
+        b->y      = 0;
+        b->Sx     = 0;
+        b->Sy     = 0;
+        b->Sx2    = 0;
+        b->Sy2    = 0;
+        b->Sxy    = 0;
+        b->xmin   = 0;
+        b->ymin   = 0;
+        b->xmax   = 0;
+        b->ymax   = 0;
+        b->dx     = 0.0;
+        b->dy     = 0.0;
+        b->error  = 0.0;
+        b->prev   = 0;
+        b->next   = 0;
+        b->time   = 0;
         b->motion = 0;
         
         buffer[i].frame = 0;
@@ -130,30 +132,29 @@ void clear_index_buffer(int i)
 // ---------------------------------------------------------------------------------------------------
 {
     MeteorROI *b = &buffer[i].stats0;
-    b->ID   = 0;
-    b->S    = 0;
-    b->x    = 0;
-    b->y    = 0;
-    b->Sx   = 0;
-    b->Sy   = 0;
-    b->Sx2  = 0;
-    b->Sy2  = 0;
-    b->Sxy  = 0;
-    b->xmin = 0;
-    b->ymin = 0;
-    b->xmax = 0;
-    b->ymax = 0;
-    b->dx   = 0.0;
-    b->dy   = 0.0;
-    b->error= 0.0;
-    b->prev = 0;
-    b->next = 0;
-    b->time = 0;
+    b->ID     = 0;
+    b->S      = 0;
+    b->x      = 0;
+    b->y      = 0;
+    b->Sx     = 0;
+    b->Sy     = 0;
+    b->Sx2    = 0;
+    b->Sy2    = 0;
+    b->Sxy    = 0;
+    b->xmin   = 0;
+    b->ymin   = 0;
+    b->xmax   = 0;
+    b->ymax   = 0;
+    b->dx     = 0.0;
+    b->dy     = 0.0;
+    b->error  = 0.0;
+    b->prev   = 0;
+    b->next   = 0;
+    b->time   = 0;
     b->motion = 0;
+
     buffer[i].frame = 0;
 }
-
-
 
 // ---------------------------------------------------------------------------------------------------
 void update_buffer(int frame){
@@ -167,10 +168,7 @@ void update_buffer(int frame){
             }
         }
     }  
-
 }
-
-
 
 // ---------------------------------------------------------------------------------------------------
 void insert_buffer(MeteorROI stats0, MeteorROI stats1, int frame)
@@ -180,31 +178,31 @@ void insert_buffer(MeteorROI stats0, MeteorROI stats1, int frame)
     MeteorROI *b1;
 
     for (int i = 0; i < SIZE_BUF; i++){
-        b = &buffer[i].stats0;
+        b  = &buffer[i].stats0;
         b1 = &buffer[i].stats1;
         if (buffer[i].stats0.ID == 0){   
-            b->ID     = stats0.ID;       b1->ID     = stats1.ID;
-            b->S      = stats0.S;        b1->S      = stats1.S;
-            b->x      = stats0.x;        b1->x      = stats1.x;
-            b->y      = stats0.y;        b1->y      = stats1.y;
-            b->Sx     = stats0.Sx;       b1->Sx     = stats1.Sx;
-            b->Sy     = stats0.Sy;       b1->Sy     = stats1.Sy;
-            b->Sx2    = stats0.Sx2;      b1->Sx2    = stats1.Sx2;
-            b->Sy2    = stats0.Sy2;      b1->Sy2    = stats1.Sy2;
-            b->Sxy    = stats0.Sxy;      b1->Sxy    = stats1.Sxy;
-            b->xmin   = stats0.xmin;     b1->xmin   = stats1.xmin;
-            b->ymin   = stats0.ymin;     b1->ymin   = stats1.ymin;
-            b->xmax   = stats0.xmax;     b1->xmax   = stats1.xmax;
-            b->ymax   = stats0.ymax;     b1->ymax   = stats1.ymax;
-            b->dx     = stats0.dx;       b1->dx     = stats1.dx;
-            b->dy     = stats0.dy;       b1->dy     = stats1.dy;
-            b->error  = stats0.error;    b1->error  = stats1.error;
-            b->prev   = stats0.prev;     b1->prev   = stats1.prev;
-            b->next   = stats0.next;     b1->next   = stats1.next;
-            b->time   = stats0.time;     b1->time   = stats1.time;
+            b->ID     = stats0.ID;     b1->ID     = stats1.ID;
+            b->S      = stats0.S;      b1->S      = stats1.S;
+            b->x      = stats0.x;      b1->x      = stats1.x;
+            b->y      = stats0.y;      b1->y      = stats1.y;
+            b->Sx     = stats0.Sx;     b1->Sx     = stats1.Sx;
+            b->Sy     = stats0.Sy;     b1->Sy     = stats1.Sy;
+            b->Sx2    = stats0.Sx2;    b1->Sx2    = stats1.Sx2;
+            b->Sy2    = stats0.Sy2;    b1->Sy2    = stats1.Sy2;
+            b->Sxy    = stats0.Sxy;    b1->Sxy    = stats1.Sxy;
+            b->xmin   = stats0.xmin;   b1->xmin   = stats1.xmin;
+            b->ymin   = stats0.ymin;   b1->ymin   = stats1.ymin;
+            b->xmax   = stats0.xmax;   b1->xmax   = stats1.xmax;
+            b->ymax   = stats0.ymax;   b1->ymax   = stats1.ymax;
+            b->dx     = stats0.dx;     b1->dx     = stats1.dx;
+            b->dy     = stats0.dy;     b1->dy     = stats1.dy;
+            b->error  = stats0.error;  b1->error  = stats1.error;
+            b->prev   = stats0.prev;   b1->prev   = stats1.prev;
+            b->next   = stats0.next;   b1->next   = stats1.next;
+            b->time   = stats0.time;   b1->time   = stats1.time;
             b->motion = stats0.motion; b1->motion = stats1.motion;
-            buffer[i].frame = frame;
 
+            buffer[i].frame = frame;
             return;
         }
     }
@@ -268,24 +266,23 @@ static void Track_extrapolate(Track *t, int theta, int tx, int ty)
 
 void update_bounding_box(Track* track, MeteorROI stats, int frame)
 {
-    PUTS("UPADTAE BB");
+    PUTS("UPDATE BB");
     idisp(stats.xmin);
     idisp(stats.xmax);
     uint16 rx, ry, bb_x, bb_y;
 
     // juste pour debug (affichage)
-    track->bb_x      = (uint16)ceil((double)((stats.xmin + stats.xmax))/2);
-    track->bb_y      = (uint16)ceil((double)((stats.ymin + stats.ymax))/2);
-    track->rx        = track->bb_x - stats.xmin + 5;
-    track->ry        = track->bb_y - stats.ymin + 5;
+    track->bb_x = (uint16)ceil((double)((stats.xmin + stats.xmax))/2);
+    track->bb_y = (uint16)ceil((double)((stats.ymin + stats.ymax))/2);
+    track->rx   = track->bb_x - stats.xmin +5;
+    track->ry   = track->bb_y - stats.ymin +5;
 
-    bb_x      = (uint16)ceil((double)((stats.xmin + stats.xmax))/2);
-    bb_y      = (uint16)ceil((double)((stats.ymin + stats.ymax))/2);
-    rx        = bb_x - stats.xmin + 5;
-    ry        = bb_y - stats.ymin + 5;
+    bb_x = (uint16)ceil((double)((stats.xmin + stats.xmax))/2);
+    bb_y = (uint16)ceil((double)((stats.ymin + stats.ymax))/2);
+    rx   = bb_x - stats.xmin +5;
+    ry   = bb_y - stats.ymin +5;
 
-    addToList(rx, ry, bb_x, bb_y, frame-1);
-
+    addToList(rx, ry, bb_x, bb_y, track->id, frame-1);
 }
 
 // -----------------------------------------------------
@@ -320,7 +317,6 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                         }
                 }
             }
-
 
             if(tracks[i].state == TRACK_LOST){
                 PUTS("TRACK_LOST");
@@ -358,12 +354,14 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                         tracks[i].b = y - a * stats1[next].x;
                     }
                     else {
-                        if(!track_all){
-                            // clear_index_Track(tracks, i);
-                            // continue;
+                        if(tracks[i].obj_type == METEOR) {
+                            if (!track_all) {
+                                clear_index_Track(tracks, i);
+                                continue;
+                            }
+                            else
+                                tracks[i].obj_type = STAR;
                         }
-                        if(tracks[i].obj_type == METEOR)
-                            tracks[i].obj_type = STAR;
                     }
 
                     // tracks[i].vitesse[(tracks[i].cur)++] = stats0[tracks[i].end.ID].error;
@@ -427,16 +425,15 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
 
     if (i == -1) return;
 
-    track->begin     =  buffer[i].stats0;
-    
-    track->bb_x      = (uint16)ceil((double)((buffer[i].stats0.xmin + buffer[i].stats0.xmax))/2);
-    track->bb_y      = (uint16)ceil((double)((buffer[i].stats0.ymin + buffer[i].stats0.ymax))/2);
+    track->id    = (*last) +1;
+    track->begin = buffer[i].stats0;
+    track->bb_x  = (uint16)ceil((double)((buffer[i].stats0.xmin + buffer[i].stats0.xmax))/2);
+    track->bb_y  = (uint16)ceil((double)((buffer[i].stats0.ymin + buffer[i].stats0.ymax))/2);
 
     update_bounding_box(track, buffer[i].stats0, frame-1);
     // saveBoundingBox(path_bounding_box, track->rx, track->ry, track->bb_x, track->bb_y, frame-2);
     update_bounding_box(track, buffer[i].stats1, frame);
     // saveBoundingBox(path_bounding_box, track->rx, track->ry, track->bb_x, track->bb_y, frame-1);
-
 
     float32 dx = (buffer[i].stats1.x - buffer[i].stats0.x);
     float32 dy = (buffer[i].stats1.y - buffer[i].stats0.y);
@@ -460,20 +457,19 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
 void insert_new_track_stars(MeteorROI last_stats,  MeteorROI begin, Track *tracks, int *last, int frame, int frame_star)
 // -----------------------------------------------------
 {
+    assert((*last)+1 < SIZE_MAX_TRACKS);
     Track *track = &tracks[++(*last)];
 
-    track->begin     =  last_stats;
-    
+    track->id        = (*last) +1;
+    track->begin     = last_stats;
     track->bb_x      = (uint16)ceil((double)((begin.xmin + begin.xmax))/2);
     track->bb_y      = (uint16)ceil((double)((begin.ymin + begin.ymax))/2);
-
     track->end       = last_stats; 
     track->time      = 1; 
     track->timestamp = frame - frame_star;
-    track->state = TRACK_NEW;
+    track->state     = TRACK_NEW;
     track->obj_type  = NOISE;
 }
-
 
 // -----------------------------------------------------
 void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset, int theta, int tx, int ty, int r_extrapol, int d_line, float diff_deviation, int track_all, int frame_star)
@@ -493,8 +489,6 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
         int asso = stats0[i].next;
         // si mouvement detecté
         if (fabs(e-errMoy) > diff_deviation * eType && asso){
-
-            
             if (stats0[i].state) {
                 PUTS("EXTRAPOLATEED");
                 continue; // Extrapolated
@@ -529,7 +523,6 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
                 idisp(frame_star);
                 if(stats0[i].time == frame_star){
                     insert_new_track_stars(stats0[i], stats1[stats0[i].next], tracks, last, frame, frame_star);
-                
                 }
             } 
         }

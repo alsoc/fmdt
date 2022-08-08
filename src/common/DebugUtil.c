@@ -14,8 +14,8 @@
 #include "macro_debug.h"
 #include "Tracking.h"
 
-#include "ffmpeg-io/reader.h"
-#include "ffmpeg-io/writer.h"
+#include <ffmpeg-io/reader.h>
+#include <ffmpeg-io/writer.h>
 
 #include <nrc2.h>
 #include <assert.h>
@@ -26,7 +26,6 @@
 #include <math.h>
 #include <stdio.h>
 #include <sys/stat.h>
-
 
 #define SIZE_BUF 20
 
@@ -96,16 +95,15 @@ void printTabBB(elemBB **tabBB, int n)
     for (int i = 0; i < n; i++){
         if(tabBB[i]!= NULL){
             for( elemBB *current =tabBB[i]; current != NULL; current = current->next ){
-                printf( "%d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y );
+                printf( "%d %d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y, current->track_id );
             }
         }
     }
 }
 
 
-void saveTabBB(const char *filename, elemBB **tabBB, int n)
+void saveTabBB(const char *filename, elemBB **tabBB, Track* tracks, int n, int track_all)
 {
-
     FILE *f = fopen(filename, "w");
     if (f == NULL){
         fprintf(stderr, "(EE) error ouverture %s \n", filename);
@@ -113,9 +111,10 @@ void saveTabBB(const char *filename, elemBB **tabBB, int n)
     }
 
     for (int i = 0; i < n; i++){
-        if(tabBB[i]!= NULL){
+        if(tabBB[i] != NULL){
             for( elemBB *current =tabBB[i]; current != NULL; current = current->next ){
-                fprintf(f, "%d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y );
+                if ( track_all || (!track_all && tracks[(current->track_id)-1].obj_type == METEOR) )
+                    fprintf(f, "%d %d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y, current->track_id );
             }
         }
     }
@@ -183,7 +182,7 @@ void printTracks2(Track* tracks, int n, int track_all)
     for(int i = 0; i<= n; i++){
         if(tracks[i].time && (track_all || (!track_all && tracks[i].obj_type == METEOR))) {
             printf("   %5d || %7d | %6.1f | %6.1f || %7d | %6.1f | %6.1f || %s \n",
-                   track_id,
+                   tracks[i].id,
                    tracks[i].timestamp,
                    tracks[i].begin.x,
                    tracks[i].begin.y,
@@ -355,25 +354,26 @@ void parseTracks(const char*filename, Track* tracks, int* n)
         {
             sscanf(line, "%d || %d | %f | %f || %d | %f | %f || %s ", &tid, &t0, &x0, &y0, &t1, &x1, &y1, obj_type_str);
 
-            tracks[tid].timestamp = t0;
-            tracks[tid].time      = t1-t0;
-            tracks[tid].state     = 0;
-            tracks[tid].begin.x   = x0;
-            tracks[tid].begin.y   = y0;
-            tracks[tid].end.x     = x1;
-            tracks[tid].end.y     = y1;
-            // tracks[tid].bb_x   = bb_x;
-            // tracks[tid].bb_y   = bb_y;
+            tracks[*n].id        = tid;
+            tracks[*n].timestamp = t0;
+            tracks[*n].time      = t1-t0;
+            tracks[*n].state     = 0;
+            tracks[*n].begin.x   = x0;
+            tracks[*n].begin.y   = y0;
+            tracks[*n].end.x     = x1;
+            tracks[*n].end.y     = y1;
+            // tracks[*n].bb_x   = bb_x;
+            // tracks[*n].bb_y   = bb_y;
             if(!strcmp(obj_type_str, "noise"))
-                tracks[tid].obj_type = NOISE;
+                tracks[*n].obj_type = NOISE;
             else if(!strcmp(obj_type_str, "meteor"))
-                tracks[tid].obj_type = METEOR;
+                tracks[*n].obj_type = METEOR;
             else if(!strcmp(obj_type_str, "star"))
-                tracks[tid].obj_type = STAR;
+                tracks[*n].obj_type = STAR;
             else
-                tracks[tid].obj_type = UNKNOWN;
+                tracks[*n].obj_type = UNKNOWN;
 
-            *n = tid+1;
+            (*n)++;
         }
     }
 
@@ -697,7 +697,7 @@ void filter_speed_binarize(uint32** in, int i0, int i1, int j0, int j1, uint8** 
  * Draw *
  ********/
  
-void plot_bouding_box(rgb8** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8 color)
+void plot_bounding_box(rgb8** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8 color)
 {
     for (int b=0; b<border ; b++) {
         ymin++; ymax--;xmin++;xmax--;
@@ -892,8 +892,8 @@ void saveFrame_tracking(const char*filename, uint8**I, Track* tracks, int tracks
                 // if(tracks[i].is_valid) {
                     
                     // if(tracks[i].state != TRACK_EXTRAPOLATED) 
-                    plot_bouding_box(img, ymin,ymax,xmin,xmax, 1, green);
-                    // else plot_bouding_box(img, ymin,ymax,xmin,xmax, 2, blue);
+                    plot_bounding_box(img, ymin,ymax,xmin,xmax, 1, green);
+                    // else plot_bounding_box(img, ymin,ymax,xmin,xmax, 2, blue);
             }
         }
     }
@@ -960,8 +960,8 @@ void saveVideoFrame_tracking(const char*filename, uint8** I, Track* tracks, int 
                 // if(tracks[i].is_valid) {
                     
                     // if(tracks[i].state != TRACK_EXTRAPOLATED) 
-                    plot_bouding_box(img, ymin,ymax,xmin,xmax, 2, green);
-                    // else plot_bouding_box(img, ymin,ymax,xmin,xmax, 2, blue);
+                    plot_bounding_box(img, ymin,ymax,xmin,xmax, 2, green);
+                    // else plot_bounding_box(img, ymin,ymax,xmin,xmax, 2, blue);
             }
         }
     }
