@@ -168,10 +168,17 @@ void printTracks2(Track* tracks, int n, int track_all)
     printf("#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type \n");
     printf("# -------||---------|--------|--------||---------|--------|--------||---------\n");
 
-    char* type_lut[4] = {"unknown",  // 0
-                         "  noise",  // 1
-                         " meteor",  // 2
-                         "   star"}; // 3
+    char str_unknown[128] = "unknown";
+    char str_noise  [128] = "  noise";
+    char str_meteor [128] = " meteor";
+    char str_star   [128] = "   star";
+
+    char* type_lut[N_OBJ_TYPES];
+    type_lut[METEOR]  = str_meteor;
+    type_lut[STAR]    = str_star;
+    type_lut[NOISE]   = str_noise;
+    type_lut[UNKNOWN] = str_unknown;
+
     unsigned track_id = 0;
     for(int i = 0; i<= n; i++){
         if(tracks[i].time && (track_all || (!track_all && tracks[i].obj_type == METEOR))) {
@@ -243,17 +250,17 @@ void saveStats_file(FILE *f, MeteorROI* stats, int n)
     }
     fprintf(f, "# Regions of interest (ROI) [%d]: \n", cpt);
     if (cpt) {
-        fprintf(f, "# -------------------||---------------------------||---------------------------||-------------------\n");
-        fprintf(f, "#      Identifier    ||        Bounding Box       ||          Surface          ||      Center       \n");
-        fprintf(f, "# -------------------||---------------------------||---------------------------||-------------------\n");
-        fprintf(f, "# -----|------|------||------|------|------|------||-----|----------|----------||---------|---------\n");
-        fprintf(f, "#  cur | prev | next || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y \n");
-        fprintf(f, "# -----|------|------||------|------|------|------||-----|----------|----------||---------|---------\n");
+        fprintf(f, "# -----||---------------------------||---------------------------||-------------------\n");
+        fprintf(f, "#  ROI ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       \n");
+        fprintf(f, "# -----||---------------------------||---------------------------||-------------------\n");
+        fprintf(f, "# -----||------|------|------|------||-----|----------|----------||---------|---------\n");
+        fprintf(f, "#   ID || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y \n");
+        fprintf(f, "# -----||------|------|------|------||-----|----------|----------||---------|---------\n");
     }
     for(int i = 1; i<= n; i++){
         if(stats[i].S != 0)
-            fprintf(f, "  %4d | %4d | %4d || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f \n",
-            stats[i].ID, stats[i].prev, stats[i].next, stats[i].xmin, stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx, stats[i].Sy, stats[i].x, stats[i].y);
+            fprintf(f, "  %4d || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f \n",
+            stats[i].ID, stats[i].xmin, stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx, stats[i].Sy, stats[i].x, stats[i].y);
     }
 }
 
@@ -573,9 +580,9 @@ void saveAssoConflicts(const char* path, int frame, uint32 *conflicts, uint32 **
     }
     
     // stats
-    fprintf(f, "# Frame n°%05d\n", frame);
+    fprintf(f, "# Frame n°%05d (cur)\n", frame);
     saveStats_file(f, stats0, n_asso);
-    fprintf(f, "#\n# Frame n°%05d\n", frame+1);
+    fprintf(f, "#\n# Frame n°%05d (next)\n", frame+1);
     saveStats_file(f, stats1, n_conflict);
     fprintf(f, "#\n");
 
@@ -595,10 +602,10 @@ void saveAssoConflicts(const char* path, int frame, uint32 *conflicts, uint32 **
         fprintf(f, "# * std deviation = %.3f\n", eType);
 
         fprintf(f, "# ------------||---------------||------------------------\n");
-        fprintf(f, "#  Identifier ||    Distance   ||          Error         \n");
+        fprintf(f, "#    ROI ID   ||    Distance   ||          Error         \n");
         fprintf(f, "# ------------||---------------||------------------------\n");
         fprintf(f, "# -----|------||--------|------||-------|-------|--------\n");
-        fprintf(f, "#  cur | next ||      d | k-nn ||    dx |    dy |      e \n");
+        fprintf(f, "#  cur | next || pixels | k-nn ||    dx |    dy |      e \n");
         fprintf(f, "# -----|------||--------|------||-------|-------|--------\n");
     }
     for(int i = 1; i<= n_asso; i++){
@@ -777,8 +784,10 @@ void saveFrame_threshold(const char*filename, uint8**I0, uint8**I1, int i0, int 
 
 
     file = fopen(filename, "wb");
-    if (file == NULL)
-      nrerror("ouverture du fichier %s impossible dans saveVideoFrame_quad\n");
+    if (file == NULL) {
+      char message[256] = "ouverture du fichier %s impossible dans saveVideoFrame_quad\n";
+      nrerror(message);
+    }
 
     /* enregistrement de l'image au format rpgm */
 
@@ -819,8 +828,10 @@ void saveFrame_ui32matrix(const char*filename, uint32**I, int i0, int i1, int j0
     }
 
     file = fopen(filename, "wb");
-    if (file == NULL)
-      nrerror("ouverture du fichier %s impossible dans saveVideoFrame_quad\n");
+    if (file == NULL){
+      char message[256] = "ouverture du fichier %s impossible dans saveVideoFrame_quad\n";
+      nrerror(message);
+    }
 
     /* enregistrement de l'image au format rpgm */
 
@@ -888,8 +899,10 @@ void saveFrame_tracking(const char*filename, uint8**I, Track* tracks, int tracks
     }
 
     file = fopen(filename, "wb");
-    if (file == NULL)
-      nrerror("ouverture du fichier %s impossible dans saveVideoFrame_quad\n");
+    if (file == NULL){
+      char message[256] = "ouverture du fichier %s impossible dans saveVideoFrame_quad\n";
+      nrerror(message);
+    }
 
     /* enregistrement de l'image au format rpgm */
 
@@ -982,8 +995,10 @@ void saveFrame_ui8matrix(const char*filename, uint8**I, int i0, int i1, int j0, 
     }
 
     file = fopen(filename, "wb");
-    if (file == NULL)
-      nrerror("ouverture du fichier %s impossible dans saveVideoFrame_quad\n");
+    if (file == NULL){
+      char message[256] = "ouverture du fichier %s impossible dans saveVideoFrame_quad\n";
+      nrerror(message);
+    }
 
     /* enregistrement de l'image au format rpgm */
 
@@ -1120,8 +1135,10 @@ void saveFrame_quad(const char*filename, uint8**I0, uint8**I1, uint32**I2, uint3
     }
 
     file = fopen(filename, "wb");
-    if (file == NULL)
-      nrerror("ouverture du fichier %s impossible dans saveVideoFrame_quad\n");
+    if (file == NULL){
+      char message[256] = "ouverture du fichier %s impossible dans saveVideoFrame_quad\n";
+      nrerror(message);
+    }
 
     /* enregistrement de l'image au format rpgm */
 
@@ -1195,8 +1212,10 @@ void saveFrame_quad_hysteresis(const char*filename, uint8**I0, uint32**SH, uint3
     }
 
     file = fopen(filename, "wb");
-    if (file == NULL)
-      nrerror("ouverture du fichier %s impossible dans saveVideoFrame_quad\n");
+    if (file == NULL){
+      char message[256] = "ouverture du fichier %s impossible dans saveVideoFrame_quad\n";
+      nrerror(message);
+    }
 
     /* enregistrement de l'image au format rpgm */
 

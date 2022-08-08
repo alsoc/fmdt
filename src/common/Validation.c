@@ -120,10 +120,16 @@ int Validation_init(char* _inputs_file)
 
 void Validation_print(const Track* tracks, const int tracks_nb)
 {
-    char* type_lut[4] = {"unknown",  // 0
-                         "  noise",  // 1
-                         " meteor",  // 2
-                         "   star"}; // 3
+    char str_unknown[128] = "unknown";
+    char str_noise  [128] = "  noise";
+    char str_meteor [128] = " meteor";
+    char str_star   [128] = "   star";
+
+    char* type_lut[N_OBJ_TYPES];
+    type_lut[METEOR]  = str_meteor;
+    type_lut[STAR]    = str_star;
+    type_lut[NOISE]   = str_noise;
+    type_lut[UNKNOWN] = str_unknown;
 
     float tracking_rate[N_OBJ_TYPES +1];
     unsigned total_tracked_frames[N_OBJ_TYPES +1] = {0};

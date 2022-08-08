@@ -47,13 +47,13 @@ void initTabBB()
 static void addToList(uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, int frame)
 {
 
-    elemBB *new = malloc(sizeof(elemBB));
-    new->rx = rx;
-    new->ry = ry;
-    new->bb_x = bb_x;
-    new->bb_y = bb_y;
-    new->next = tabBB[frame];
-    *(tabBB+frame) = new;
+    elemBB *newE = (elemBB*)malloc(sizeof(elemBB));
+    newE->rx = rx;
+    newE->ry = ry;
+    newE->bb_x = bb_x;
+    newE->bb_y = bb_y;
+    newE->next = tabBB[frame];
+    *(tabBB+frame) = newE;
 
 }
 
@@ -247,23 +247,23 @@ static void Track_extrapolate(Track *t, int theta, int tx, int ty)
 }
 
 
-static char* state2char(int state)
-{
-    switch(state)
-    {
-        case TRACK_NEW:
-            return "N";
-        case TRACK_UPDATED:
-            return "U";
-        case TRACK_EXTRAPOLATED:
-            return "E";
-        case TRACK_FINISHED:
-            return "F";
-        case TRACK_LOST:
-            return "L";
-    }
-    return "?";
-}
+// static char* state2char(int state)
+// {
+//     switch(state)
+//     {
+//         case TRACK_NEW:
+//             return "N";
+//         case TRACK_UPDATED:
+//             return "U";
+//         case TRACK_EXTRAPOLATED:
+//             return "E";
+//         case TRACK_FINISHED:
+//             return "F";
+//         case TRACK_LOST:
+//             return "L";
+//     }
+//     return "?";
+// }
 
 
 void update_bounding_box(Track* track, MeteorROI stats, int frame)

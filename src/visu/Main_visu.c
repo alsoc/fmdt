@@ -8,6 +8,8 @@
 #include <string.h>
 #include <sys/stat.h>
 #include <nrc2.h>
+#ifdef OPENCV_LINK
+#endif
 
 #include "Features.h"
 #include "Tracking.h"
@@ -135,8 +137,10 @@ void saveFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, i
     }
 
     file = fopen(filename, "wb");
-    if (file == NULL)
-      nrerror("ouverture du fichier %s impossible dans saveFrame_listBB\n");
+    if (file == NULL){
+      char message[256] = "ouverture du fichier %s impossible dans saveFrame_listBB\n";
+      nrerror(message);
+    }
 
     /* enregistrement de l'image au format rpgm */
 
@@ -210,12 +214,12 @@ void main_visu(int argc, char** argv)
 // ==============================================================================================================================
 {
     // default values
-    char* def_input_tracks  =             NULL;
-    char* def_input_bb      =             NULL;
-    char* def_input_video   =             NULL;
-    char* def_output_video  = "./out_visu.mp4";
-    char* def_output_frames =             NULL;
-    char* def_validation    =             NULL;
+    char* def_input_tracks      =             NULL;
+    char* def_input_bb          =             NULL;
+    char* def_input_video       =             NULL;
+    char  def_output_video[256] = "./out_visu.mp4";
+    char* def_output_frames     =             NULL;
+    char* def_validation        =             NULL;
 
     if (find_arg(argc, argv, "-h")) {
         fprintf(stderr, "  --input-tracks     Path vers le fichier avec les tracks                [%s]\n", def_input_tracks );
@@ -414,7 +418,6 @@ void test_max(int argc, char** argv)
     if (find_arg(argc, argv, "-h")) {
         fprintf(stderr, "usage: %s %s [options] <input_file>\n", argv[0], argv[1]);
         fprintf(stderr, "  --input-video Path vers le fichier avec les tracks\n");
-        fprintf(stderr, "  --input-video Path vers le fichier avec les tracks\n");
         fprintf(stderr, "  --validation0 Fichier contenant la vérité terrain de la séquence\n");
         fprintf(stderr, "  --validation1 Fichier contenant la 2eme vérité terrain de la séquence\n");
         fprintf(stderr, "  --start-frame Image de départ dans la séquence\n");
@@ -455,7 +458,8 @@ void test_max(int argc, char** argv)
     parseTracks(src_path, tracks1, &nb_tracks);
 
     uint8 **I0    = ui8matrix(i0-b, i1+b, j0-b, j1+b);
-    MLoadPGM_ui8matrix("max.pgm", i0, i1, j0, j1, I0);
+    char max_filename[128] = "max.pgm";
+    MLoadPGM_ui8matrix(max_filename, i0, i1, j0, j1, I0);
 
     // calculs des BB (bounding box) des tracks 
     calc_BB(tracks0, nb_tracks, i0, i1, j0, j1);

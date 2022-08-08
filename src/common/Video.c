@@ -2,9 +2,9 @@
 
 #include <stdlib.h>
 
-inline Video* Video_init_from_file(char* filename, int start, int end, int skip, int* i0, int* i1, int* j0, int* j1)
+Video* Video_init_from_file(char* filename, int start, int end, int skip, int* i0, int* i1, int* j0, int* j1)
 {
-    Video* video = malloc(sizeof(Video));
+    Video* video = (Video*)malloc(sizeof(Video));
     if(!video) {
         fprintf(stderr, "(EE) can't allocate Video structure\n");
         exit(1);

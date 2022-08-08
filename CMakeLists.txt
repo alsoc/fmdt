@@ -9,7 +9,8 @@ option(TAH_DETECT_EXE "compile the detection chain executable." ON)
 option(TAH_VISU_EXE "compile the visualization executable." ON)
 option(TAH_CHECK_EXE "compile the checking executable." ON)
 option(TAH_MAXRED_EXE "compile the max reduction executable." ON)
-OPTION(TAH_DEBUG "build the project using debugging code" OFF)
+option(TAH_DEBUG "build the project using debugging code" OFF)
+option(TAH_OPENCV_LINK "link with OpenCV library." OFF)
 
 # Print CMake options values --------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -19,6 +20,7 @@ message(STATUS "  * TAH_VISU_EXE: '${TAH_VISU_EXE}'")
 message(STATUS "  * TAH_CHECK_EXE: '${TAH_CHECK_EXE}'")
 message(STATUS "  * TAH_MAXRED_EXE: '${TAH_MAXRED_EXE}'")
 message(STATUS "  * TAH_DEBUG: '${TAH_DEBUG}'")
+message(STATUS "  * TAH_OPENCV_LINK: '${TAH_OPENCV_LINK}'")
 message(STATUS "Tau-h info: ")
 message(STATUS "  * CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 
@@ -37,6 +39,11 @@ set(exe_dir exe)
 # enable C99
 set(CMAKE_C_STANDARD 99)
 set(CMAKE_C_STANDARD_REQUIRED ON)
+if (TAH_OPENCV_LINK)
+	# enable C++11
+	set(CMAKE_CXX_STANDARD 11)
+	set(CMAKE_CXX_STANDARD_REQUIRED ON)
+endif()
 
 # Specify the executable and lib output path ----------------------------------
 # -----------------------------------------------------------------------------
@@ -54,9 +61,18 @@ set(src_common_files
 
 # Create binaries -------------------------------------------------------------
 # -----------------------------------------------------------------------------
+macro(tah_set_source_files_properties files key value)
+	foreach(_file IN ITEMS ${files})
+		set_source_files_properties(${_file} PROPERTIES ${key} ${value})
+	endforeach()
+endmacro()
+
 # objects
 add_library(tah-common-obj OBJECT ${src_common_files})
 list(APPEND tah_targets_list tah-common-obj)
+if (TAH_OPENCV_LINK)
+	tah_set_source_files_properties("${src_common_files}" LANGUAGE CXX)
+endif()
 
 # executables
 if(TAH_DETECT_EXE)
@@ -69,6 +85,9 @@ if(TAH_DETECT_EXE)
 	add_executable(tah-detect-exe $<TARGET_OBJECTS:tah-common-obj> ${src_detect_files})
 	list(APPEND tah_targets_list tah-detect-exe)
 	set_target_properties(tah-detect-exe PROPERTIES OUTPUT_NAME meteor-detect)
+	if (TAH_OPENCV_LINK)
+		tah_set_source_files_properties("${src_detect_files}" LANGUAGE CXX)
+	endif()
 endif()
 if(TAH_VISU_EXE)
 	set(src_visu_files
@@ -76,6 +95,9 @@ if(TAH_VISU_EXE)
 	add_executable(tah-visu-exe $<TARGET_OBJECTS:tah-common-obj> ${src_visu_files})
 	list(APPEND tah_targets_list tah-visu-exe)
 	set_target_properties(tah-visu-exe PROPERTIES OUTPUT_NAME meteor-visu)
+	if (TAH_OPENCV_LINK)
+		tah_set_source_files_properties("${src_visu_files}" LANGUAGE CXX)
+	endif()
 endif()
 if(TAH_CHECK_EXE)
 	set(src_check_files
@@ -83,6 +105,9 @@ if(TAH_CHECK_EXE)
 	add_executable(tah-check-exe $<TARGET_OBJECTS:tah-common-obj> ${src_check_files})
 	list(APPEND tah_targets_list tah-check-exe)
 	set_target_properties(tah-check-exe PROPERTIES OUTPUT_NAME meteor-check)
+	if (TAH_OPENCV_LINK)
+		tah_set_source_files_properties("${src_check_files}" LANGUAGE CXX)
+	endif()
 endif()
 if(TAH_MAXRED_EXE)
 	set(src_maxred_files
@@ -90,6 +115,9 @@ if(TAH_MAXRED_EXE)
 	add_executable(tah-maxred-exe $<TARGET_OBJECTS:tah-common-obj> ${src_maxred_files})
 	list(APPEND tah_targets_list tah-maxred-exe)
 	set_target_properties(tah-maxred-exe PROPERTIES OUTPUT_NAME meteor-maxred)
+	if (TAH_OPENCV_LINK)
+		tah_set_source_files_properties("${src_maxred_files}" LANGUAGE CXX)
+	endif()
 endif()
 
 # Add and compile sub-projects ------------------------------------------------
@@ -104,6 +132,10 @@ if (NOT TARGET nrc-slib)
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/nrc2/)
 endif()
 
+if (TAH_OPENCV_LINK)
+	find_package(OpenCV REQUIRED)
+endif()
+
 # Add definitions -------------------------------------------------------------
 # -----------------------------------------------------------------------------
 macro(tah_target_compile_definitions targets privacy dir)
@@ -114,6 +146,9 @@ endmacro()
 
 if (TAH_DEBUG)
 	tah_target_compile_definitions("${tah_targets_list}" PUBLIC ENABLE_DEBUG)
+endif()
+if (TAH_OPENCV_LINK)
+	tah_target_compile_definitions("${tah_targets_list}" PUBLIC OPENCV_LINK)
 endif()
 
 # Set include directory -------------------------------------------------------
@@ -126,6 +161,9 @@ endmacro()
 
 tah_target_include_directories("${tah_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/common)
 tah_target_include_directories("${tah_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/detect)
+if (TAH_OPENCV_LINK)
+	include_directories(${OpenCV_INCLUDE_DIRS})
+endif()
 
 # Link with dependencies ------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -138,3 +176,6 @@ endmacro()
 tah_target_link_libraries("${tah_targets_list}" PUBLIC ffmpeg-io-slib)
 tah_target_link_libraries("${tah_targets_list}" PUBLIC m)
 tah_target_link_libraries("${tah_targets_list}" PUBLIC nrc-slib)
+if (TAH_OPENCV_LINK)
+	tah_target_link_libraries("${tah_targets_list}" PUBLIC "${OpenCV_LIBS}")
+endif()
