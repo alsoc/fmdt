@@ -10,6 +10,8 @@
 #include <nrc2.h>
 #ifdef OPENCV_LINK
 #include <iostream>
+#include <vector>
+#include <tuple>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
@@ -30,7 +32,7 @@
 #define ORANGE 3
 #define BLUE   4
 #define YELLOW 5
-#define MISC  6
+#define MISC   6
 
 /*DEBUG*/
 extern char path_video_tracking[200];
@@ -80,13 +82,10 @@ rgb8 get_color(int color)
 }
 
 #ifdef OPENCV_LINK
-void plot_bounding_box_id(cv::Mat cv_img, const int y, const int x, const rgb8 color, const int id) {
-    char str_id[5];
-    sprintf(str_id, "%d", id);
-
+void plot_bounding_box_id(cv::Mat cv_img, const int y, const int x, const rgb8 color, const char* txt) {
     // Writing over the Image
     cv::Point org(x, y);
-    cv::putText(cv_img, str_id, org,
+    cv::putText(cv_img, txt, org,
                 cv::FONT_HERSHEY_DUPLEX, 0.7,
                 cv::Scalar(color.b, color.g, color.r), 1, cv::LINE_AA);
 }
@@ -142,12 +141,38 @@ void saveVideoFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int 
         }
     }
 
+    std::vector<std::tuple<int, int, rgb8, std::vector<int>>> list_of_ids;
+
     for(int i = 0; i < cpt; i++){
         int ymin = clamp(listBB[i].bb_y - listBB[i].ry, 1, i1-1);
         int ymax = clamp(listBB[i].bb_y + listBB[i].ry, 1, i1-1);
-        // int xmin = clamp(listBB[i].bb_x - listBB[i].rx, 1, j1-1);
         int xmax = clamp(listBB[i].bb_x + listBB[i].rx, 1, j1-1);
-        plot_bounding_box_id(cv_img, (ymin)+((ymax-ymin)/2), xmax+3, get_color(listBB[i].color), listBB[i].track_id);
+
+        int x = xmax+3;
+        int y = (ymin)+((ymax-ymin)/2);
+
+        bool found = false;
+        for (auto &l : list_of_ids) {
+            rgb8 c = get_color(listBB[i].color);
+            if (std::get<0>(l) == x && std::get<1>(l) == y &&
+                std::get<2>(l).r == c.r && std::get<2>(l).g == c.g && std::get<2>(l).b == c.b) {
+                std::get<3>(l).push_back(listBB[i].track_id);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            std::vector<int> v;
+            v.push_back(listBB[i].track_id);
+            list_of_ids.push_back(std::make_tuple(x, y, get_color(listBB[i].color), v));
+        }
+    }
+
+    for (auto id : list_of_ids) {
+        std::string txt = std::to_string(std::get<3>(id)[std::get<3>(id).size() -1]);
+        for (int s = std::get<3>(id).size() -2; s >= 0; s--)
+            txt += "," + std::to_string(std::get<3>(id)[s]);
+        plot_bounding_box_id(cv_img, std::get<1>(id), std::get<0>(id), std::get<2>(id), txt.c_str());
     }
 
     // Show our image inside a window.

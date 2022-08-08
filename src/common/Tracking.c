@@ -304,7 +304,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
             clear_index_Track(tracks, i);
             continue;
         }
-        if(tracks[i].time  && tracks[i].state != TRACK_FINISHED ){
+        if(tracks[i].time && tracks[i].state != TRACK_FINISHED ){
 
             if(tracks[i].state == TRACK_EXTRAPOLATED){
                 PUTS("TRACK_EXTRAPOLATED");
@@ -330,7 +330,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                     }
                 }
                 if (tracks[i].state != TRACK_EXTRAPOLATED){
-                    PUTS("FINISHEd");
+                    PUTS("FINISHED");
                     tracks[i].state = TRACK_FINISHED;
                 }
         
@@ -346,7 +346,9 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
 
                     float32 y = tracks[i].a * stats1[next].x + tracks[i].b;
 
-                    if ( (fabs(stats1[next].y - y) < d_line) && ((dx*tracks[i].dx >= 0.0f) && (dy*tracks[i].dy >= 0.0f)) && ((a < 0 && tracks[i].a < 0) ||  (a > 0 && tracks[i].a > 0) || ((a == INF) && (tracks[i].a == INF)))){
+                    if ( (fabs(stats1[next].y - y) < d_line) &&
+                         ((dx*tracks[i].dx >= 0.0f) && (dy*tracks[i].dy >= 0.0f)) &&
+                         ((a < 0 && tracks[i].a < 0) || (a > 0 && tracks[i].a > 0) || ((a == INF) && (tracks[i].a == INF))) ){
                         tracks[i].obj_type = METEOR;
                         tracks[i].a = a;
                         tracks[i].dx = dx;
@@ -379,41 +381,39 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
             }
         }
     }
-
-
 }
 
-// -----------------------------------------------------
-void updateTrackStars(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, int frame, int *offset, int *last)
-// -----------------------------------------------------
-{
-    int next;
-    int i;
+// // -----------------------------------------------------
+// void updateTrackStars(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, int frame, int *offset, int *last)
+// // -----------------------------------------------------
+// {
+//     int next;
+//     int i;
 
-    for (i = *offset; i <= *last; i++){
-        next = tracks[i].end.next;
-        if(!next){
-            *offset = i;
-            break; 
-        }
-    }
-    for (i = *offset; i <= *last; i++){
-        if(tracks[i].time  && tracks[i].state != TRACK_FINISHED ){
-                next = stats0[tracks[i].end.ID].next;
-                if(next){
-                    tracks[i].x = tracks[i].end.x;
-                    tracks[i].y = tracks[i].end.y;
-                    tracks[i].end = stats1[next];
-                    tracks[i].time++;
-                    update_bounding_box(tracks+i, stats1[next], frame);
-                } 
-                else{
-                    //on extrapole si pas finished
-                    tracks[i].state = TRACK_FINISHED;
-                }
-        }
-    }
-}
+//     for (i = *offset; i <= *last; i++){
+//         next = tracks[i].end.next;
+//         if(!next){
+//             *offset = i;
+//             break;
+//         }
+//     }
+//     for (i = *offset; i <= *last; i++){
+//         if(tracks[i].time  && tracks[i].state != TRACK_FINISHED ){
+//                 next = stats0[tracks[i].end.ID].next;
+//                 if(next){
+//                     tracks[i].x = tracks[i].end.x;
+//                     tracks[i].y = tracks[i].end.y;
+//                     tracks[i].end = stats1[next];
+//                     tracks[i].time++;
+//                     update_bounding_box(tracks+i, stats1[next], frame);
+//                 }
+//                 else{
+//                     //on extrapole si pas finished
+//                     tracks[i].state = TRACK_FINISHED;
+//                 }
+//         }
+//     }
+// }
 
 // à modifier pour optimisation
 // -----------------------------------------------------
@@ -506,14 +506,13 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
                     if(tracks[j].end.ID == stats0[i].ID && tracks[j].end.x == stats0[i].x ){
                         break;
                     }
-                }   
+                }
                 int k = search_buf_stat(stats0[i], frame);
                 if(j == *last + 1 || *last == -1){
                     // insertion seulement si dans le buffer (k != -1)
                     insert_new_track(stats0[i], tracks, last, frame, k);
                     clear_index_buffer(k);
                 }
-                
             }
         }
         else{
