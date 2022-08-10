@@ -83,7 +83,7 @@ rgb8 get_color(int color)
 
 #ifdef OPENCV_LINK
 // this is C++ code (because OpenCV API is C++ now)
-void plot_bounding_box_ids(rgb8** img, const int img_width, const int img_height, const coordBB* listBB, const int nBB) {
+void draw_track_ids(rgb8** img, const int img_width, const int img_height, const coordBB* listBB, const int nBB) {
     // create a blank image of size
     // (img_width x img_height) with white background
     // (B, G, R) : (255, 255, 255)
@@ -162,27 +162,14 @@ void plot_bounding_box_ids(rgb8** img, const int img_width, const int img_height
 #endif
 
 // ==============================================================================================================================
-#ifdef OPENCV_LINK
-void saveVideoFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, int j0, int j1, int show_ids)
-#else
-void saveVideoFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, int j0, int j1)
-#endif
+void draw_BB(const uint8** I, rgb8** I_bb, int cpt, int i0, int i1, int j0, int j1)
 // ==============================================================================================================================
 {
-    static ffmpeg_handle writer;
-    if (writer.pipe == NULL) {
-      ffmpeg_init(&writer);
-      writer.input.width = j1 - j0 + 1;
-      writer.input.height = i1 - i0 + 1;
-      writer.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
-      if (!ffmpeg_start_writer(&writer, filename, NULL)) return;
-    }
-    rgb8** img = rgb8matrix(0, i1, 0, j1);
     for (int i=i0 ; i<=i1 ; i++) {
         for (int j=j0 ; j<=j1 ; j++) {
-            img[i][j].r = I[i][j];
-            img[i][j].g = I[i][j];
-            img[i][j].b = I[i][j];
+            I_bb[i][j].r = I[i][j];
+            I_bb[i][j].g = I[i][j];
+            I_bb[i][j].b = I[i][j];
         }
     }
 
@@ -191,57 +178,17 @@ void saveVideoFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int 
         int ymax = clamp(listBB[i].bb_y + listBB[i].ry, 1, i1-1);
         int xmin = clamp(listBB[i].bb_x - listBB[i].rx, 1, j1-1);
         int xmax = clamp(listBB[i].bb_x + listBB[i].rx, 1, j1-1);
-        plot_bounding_box(img, ymin,ymax,xmin,xmax, 2, get_color(listBB[i].color));
+        plot_bounding_box(I_bb, ymin,ymax,xmin,xmax, 2, get_color(listBB[i].color));
     }
-
-#ifdef OPENCV_LINK
-    if (show_ids)
-        plot_bounding_box_ids(img, j1, i1, listBB, cpt);
-#endif
-
-    ffmpeg_write2d(&writer, (uint8_t**)img);
-    free_rgb8matrix(img, 0, i1, 0, j1);
 }
 
 // ==============================================================================================================================
-#ifdef OPENCV_LINK
-void saveFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, int j0, int j1, int show_ids)
-#else
-void saveFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, int j0, int j1)
-#endif
+void saveFrame(const char*filename, const rgb8** I_bb, int w, int h)
 // ==============================================================================================================================
 {
-    int w = (j1-j0+1);
-    int h = (i1-i0+1);
-
     char buffer[80];
 
     FILE *file;
-
-    rgb8** img = rgb8matrix(0, h-1, 0, w-1);
-    if (img == NULL) return;
-
-    for (int i=i0 ; i<=i1 ; i++) {
-        for (int j=j0 ; j<=j1 ; j++) {
-            img[i][j].r = I[i][j];
-            img[i][j].g = I[i][j];
-            img[i][j].b = I[i][j];
-        }
-    }
-
-    for(int i = 0; i < cpt; i++){
-            int ymin = clamp(listBB[i].bb_y - listBB[i].ry, 1, i1-1);
-            int ymax = clamp(listBB[i].bb_y + listBB[i].ry, 1, i1-1);
-            int xmin = clamp(listBB[i].bb_x - listBB[i].rx, 1, j1-1);
-            int xmax = clamp(listBB[i].bb_x + listBB[i].rx, 1, j1-1);
-            plot_bounding_box(img, ymin,ymax,xmin,xmax, 2, get_color(listBB[i].color));
-    }
-
-#ifdef OPENCV_LINK
-    if (show_ids)
-        plot_bounding_box_ids(img, j1, i1, listBB, cpt);
-#endif
-
     file = fopen(filename, "wb");
     if (file == NULL){
       char message[256] = "ouverture du fichier %s impossible dans saveFrame_listBB\n";
@@ -249,17 +196,13 @@ void saveFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, i
     }
 
     /* enregistrement de l'image au format rpgm */
-
     sprintf(buffer,"P6\n%d %d\n255\n",(int)(w-1), (int)(h-1));
     fwrite(buffer,strlen(buffer),1,file);
     for(int i=0; i<=h-1; i++)
-      WritePNMrow((uint8*)img[i], w-1, file);
+      WritePNMrow((uint8*)I_bb[i], w-1, file);
 
     /* fermeture du fichier */
     fclose(file);
-
-    free_rgb8matrix(img, 0, h-1, 0, w-1);
-
 }
 
 // ==============================================================================================================================
@@ -396,7 +339,6 @@ void main_visu(int argc, char** argv)
     parseTracks(src_path, tracks, &nb_tracks);
     //printTracks2(tracks, nb_tracks, 1);
 
-
     int max_LUT = 0;
     for (int i = 0; i < nb_tracks; i++)
         if (tracks[i].id > max_LUT)
@@ -437,6 +379,18 @@ void main_visu(int argc, char** argv)
     fgets(lines, 100, file_bb);
     sscanf(lines, "%d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id);
     printf("# The program is running...\n");
+
+    ffmpeg_handle writer_video_out;
+    ffmpeg_init(&writer_video_out);
+    writer_video_out.input.width = j1 - j0 + 1;
+    writer_video_out.input.height = i1 - i0 + 1;
+    writer_video_out.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
+    if (!ffmpeg_start_writer(&writer_video_out, path_video_tracking, NULL)) {
+        fprintf(stderr, "(EE) Something went wrong when starting to write output video.");
+        exit(-1);
+    }
+    rgb8** img_bb = rgb8matrix(0, i1, 0, j1);
+
     // parcours de la video
     while(Video_nextFrame(video,I0)) {
         frame = video->frame_current - 1;
@@ -476,21 +430,23 @@ void main_visu(int argc, char** argv)
             // cherche prochain BB à afficher
             sscanf(lines, "%d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id);
         }
-        if (dest_path_frames)
-        {
-            create_frames_files(frame);
+
+        draw_BB((const uint8**)I0, img_bb, cpt, i0, i1, j0, j1);
 #ifdef OPENCV_LINK
-            saveFrame_listBB(path_frames_output, I0, cpt, i0, i1, j0, j1, show_ids);
-#else
-            saveFrame_listBB(path_frames_output, I0, cpt, i0, i1, j0, j1);
+        if (show_ids)
+            draw_track_ids(img_bb, j1, i1, listBB, cpt);
 #endif
+        if (!ffmpeg_write2d(&writer_video_out, (uint8_t**)img_bb)) {
+            fprintf(stderr, "(EE) ffmpeg_write2d: %s, frame: %d\n", ffmpeg_error2str(writer_video_out.error), frame);
+            exit(-1);
         }
-#ifdef OPENCV_LINK
-        saveVideoFrame_listBB(path_video_tracking, I0, cpt, i0, i1, j0, j1, show_ids);
-#else
-        saveVideoFrame_listBB(path_video_tracking, I0, cpt, i0, i1, j0, j1);
-#endif
+        if (dest_path_frames) {
+            create_frames_files(frame);
+            saveFrame(path_frames_output, (const rgb8**)img_bb, j1, i1);
+        }
     }
+    free_rgb8matrix(img_bb, 0, i1, 0, j1);
+    ffmpeg_stop_writer(&writer_video_out);
     free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
     free(LUT_tracks_id);
 
