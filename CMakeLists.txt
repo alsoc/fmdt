@@ -57,7 +57,8 @@ set(src_common_files
     ${src_dir}/common/DebugUtil.c
     ${src_dir}/common/Tracking.c
     ${src_dir}/common/Validation.c
-    ${src_dir}/common/Video.c)
+    ${src_dir}/common/Video.c
+    ${src_dir}/visu/tools_visu.c)
 list(APPEND tah_src_list ${src_common_files})
 
 # Create binaries -------------------------------------------------------------
@@ -156,6 +157,7 @@ endmacro()
 
 tah_target_include_directories("${tah_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/common)
 tah_target_include_directories("${tah_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/detect)
+tah_target_include_directories("${tah_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/visu)
 if (TAH_OPENCV_LINK)
 	include_directories(${OpenCV_INCLUDE_DIRS})
 endif()

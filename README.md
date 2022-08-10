@@ -91,11 +91,12 @@ The list of available arguments:
 | **Argument**      | **Type** | **Default**    | **Req** | **Description** |
 | :---              | :---     | :---           | :---    | :--- |
 | `--input-video`   | str      | None           | Yes     | Input video path. |
-| `--input-tracks`  | str      | None           | Yes     | The track file corresponding to the input video (generated from `meteor-detect`). |
+| `--input-tracks`  | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `meteor-detect`). |
 | `--input-bb`      | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `meteor-detect`). |
 | `--output-video`  | str      | "out_visu.mp4" | No      | Path of the output video (MPEG-4 format) with meteor tracking colored rectangles. If `--validation` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--validation` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
 | `--output-frames` | str      | None           | No      | Path of the output frames for debug (PPM format). |
 | `--show-ids`      | bool     | -              | No      | Show the object ids on the output video and frames. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
+| `--natural-num`   | bool     | -              | No      | Natural numbering of the object ids, work only if `--show-ids` is set. |
 | `--validation`    | str      | None           | No      | File containing the ground truth. |
 
 **Note**: to run `meteor-visu`, it is required to run `meteor-detect` before and on the same input video. This will generate the required `tracks.txt` and `bounding_box.txt` files.
@@ -110,8 +111,8 @@ The list of available arguments:
 
 | **Argument**     | **Type** | **Default** | **Req** | **Description** |
 | :---             | :---     | :---        | :---    | :--- |
-| `--input-tracks` | str      |  None       | Yes     | The track file corresponding to the input video (generated from `meteor-detect`). |
-| `--validation`   | str      |  None       | Yes     | File containing the ground truth. |
+| `--input-tracks` | str      | None        | Yes     | The track file corresponding to the input video (generated from `meteor-detect`). |
+| `--validation`   | str      | None        | Yes     | File containing the ground truth. |
 
 **Note**: to run `meteor-check`, it is required to run `meteor-detect` before. This will generate the required `tracks.txt` file.
 
@@ -125,10 +126,14 @@ The list of available arguments:
 
 | **Argument**     | **Type** | **Default** | **Req** | **Description** |
 | :---             | :---     | :---        | :---    | :--- |
-| `--input-video`  | str      |  None       | Yes     | Input video path. |
-| `--output-frame` | str      |  None       | Yes     | Path of the output frame (PGM format). |
+| `--input-video`  | str      | None        | Yes     | Input video path. |
+| `--input-tracks` | str      | None        | No      | The tracks file corresponding to the input video (generated from `meteor-detect`). |
+| `--output-frame` | str      | None        | Yes     | Path of the output frame (PGM format). |
 | `--start-frame`  | int      | 0           | No      | First frame id to start the max-reduction in the video sequence. |
 | `--end-frame`    | int      | 200000      | No      | Last frame id to stop the max-reduction in the video sequence. |
+| `--show-ids`     | bool     | -           | No      | Show the object ids on the output video and frames, works only if `--input-tracks` is set. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
+| `--natural-num`  | bool     | -           | No      | Natural numbering of the object ids, works only if `--show-ids` is set. |
+| `--validation`   | str      | None        | No      | File containing the ground truth. |
 
 ### Examples of use
 
