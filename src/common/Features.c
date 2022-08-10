@@ -14,31 +14,31 @@
 void init_MeteorROI (MeteorROI *stats, int n)
 /* ----------------------- */
 {
-        for (int i=0 ; i<n ; i++) {
-                stats[i].ID   = 0;
-                stats[i].S    = 0;
-                stats[i].x    = 0;
-                stats[i].y    = 0;
-                stats[i].Sx   = 0;
-                stats[i].Sy   = 0;
-                stats[i].Sx2  = 0;
-                stats[i].Sy2  = 0;
-                stats[i].Sxy  = 0;
-                stats[i].xmin = 0;
-                stats[i].ymin = 0;
-                stats[i].xmax = 0;
-                stats[i].ymax = 0;
-                stats[i].dx   = 0.0;
-                stats[i].dy   = 0.0;
-                stats[i].error= 0.0;
-                stats[i].prev = 0;
-                stats[i].next = 0;
-                stats[i].time = 0;
-                stats[i].time_motion = 0;
-                stats[i].motion = 0;
-                stats[i].state = 0;
-
-        }
+    for (int i=0 ; i<n ; i++) {
+        stats[i].ID          = 0;
+        stats[i].track_id    = 0;
+        stats[i].S           = 0;
+        stats[i].x           = 0;
+        stats[i].y           = 0;
+        stats[i].Sx          = 0;
+        stats[i].Sy          = 0;
+        stats[i].Sx2         = 0;
+        stats[i].Sy2         = 0;
+        stats[i].Sxy         = 0;
+        stats[i].xmin        = 0;
+        stats[i].ymin        = 0;
+        stats[i].xmax        = 0;
+        stats[i].ymax        = 0;
+        stats[i].dx          = 0.0;
+        stats[i].dy          = 0.0;
+        stats[i].error       = 0.0;
+        stats[i].prev        = 0;
+        stats[i].next        = 0;
+        stats[i].time        = 0;
+        stats[i].time_motion = 0;
+        stats[i].motion      = 0;
+        stats[i].state       = 0;
+    }
 }
 
 // -----------------------------------------------------------------------------------------
@@ -46,28 +46,29 @@ void extract_features(uint32** img, int i0, int i1, int j0, int j1, MeteorROI* s
 // -----------------------------------------------------------------------------------------
 {
     for (int i=1 ; i<=n ; i++) {
-        stats[i].S    = 0;
-        stats[i].ID   = 0;
-        stats[i].x    = 0.0;
-        stats[i].y    = 0.0;
-        stats[i].dx   = 0.0;
-        stats[i].dy   = 0.0;
-        stats[i].error= 0.0;
-        stats[i].Sx   = 0;
-        stats[i].Sy   = 0;
-        stats[i].Sx2  = 0;
-        stats[i].Sy2  = 0;
-        stats[i].Sxy  = 0;
-        stats[i].xmin = j1;
-        stats[i].xmax = j0;
-        stats[i].ymin = i1;
-        stats[i].ymax = i0;
-        stats[i].prev = 0;
-        stats[i].next = 0;
-        stats[i].time = 0;
+        stats[i].S           = 0;
+        stats[i].ID          = 0;
+        stats[i].track_id    = 0;
+        stats[i].x           = 0.0;
+        stats[i].y           = 0.0;
+        stats[i].dx          = 0.0;
+        stats[i].dy          = 0.0;
+        stats[i].error       = 0.0;
+        stats[i].Sx          = 0;
+        stats[i].Sy          = 0;
+        stats[i].Sx2         = 0;
+        stats[i].Sy2         = 0;
+        stats[i].Sxy         = 0;
+        stats[i].xmin        = j1;
+        stats[i].xmax        = j0;
+        stats[i].ymin        = i1;
+        stats[i].ymax        = i0;
+        stats[i].prev        = 0;
+        stats[i].next        = 0;
+        stats[i].time        = 0;
         stats[i].time_motion = 0;
-        stats[i].motion = 0;
-        stats[i].state = 0;
+        stats[i].motion      = 0;
+        stats[i].state       = 0;
     }
     
     for (int i=i0 ; i<=i1 ; i++) {

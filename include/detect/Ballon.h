@@ -2,6 +2,10 @@
  * Copyright (c) 2020-2021, Clara CIOCAN, LIP6 Sorbonne University
  * Copyright (c) 2020-2021, Mathuran KANDEEPAN, LIP6 Sorbonne University
  */
+
+#ifndef __BALLON_H__
+#define __BALLON_H__
+
 #include "nrutil.h"
 #include "Args.h"
 #include "Video.h"
@@ -16,13 +20,10 @@
 #include <math.h>
 #include <stdlib.h>
 #include <stdint.h>
-#ifndef __BALLON_H__
-#define __BALLON_H__
 
-
-
-#define SIZE_MAX_METEORROI 20000
+#define SIZE_MAX_METEORROI 18000
 #define SIZE_MAX_TRACKS 1000
+#define TOLERANCE_DISTANCEMIN 20
 #define SIZE_MAX_KPPV 200
 
 typedef struct {
@@ -40,4 +41,4 @@ Ballon* allocBallon(int i0, int i1, int j0, int j1, int b);
 void initBallon (Ballon *ballon, int i0, int i1, int j0, int j1, int b);
 void freeBallon (Ballon *ballon, int i0, int i1, int j0, int j1, int b);
 
-#endif
+#endif // __BALLON_H__

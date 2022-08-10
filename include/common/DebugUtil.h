@@ -40,7 +40,7 @@
 
 void printTabBB(elemBB **tabBB, int n);
 void printTracks(Track* tracks, int last);
-void printTracks2(Track* tracks, int n, int track_all);
+void printTracks2(FILE *f, Track* tracks, int n, int track_all);
 void printStats(MeteorROI* stats, int n);
 void printBuffer(Buf *buffer, int n);
 
@@ -48,14 +48,14 @@ void parseStats(const char*filename, MeteorROI* stats, int* n);
 void parseTracks(const char*filename, Track* tracks, int* n);
 
 void saveMotion(const char*filename, double theta, double tx, double ty, int frame);
-void saveStats(const char*filename, MeteorROI* stats, int n);
+void saveStats(const char*filename, MeteorROI* stats, int n, Track* tracks);
 void saveTracks(const char*filename, Track* tracks, int n);
 void saveTabBB(const char *filename, elemBB **tabBB, Track* tracks, int n, int track_all);
 void saveBoundingBox(const char*filename, uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, int frame);
 void saveAsso(const char*filename, uint32 **Nearest, float32 **distances, int nc0, MeteorROI *stats);
 void saveAsso_VT(const char*filename, int nc0, MeteorROI *stats, int frame);
 void saveConflicts(const char*filename, uint32 *conflicts, uint32 **Nearest, float32 **distances, int n_asso, int n_conflict);
-void saveAssoConflicts(const char*filename, int frame, uint32 *conflicts, uint32 **Nearest, float32 **distances, int n_asso, int n_conflict, MeteorROI *stats0, MeteorROI *stats1);
+void saveAssoConflicts(const char*filename, int frame, uint32 *conflicts, uint32 **Nearest, float32 **distances, int n_asso, int n_conflict, MeteorROI *stats0, MeteorROI *stats1, Track* tracks, int n_tracks);
 void saveError(const char *filename, MeteorROI *stats, int n);
 void saveErrorMoy(const char *filename, double errMoy, double eType);
 void saveMotionExtraction(char *filename, MeteorROI *stats0, MeteorROI *stats1, int nc0, double theta, double tx, double ty, int frame);

@@ -5,8 +5,8 @@
  * Maxime MILLET
  */
 
-#ifndef _VALIDATION_
-#define _VALIDATION_
+#ifndef __VALIDATION_H__
+#define __VALIDATION_H__
 
 #include "Features.h"
 #include "Tracking.h"
@@ -80,5 +80,5 @@ void Validation_free(void);
 
 unsigned gt_count_objects(const ValidationInput* gt_objs, const unsigned n_gt_objs, unsigned *n_stars, unsigned *n_meteors, unsigned *n_noise);
 
-#endif
+#endif // __VALIDATION_H__
 

@@ -5,10 +5,6 @@
 #ifndef __MACRO_DEBUG_H__
 #define __MACRO_DEBUG_H__
 
-#ifdef __cplusplus
-extern "C" {
-#endif
-
 // ENABLE_DEBUG : macro definissant le fonctionnement general des macros de debug
 // si macro active, debug
 // si macro inactive, release
@@ -20,7 +16,6 @@ extern "C" {
 // ----------------------------------------------------- //
 
 #ifdef ENABLE_DEBUG
-
 
 // macro de debug
 #ifndef VERBOSE
@@ -49,9 +44,5 @@ extern "C" {
 #define idisp(x)
 
 #endif // ENABLE_DEBUG
-
-#ifdef __cplusplus
-}
-#endif
 
 #endif // __MACRO_DEBUG_H__

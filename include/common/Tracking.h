@@ -2,8 +2,8 @@
 // --- Tracking.h ---
 // ------------------
 
-#ifndef _TRACKING_
-#define _TRACKING_
+#ifndef __TRACKING_H__
+#define __TRACKING_H__
 
 #include "Features.h"
 
@@ -92,5 +92,5 @@ void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int 
 // return the real number of tracks
 unsigned track_count_objects(const Track* tracks, const int n_tracks, unsigned *n_stars, unsigned *n_meteors, unsigned *n_noise);
 
-#endif
+#endif // __TRACKING_H__
 

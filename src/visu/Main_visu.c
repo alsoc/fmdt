@@ -15,6 +15,7 @@
 #include "Video.h"
 #include "Validation.h"
 #include "tools_visu.h"
+#include "Ballon.h"
 
 extern char path_video_tracking[200];
 extern char path_bounding_box[200];

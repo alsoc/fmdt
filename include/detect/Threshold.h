@@ -8,17 +8,13 @@
  * LIP6
  */ 
 
-
-#pragma once
+#ifndef __THRESHOLD_H__
+#define __THRESHOLD_H__
 
 #include "nrutil.h"
 #include "nrtype.h"
 
 #define GRAY_LEVEL 256
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 void threshold(uint8** m, int i0, int i1, int j0, int j1, uint8 threshold);
 void threshold_low(uint8** m, int i0, int i1, int j0, int j1, uint8 threshold);
@@ -64,6 +60,4 @@ int otsu_bcv(float* h, int t0, int t1);
 void unpack_ui8matrix_omp(uint8** in, uint8** out, int w, int h);
 void unpack_ui32matrix_omp(uint8** in, uint32** out, int w, int h);
 
-#ifdef __cplusplus
-}
-#endif
+#endif // __THRESHOLD_H__

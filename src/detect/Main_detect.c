@@ -20,9 +20,6 @@
 #define SEQUENCE_DST_PATH_HIST "hist/"
 #define SEQUENCE_NDIGIT 5
 
-
-
-/*DEBUG*/
 extern char path_stats_0[200];
 extern char path_stats_1[200];
 extern char path_frames_binary[250];
@@ -38,167 +35,6 @@ extern uint32 *conflicts;
 extern uint32 **nearest;
 extern float32 **distances; 
 extern elemBB *tabBB[NB_FRAMES];
-
-
-/*
-// NON Testé depuis les dernieres modifs (à check)
-// ======================================
-void main_detect_frame(int argc, char** argv)
-// ======================================
-{
-    // Parsing Arguments
-    int start            = find_int_arg  (argc, argv, "--start-frame",       1);
-    int end              = find_int_arg  (argc, argv, "--end-frame",      1000);
-    int light_min        = find_int_arg  (argc, argv, "--light-min",        60);
-    int light_max        = find_int_arg  (argc, argv, "--light-max",        85);
-    int surface_min      = find_int_arg  (argc, argv, "--surface-min",       3);
-    int surface_max      = find_int_arg  (argc, argv, "--surface-max",     500);
-    int k                = find_int_arg  (argc, argv, "-k",                  3);
-    int r_extrapol       = find_int_arg  (argc, argv, "--r-extrapol",        5);
-    int d_line           = find_int_arg  (argc, argv, "--d-line",           25);
-    float diff_deviation = find_float_arg(argc, argv, "--diff-deviation", 3.25);
-    char* src_path       = find_char_arg (argc, argv, "--input-video",    NULL);
-    char* output_frames  = find_char_arg (argc, argv, "--output-frames",  NULL);
-    char* output_tracks  = find_char_arg (argc, argv, "--output-tracks",  NULL);
-
-    if(!src_path){
-        printf("(EE) Input missing\n");
-        exit(1);
-    }
-    if(!output_frames){
-        printf("(II) Output missing -> no frames will be saved\n");
-    }
-
-    // sequence
-    char src[100];
-	double theta, tx, ty;
-    int frame = start;
-
-    // CC
-	MeteorROI stats0[SIZE_MAX_METEORROI];
-	MeteorROI stats1[SIZE_MAX_METEORROI];
-	MeteorROI stats_shrink[SIZE_MAX_METEORROI];
-    Track tracks[10000];
-
-    int  offset =  0;
-    int  last   = -1;
-
-
-	int n0 = 0;
-	int n1 = 0;
-
-    // image
-    int b = 1;                  
-    // TRES MOCHE 
-    int i0 = 0, i1 = 1200 , j0 = 0, j1 = 1900;
-
-    // //path management
-    char *slash = src_path, *next;
-    while ((next = strpbrk(slash + 1, "\\/"))) {
-        slash = next;
-    }
-    if (src_path != slash) slash++;
-
-  	if(output_tracks) create_debug_dir (output_tracks);
-	if(output_frames) create_frames_dir(output_frames);
-    
-    // ---------------- //
-    // -- ALLOCATION -- //
-    // ---------------- //
-
-    // struct for image processing
-    Ballon* ballon = allocBallon(i0, i1, j0, j1, b);
-
-    // -------------------------- //
-    // -- INITIALISATION MATRIX-- //
-    // -------------------------- //
-
-    initBallon(ballon, i0, i1, j0, j1, b);
-    initTabBB();
-
-	kppv_init(0, SIZE_MAX_KPPV, 0, SIZE_MAX_KPPV);
-	init_MeteorROI(stats0, SIZE_MAX_METEORROI);
-	init_MeteorROI(stats1, SIZE_MAX_METEORROI);
-    init_Track(tracks, SIZE_MAX_TRACKS);
-    CCL_LSL_init(i0, i1, j0, j1);
-
-    // ----------------//
-    // -- TRAITEMENT --//
-    // ----------------//
-
-    while(frame <= end) {        
-        sprintf(src, "%s%03d.pgm", src_path, frame); 
-        disp(src);
-        MLoadPGM_ui8matrix(src, i0, i1, j0, j1, ballon->I0);
-		printf("[Frame] %-4d\n", frame-1);
-
-        
-		//---------------------------------------------------------//
-        PUTS("\t Step 1 : seuillage low/high");
-        copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SH); 
-        copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SM);
-
-        threshold_high(ballon->SM, i0, i1, j0, j1, light_min);
-        threshold_high(ballon->SH, i0, i1, j0, j1, light_max);
-     	//---------------------------------------------------------//
-        convert_ui8matrix_ui32matrix(ballon->SM, i0, i1, j0, j1, ballon->SM32);
-        convert_ui8matrix_ui32matrix(ballon->SH, i0, i1, j0, j1, ballon->SH32);
-     	//--------------------------------------------------------//
-        PUTS("\t Step 2 : ECC/ACC");
-        n1 = CCL_LSL(ballon->SM32, i0, i1, j0, j1);
-        extract_features(ballon->SM32, i0, i1, j0, j1, stats1, n1);
-        idisp(n1);
-     	//--------------------------------------------------------//
-        PUTS("\t Step 3 : seuillage hysteresis && filtrage surfacique"); 
-        merge_HI_CCL_v2(ballon->SH32, ballon->SM32, i0, i1, j0, j1, stats1, n1, surface_min, surface_max );
-        int n_shrink = shrink_stats(stats1, stats_shrink, n1);
-
-      	//--------------------------------------------------------//
-        PUTS("\t Step 4 : mise en correspondance");
-		kppv_routine(stats0, stats_shrink, n0, n_shrink, k);
-
-      	//--------------------------------------------------------//
-        PUTS("\t Step 5 : recalage");
-        motion(stats0, stats_shrink, n0, n_shrink, &theta, &tx, &ty);
-
-        PUTS("\t Step 6: Tracking");
-        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty, r_extrapol, d_line, diff_deviation, 0);
-        
-        //--------------------------------------------------------//
-        PUTS("\t [DEBUG] Saving frames");
-        if (output_frames){
-	        create_frames_files(frame);
-            saveFrame_ui32matrix(path_frames_binary, ballon->SH32, i0, i1, j0, j1);
-            // saveFrame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
-        }
-
-        PUTS("\t [DEBUG] Saving stats");
-        if (output_tracks){
-	        create_debug_files (frame);
-            saveAssoConflicts(output_tracks, frame-1, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink); 
-            // saveMotion(path_motion, theta, tx, ty, frame-1);
-            // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
-            // saveError(path_error, stats0, n0);
-        }
-      	//--------------------------------------------------------//
-        SWAP_STATS(stats0, stats_shrink, n_shrink);
-        n0 = n_shrink;
-        frame++;
-    }
-    saveTracks(path_tracks, tracks, last);
-    // printTracks(tracks, last);
-
-    // ----------
-    // -- free --
-    // ----------
-
-    freeBallon(ballon, i0, i1, j0, j1, b);
-
-    CCL_LSL_free(i0, i1, j0, j1);
-	kppv_free(0, 50, 0, 50);
-}
-*/
-
 
 // ======================================
 void main_detect(int argc, char** argv)
@@ -294,16 +130,12 @@ void main_detect(int argc, char** argv)
     printf("#\n");
 
     if(!input_video){
-        fprintf(stderr, "(EE) '--input-video' is missing\n");
-        exit(1);
+        fprintf(stderr, "(EE) '--input-video' is missing\n"); exit(1);
     }
-    if(!output_frames){
+    if(!output_frames)
         fprintf(stderr, "(II) '--output-frames' is missing -> no frames will be saved\n");
-    }
-
-    if(!output_stats){
+    if(!output_stats)
         fprintf(stderr, "(II) '--output-stats' is missing -> no stats will be saved\n");
-    }
 
     // sequence
     char *filename;
@@ -429,7 +261,7 @@ void main_detect(int argc, char** argv)
         if (output_stats){
     	    //create_debug_files (frame);
             disp(path_debug);
-            saveAssoConflicts(path_debug, frame, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink);
+            saveAssoConflicts(path_debug, frame, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink, tracks, last+1);
             // saveMotion(path_motion, theta, tx, ty, frame-1);
             // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
             // saveError(path_error, stats0, n0);
@@ -450,7 +282,7 @@ void main_detect(int argc, char** argv)
     if (output_bb)
         saveTabBB(path_bounding_box, tabBB, tracks, NB_FRAMES, track_all);
     //saveTracks(path_tracks, tracks, last);
-    printTracks2(tracks, last, track_all);
+    printTracks2(stdout, tracks, last+1, track_all);
 
     printf("# Statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
@@ -472,12 +304,6 @@ void main_detect(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
-    // main_detect_frame(argc, argv); // 
-    main_detect(argc, argv); // 
+    main_detect(argc, argv);
     return 0;
 }
-
-
-
-
-

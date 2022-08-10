@@ -3,15 +3,11 @@
  * LIP6, UPMC, CNRS
  */
 
-#ifndef __ELLIPSE_H__
-#define __ELLIPSE_H__
+#ifndef __FEATURES_H__
+#define __FEATURES_H__
 
 #include <nrutil.h>
 #include <math.h>
-
-#ifdef __cplusplus
-extern "C" {
-#endif
 
 typedef struct {
   uint16  xmin;
@@ -22,6 +18,7 @@ typedef struct {
   uint32  S;       // number of points
 
   uint16  ID;       // ID
+  int     track_id;
 
   float32  x;       // abscisse du centre d'inertie x = Sx / S
   float32  y;       // ordonnee du centre d'inertie y = Sy / S
@@ -44,9 +41,6 @@ typedef struct {
 
   uint8 motion; // debug
   uint8 state; 
-  
-
-
 } MeteorROI;
 
 void init_MeteorROI (MeteorROI *stats, int n);
@@ -68,9 +62,4 @@ void motion_extraction(MeteorROI *stats0, MeteorROI *stats1, int nc0, double the
 
 int analyse_features_ellipse(MeteorROI* stats, int n, float e_threshold);
 
-
-#ifdef __cplusplus
-}
-#endif
-
-#endif
+#endif // __FEATURES_H__

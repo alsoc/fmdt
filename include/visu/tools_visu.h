@@ -3,15 +3,10 @@
  * LIP6
  */ 
 
-#ifndef _TOOLS_VISU_
-#define _TOOLS_VISU_
+#ifndef __TOOLS_VISU_H__
+#define __TOOLS_VISU_H__
 
-#include <inttypes.h>
 #include <nrc2.h>
-
-#define SIZE_MAX_METEORROI 3000
-#define SIZE_MAX_TRACKS 1000
-#define TOLERANCE_DISTANCEMIN 20
 
 enum Color_t {MISC = 0, GREEN, RED, ORANGE, BLUE, YELLOW, N_COLOR_T};
 
@@ -32,4 +27,4 @@ void draw_track_ids(rgb8** img, const int img_width, const int img_height, const
 void draw_BB(rgb8** I_bb, const coordBB* listBB, int n_BB);
 void saveFrame(const char* filename, const rgb8** I_bb, int w, int h);
 
-#endif // _TOOLS_VISU_
+#endif // __TOOLS_VISU_H__

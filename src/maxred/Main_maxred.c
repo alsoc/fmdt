@@ -12,6 +12,7 @@
 #include "Tracking.h"
 #include "tools_visu.h"
 #include "Validation.h"
+#include "Ballon.h"
 
 // ---------------------------------------------------------------------
 void max_reduce(uint8**M, int i0, int i1, int j0, int j1, uint8** I)

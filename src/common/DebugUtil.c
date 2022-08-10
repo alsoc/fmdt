@@ -157,15 +157,15 @@ void printTracks(Track* tracks, int last)
 }
 
 // ---------------------------------------------------------------------------------------------------
-void printTracks2(Track* tracks, int n, int track_all)
+void printTracks2(FILE *f, Track* tracks, int n, int track_all)
 // ---------------------------------------------------------------------------------------------------
 {
-    printf("# -------||---------------------------||---------------------------||---------\n");
-    printf("#  Track ||           Begin           ||            End            ||  Object \n");
-    printf("# -------||---------------------------||---------------------------||---------\n");
-    printf("# -------||---------|--------|--------||---------|--------|--------||---------\n");
-    printf("#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type \n");
-    printf("# -------||---------|--------|--------||---------|--------|--------||---------\n");
+    fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
+    fprintf(f, "#  Track ||           Begin           ||            End            ||  Object \n");
+    fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
+    fprintf(f, "# -------||---------|--------|--------||---------|--------|--------||---------\n");
+    fprintf(f, "#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type \n");
+    fprintf(f, "# -------||---------|--------|--------||---------|--------|--------||---------\n");
 
     char str_unknown[128] = "unknown";
     char str_noise  [128] = "  noise";
@@ -179,9 +179,9 @@ void printTracks2(Track* tracks, int n, int track_all)
     type_lut[UNKNOWN] = str_unknown;
 
     unsigned track_id = 0;
-    for(int i = 0; i<= n; i++){
+    for(int i = 0; i < n; i++){
         if(tracks[i].time && (track_all || (!track_all && tracks[i].obj_type == METEOR))) {
-            printf("   %5d || %7d | %6.1f | %6.1f || %7d | %6.1f | %6.1f || %s \n",
+            fprintf(f, "   %5d || %7d | %6.1f | %6.1f || %7d | %6.1f | %6.1f || %s \n",
                    tracks[i].id,
                    tracks[i].timestamp,
                    tracks[i].begin.x,
@@ -237,7 +237,7 @@ void parseStats(const char*filename, MeteorROI* stats, int* n)
 }
 
 // ---------------------------------------------------------------------------------------------------
-void saveStats_file(FILE *f, MeteorROI* stats, int n)
+void saveStats_file(FILE *f, MeteorROI* stats, int n, Track* tracks)
 // ---------------------------------------------------------------------------------------------------
 {
     // tmp (le temps de mettre à jour n)
@@ -249,22 +249,35 @@ void saveStats_file(FILE *f, MeteorROI* stats, int n)
     }
     fprintf(f, "# Regions of interest (ROI) [%d]: \n", cpt);
     if (cpt) {
-        fprintf(f, "# -----||---------------------------||---------------------------||-------------------\n");
-        fprintf(f, "#  ROI ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       \n");
-        fprintf(f, "# -----||---------------------------||---------------------------||-------------------\n");
-        fprintf(f, "# -----||------|------|------|------||-----|----------|----------||---------|---------\n");
-        fprintf(f, "#   ID || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y \n");
-        fprintf(f, "# -----||------|------|------|------||-----|----------|----------||---------|---------\n");
+        fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------\n");
+        fprintf(f, "#   ROI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       \n");
+        fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------\n");
+        fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------\n");
+        fprintf(f, "#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y \n");
+        fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------\n");
     }
+
+    char str_unknown[128] = "unknown";
+    char str_noise  [128] = "  noise";
+    char str_meteor [128] = " meteor";
+    char str_star   [128] = "   star";
+
+    char* type_lut[N_OBJ_TYPES];
+    type_lut[METEOR]  = str_meteor;
+    type_lut[STAR]    = str_star;
+    type_lut[NOISE]   = str_noise;
+    type_lut[UNKNOWN] = str_unknown;
+
     for(int i = 1; i<= n; i++){
-        if(stats[i].S != 0)
-            fprintf(f, "  %4d || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f \n",
-            stats[i].ID, stats[i].xmin, stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx, stats[i].Sy, stats[i].x, stats[i].y);
+        if(stats[i].S != 0) {
+            fprintf(f, "   %4d || %4d | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f  \n",
+            stats[i].ID, stats[i].track_id, type_lut[tracks[stats[i].track_id -1].obj_type], stats[i].xmin, stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx, stats[i].Sy, stats[i].x, stats[i].y);
+        }
     }
 }
 
 // ---------------------------------------------------------------------------------------------------
-void saveStats(const char*filename, MeteorROI* stats, int n)
+void saveStats(const char*filename, MeteorROI* stats, int n, Track* tracks)
 // ---------------------------------------------------------------------------------------------------
 {
     FILE *f = fopen(filename, "w");
@@ -273,7 +286,7 @@ void saveStats(const char*filename, MeteorROI* stats, int n)
         exit(1);
     }
 
-    saveStats_file(f, stats, n);
+    saveStats_file(f, stats, n, tracks);
 
     fclose(f);
 
@@ -564,7 +577,7 @@ void saveConflicts(const char*filename, uint32 *conflicts, uint32 **Nearest, flo
 
 
 // ---------------------------------------------------------------------------------------------------
-void saveAssoConflicts(const char* path, int frame, uint32 *conflicts, uint32 **Nearest, float32 **distances, int n_asso, int n_conflict, MeteorROI *stats0, MeteorROI *stats1)
+void saveAssoConflicts(const char* path, int frame, uint32 *conflicts, uint32 **Nearest, float32 **distances, int n_asso, int n_conflict, MeteorROI *stats0, MeteorROI *stats1, Track* tracks, int n_tracks)
 // ---------------------------------------------------------------------------------------------------
 {
     assert(frame >= 0);
@@ -581,9 +594,9 @@ void saveAssoConflicts(const char* path, int frame, uint32 *conflicts, uint32 **
     
     // stats
     fprintf(f, "# Frame n°%05d (cur)\n", frame);
-    saveStats_file(f, stats0, n_asso);
+    saveStats_file(f, stats0, n_asso, tracks);
     fprintf(f, "#\n# Frame n°%05d (next)\n", frame+1);
-    saveStats_file(f, stats1, n_conflict);
+    saveStats_file(f, stats1, n_conflict, tracks);
     fprintf(f, "#\n");
 
     // Asso
@@ -608,6 +621,7 @@ void saveAssoConflicts(const char* path, int frame, uint32 *conflicts, uint32 **
         fprintf(f, "#  cur | next || pixels | k-nn ||    dx |    dy |      e \n");
         fprintf(f, "# -----|------||--------|------||-------|-------|--------\n");
     }
+
     for(int i = 1; i<= n_asso; i++){
         if (stats0[i].S == 0) continue;
         
@@ -619,9 +633,15 @@ void saveAssoConflicts(const char* path, int frame, uint32 *conflicts, uint32 **
         if(j != 0 ){
             float32 dx = stats0[i].dx;
             float32 dy = stats0[i].dy;
-            fprintf(f, "  %4d | %4d || %6.2f | %4d || %5.1f | %5.1f | %6.3f\n", i, j, distances[i][j], Nearest[i][j], dx , dy , stats0[i].error);
+            fprintf(f, "  %4d | %4d || %6.2f | %4d || %5.1f | %5.1f | %6.3f \n",
+                    i, j, distances[i][j], Nearest[i][j], dx , dy , stats0[i].error);
         }
     }
+
+    fprintf(f, "#\n");
+    fprintf(f, "# Tracks [%d]:\n", n_tracks);
+    if (n_tracks)
+        printTracks2(f, tracks, n_tracks, 1);
 
     // // Conflicts
     // cpt = 0;

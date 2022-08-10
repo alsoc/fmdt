@@ -244,26 +244,6 @@ static void Track_extrapolate(Track *t, int theta, int tx, int ty)
     fdisp(t->y);
 }
 
-
-// static char* state2char(int state)
-// {
-//     switch(state)
-//     {
-//         case TRACK_NEW:
-//             return "N";
-//         case TRACK_UPDATED:
-//             return "U";
-//         case TRACK_EXTRAPOLATED:
-//             return "E";
-//         case TRACK_FINISHED:
-//             return "F";
-//         case TRACK_LOST:
-//             return "L";
-//     }
-//     return "?";
-// }
-
-
 void update_bounding_box(Track* track, MeteorROI stats, int frame)
 {
     PUTS("UPDATE BB");
@@ -312,6 +292,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                         if ( (stats0[j].x > tracks[i].x - r_extrapol) && (stats0[j].x < tracks[i].x + r_extrapol) && (stats0[j].y < tracks[i].y + r_extrapol) && (stats0[j].y > tracks[i].y - r_extrapol)){
                             idisp(stats1[j].ID);
                             tracks[i].end = stats0[j];
+                            stats0[j].track_id = tracks[i].id;
                             tracks[i].state = TRACK_UPDATED;
                             update_bounding_box(tracks+i, stats0[j], frame-1);
                         }
@@ -371,6 +352,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                     tracks[i].y = tracks[i].end.y;
                     tracks[i].end = stats1[next];
                     tracks[i].time++;
+                    stats1[next].track_id = tracks[i].id;
                     update_bounding_box(tracks+i, stats1[next], frame+1);
                 } 
                 else{
@@ -382,38 +364,6 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
         }
     }
 }
-
-// // -----------------------------------------------------
-// void updateTrackStars(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, int frame, int *offset, int *last)
-// // -----------------------------------------------------
-// {
-//     int next;
-//     int i;
-
-//     for (i = *offset; i <= *last; i++){
-//         next = tracks[i].end.next;
-//         if(!next){
-//             *offset = i;
-//             break;
-//         }
-//     }
-//     for (i = *offset; i <= *last; i++){
-//         if(tracks[i].time  && tracks[i].state != TRACK_FINISHED ){
-//                 next = stats0[tracks[i].end.ID].next;
-//                 if(next){
-//                     tracks[i].x = tracks[i].end.x;
-//                     tracks[i].y = tracks[i].end.y;
-//                     tracks[i].end = stats1[next];
-//                     tracks[i].time++;
-//                     update_bounding_box(tracks+i, stats1[next], frame);
-//                 }
-//                 else{
-//                     //on extrapole si pas finished
-//                     tracks[i].state = TRACK_FINISHED;
-//                 }
-//         }
-//     }
-// }
 
 // à modifier pour optimisation
 // -----------------------------------------------------
@@ -449,6 +399,9 @@ void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame,
     track->state     = TRACK_NEW;
     track->obj_type  = METEOR;
 
+    buffer[i].stats0.track_id = track->id;
+    last_stats.track_id = track->id;
+
     // track->vitesse[(track->cur)++] = buffer[i].stats0.error;
     // update_bounding_box(track, last_stats, frame);
 }
@@ -469,6 +422,8 @@ void insert_new_track_stars(MeteorROI last_stats,  MeteorROI begin, Track *track
     track->timestamp = frame - frame_star;
     track->state     = TRACK_NEW;
     track->obj_type  = NOISE;
+
+    last_stats.track_id = track->id;
 }
 
 // -----------------------------------------------------
