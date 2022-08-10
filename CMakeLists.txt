@@ -58,21 +58,13 @@ set(src_common_files
     ${src_dir}/common/Tracking.c
     ${src_dir}/common/Validation.c
     ${src_dir}/common/Video.c)
+list(APPEND tah_src_list ${src_common_files})
 
 # Create binaries -------------------------------------------------------------
 # -----------------------------------------------------------------------------
-macro(tah_set_source_files_properties files key value)
-	foreach(_file IN ITEMS ${files})
-		set_source_files_properties(${_file} PROPERTIES ${key} ${value})
-	endforeach()
-endmacro()
-
 # objects
 add_library(tah-common-obj OBJECT ${src_common_files})
 list(APPEND tah_targets_list tah-common-obj)
-if (TAH_OPENCV_LINK)
-	tah_set_source_files_properties("${src_common_files}" LANGUAGE CXX)
-endif()
 
 # executables
 if(TAH_DETECT_EXE)
@@ -82,42 +74,45 @@ if(TAH_DETECT_EXE)
 	    ${src_dir}/detect/KPPV.c
 	    ${src_dir}/detect/Threshold.c
 	    ${src_dir}/detect/Main_detect.c)
+	list(APPEND tah_src_list ${src_detect_files})
 	add_executable(tah-detect-exe $<TARGET_OBJECTS:tah-common-obj> ${src_detect_files})
 	list(APPEND tah_targets_list tah-detect-exe)
 	set_target_properties(tah-detect-exe PROPERTIES OUTPUT_NAME meteor-detect)
-	if (TAH_OPENCV_LINK)
-		tah_set_source_files_properties("${src_detect_files}" LANGUAGE CXX)
-	endif()
 endif()
 if(TAH_VISU_EXE)
 	set(src_visu_files
 	    ${src_dir}/visu/Main_visu.c)
+	list(APPEND tah_src_list ${src_visu_files})
 	add_executable(tah-visu-exe $<TARGET_OBJECTS:tah-common-obj> ${src_visu_files})
 	list(APPEND tah_targets_list tah-visu-exe)
 	set_target_properties(tah-visu-exe PROPERTIES OUTPUT_NAME meteor-visu)
-	if (TAH_OPENCV_LINK)
-		tah_set_source_files_properties("${src_visu_files}" LANGUAGE CXX)
-	endif()
 endif()
 if(TAH_CHECK_EXE)
 	set(src_check_files
 	    ${src_dir}/check/Main_check.c)
+	list(APPEND tah_src_list ${src_check_files})
 	add_executable(tah-check-exe $<TARGET_OBJECTS:tah-common-obj> ${src_check_files})
 	list(APPEND tah_targets_list tah-check-exe)
 	set_target_properties(tah-check-exe PROPERTIES OUTPUT_NAME meteor-check)
-	if (TAH_OPENCV_LINK)
-		tah_set_source_files_properties("${src_check_files}" LANGUAGE CXX)
-	endif()
 endif()
 if(TAH_MAXRED_EXE)
 	set(src_maxred_files
 	    ${src_dir}/maxred/Main_maxred.c)
+	list(APPEND tah_src_list ${src_maxred_files})
 	add_executable(tah-maxred-exe $<TARGET_OBJECTS:tah-common-obj> ${src_maxred_files})
 	list(APPEND tah_targets_list tah-maxred-exe)
 	set_target_properties(tah-maxred-exe PROPERTIES OUTPUT_NAME meteor-maxred)
-	if (TAH_OPENCV_LINK)
-		tah_set_source_files_properties("${src_maxred_files}" LANGUAGE CXX)
-	endif()
+endif()
+
+macro(tah_set_source_files_properties files key value)
+	foreach(_file IN ITEMS ${files})
+		set_source_files_properties(${_file} PROPERTIES ${key} ${value})
+	endforeach()
+endmacro()
+
+# force C++ language when linking with OpenCV
+if (TAH_OPENCV_LINK)
+	tah_set_source_files_properties("${tah_src_list}" LANGUAGE CXX)
 endif()
 
 # Add and compile sub-projects ------------------------------------------------

@@ -82,17 +82,91 @@ rgb8 get_color(int color)
 }
 
 #ifdef OPENCV_LINK
-void plot_bounding_box_id(cv::Mat cv_img, const int y, const int x, const rgb8 color, const char* txt) {
-    // Writing over the Image
-    cv::Point org(x, y);
-    cv::putText(cv_img, txt, org,
-                cv::FONT_HERSHEY_DUPLEX, 0.7,
-                cv::Scalar(color.b, color.g, color.r), 1, cv::LINE_AA);
+// this is C++ code (because OpenCV API is C++ now)
+void plot_bounding_box_ids(rgb8** img, const int img_width, const int img_height, const coordBB* listBB, const int nBB) {
+    // create a blank image of size
+    // (img_width x img_height) with white background
+    // (B, G, R) : (255, 255, 255)
+    cv::Mat cv_img(img_height, img_width, CV_8UC3, cv::Scalar(255, 255, 255));
+
+    // check if the image is created successfully
+    if (!cv_img.data) {
+        std::cerr << "(EE) Could not open or find the image" << std::endl;
+        std::exit(-1);
+    }
+
+    // convert: 'img' into 'cv::Mat'
+    for (int i = 0; i < img_height; i++)
+        for (int j = 0; j < img_width; j++) {
+            cv_img.at<cv::Vec3b>(i,j)[2] = img[i][j].r;
+            cv_img.at<cv::Vec3b>(i,j)[1] = img[i][j].g;
+            cv_img.at<cv::Vec3b>(i,j)[0] = img[i][j].b;
+        }
+
+    //                       x    y color        list of ids
+    std::vector<std::tuple<int, int, rgb8, std::vector<int>>> list_of_ids_grouped_by_pos;
+    for(int i = 0; i < nBB; i++) {
+        int ymin = clamp(listBB[i].bb_y - listBB[i].ry, 1, img_height-1);
+        int ymax = clamp(listBB[i].bb_y + listBB[i].ry, 1, img_height-1);
+        int xmax = clamp(listBB[i].bb_x + listBB[i].rx, 1, img_width -1);
+
+        int x = xmax+3;
+        int y = (ymin)+((ymax-ymin)/2);
+
+        bool found = false;
+        for (auto &l : list_of_ids_grouped_by_pos) {
+            rgb8 c = get_color(listBB[i].color);
+            if (std::get<0>(l) == x && std::get<1>(l) == y &&
+                std::get<2>(l).r == c.r && std::get<2>(l).g == c.g && std::get<2>(l).b == c.b) {
+                std::get<3>(l).push_back(listBB[i].track_id);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            std::vector<int> v;
+            v.push_back(listBB[i].track_id);
+            list_of_ids_grouped_by_pos.push_back(std::make_tuple(x, y, get_color(listBB[i].color), v));
+        }
+    }
+
+    for (auto id : list_of_ids_grouped_by_pos) {
+        std::string txt = std::to_string(std::get<3>(id)[std::get<3>(id).size() -1]);
+        for (int s = std::get<3>(id).size() -2; s >= 0; s--)
+            txt += "," + std::to_string(std::get<3>(id)[s]);
+
+        const int x = std::get<0>(id);
+        const int y = std::get<1>(id);
+        const rgb8 color = std::get<2>(id);
+
+        // writing 'txt' over the image
+        cv::Point org(x, y);
+        cv::putText(cv_img, txt.c_str(), org,
+                    cv::FONT_HERSHEY_DUPLEX, 0.7,
+                    cv::Scalar(color.b, color.g, color.r), 1, cv::LINE_AA);
+    }
+
+    // // debug: show image inside a window.
+    // cv::imshow("Output", cv_img);
+    // cv::waitKey(0);
+
+    // convert back: 'cv::Mat' into 'img'
+    for (int i = 0; i < img_height; i++) {
+        for (int j = 0; j < img_width; j++) {
+            img[i][j].r = cv_img.at<cv::Vec3b>(i,j)[2];
+            img[i][j].g = cv_img.at<cv::Vec3b>(i,j)[1];
+            img[i][j].b = cv_img.at<cv::Vec3b>(i,j)[0];
+        }
+    }
 }
 #endif
 
 // ==============================================================================================================================
+#ifdef OPENCV_LINK
+void saveVideoFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, int j0, int j1, int show_ids)
+#else
 void saveVideoFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, int j0, int j1)
+#endif
 // ==============================================================================================================================
 {
     static ffmpeg_handle writer;
@@ -121,71 +195,8 @@ void saveVideoFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int 
     }
 
 #ifdef OPENCV_LINK
-    // Create a blank image of size
-    // (500 x 500) with white background
-    // (B, G, R) : (255, 255, 255)
-    cv::Mat cv_img(i1, j1, CV_8UC3, cv::Scalar(255, 255, 255));
-
-    // Check if the image is created
-    // successfully.
-    if (!cv_img.data) {
-        std::cerr << "(EE) Could not open or find the image" << std::endl;
-        exit(-1);
-    }
-
-    for (int i = 0; i < i1; i++) {
-        for (int j = 0; j < j1; j++) {
-            cv_img.at<cv::Vec3b>(i,j)[2] = img[i][j].r;
-            cv_img.at<cv::Vec3b>(i,j)[1] = img[i][j].g;
-            cv_img.at<cv::Vec3b>(i,j)[0] = img[i][j].b;
-        }
-    }
-
-    std::vector<std::tuple<int, int, rgb8, std::vector<int>>> list_of_ids;
-
-    for(int i = 0; i < cpt; i++){
-        int ymin = clamp(listBB[i].bb_y - listBB[i].ry, 1, i1-1);
-        int ymax = clamp(listBB[i].bb_y + listBB[i].ry, 1, i1-1);
-        int xmax = clamp(listBB[i].bb_x + listBB[i].rx, 1, j1-1);
-
-        int x = xmax+3;
-        int y = (ymin)+((ymax-ymin)/2);
-
-        bool found = false;
-        for (auto &l : list_of_ids) {
-            rgb8 c = get_color(listBB[i].color);
-            if (std::get<0>(l) == x && std::get<1>(l) == y &&
-                std::get<2>(l).r == c.r && std::get<2>(l).g == c.g && std::get<2>(l).b == c.b) {
-                std::get<3>(l).push_back(listBB[i].track_id);
-                found = true;
-            }
-        }
-
-        if (!found) {
-            std::vector<int> v;
-            v.push_back(listBB[i].track_id);
-            list_of_ids.push_back(std::make_tuple(x, y, get_color(listBB[i].color), v));
-        }
-    }
-
-    for (auto id : list_of_ids) {
-        std::string txt = std::to_string(std::get<3>(id)[std::get<3>(id).size() -1]);
-        for (int s = std::get<3>(id).size() -2; s >= 0; s--)
-            txt += "," + std::to_string(std::get<3>(id)[s]);
-        plot_bounding_box_id(cv_img, std::get<1>(id), std::get<0>(id), std::get<2>(id), txt.c_str());
-    }
-
-    // Show our image inside a window.
-    // cv::imshow("Output", cv_img);
-    // cv::waitKey(0);
-
-    for (int i = 0; i < i1; i++) {
-        for (int j = 0; j < j1; j++) {
-            img[i][j].r = cv_img.at<cv::Vec3b>(i,j)[2];
-            img[i][j].g = cv_img.at<cv::Vec3b>(i,j)[1];
-            img[i][j].b = cv_img.at<cv::Vec3b>(i,j)[0];
-        }
-    }
+    if (show_ids)
+        plot_bounding_box_ids(img, j1, i1, listBB, cpt);
 #endif
 
     ffmpeg_write2d(&writer, (uint8_t**)img);
@@ -193,7 +204,11 @@ void saveVideoFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int 
 }
 
 // ==============================================================================================================================
+#ifdef OPENCV_LINK
+void saveFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, int j0, int j1, int show_ids)
+#else
 void saveFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, int j0, int j1)
+#endif
 // ==============================================================================================================================
 {
     int w = (j1-j0+1);
@@ -221,6 +236,11 @@ void saveFrame_listBB(const char*filename, uint8** I, int cpt, int i0, int i1, i
             int xmax = clamp(listBB[i].bb_x + listBB[i].rx, 1, j1-1);
             plot_bounding_box(img, ymin,ymax,xmin,xmax, 2, get_color(listBB[i].color));
     }
+
+#ifdef OPENCV_LINK
+    if (show_ids)
+        plot_bounding_box_ids(img, j1, i1, listBB, cpt);
+#endif
 
     file = fopen(filename, "wb");
     if (file == NULL){
@@ -254,46 +274,12 @@ void printList(int cpt){
 void addToListBB(int rx, int ry, int bb_x, int bb_y, int track_id, int color, int i)
 // ==============================================================================================================================
 {
-        (listBB + i)->track_id = track_id;
-        (listBB + i)->bb_x     = bb_x;
-        (listBB + i)->bb_y     = bb_y;
-        (listBB + i)->rx       = rx;
-        (listBB + i)->ry       = ry;
-        (listBB + i)->color    = color;
-}
-
-// ==============================================================================================================================
-void calc_BB(Track* tracks, int n, int i0, int i1, int j0, int j1)
-// ==============================================================================================================================
-{
-    for (int i = 0; i < n ; i++){
-        int dirX = tracks[i].end.x > tracks[i].begin.x; // vers la droite
-        int dirY = tracks[i].end.y > tracks[i].begin.y; // vers le bas
-
-        if(dirX){
-                if(dirY){
-                    tracks[i].ymin   = tracks[i].begin.y - TOLERANCE_DISTANCEMIN;   tracks[i].xmin   = tracks[i].begin.x - TOLERANCE_DISTANCEMIN;
-                    tracks[i].ymax   = tracks[i].end.y   + TOLERANCE_DISTANCEMIN;   tracks[i].xmax   = tracks[i].end.x   + TOLERANCE_DISTANCEMIN;
-                }else {
-                    tracks[i].ymin   = tracks[i].end.y   - TOLERANCE_DISTANCEMIN;   tracks[i].xmin   = tracks[i].begin.x - TOLERANCE_DISTANCEMIN;
-                    tracks[i].ymax   = tracks[i].begin.y + TOLERANCE_DISTANCEMIN;   tracks[i].xmax   = tracks[i].end.x   + TOLERANCE_DISTANCEMIN;
-                }
-
-        } else {
-                if(dirY) {
-                    tracks[i].ymin   = tracks[i].begin.y - TOLERANCE_DISTANCEMIN;   tracks[i].xmin   = tracks[i].end.x   - TOLERANCE_DISTANCEMIN;
-                    tracks[i].ymax   = tracks[i].end.y   + TOLERANCE_DISTANCEMIN;   tracks[i].xmax   = tracks[i].begin.x + TOLERANCE_DISTANCEMIN;
-                }else{
-                    tracks[i].ymin   = tracks[i].end.y   - TOLERANCE_DISTANCEMIN;   tracks[i].xmin   = tracks[i].end.x   - TOLERANCE_DISTANCEMIN;
-                    tracks[i].ymax   = tracks[i].begin.y + TOLERANCE_DISTANCEMIN;   tracks[i].xmax   = tracks[i].begin.x + TOLERANCE_DISTANCEMIN;
-                }
-        }
-
-        if(tracks[i].xmin < j0) tracks[i].xmin = j0;
-        if(tracks[i].ymin < i0) tracks[i].ymin = i0;
-        if(tracks[i].xmax > j1) tracks[i].xmax = j1;
-        if(tracks[i].ymax > i1) tracks[i].ymax = i1;
-    }
+    (listBB + i)->track_id = track_id;
+    (listBB + i)->bb_x     = bb_x;
+    (listBB + i)->bb_y     = bb_y;
+    (listBB + i)->rx       = rx;
+    (listBB + i)->ry       = ry;
+    (listBB + i)->color    = color;
 }
 
 // ==============================================================================================================================
@@ -314,6 +300,9 @@ void main_visu(int argc, char** argv)
         fprintf(stderr, "  --input-video      Path vers la video                                  [%s]\n", def_input_video  );
         fprintf(stderr, "  --output-video     Output de la video (MPEG-4 format)                  [%s]\n", def_output_video );
         fprintf(stderr, "  --output-frames    Path to the frames output                           [%s]\n", def_output_frames);
+#ifdef OPENCV_LINK
+        fprintf(stderr, "  --show-ids         Show the object ids on the output video and frames      \n"                   );
+#endif
         fprintf(stderr, "  --validation       Fichier contenant la vérité terrain de la séquence  [%s]\n", def_validation   );
         fprintf(stderr, "  -h                 This help                                               \n"                   );
         exit(1);
@@ -326,6 +315,9 @@ void main_visu(int argc, char** argv)
     char *dest_path_video  = find_char_arg (argc, argv, "--output-video",  def_output_video);
     char *dest_path_frames = find_char_arg (argc, argv, "--output-frames", def_output_frames);
     char *validation       = find_char_arg (argc, argv, "--validation",    def_validation);
+#ifdef OPENCV_LINK
+    int   show_ids         = find_arg      (argc, argv, "--show-ids");
+#endif
 
     // heading display
     printf("#  ---------------------\n");
@@ -341,6 +333,9 @@ void main_visu(int argc, char** argv)
     printf("#  * input-video   = %s\n", src_path_video);
     printf("#  * output-video  = %s\n", dest_path_video);
     printf("#  * output-frames = %s\n", dest_path_frames);
+#ifdef OPENCV_LINK
+    printf("#  * show-ids      = %d\n", show_ids);
+#endif
     printf("#  * validation    = %s\n", validation);
     printf("#\n");
 
@@ -432,7 +427,7 @@ void main_visu(int argc, char** argv)
     // open BB pour l'affichage des rectangles englobants
     FILE * file_bb = fopen(path_bounding_box, "r"); 
     if (file_bb == NULL) {
-        fprintf(stderr, "(EE) cannot open file yo\n");
+        fprintf(stderr, "(EE) cannot open file '%s'\n", path_bounding_box);
         return;
     }
 
@@ -484,9 +479,17 @@ void main_visu(int argc, char** argv)
         if (dest_path_frames)
         {
             create_frames_files(frame);
+#ifdef OPENCV_LINK
+            saveFrame_listBB(path_frames_output, I0, cpt, i0, i1, j0, j1, show_ids);
+#else
             saveFrame_listBB(path_frames_output, I0, cpt, i0, i1, j0, j1);
+#endif
         }
+#ifdef OPENCV_LINK
+        saveVideoFrame_listBB(path_video_tracking, I0, cpt, i0, i1, j0, j1, show_ids);
+#else
         saveVideoFrame_listBB(path_video_tracking, I0, cpt, i0, i1, j0, j1);
+#endif
     }
     free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
     free(LUT_tracks_id);
@@ -495,112 +498,145 @@ void main_visu(int argc, char** argv)
     printf("# End of the program, exiting.\n");
 }
 
-// ==============================================================================================================================
-void test_max(int argc, char** argv)
-// ==============================================================================================================================
-{
+// // ==============================================================================================================================
+// void calc_BB(Track* tracks, int n, int i0, int i1, int j0, int j1)
+// // ==============================================================================================================================
+// {
+//     for (int i = 0; i < n ; i++){
+//         int dirX = tracks[i].end.x > tracks[i].begin.x; // vers la droite
+//         int dirY = tracks[i].end.y > tracks[i].begin.y; // vers le bas
 
-    if (find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "usage: %s %s [options] <input_file>\n", argv[0], argv[1]);
-        fprintf(stderr, "  --input-video Path vers le fichier avec les tracks\n");
-        fprintf(stderr, "  --validation0 Fichier contenant la vérité terrain de la séquence\n");
-        fprintf(stderr, "  --validation1 Fichier contenant la 2eme vérité terrain de la séquence\n");
-        fprintf(stderr, "  --start-frame Image de départ dans la séquence\n");
-        fprintf(stderr, "  --end-frame   Dernière image de la séquence\n");
-        exit(1);
-    }
+//         if(dirX){
+//             if(dirY){
+//                 tracks[i].ymin = tracks[i].begin.y - TOLERANCE_DISTANCEMIN; tracks[i].xmin = tracks[i].begin.x - TOLERANCE_DISTANCEMIN;
+//                 tracks[i].ymax = tracks[i].end.y   + TOLERANCE_DISTANCEMIN; tracks[i].xmax = tracks[i].end.x   + TOLERANCE_DISTANCEMIN;
+//             }else {
+//                 tracks[i].ymin = tracks[i].end.y   - TOLERANCE_DISTANCEMIN; tracks[i].xmin = tracks[i].begin.x - TOLERANCE_DISTANCEMIN;
+//                 tracks[i].ymax = tracks[i].begin.y + TOLERANCE_DISTANCEMIN; tracks[i].xmax = tracks[i].end.x   + TOLERANCE_DISTANCEMIN;
+//             }
+//         } else {
+//             if(dirY) {
+//                 tracks[i].ymin = tracks[i].begin.y - TOLERANCE_DISTANCEMIN; tracks[i].xmin = tracks[i].end.x   - TOLERANCE_DISTANCEMIN;
+//                 tracks[i].ymax = tracks[i].end.y   + TOLERANCE_DISTANCEMIN; tracks[i].xmax = tracks[i].begin.x + TOLERANCE_DISTANCEMIN;
+//             }else{
+//                 tracks[i].ymin = tracks[i].end.y   - TOLERANCE_DISTANCEMIN; tracks[i].xmin = tracks[i].end.x   - TOLERANCE_DISTANCEMIN;
+//                 tracks[i].ymax = tracks[i].begin.y + TOLERANCE_DISTANCEMIN; tracks[i].xmax = tracks[i].begin.x + TOLERANCE_DISTANCEMIN;
+//             }
+//         }
 
-    // Parsing Arguments
-    char* src_path       = find_char_arg (argc, argv, "--input-tracks", NULL);
-    char* src_path_video = find_char_arg (argc, argv, "--input-video",  NULL);
-    char* validation0    = find_char_arg (argc, argv, "--validation0",  NULL);
-    char* validation1    = find_char_arg (argc, argv, "--validation1",  NULL);
+//         if(tracks[i].xmin < j0) tracks[i].xmin = j0;
+//         if(tracks[i].ymin < i0) tracks[i].ymin = i0;
+//         if(tracks[i].xmax > j1) tracks[i].xmax = j1;
+//         if(tracks[i].ymax > i1) tracks[i].ymax = i1;
+//     }
+// }
 
-    int b = 1;
-    int i0 = 0, i1 = 1200, j0 = 0, j1 = 1900;
-    int nb_tracks = 0;
-    int color;
+// // ==============================================================================================================================
+// void test_max(int argc, char** argv)
+// // ==============================================================================================================================
+// {
 
-    if (!src_path || !src_path_video || !validation0){
-        printf("Input(s) missing\n");
-        exit(1);
-    }
+//     if (find_arg(argc, argv, "-h")) {
+//         fprintf(stderr, "usage: %s %s [options] <input_file>\n", argv[0], argv[1]);
+//         fprintf(stderr, "  --input-video Path vers le fichier avec les tracks\n");
+//         fprintf(stderr, "  --validation0 Fichier contenant la vérité terrain de la séquence\n");
+//         fprintf(stderr, "  --validation1 Fichier contenant la 2eme vérité terrain de la séquence\n");
+//         fprintf(stderr, "  --start-frame Image de départ dans la séquence\n");
+//         fprintf(stderr, "  --end-frame   Dernière image de la séquence\n");
+//         exit(1);
+//     }
 
-    char *path;
-    char *filename;
-    disp(src_path_video);
-    split_path_file(&path, &filename, src_path_video);
-    disp(filename);
+//     // Parsing Arguments
+//     char* src_path       = find_char_arg (argc, argv, "--input-tracks", NULL);
+//     char* src_path_video = find_char_arg (argc, argv, "--input-video",  NULL);
+//     char* validation0    = find_char_arg (argc, argv, "--validation0",  NULL);
+//     char* validation1    = find_char_arg (argc, argv, "--validation1",  NULL);
+
+//     int b = 1;
+//     int i0 = 0, i1 = 1200, j0 = 0, j1 = 1900;
+//     int nb_tracks = 0;
+//     int color;
+
+//     if (!src_path || !src_path_video || !validation0){
+//         printf("Input(s) missing\n");
+//         exit(1);
+//     }
+
+//     char *path;
+//     char *filename;
+//     disp(src_path_video);
+//     split_path_file(&path, &filename, src_path_video);
+//     disp(filename);
     
-    Track tracks0[SIZE_MAX_TRACKS];
-    Track tracks1[SIZE_MAX_TRACKS];
+//     Track tracks0[SIZE_MAX_TRACKS];
+//     Track tracks1[SIZE_MAX_TRACKS];
 
-	init_Track(tracks0, SIZE_MAX_TRACKS);
-	init_Track(tracks1, SIZE_MAX_TRACKS);
+// 	init_Track(tracks0, SIZE_MAX_TRACKS);
+// 	init_Track(tracks1, SIZE_MAX_TRACKS);
         
-    // recupere les tracks
-    parseTracks(src_path, tracks0, &nb_tracks);
-    parseTracks(src_path, tracks1, &nb_tracks);
+//     // recupere les tracks
+//     parseTracks(src_path, tracks0, &nb_tracks);
+//     parseTracks(src_path, tracks1, &nb_tracks);
 
-    uint8 **I0    = ui8matrix(i0-b, i1+b, j0-b, j1+b);
-    char max_filename[128] = "max.pgm";
-    MLoadPGM_ui8matrix(max_filename, i0, i1, j0, j1, I0);
+//     uint8 **I0    = ui8matrix(i0-b, i1+b, j0-b, j1+b);
+//     char max_filename[128] = "max.pgm";
+//     MLoadPGM_ui8matrix(max_filename, i0, i1, j0, j1, I0);
 
-    // calculs des BB (bounding box) des tracks 
-    calc_BB(tracks0, nb_tracks, i0, i1, j0, j1);
-    calc_BB(tracks1, nb_tracks, i0, i1, j0, j1);
+//     // calculs des BB (bounding box) des tracks
+//     calc_BB(tracks0, nb_tracks, i0, i1, j0, j1);
+//     calc_BB(tracks1, nb_tracks, i0, i1, j0, j1);
 
-    static ffmpeg_handle writer;
-    if (writer.pipe == NULL) {
-      ffmpeg_init(&writer);
-      writer.input.width = j1 - j0 + 1;
-      writer.input.height = i1 - i0 + 1;
-      writer.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
-      if (!ffmpeg_start_writer(&writer, "out.png", NULL)) return;
-    }
-    rgb8** img = rgb8matrix(0, i1, 0, j1);
-    for (int i=i0 ; i<=i1 ; i++) {
-        for (int j=j0 ; j<=j1 ; j++) {
-            img[i][j].r = I0[i][j];
-            img[i][j].g = I0[i][j];
-            img[i][j].b = I0[i][j];
-        }
-    }
+//     static ffmpeg_handle writer;
+//     if (writer.pipe == NULL) {
+//       ffmpeg_init(&writer);
+//       writer.input.width = j1 - j0 + 1;
+//       writer.input.height = i1 - i0 + 1;
+//       writer.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
+//       if (!ffmpeg_start_writer(&writer, "out.png", NULL)) return;
+//     }
+//     rgb8** img = rgb8matrix(0, i1, 0, j1);
+//     for (int i=i0 ; i<=i1 ; i++) {
+//         for (int j=j0 ; j<=j1 ; j++) {
+//             img[i][j].r = I0[i][j];
+//             img[i][j].g = I0[i][j];
+//             img[i][j].b = I0[i][j];
+//         }
+//     }
 
-    // validation pour établir si une track est vrai/faux positif
-    if (validation0) {
-        Validation_init(validation0);
-        Validation(tracks0, nb_tracks);
-    }
-    else {
-        PUTS("NO VALIDATION");
-    }
-    if (validation1) {
-        Validation_init(validation1);
-        Validation(tracks1, nb_tracks);
-    }
-    else {
-        PUTS("NO VALIDATION");
-    }
+//     // validation pour établir si une track est vrai/faux positif
+//     if (validation0) {
+//         Validation_init(validation0);
+//         Validation(tracks0, nb_tracks);
+//     }
+//     else {
+//         PUTS("NO VALIDATION");
+//     }
+//     if (validation1) {
+//         Validation_init(validation1);
+//         Validation(tracks1, nb_tracks);
+//     }
+//     else {
+//         PUTS("NO VALIDATION");
+//     }
 
 
-    for (int i = 0; i <= nb_tracks ; i++){
-        printf("i = %d\n", i);
-        if (tracks0[i].is_valid == 1){
-            if (tracks1[i].is_valid == 1){
-                color = GREEN;
-            }
-            else 
-                color = BLUE;
-        }
-        else 
-            color = RED;
-        plot_bounding_box(img, tracks0[i].ymin+5, tracks0[i].ymax-5, tracks0[i].xmin+5, tracks0[i].xmax-5, 2, get_color(color));
-    }
-    ffmpeg_write2d(&writer, (uint8_t**)img);
-    free_rgb8matrix(img, 0, i1, 0, j1);
-    free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
-}
+//     for (int i = 0; i <= nb_tracks ; i++){
+//         printf("i = %d\n", i);
+//         if (tracks0[i].is_valid == 1){
+//             if (tracks1[i].is_valid == 1){
+//                 color = GREEN;
+//             }
+//             else
+//                 color = BLUE;
+//         }
+//         else
+//             color = RED;
+//         plot_bounding_box(img, tracks0[i].ymin+5, tracks0[i].ymax-5, tracks0[i].xmin+5, tracks0[i].xmax-5, 2, get_color(color));
+//     }
+//     ffmpeg_write2d(&writer, (uint8_t**)img);
+//     free_rgb8matrix(img, 0, i1, 0, j1);
+//     free_ui8matrix(I0, i0-b, i1+b, j0-b, j1+b);
+// }
 
 int main(int argc, char** argv)
 {

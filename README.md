@@ -37,11 +37,12 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -funroll-loops -fstri
 **Tips**: on Apple Silicon M1 CPUs and with Apple Clang, use `-mcpu=apple-m1` instead of `-march=native`.
 
 The `CMake` file comes with several options:
- * `-DTAH_DETECT_EXE` [default=`ON` ] {possible:`ON`,`OFF`}: compile the detection chain executable.
- * `-DTAH_VISU_EXE`   [default=`ON` ] {possible:`ON`,`OFF`}: compile the visual tracking executable.
- * `-DTAH_CHECK_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the check executable.
- * `-DTAH_MAXRED_EXE` [default=`ON` ] {possible:`ON`,`OFF`}: compile the max reduction executable.
- * `-DTAH_DEBUG`      [default=`OFF`] {possible:`ON`,`OFF`}: build the project using debugging prints: these additional prints will be output on `stderr` and prefixed by `(DBG)`.
+ * `-DTAH_DETECT_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the detection chain executable.
+ * `-DTAH_VISU_EXE`    [default=`ON` ] {possible:`ON`,`OFF`}: compile the visual tracking executable.
+ * `-DTAH_CHECK_EXE`   [default=`ON` ] {possible:`ON`,`OFF`}: compile the check executable.
+ * `-DTAH_MAXRED_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the max reduction executable.
+ * `-DTAH_DEBUG`       [default=`OFF`] {possible:`ON`,`OFF`}: build the project using debugging prints: these additional prints will be output on `stderr` and prefixed by `(DBG)`.
+ * `-DTAH_OPENCV_LINK` [default=`OFF`] {possible:`ON`,`OFF`}: link with OpenCV library (required to enable `--show-ids` option in `meteor-visu` executable.
 
 ## User Documentation
 
@@ -94,6 +95,7 @@ The list of available arguments:
 | `--input-bb`      | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `meteor-detect`). |
 | `--output-video`  | str      | "out_visu.mp4" | No      | Path of the output video (MPEG-4 format) with meteor tracking colored rectangles. If `--validation` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--validation` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
 | `--output-frames` | str      | None           | No      | Path of the output frames for debug (PPM format). |
+| `--show-ids`      | bool     | -              | No      | Show the object ids on the output video and frames. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
 | `--validation`    | str      | None           | No      | File containing the ground truth. |
 
 **Note**: to run `meteor-visu`, it is required to run `meteor-detect` before and on the same input video. This will generate the required `tracks.txt` and `bounding_box.txt` files.
