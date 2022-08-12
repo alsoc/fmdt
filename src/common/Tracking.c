@@ -2,6 +2,17 @@
  * Copyright (c) 2021-2022, Clara CIOCAN, LIP6 Sorbonne University
  * Copyright (c) 2021-2022, Mathuran KANDEEPAN, LIP6 Sorbonne University
  */
+
+#include "ffmpeg-io/reader.h"
+#include "ffmpeg-io/writer.h"
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <time.h>
+#include <math.h>
+#include <stdio.h>
+#include <assert.h>
+
 #include "nrutil.h"
 #include "Args.h"
 #include "Video.h"
@@ -12,17 +23,6 @@
 #include "macro_debug.h"
 #include "Tracking.h"
 #include "Ballon.h"
-
-#include "ffmpeg-io/reader.h"
-#include "ffmpeg-io/writer.h"
-
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <time.h>
-#include <math.h>
-#include <stdio.h>
-#include <assert.h>
 
 #define SIZE_BUF 10000
 #define INF 9999999
@@ -36,6 +36,22 @@ extern float32 **distances;
 extern uint32 *conflicts;
 extern char path_bounding_box[200];
 
+unsigned track_count_objects(const Track* tracks, const int n_tracks, unsigned *n_stars, unsigned *n_meteors, unsigned *n_noise)
+{
+    (*n_stars) = (*n_meteors) = (*n_noise) = 0;
+    for (int i = 0; i < n_tracks; i++)
+        if (tracks[i].time)
+            switch (tracks[i].obj_type) {
+                case STAR:   (*n_stars  )++; break;
+                case METEOR: (*n_meteors)++; break;
+                case NOISE:  (*n_noise  )++; break;
+                default:
+                    fprintf(stderr, "(EE) This should never happen ('tracks[i].obj_type = %d', 'i = %d')\n", tracks[i].obj_type, i);
+                    exit(1);
+            }
+
+    return (*n_stars) + (*n_meteors) + (*n_noise);
+}
 
 void initTabBB()
 {
@@ -44,7 +60,7 @@ void initTabBB()
     }
 }
 
-static void addToList(uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, uint16 track_id, int frame)
+void addToList(uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, uint16 track_id, int frame)
 {
     assert(frame < NB_FRAMES);
     elemBB *newE = (elemBB*)malloc(sizeof(elemBB));
@@ -54,178 +70,60 @@ static void addToList(uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, uint16 tra
     newE->bb_y = bb_y;
     newE->track_id = track_id;
     newE->next = tabBB[frame];
-    *(tabBB+frame) = newE;
+    tabBB[frame] = newE;
 }
 
-// ---------------------------------------------------------------------------------------------------
-void init_Track(Track *tracks, int n)
-// ---------------------------------------------------------------------------------------------------
-{
-    for (int i = 0; i < n ; i++){
-        tracks[i].id        = 0;
-        tracks[i].timestamp = 0;
-        tracks[i].time      = 0;
-        tracks[i].state     = 0;
-        tracks[i].x         = 0;
-        tracks[i].y         = 0;
-        tracks[i].rx        = 0;
-        tracks[i].ry        = 0;
-        tracks[i].bb_x      = 0;
-        tracks[i].bb_y      = 0;
-        tracks[i].is_valid  = 0;
-        tracks[i].obj_type  = UNKNOWN;
-    }
-}
-
-// ---------------------------------------------------------------------------------------------------
 void clear_index_Track(Track *tracks, int i)
-// ---------------------------------------------------------------------------------------------------
 {
-    tracks[i].id        = 0;
-    tracks[i].timestamp = 0;
-    tracks[i].time      = 0;
-    tracks[i].state     = 0;
-    tracks[i].x         = 0;
-    tracks[i].y         = 0;
-    tracks[i].rx        = 0;
-    tracks[i].ry        = 0;
-    tracks[i].bb_x      = 0;
-    tracks[i].bb_y      = 0;
-    tracks[i].is_valid  = 0;
-    tracks[i].obj_type  = UNKNOWN;
+    memset(&tracks[i], 0, sizeof(Track));
 }
 
-// ---------------------------------------------------------------------------------------------------
-void clear_buffer()
-// ---------------------------------------------------------------------------------------------------
+void init_Track(Track *tracks, int n)
 {
-    MeteorROI *b; 
-    for(int i = 0; i < SIZE_BUF; i++){
-        b = &buffer[i].stats0;
-        b->ID     = 0;
-        b->S      = 0;
-        b->x      = 0;
-        b->y      = 0;
-        b->Sx     = 0;
-        b->Sy     = 0;
-        b->Sx2    = 0;
-        b->Sy2    = 0;
-        b->Sxy    = 0;
-        b->xmin   = 0;
-        b->ymin   = 0;
-        b->xmax   = 0;
-        b->ymax   = 0;
-        b->dx     = 0.0;
-        b->dy     = 0.0;
-        b->error  = 0.0;
-        b->prev   = 0;
-        b->next   = 0;
-        b->time   = 0;
-        b->motion = 0;
-        
-        buffer[i].frame = 0;
-    }        
+    for (int i = 0; i < n ; i++)
+        clear_index_Track(tracks, i);
 }
 
-// ---------------------------------------------------------------------------------------------------
 void clear_index_buffer(int i)
-// ---------------------------------------------------------------------------------------------------
 {
-    MeteorROI *b = &buffer[i].stats0;
-    b->ID     = 0;
-    b->S      = 0;
-    b->x      = 0;
-    b->y      = 0;
-    b->Sx     = 0;
-    b->Sy     = 0;
-    b->Sx2    = 0;
-    b->Sy2    = 0;
-    b->Sxy    = 0;
-    b->xmin   = 0;
-    b->ymin   = 0;
-    b->xmax   = 0;
-    b->ymax   = 0;
-    b->dx     = 0.0;
-    b->dy     = 0.0;
-    b->error  = 0.0;
-    b->prev   = 0;
-    b->next   = 0;
-    b->time   = 0;
-    b->motion = 0;
-
+    MeteorROI *s0 = &buffer[i].stats0; memset(s0, 0, sizeof(MeteorROI));
+    MeteorROI *s1 = &buffer[i].stats1; memset(s1, 0, sizeof(MeteorROI));
     buffer[i].frame = 0;
 }
 
-// ---------------------------------------------------------------------------------------------------
-void update_buffer(int frame){
-// ---------------------------------------------------------------------------------------------------
+void clear_buffer_history(int frame, int history_size){
     int diff;
     for(int i = 0; i < SIZE_BUF; i++){
         if(buffer[i].frame != 0){
             diff = frame - buffer[i].frame;
-            if (diff >= 2){
+            if (diff >= history_size)
                 clear_index_buffer(i);
-            }
         }
     }  
 }
 
-// ---------------------------------------------------------------------------------------------------
 void insert_buffer(MeteorROI stats0, MeteorROI stats1, int frame)
-// ---------------------------------------------------------------------------------------------------
 {
-    MeteorROI *b;
-    MeteorROI *b1;
-
-    for (int i = 0; i < SIZE_BUF; i++){
-        b  = &buffer[i].stats0;
-        b1 = &buffer[i].stats1;
-        if (buffer[i].stats0.ID == 0){   
-            b->ID     = stats0.ID;     b1->ID     = stats1.ID;
-            b->S      = stats0.S;      b1->S      = stats1.S;
-            b->x      = stats0.x;      b1->x      = stats1.x;
-            b->y      = stats0.y;      b1->y      = stats1.y;
-            b->Sx     = stats0.Sx;     b1->Sx     = stats1.Sx;
-            b->Sy     = stats0.Sy;     b1->Sy     = stats1.Sy;
-            b->Sx2    = stats0.Sx2;    b1->Sx2    = stats1.Sx2;
-            b->Sy2    = stats0.Sy2;    b1->Sy2    = stats1.Sy2;
-            b->Sxy    = stats0.Sxy;    b1->Sxy    = stats1.Sxy;
-            b->xmin   = stats0.xmin;   b1->xmin   = stats1.xmin;
-            b->ymin   = stats0.ymin;   b1->ymin   = stats1.ymin;
-            b->xmax   = stats0.xmax;   b1->xmax   = stats1.xmax;
-            b->ymax   = stats0.ymax;   b1->ymax   = stats1.ymax;
-            b->dx     = stats0.dx;     b1->dx     = stats1.dx;
-            b->dy     = stats0.dy;     b1->dy     = stats1.dy;
-            b->error  = stats0.error;  b1->error  = stats1.error;
-            b->prev   = stats0.prev;   b1->prev   = stats1.prev;
-            b->next   = stats0.next;   b1->next   = stats1.next;
-            b->time   = stats0.time;   b1->time   = stats1.time;
-            b->motion = stats0.motion; b1->motion = stats1.motion;
-
+    for (int i = 0; i < SIZE_BUF; i++)
+        if (buffer[i].stats0.ID == 0) {
+            memcpy(&buffer[i].stats0, &stats0, sizeof(MeteorROI));
+            memcpy(&buffer[i].stats1, &stats1, sizeof(MeteorROI));
             buffer[i].frame = frame;
             return;
         }
-    }
+    fprintf(stderr, "(EE) This sould never happen, out of buffer ('SIZE_BUF' = %d)\n", SIZE_BUF);
+    exit(-1);
 }
 
-
-// -----------------------------------------------------
-int search_buf_stat(MeteorROI stats, int frame)
-// -----------------------------------------------------
+int search_buf_stat(int ROI_id, int frame)
 {
-    int n = stats.prev;
-    for (int i = 0; i < SIZE_BUF; i++){
-        if(frame  == buffer[i].frame + 1 && n == buffer[i].stats0.ID){
+    for (int i = 0; i < SIZE_BUF; i++)
+        if (frame  == buffer[i].frame + 1 && ROI_id == buffer[i].stats0.ID)
             return i;
-        }
-    }  
     return -1;
 }
 
-
-// -----------------------------------------------------
-static void Track_extrapolate(Track *t, int theta, int tx, int ty)
-// -----------------------------------------------------
+void Track_extrapolate(Track *t, int theta, int tx, int ty)
 {   
     float32 u,v;
     float32 x,y;
@@ -251,23 +149,23 @@ void update_bounding_box(Track* track, MeteorROI stats, int frame)
     idisp(stats.xmax);
     uint16 rx, ry, bb_x, bb_y;
 
-    // juste pour debug (affichage)
-    track->bb_x = (uint16)ceil((double)((stats.xmin + stats.xmax))/2);
-    track->bb_y = (uint16)ceil((double)((stats.ymin + stats.ymax))/2);
-    track->rx   = track->bb_x - stats.xmin +5;
-    track->ry   = track->bb_y - stats.ymin +5;
+    assert(stats.xmin || stats.xmax || stats.ymin || stats.ymax);
 
     bb_x = (uint16)ceil((double)((stats.xmin + stats.xmax))/2);
     bb_y = (uint16)ceil((double)((stats.ymin + stats.ymax))/2);
-    rx   = bb_x - stats.xmin +5;
-    ry   = bb_y - stats.ymin +5;
+    rx   = (bb_x - stats.xmin) +5;
+    ry   = (bb_y - stats.ymin) +5;
+
+    // juste pour debug (affichage)
+    track->bb_x = bb_x;
+    track->bb_y = bb_y;
+    track->rx   = rx;
+    track->ry   = ry;
 
     addToList(rx, ry, bb_x, bb_y, track->id, frame-1);
 }
 
-// -----------------------------------------------------
 void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, int frame, int *offset, int *last, int theta, int tx, int ty, int r_extrapol, int d_line, int track_all)
-// -----------------------------------------------------
 {
     int next;
     int i;
@@ -354,8 +252,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                     tracks[i].time++;
                     stats1[next].track_id = tracks[i].id;
                     update_bounding_box(tracks+i, stats1[next], frame+1);
-                } 
-                else{
+                } else {
                     //on extrapole si pas finished
                     Track_extrapolate(&tracks[i], theta, tx, ty);
                     // tracks[i].state = TRACK_FINISHED;
@@ -365,153 +262,112 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
     }
 }
 
-// à modifier pour optimisation
-// -----------------------------------------------------
-void insert_new_track(MeteorROI last_stats, Track *tracks, int *last, int frame, int i)
-// -----------------------------------------------------
+void insert_new_track(MeteorROI *ROI_list[256], unsigned n_ROI, Track *tracks, int last, int frame, enum Obj_type type)
 {
-    assert((*last)+1 < SIZE_MAX_TRACKS);
-    Track *track = &tracks[++(*last)];
+    assert(last < SIZE_MAX_TRACKS);
+    assert(n_ROI >= 2);
 
-    if (i == -1) return;
+    MeteorROI *first_ROI       = ROI_list[n_ROI -1];
+    MeteorROI *before_last_ROI = ROI_list[       1];
+    MeteorROI *last_ROI        = ROI_list[       0];
 
-    track->id    = (*last) +1;
-    track->begin = buffer[i].stats0;
-    track->bb_x  = (uint16)ceil((double)((buffer[i].stats0.xmin + buffer[i].stats0.xmax))/2);
-    track->bb_y  = (uint16)ceil((double)((buffer[i].stats0.ymin + buffer[i].stats0.ymax))/2);
+    tracks[last].id        = last +1;
+    tracks[last].begin     = *first_ROI;
+    tracks[last].end       = *last_ROI;
+    tracks[last].bb_x      = (uint16)ceil((double)((first_ROI->xmin + first_ROI->xmax))/2);
+    tracks[last].bb_y      = (uint16)ceil((double)((first_ROI->ymin + first_ROI->ymax))/2);
+    tracks[last].time      = n_ROI;
+    tracks[last].timestamp = frame - n_ROI;
+    tracks[last].state     = TRACK_NEW;
+    tracks[last].obj_type  = type;
 
-    update_bounding_box(track, buffer[i].stats0, frame-1);
-    // saveBoundingBox(path_bounding_box, track->rx, track->ry, track->bb_x, track->bb_y, frame-2);
-    update_bounding_box(track, buffer[i].stats1, frame);
-    // saveBoundingBox(path_bounding_box, track->rx, track->ry, track->bb_x, track->bb_y, frame-1);
+    if (type != STAR) {
+        float dx = (last_ROI->x - before_last_ROI->x);
+        float dy = (last_ROI->y - before_last_ROI->y);
 
-    float32 dx = (buffer[i].stats1.x - buffer[i].stats0.x);
-    float32 dy = (buffer[i].stats1.y - buffer[i].stats0.y);
+        tracks[last].a = (dx==0) ? INF : (dy/dx);
+        tracks[last].b = last_ROI->y - tracks[last].a * last_ROI->x;
+        tracks[last].dx = dx;
+        tracks[last].dy = dy;
+    }
 
-    track->a = (dx==0) ? INF : (dy/dx);
-    track->b = buffer[i].stats1.y - track->a * buffer[i].stats1.x;
-    track->dx = dx;
-    track->dy = dy;
-    
-    track->end       = last_stats; 
-    track->time      = 1; 
-    track->timestamp = frame - 2;
-    track->state     = TRACK_NEW;
-    track->obj_type  = METEOR;
-
-    buffer[i].stats0.track_id = track->id;
-    last_stats.track_id = track->id;
-
-    // track->vitesse[(track->cur)++] = buffer[i].stats0.error;
-    // update_bounding_box(track, last_stats, frame);
+    for (unsigned n = 0; n < n_ROI; n++) {
+        ROI_list[n]->track_id = tracks[last].id;
+        update_bounding_box(&tracks[last], *ROI_list[n], frame -n);
+    }
 }
 
-// -----------------------------------------------------
-void insert_new_track_stars(MeteorROI last_stats,  MeteorROI begin, Track *tracks, int *last, int frame, int frame_star)
-// -----------------------------------------------------
-{
-    assert((*last)+1 < SIZE_MAX_TRACKS);
-    Track *track = &tracks[++(*last)];
+void fill_ROI_list(MeteorROI *ROI_list[256], const unsigned n_ROI, MeteorROI *last_ROI, const unsigned frame) {
+    assert(n_ROI < 256);
+    unsigned cpt = 0;
 
-    track->id        = (*last) +1;
-    track->begin     = last_stats;
-    track->bb_x      = (uint16)ceil((double)((begin.xmin + begin.xmax))/2);
-    track->bb_y      = (uint16)ceil((double)((begin.ymin + begin.ymax))/2);
-    track->end       = last_stats; 
-    track->time      = 1; 
-    track->timestamp = frame - frame_star;
-    track->state     = TRACK_NEW;
-    track->obj_type  = STAR;
-
-    last_stats.track_id = track->id;
+    ROI_list[cpt++] = last_ROI;
+    int k = search_buf_stat(last_ROI->prev, frame);
+    for (int f = 1; f < n_ROI; f++) {
+        if (k != -1) {
+            ROI_list[cpt++] = &buffer[k].stats0;
+            k = search_buf_stat(buffer[k].stats0.prev, frame-f);
+        } else {
+            fprintf(stderr, "(EE) This should never happen ('k' = -1, 'f' = %d.\n", f);
+            exit(-1);
+        }
+    }
+    assert(cpt == n_ROI);
 }
 
-// -----------------------------------------------------
 void Tracking(MeteorROI *stats0, MeteorROI *stats1, Track *tracks, int nc0, int nc1, int frame, int *last, int *offset, int theta, int tx, int ty, int r_extrapol, int d_line, float diff_deviation, int track_all, int frame_star)
-// -----------------------------------------------------
 {
-    int j;
+    MeteorROI *ROI_list[256];
 
     double errMoy = errorMoy(stats0, nc0);
     double eType = ecartType(stats0, nc0, errMoy);
 
-
-    // saveErrorMoy("second_error.txt", errMoy, eType);
-
-    for(int i = 1; i <= nc0; i++){
+    for(int i = 1; i <= nc0; i++) {
         float32 e = stats0[i].error;
-        
         int asso = stats0[i].next;
-        // si mouvement detecté
-        if (fabs(e-errMoy) > diff_deviation * eType && asso){
-            if (stats0[i].state) {
-                PUTS("EXTRAPOLATEED");
-                continue; // Extrapolated
-            }
-            stats0[i].motion = 1; // debug
-            stats0[i].time_motion++;
-            stats1[stats0[i].next].time_motion = stats0[i].time_motion ;
-            if(stats0[i].time_motion == 1){
-                // stocker dans un buf pour savoir si au moins sur 3 frames
-                insert_buffer(stats0[i], stats1[stats0[i].next], frame);
-            }
-            if(stats0[i].time_motion == 2){ 
-                // mouvement sur 3 frames donc création de track + suppression du buff    
-                for(j = *offset; j <= *last; j++){
-                    if(tracks[j].end.ID == stats0[i].ID && tracks[j].end.x == stats0[i].x ){
-                        break;
+        if (asso) {
+            // si mouvement detecté
+            if (fabs(e-errMoy) > diff_deviation * eType) {
+                if (stats0[i].state) {
+                    PUTS("EXTRAPOLATED");
+                    continue; // Extrapolated
+                }
+                stats0[i].motion = 1; // debug
+                stats0[i].time_motion++;
+                stats1[stats0[i].next].time_motion = stats0[i].time_motion ;
+                if (stats0[i].time_motion == 1) {
+                    // stocker dans un buf pour savoir si au moins sur 3 frames
+                    insert_buffer(stats0[i], stats1[stats0[i].next], frame);
+                }
+                if (stats0[i].time_motion == 2) {
+                    int j;
+                    // mouvement sur 3 frames donc création de track + suppression du buff
+                    for (j = *offset; j <= *last; j++)
+                        if (tracks[j].end.ID == stats0[i].ID && tracks[j].end.x == stats0[i].x)
+                            break;
+                    if (j == *last +1 || *last == -1) {
+                        fill_ROI_list(ROI_list, 2, &stats0[i], frame);
+                        (*last)++;
+                        insert_new_track(ROI_list, 2, tracks, *last, frame, METEOR);
                     }
                 }
-                int k = search_buf_stat(stats0[i], frame);
-                if(j == *last + 1 || *last == -1){
-                    // insertion seulement si dans le buffer (k != -1)
-                    insert_new_track(stats0[i], tracks, last, frame, k);
-                    clear_index_buffer(k);
-                }
             }
-        }
-        else{
-            if(asso && track_all){
+            else if (track_all) {
                 stats0[i].time++;
-                stats1[stats0[i].next].time = stats0[i].time ;
+                stats1[stats0[i].next].time = stats0[i].time;
                 idisp(frame_star);
-                if(stats0[i].time == frame_star){
-                    insert_new_track_stars(stats0[i], stats1[stats0[i].next], tracks, last, frame, frame_star);
+                if(stats0[i].time == frame_star) {
+                    fill_ROI_list(ROI_list, frame_star, &stats0[i], frame);
+                    (*last)++;
+                    insert_new_track(ROI_list, frame_star, tracks, *last, frame, STAR);
                 }
-            } 
+                else
+                    insert_buffer(stats0[i], stats1[stats0[i].next], frame);
+            }
         }
     }
 
     // parcourir les track et update si besoin
     updateTrack(tracks, stats0, stats1, nc1, frame, offset, last, theta, tx, ty, r_extrapol, d_line, track_all);
-    update_buffer(frame);
-}
-
-// ---------------------------------------------------------------------------------------------------
-unsigned track_count_objects(const Track* tracks, const int n_tracks, unsigned *n_stars, unsigned *n_meteors, unsigned *n_noise)
-// ---------------------------------------------------------------------------------------------------
-{
-    (*n_stars) = 0;
-    (*n_meteors) = 0;
-    (*n_noise) = 0;
-    for(int i = 0; i < n_tracks; i++){
-        if (tracks[i].time){
-            switch (tracks[i].obj_type){
-                case STAR:
-                    (*n_stars)++;
-                    break;
-                case METEOR:
-                    (*n_meteors)++;
-                    break;
-                case NOISE:
-                    (*n_noise)++;
-                    break;
-                default:
-                    fprintf(stderr, "(EE) This should never happen ('tracks[i].obj_type = %d', 'i = %d')\n", tracks[i].obj_type, i);
-                    exit(1);
-            }
-        }
-    }
-
-    return (*n_stars) + (*n_meteors) + (*n_noise);
+    clear_buffer_history(frame, frame_star);
 }
