@@ -182,8 +182,7 @@ void main_maxred(int argc, char** argv)
         int n_BB = n_tracks;
         draw_BB(img_bb, listBB, n_BB);
 #ifdef OPENCV_LINK
-        if (show_ids)
-            draw_track_ids(img_bb, j1, i1, listBB, n_BB);
+        draw_text(img_bb, j1, i1, listBB, n_BB, validation ? 1 : 0, show_ids);
 #endif
         saveFrame(dest_path_frame, (const rgb8**)img_bb, j1, i1);
 

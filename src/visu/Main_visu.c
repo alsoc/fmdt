@@ -237,8 +237,7 @@ void main_visu(int argc, char** argv)
         convert_img_grayscale_to_rgb((const uint8**)I0, img_bb, i0, i1, j0, j1);
         draw_BB(img_bb, listBB, cpt);
 #ifdef OPENCV_LINK
-        if (show_ids)
-            draw_track_ids(img_bb, j1, i1, listBB, cpt);
+        draw_text(img_bb, j1, i1, listBB, cpt, validation ? 1 : 0, show_ids);
 #endif
         if (!ffmpeg_write2d(&writer_video_out, (uint8_t**)img_bb)) {
             fprintf(stderr, "(EE) ffmpeg_write2d: %s, frame: %d\n", ffmpeg_error2str(writer_video_out.error), frame);

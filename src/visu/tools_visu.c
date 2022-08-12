@@ -62,55 +62,83 @@ enum Obj_type string_to_obj_type(const char* string) {
 rgb8 get_color(enum Color_t color)
 // ==============================================================================================================================
 {
-    rgb8 green;     rgb8 red;     rgb8 blue;    rgb8 purple;    rgb8 orange;     rgb8 yellow;     rgb8 misc;
-    green.g = 255;  red.g = 000;  blue.g = 000; purple.g = 127; orange.r = 255;  yellow.g = 255;  misc.g = 255;
-    green.b = 000;  red.b = 000;  blue.b = 255; purple.b = 255; orange.g = 165;  yellow.b = 000;  misc.b = 153;
-    green.r = 000;  red.r = 255;  blue.r = 000; purple.r = 127; orange.b = 000;  yellow.r = 255;  misc.r = 153;
+    rgb8 gray;     rgb8 green;     rgb8 red;     rgb8 blue;    rgb8 purple;    rgb8 orange;     rgb8 yellow;     rgb8 misc;
+    gray.g = 175;  green.g = 255;  red.g = 000;  blue.g = 000; purple.g = 127; orange.r = 255;  yellow.g = 255;  misc.g = 255;
+    gray.b = 175;  green.b = 000;  red.b = 000;  blue.b = 255; purple.b = 255; orange.g = 165;  yellow.b = 000;  misc.b = 153;
+    gray.r = 175;  green.r = 000;  red.r = 255;  blue.r = 000; purple.r = 127; orange.b = 000;  yellow.r = 255;  misc.r = 153;
 
     switch (color) {
-        case GREEN:
-            return green;
-        case RED:
-            return red;
-        case BLUE:
-            return blue;
-        case PURPLE:
-            return purple;
-        case ORANGE:
-            return orange;
-        case YELLOW:
-            return yellow;
-        case MISC:
-            return misc;
-
-        default:
-            break;
+        case GRAY:   return gray;
+        case GREEN:  return green;
+        case RED:    return red;
+        case BLUE:   return blue;
+        case PURPLE: return purple;
+        case ORANGE: return orange;
+        case YELLOW: return yellow;
+        case MISC:   return misc;
+        default:     break;
     }
     return red;
 }
 
-#ifdef OPENCV_LINK
-// this is C++ code (because OpenCV API is C++ now)
-void draw_track_ids(rgb8** img, const int img_width, const int img_height, const coordBB* listBB, const int nBB) {
-    // create a blank image of size
-    // (img_width x img_height) with white background
-    // (B, G, R) : (255, 255, 255)
-    cv::Mat cv_img(img_height, img_width, CV_8UC3, cv::Scalar(255, 255, 255));
+#ifdef OPENCV_LINK // this is C++ code (because OpenCV API is C++ now)
+void draw_legend_squares(rgb8** img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
+    //                     ymin      ymax      xmin      xmax     color
+    std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned, rgb8>> box_list;
 
-    // check if the image is created successfully
-    if (!cv_img.data) {
-        std::cerr << "(EE) Could not open or find the image" << std::endl;
-        std::exit(-1);
+    for (int i = 0; i < N_OBJ_TYPES; i++)
+        box_list.push_back(std::make_tuple((i +1) * v_space + (i +0) * box_size, // ymin
+                                           (i +1) * v_space + (i +1) * box_size, // ymax
+                                           (  +1) * h_space + (  +0) * box_size, // xmin
+                                           (  +1) * h_space + (  +1) * box_size, // xmax
+                                           get_color(obj_type_to_color[i])));    // color
+
+    if (validation)
+        // add false positve meteor
+        box_list.push_back(std::make_tuple((N_OBJ_TYPES +2) * v_space + (N_OBJ_TYPES +1) * box_size, // ymin
+                                           (N_OBJ_TYPES +2) * v_space + (N_OBJ_TYPES +2) * box_size, // ymax
+                                           (            +1) * h_space + (            +0) * box_size, // xmin
+                                           (            +1) * h_space + (            +1) * box_size, // xmax
+                                           get_color(RED)));                                         // color
+
+    for (auto &box : box_list)
+        plot_bounding_box(img, std::get<0>(box), std::get<1>(box), std::get<2>(box), std::get<3>(box), 2, std::get<4>(box));
+}
+
+void draw_legend_texts(cv::Mat &cv_img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
+    //                          color        pos         text
+    std::vector<std::tuple<cv::Scalar, cv::Point, std::string>> txt_list;
+    for (int i = 0; i < N_OBJ_TYPES; i++) {
+        rgb8 color = get_color(obj_type_to_color[i]);
+        unsigned x = 2 * h_space + box_size;
+        unsigned y = ((i +1) * v_space + (i +1) * box_size) -2;
+        txt_list.push_back(std::make_tuple(cv::Scalar(color.b, color.g, color.r),
+                                           cv::Point(x, y),
+                                           std::string(obj_type_to_string[i])));
     }
 
-    // convert: 'img' into 'cv::Mat'
-    for (int i = 0; i < img_height; i++)
-        for (int j = 0; j < img_width; j++) {
-            cv_img.at<cv::Vec3b>(i,j)[2] = img[i][j].r;
-            cv_img.at<cv::Vec3b>(i,j)[1] = img[i][j].g;
-            cv_img.at<cv::Vec3b>(i,j)[0] = img[i][j].b;
-        }
+    if (validation) {
+        // add false positve meteor
+        rgb8 color = get_color(RED);
+        unsigned x = 2 * h_space + box_size;
+        unsigned y = ((N_OBJ_TYPES +2) * v_space + (N_OBJ_TYPES +2) * box_size) -2;
+        txt_list.push_back(std::make_tuple(cv::Scalar(color.b, color.g, color.r),
+                                           cv::Point(x, y),
+                                           std::string("fp meteor")));
+    }
 
+    for (auto &txt : txt_list)
+        cv::putText(cv_img,
+                    std::get<2>(txt).c_str(), // text
+                    std::get<1>(txt),         // position
+                    cv::FONT_HERSHEY_DUPLEX,  // font type
+                    0.7,                      // font size
+                    std::get<0>(txt),         // color
+                    1,                        // ?
+                    cv::LINE_AA);             // ?
+}
+
+void draw_track_ids(cv::Mat &cv_img, const coordBB* listBB, const int nBB) {
     //                       x    y color        list of ids
     std::vector<std::tuple<int, int, rgb8, std::vector<int>>> list_of_ids_grouped_by_pos;
     for(int i = 0; i < nBB; i++) {
@@ -149,6 +177,34 @@ void draw_track_ids(rgb8** img, const int img_width, const int img_height, const
                     cv::FONT_HERSHEY_DUPLEX, 0.7,
                     cv::Scalar(color.b, color.g, color.r), 1, cv::LINE_AA);
     }
+}
+
+void draw_text(rgb8** img, const int img_width, const int img_height, const coordBB* listBB, const int nBB, int validation, int show_ids) {
+    unsigned box_size = 20, h_space = 10, v_space = 10;
+    draw_legend_squares(img, box_size, h_space, v_space, validation);
+
+    // create a blank image of size
+    // (img_width x img_height) with white background
+    // (B, G, R) : (255, 255, 255)
+    cv::Mat cv_img(img_height, img_width, CV_8UC3, cv::Scalar(255, 255, 255));
+
+    // check if the image is created successfully
+    if (!cv_img.data) {
+        std::cerr << "(EE) Could not open or find the image" << std::endl;
+        std::exit(-1);
+    }
+
+    // convert: 'img' into 'cv::Mat'
+    for (int i = 0; i < img_height; i++)
+        for (int j = 0; j < img_width; j++) {
+            cv_img.at<cv::Vec3b>(i,j)[2] = img[i][j].r;
+            cv_img.at<cv::Vec3b>(i,j)[1] = img[i][j].g;
+            cv_img.at<cv::Vec3b>(i,j)[0] = img[i][j].b;
+        }
+
+    if (show_ids)
+        draw_track_ids(cv_img, listBB, nBB);
+    draw_legend_texts(cv_img, box_size, h_space, v_space, validation);
 
     // // debug: show image inside a window.
     // cv::imshow("Output", cv_img);

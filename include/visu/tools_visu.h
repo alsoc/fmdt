@@ -9,12 +9,12 @@
 #include <nrc2.h>
 #include "Tracking.h"
 
-enum Color_t {MISC = 0, GREEN, RED, PURPLE, ORANGE, BLUE, YELLOW, N_COLOR_T};
+enum Color_t {MISC = 0, GRAY, GREEN, RED, PURPLE, ORANGE, BLUE, YELLOW, N_COLOR_T};
 
 #define METEOR_COLOR  GREEN
 #define STAR_COLOR    PURPLE
 #define NOISE_COLOR   ORANGE
-#define UNKNOWN_COLOR MISC
+#define UNKNOWN_COLOR GRAY
 
 #define METEOR_STR  "meteor"
 #define STAR_STR    "star"
@@ -40,7 +40,7 @@ enum Obj_type string_to_obj_type(const char* string);
 rgb8 get_color(enum Color_t color);
 void convert_img_grayscale_to_rgb(const uint8** I, rgb8** I_bb, int i0, int i1, int j0, int j1);
 #ifdef OPENCV_LINK
-void draw_track_ids(rgb8** img, const int img_width, const int img_height, const coordBB* listBB, const int nBB);
+void draw_text(rgb8** img, const int img_width, const int img_height, const coordBB* listBB, const int nBB, int validation, int show_ids);
 #endif
 void draw_BB(rgb8** I_bb, const coordBB* listBB, int n_BB);
 void saveFrame(const char* filename, const rgb8** I_bb, int w, int h);
