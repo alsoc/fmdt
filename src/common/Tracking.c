@@ -343,7 +343,7 @@ void updateTrack(Track *tracks, MeteorROI *stats0, MeteorROI *stats1, int nc1, i
                                 continue;
                             }
                             else
-                                tracks[i].obj_type = STAR;
+                                tracks[i].obj_type = NOISE;
                         }
                     }
 
@@ -421,7 +421,7 @@ void insert_new_track_stars(MeteorROI last_stats,  MeteorROI begin, Track *track
     track->time      = 1; 
     track->timestamp = frame - frame_star;
     track->state     = TRACK_NEW;
-    track->obj_type  = NOISE;
+    track->obj_type  = STAR;
 
     last_stats.track_id = track->id;
 }

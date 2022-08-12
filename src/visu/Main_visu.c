@@ -145,7 +145,7 @@ void main_visu(int argc, char** argv)
 
     // recupere les tracks
     parseTracks(src_path, tracks, &nb_tracks);
-    //printTracks2(tracks, nb_tracks, 1);
+    //printTracks2(tracks, nb_tracks);
 
     int max_LUT = 0;
     for (int i = 0; i < nb_tracks; i++)
@@ -202,22 +202,18 @@ void main_visu(int argc, char** argv)
     // parcours de la video
     while(Video_nextFrame(video,I0)) {
         frame = video->frame_current - 1;
-		fprintf(stderr, "(II) Frame n°%-4d\r", frame);
+        fprintf(stderr, "(II) Frame n°%-4d\r", frame);
         fflush(stderr);
         int cpt = 0;
 
         // affiche tous les BB de l'image
         while(frame_bb == frame){
-            switch(tracks[LUT_tracks_id[track_id]].obj_type){
-                case STAR:   color = YELLOW; break;
-                case METEOR: color = GREEN;  break;
-                case NOISE:  color = ORANGE; break;
-                default:
-                    fprintf(stderr, "(EE) This should never happen... ('cpt' = %d, 'track_id' = %d, 'LUT_tracks_id[track_id]' = %d, 'tracks[LUT_tracks_id[track_id]].obj_type' = %d)\n", cpt, track_id, LUT_tracks_id[track_id], tracks[LUT_tracks_id[track_id]].obj_type);
-                    exit(-1);
-                    break;
+            if (tracks[LUT_tracks_id[track_id]].obj_type != UNKNOWN)
+                color = obj_type_to_color[tracks[LUT_tracks_id[track_id]].obj_type];
+            else {
+                fprintf(stderr, "(EE) This should never happen... ('cpt' = %d, 'track_id' = %d, 'LUT_tracks_id[track_id]' = %d, 'tracks[LUT_tracks_id[track_id]].obj_type' = %d)\n", cpt, track_id, LUT_tracks_id[track_id], tracks[LUT_tracks_id[track_id]].obj_type);
+                exit(-1);
             }
-
             if (validation && tracks[LUT_tracks_id[track_id]].is_valid == 1) color = GREEN; // GREEN = true  positive 'meteor'
             if (validation && tracks[LUT_tracks_id[track_id]].is_valid == 2) color = RED;   // RED   = false positive 'meteor'
 
@@ -264,6 +260,7 @@ void main_visu(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
+    init_global_data();
     main_visu(argc, argv);
     return 0;
 }

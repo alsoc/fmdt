@@ -1,3 +1,10 @@
+#include <stdlib.h>
+#include <string.h>
+#include <stdio.h>
+#include <sys/types.h>
+#include <sys/stat.h>
+#include <unistd.h>
+
 #include "Args.h"
 #include "Video.h"
 #include "CCL.h"
@@ -9,13 +16,7 @@
 #include "Tracking.h"
 #include "Ballon.h"
 #include "Validation.h"
-
-#include <stdlib.h>
-#include <string.h>
-#include <stdio.h>
-#include <sys/types.h>
-#include <sys/stat.h>
-#include <unistd.h>
+#include "tools_visu.h"
 
 #define SEQUENCE_DST_PATH_HIST "hist/"
 #define SEQUENCE_NDIGIT 5
@@ -282,7 +283,7 @@ void main_detect(int argc, char** argv)
     if (output_bb)
         saveTabBB(path_bounding_box, tabBB, tracks, NB_FRAMES, track_all);
     //saveTracks(path_tracks, tracks, last);
-    printTracks2(stdout, tracks, last+1, track_all);
+    printTracks2(stdout, tracks, last+1);
 
     printf("# Statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
@@ -304,6 +305,7 @@ void main_detect(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
+    init_global_data();
     main_detect(argc, argv);
     return 0;
 }

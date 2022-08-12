@@ -5,18 +5,9 @@
  * Copyright (c) 2020-2021, Clara CIOCAN, LIP6 Sorbonne University
  * Copyright (c) 2020-2021, Mathuran KANDEEPAN, LIP6 Sorbonne University
  */
-#include "Args.h"
-#include "Video.h"
-#include "CCL.h"
-#include "Features.h"
-#include "Threshold.h"
-#include "DebugUtil.h"
-#include "macro_debug.h"
-#include "Tracking.h"
 
 #include <ffmpeg-io/reader.h>
 #include <ffmpeg-io/writer.h>
-
 #include <nrc2.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -26,6 +17,16 @@
 #include <math.h>
 #include <stdio.h>
 #include <sys/stat.h>
+
+#include "Args.h"
+#include "Video.h"
+#include "CCL.h"
+#include "Features.h"
+#include "Threshold.h"
+#include "DebugUtil.h"
+#include "macro_debug.h"
+#include "Tracking.h"
+#include "tools_visu.h"
 
 #define SIZE_BUF 20
 
@@ -114,7 +115,7 @@ void saveTabBB(const char *filename, elemBB **tabBB, Track* tracks, int n, int t
         if(tabBB[i] != NULL){
             for( elemBB *current =tabBB[i]; current != NULL; current = current->next ){
                 if ( track_all || (!track_all && tracks[(current->track_id)-1].obj_type == METEOR) )
-                    fprintf(f, "%d %d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y, current->track_id );
+                    fprintf(f, "%d %d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y, current->track_id);
             }
         }
     }
@@ -157,7 +158,7 @@ void printTracks(Track* tracks, int last)
 }
 
 // ---------------------------------------------------------------------------------------------------
-void printTracks2(FILE *f, Track* tracks, int n, int track_all)
+void printTracks2(FILE *f, Track* tracks, int n)
 // ---------------------------------------------------------------------------------------------------
 {
     fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
@@ -180,7 +181,7 @@ void printTracks2(FILE *f, Track* tracks, int n, int track_all)
 
     unsigned track_id = 0;
     for(int i = 0; i < n; i++){
-        if(tracks[i].time && (track_all || (!track_all && tracks[i].obj_type == METEOR))) {
+        if(tracks[i].time) {
             fprintf(f, "   %5d || %7d | %6.1f | %6.1f || %7d | %6.1f | %6.1f || %s \n",
                    tracks[i].id,
                    tracks[i].timestamp,
@@ -189,7 +190,7 @@ void printTracks2(FILE *f, Track* tracks, int n, int track_all)
                    tracks[i].timestamp+tracks[i].time,
                    tracks[i].end.x,
                    tracks[i].end.y,
-                   type_lut[tracks[i].obj_type]);
+                   obj_type_to_string_with_spaces[tracks[i].obj_type]);
             track_id++;
         }
     }
@@ -271,7 +272,18 @@ void saveStats_file(FILE *f, MeteorROI* stats, int n, Track* tracks)
     for(int i = 1; i<= n; i++){
         if(stats[i].S != 0) {
             fprintf(f, "   %4d || %4d | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f  \n",
-            stats[i].ID, stats[i].track_id, type_lut[tracks[stats[i].track_id -1].obj_type], stats[i].xmin, stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx, stats[i].Sy, stats[i].x, stats[i].y);
+                    stats[i].ID,
+                    stats[i].track_id,
+                    obj_type_to_string_with_spaces[tracks[stats[i].track_id -1].obj_type],
+                    stats[i].xmin,
+                    stats[i].xmax,
+                    stats[i].ymin,
+                    stats[i].ymax,
+                    stats[i].S,
+                    stats[i].Sx,
+                    stats[i].Sy,
+                    stats[i].x,
+                    stats[i].y);
         }
     }
 }
@@ -377,14 +389,7 @@ void parseTracks(const char*filename, Track* tracks, int* n)
             tracks[*n].end.y     = y1;
             // tracks[*n].bb_x   = bb_x;
             // tracks[*n].bb_y   = bb_y;
-            if(!strcmp(obj_type_str, "noise"))
-                tracks[*n].obj_type = NOISE;
-            else if(!strcmp(obj_type_str, "meteor"))
-                tracks[*n].obj_type = METEOR;
-            else if(!strcmp(obj_type_str, "star"))
-                tracks[*n].obj_type = STAR;
-            else
-                tracks[*n].obj_type = UNKNOWN;
+            tracks[*n].obj_type  = string_to_obj_type((const char*)obj_type_str);
 
             (*n)++;
         }
@@ -641,7 +646,7 @@ void saveAssoConflicts(const char* path, int frame, uint32 *conflicts, uint32 **
     fprintf(f, "#\n");
     fprintf(f, "# Tracks [%d]:\n", n_tracks);
     if (n_tracks)
-        printTracks2(f, tracks, n_tracks, 1);
+        printTracks2(f, tracks, n_tracks);
 
     // // Conflicts
     // cpt = 0;

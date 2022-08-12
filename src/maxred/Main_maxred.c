@@ -146,7 +146,7 @@ void main_maxred(int argc, char** argv)
         int n_tracks = 0;
         init_Track(tracks, SIZE_MAX_TRACKS);
         parseTracks(input_tracks, tracks, &n_tracks);
-        //printTracks2(tracks, n_tracks, 1);
+        //printTracks2(tracks, n_tracks);
 
         if (validation) {
             Validation_init(validation);
@@ -166,14 +166,11 @@ void main_maxred(int argc, char** argv)
             listBB[t].ymin = (tracks[t].begin.y < tracks[t].end.y ? tracks[t].begin.y : tracks[t].end.y) - delta;
             listBB[t].ymax = (tracks[t].begin.y < tracks[t].end.y ? tracks[t].end.y : tracks[t].begin.y) + delta;
 
-            switch(tracks[t].obj_type){
-                case STAR:   listBB[t].color = YELLOW; break;
-                case METEOR: listBB[t].color = GREEN;  break;
-                case NOISE:  listBB[t].color = ORANGE; break;
-                default:
-                    fprintf(stderr, "(EE) This should never happen... ('t' = %d, 'tracks[t].obj_type' = %d)\n", t, tracks[t].obj_type);
-                    exit(-1);
-                    break;
+            if (tracks[t].obj_type != UNKNOWN)
+                listBB[t].color = obj_type_to_color[tracks[t].obj_type];
+            else {
+                fprintf(stderr, "(EE) This should never happen... ('t' = %d, 'tracks[t].obj_type' = %d)\n", t, tracks[t].obj_type);
+                exit(-1);
             }
 
             if (validation && tracks[t].is_valid == 1) listBB[t].color = GREEN; // GREEN = true  positive 'meteor'
@@ -208,6 +205,7 @@ void main_maxred(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
+    init_global_data();
     main_maxred(argc, argv);
     
     return 0;

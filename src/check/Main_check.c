@@ -11,6 +11,7 @@
 #include "Tracking.h"
 #include "DebugUtil.h"
 #include "Validation.h"
+#include "tools_visu.h"
 
 #define SIZE_MAX_TRACKS 1000
 
@@ -81,6 +82,7 @@ void main_validation(int argc, char** argv)
 
 int main(int argc, char** argv)
 {
+    init_global_data();
     main_validation(argc, argv);
     
     return 0;

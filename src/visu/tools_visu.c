@@ -4,6 +4,7 @@
  */ 
 
 #include "string.h"
+#include "stdio.h"
 
 #ifdef OPENCV_LINK
 #include <iostream>
@@ -17,24 +18,66 @@
 #include "DebugUtil.h"
 #include "tools_visu.h"
 
+enum Color_t obj_type_to_color[N_OBJ_TYPES];
+char obj_type_to_string[N_OBJ_TYPES][64];
+char obj_type_to_string_with_spaces[N_OBJ_TYPES][64];
+
+void init_global_data() {
+    obj_type_to_color[UNKNOWN] = UNKNOWN_COLOR;
+    obj_type_to_color[STAR]    = STAR_COLOR;
+    obj_type_to_color[METEOR]  = METEOR_COLOR;
+    obj_type_to_color[NOISE]   = NOISE_COLOR;
+
+    char str_unknown[64] = UNKNOWN_STR; sprintf(obj_type_to_string[UNKNOWN], "%s", str_unknown);
+    char str_star   [64] = STAR_STR;    sprintf(obj_type_to_string[STAR   ], "%s", str_star   );
+    char str_meteor [64] = METEOR_STR;  sprintf(obj_type_to_string[METEOR ], "%s", str_meteor );
+    char str_noise  [64] = NOISE_STR;   sprintf(obj_type_to_string[NOISE  ], "%s", str_noise  );
+
+    unsigned max = 0;
+    for (int i = 0; i < N_OBJ_TYPES; i++)
+        if (strlen(obj_type_to_string[i]) > max)
+            max = strlen(obj_type_to_string[i]);
+
+    for (int i = 0; i < N_OBJ_TYPES; i++) {
+        int len = strlen(obj_type_to_string[i]);
+        int diff = max - len;
+        for (int c = len; c >= 0; c--)
+            obj_type_to_string_with_spaces[i][diff +c] = obj_type_to_string[i][c];
+        for (int c = 0; c < diff; c++)
+            obj_type_to_string_with_spaces[i][c] = ' ';
+    }
+}
+
+enum Obj_type string_to_obj_type(const char* string) {
+    enum Obj_type obj = UNKNOWN;
+    for (int i = 0; i < N_OBJ_TYPES; i++)
+        if(!strcmp(string, obj_type_to_string[i])) {
+            obj = (enum Obj_type)i;
+            break;
+        }
+    return obj;
+}
+
 // ==============================================================================================================================
 rgb8 get_color(enum Color_t color)
 // ==============================================================================================================================
 {
-    rgb8 green;     rgb8 red;     rgb8 blue;     rgb8 orange;     rgb8 yellow;     rgb8 misc;
-    green.g = 255;  red.g = 000;  blue.g = 000;  orange.r = 255;  yellow.g = 255;  misc.g = 255;
-    green.b = 000;  red.b = 000;  blue.b = 255;  orange.g = 165;  yellow.b = 000;  misc.b = 153;
-    green.r = 000;  red.r = 255;  blue.r = 000;  orange.b = 000;  yellow.r = 255;  misc.r = 153;
+    rgb8 green;     rgb8 red;     rgb8 blue;    rgb8 purple;    rgb8 orange;     rgb8 yellow;     rgb8 misc;
+    green.g = 255;  red.g = 000;  blue.g = 000; purple.g = 127; orange.r = 255;  yellow.g = 255;  misc.g = 255;
+    green.b = 000;  red.b = 000;  blue.b = 255; purple.b = 255; orange.g = 165;  yellow.b = 000;  misc.b = 153;
+    green.r = 000;  red.r = 255;  blue.r = 000; purple.r = 127; orange.b = 000;  yellow.r = 255;  misc.r = 153;
 
     switch (color) {
         case GREEN:
             return green;
         case RED:
             return red;
-        case ORANGE:
-            return orange;
         case BLUE:
             return blue;
+        case PURPLE:
+            return purple;
+        case ORANGE:
+            return orange;
         case YELLOW:
             return yellow;
         case MISC:
