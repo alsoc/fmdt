@@ -1,71 +1,65 @@
 /*
  * Copyright (c) 2022, Clara Ciocan/ Mathuran Kandeepan
  * LIP6
- */ 
+ */
 
 #include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
 
+#include "Ballon.h"
 #include "DebugUtil.h"
 #include "Tracking.h"
-#include "tools_visu.h"
 #include "Validation.h"
-#include "Ballon.h"
+#include "tools_visu.h"
 
-// ---------------------------------------------------------------------
-void max_reduce(uint8**M, int i0, int i1, int j0, int j1, uint8** I)
-// ---------------------------------------------------------------------
-{
-    for(int i = i0; i <= i1; i++) {
-        for(int j = j0; j <= j1; j++) {
+void max_reduce(uint8** M, int i0, int i1, int j0, int j1, uint8** I) {
+    for (int i = i0; i <= i1; i++) {
+        for (int j = j0; j <= j1; j++) {
             uint8 x = I[i][j];
             uint8 m = M[i][j];
-            if(x > m) {
+            if (x > m) {
                 M[i][j] = x;
             }
         }
     }
 }
 
-// ==============================================================================================================================
-void main_maxred(int argc, char** argv)
-// ==============================================================================================================================
-{
+void main_maxred(int argc, char** argv) {
     // default values
-    char* def_input_video  =   NULL;
-    char* def_input_tracks =   NULL;
-    char* def_output_frame =   NULL;
-    int   def_start_frame  =      0;
-    int   def_end_frame    = 200000;
-    char* def_validation   =   NULL;
+    char* def_input_video = NULL;
+    char* def_input_tracks = NULL;
+    char* def_output_frame = NULL;
+    int def_start_frame = 0;
+    int def_end_frame = 200000;
+    char* def_validation = NULL;
 
     if (find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "  --input-video     Video source                             [%s]\n", def_input_video );
+        fprintf(stderr, "  --input-video     Video source                             [%s]\n", def_input_video);
         fprintf(stderr, "  --input-tracks    Path to the tracks files                 [%s]\n", def_input_tracks);
         fprintf(stderr, "  --output-frame    Path to the frames output                [%s]\n", def_output_frame);
-        fprintf(stderr, "  --start-frame     Starting frame in the video              [%d]\n", def_start_frame );
-        fprintf(stderr, "  --end-frame       Ending frame in the video                [%d]\n", def_end_frame   );
+        fprintf(stderr, "  --start-frame     Starting frame in the video              [%d]\n", def_start_frame);
+        fprintf(stderr, "  --end-frame       Ending frame in the video                [%d]\n", def_end_frame);
 #ifdef OPENCV_LINK
-        fprintf(stderr, "  --show-ids        Show the object ids on the output frame      \n"                  );
-        fprintf(stderr, "  --natural-num     Natural numbering of the object ids          \n"                  );
+        fprintf(stderr, "  --show-ids        Show the object ids on the output frame      \n");
+        fprintf(stderr, "  --natural-num     Natural numbering of the object ids          \n");
 #endif
-        fprintf(stderr, "  --validation      File containing the ground truth         [%s]\n", def_validation  );
-        fprintf(stderr, "  -h                This help                                    \n"                  );
+        fprintf(stderr, "  --validation      File containing the ground truth         [%s]\n", def_validation);
+        fprintf(stderr, "  -h                This help                                    \n");
         exit(1);
     }
 
     // Parsing Arguments
-    char* input_video     = find_char_arg (argc, argv, "--input-video",  def_input_video);
-    char* input_tracks    = find_char_arg (argc, argv, "--input-tracks", def_input_tracks);
-    char* dest_path_frame = find_char_arg (argc, argv, "--output-frame", def_output_frame);
-    int   start           = find_int_arg  (argc, argv, "--start-frame",  def_start_frame);
-    int   end             = find_int_arg  (argc, argv, "--end-frame",    def_end_frame);
-    char* validation      = find_char_arg (argc, argv, "--validation",   def_validation);
+    char* input_video = find_char_arg(argc, argv, "--input-video", def_input_video);
+    char* input_tracks = find_char_arg(argc, argv, "--input-tracks", def_input_tracks);
+    char* dest_path_frame = find_char_arg(argc, argv, "--output-frame", def_output_frame);
+    int start = find_int_arg(argc, argv, "--start-frame", def_start_frame);
+    int end = find_int_arg(argc, argv, "--end-frame", def_end_frame);
+    char* validation = find_char_arg(argc, argv, "--validation", def_validation);
 #ifdef OPENCV_LINK
-    int   show_ids        = find_arg      (argc, argv, "--show-ids");
-    int   natural_num     = find_arg      (argc, argv, "--natural-num");
+    int show_ids = find_arg(argc, argv, "--show-ids");
+    int natural_num = find_arg(argc, argv, "--natural-num");
 #endif
 
     // heading display
@@ -77,23 +71,25 @@ void main_maxred(int argc, char** argv)
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
-    printf("#  * input-video  = %s\n", input_video    );
-    printf("#  * input-tracks = %s\n", input_tracks   );
+    printf("#  * input-video  = %s\n", input_video);
+    printf("#  * input-tracks = %s\n", input_tracks);
     printf("#  * output-frame = %s\n", dest_path_frame);
-    printf("#  * start-frame  = %d\n", start          );
-    printf("#  * end-frame    = %d\n", end            );
+    printf("#  * start-frame  = %d\n", start);
+    printf("#  * end-frame    = %d\n", end);
 #ifdef OPENCV_LINK
-    printf("#  * show-ids     = %d\n", show_ids       );
-    printf("#  * natural-num  = %d\n", natural_num    );
+    printf("#  * show-ids     = %d\n", show_ids);
+    printf("#  * natural-num  = %d\n", natural_num);
 #endif
-    printf("#  * validation   = %s\n", validation     );
+    printf("#  * validation   = %s\n", validation);
     printf("#\n");
 
-    if (!input_video){
-        fprintf(stderr, "(EE) '--input-video' is missing\n"); exit(1);
+    if (!input_video) {
+        fprintf(stderr, "(EE) '--input-video' is missing\n");
+        exit(1);
     }
     if (!dest_path_frame) {
-        fprintf(stderr, "(EE) '--output-frame' is missing\n"); exit(1);
+        fprintf(stderr, "(EE) '--output-frame' is missing\n");
+        exit(1);
     }
 #ifdef OPENCV_LINK
     if (show_ids && !input_tracks)
@@ -127,14 +123,14 @@ void main_maxred(int argc, char** argv)
     // -- ALLOCATION -- //
     // ---------------- //
     PUTS("ALLOC");
-    uint8 **img = ui8matrix(i0, i1, j0, j1);
-    uint8 **Max = ui8matrix(i0, i1, j0, j1);
+    uint8** img = ui8matrix(i0, i1, j0, j1);
+    uint8** Max = ui8matrix(i0, i1, j0, j1);
 
     // ----------------//
     // -- TRAITEMENT --//
     // ----------------//
     PUTS("LOOP");
-    while(Video_nextFrame(video,img)) {
+    while (Video_nextFrame(video, img)) {
         frame = video->frame_current - 1;
         fprintf(stderr, "(II) Frame n°%4d\r", frame);
         max_reduce(Max, i0, i1, j0, j1, img);
@@ -146,7 +142,7 @@ void main_maxred(int argc, char** argv)
         int n_tracks = 0;
         init_Track(tracks, SIZE_MAX_TRACKS);
         parseTracks(input_tracks, tracks, &n_tracks);
-        //printTracks2(tracks, n_tracks);
+        // printTracks2(tracks, n_tracks);
 
         if (validation) {
             Validation_init(validation);
@@ -156,7 +152,7 @@ void main_maxred(int argc, char** argv)
         coordBB* listBB = (coordBB*)malloc(sizeof(coordBB) * n_tracks);
         for (int t = 0; t < n_tracks; t++) {
 #ifdef OPENCV_LINK
-            listBB[t].track_id = natural_num ? (t +1) : tracks[t].id;
+            listBB[t].track_id = natural_num ? (t + 1) : tracks[t].id;
 #else
             listBB[t].track_id = tracks[t].id;
 #endif
@@ -169,12 +165,15 @@ void main_maxred(int argc, char** argv)
             if (tracks[t].obj_type != UNKNOWN)
                 listBB[t].color = g_obj_type_to_color[tracks[t].obj_type];
             else {
-                fprintf(stderr, "(EE) This should never happen... ('t' = %d, 'tracks[t].obj_type' = %d)\n", t, tracks[t].obj_type);
+                fprintf(stderr, "(EE) This should never happen... ('t' = %d, 'tracks[t].obj_type' = %d)\n", t,
+                        tracks[t].obj_type);
                 exit(-1);
             }
 
-            if (validation && tracks[t].is_valid == 1) listBB[t].color = GREEN; // GREEN = true  positive 'meteor'
-            if (validation && tracks[t].is_valid == 2) listBB[t].color = RED;   // RED   = false positive 'meteor'
+            if (validation && tracks[t].is_valid == 1)
+                listBB[t].color = GREEN; // GREEN = true  positive 'meteor'
+            if (validation && tracks[t].is_valid == 2)
+                listBB[t].color = RED; // RED   = false positive 'meteor'
         }
 
         rgb8** img_bb = rgb8matrix(i0, i1, j0, j1);
@@ -202,10 +201,9 @@ void main_maxred(int argc, char** argv)
     printf("# End of the program, exiting.\n");
 }
 
-int main(int argc, char** argv)
-{
+int main(int argc, char** argv) {
     init_global_data();
     main_maxred(argc, argv);
-    
+
     return 0;
 }

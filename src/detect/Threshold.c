@@ -3,455 +3,388 @@
  * LIP6, UPMC, CNRS
  */
 
-#include <stdio.h>
 #include <Threshold.h>
+#include <stdio.h>
 
 void threshold(uint8** m, int i0, int i1, int j0, int j1, uint8 threshold) {
     int i, j;
-    for (i=i0 ; i<=i1 ; i++) {
-        for (j=j0 ; j<=j1 ; j++) {
+    for (i = i0; i <= i1; i++) {
+        for (j = j0; j <= j1; j++) {
             m[i][j] = (m[i][j] < threshold) ? 0 : 255;
         }
     }
 }
 
-void threshold_high(uint8** m, int i0, int i1, int j0, int j1, uint8 th) {
-    threshold(m, i0, i1, j0, j1, th);
-}
+void threshold_high(uint8** m, int i0, int i1, int j0, int j1, uint8 th) { threshold(m, i0, i1, j0, j1, th); }
 
 void threshold_low(uint8** m, int i0, int i1, int j0, int j1, uint8 threshold) {
     int i, j;
-    for (i=i0 ; i<=i1 ; i++) {
-        for (j=j0 ; j<=j1 ; j++) {
+    for (i = i0; i <= i1; i++) {
+        for (j = j0; j <= j1; j++) {
             m[i][j] = (m[i][j] > threshold) ? 0 : 255;
         }
     }
 }
 
-
-float max_norme(float32**U, float32**V, int i0, int i1, int j0, int j1) {
+float max_norme(float32** U, float32** V, int i0, int i1, int j0, int j1) {
     float maxi = 0;
-    for (int i=i0 ; i<=i1 ; i++) {
-        for (int j=j0 ; j<=j1 ; j++) {
-            float norme = U[i][j]*U[i][j] + V[i][j]*V[i][j];
-            if (maxi<norme) maxi = norme;
+    for (int i = i0; i <= i1; i++) {
+        for (int j = j0; j <= j1; j++) {
+            float norme = U[i][j] * U[i][j] + V[i][j] * V[i][j];
+            if (maxi < norme)
+                maxi = norme;
         }
     }
     return maxi;
 }
 
-// ---------------------------------------------------------------------------------------------
-void threshold_norme_compact_bigend(float32**U, float32**V, uint8** out, int w, int h, float threshold)
-// ---------------------------------------------------------------------------------------------
-{
+void threshold_norme_compact_bigend(float32** U, float32** V, uint8** out, int w, int h, float threshold) {
     float32 t2 = threshold * threshold; // comparaison avec le carre de la norme
-    
-    for (int i=0 ; i<h ; i++) {
-        for (int j=0 ; j<w ; j++) {
+
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
             uint8 val = 0;
             uint8 mask = 0x80; // Arthur en big endian.
-    
+
             // boucle sur les 8 bits
-            for (int k=0 ; k<8 ; k++) {
-            
-                float32 u = U[i][(j<<3)+k];
-                float32 v = V[i][(j<<3)+k];
-                float32 norme2 = u*u + v*v; // norme au carre
+            for (int k = 0; k < 8; k++) {
+
+                float32 u = U[i][(j << 3) + k];
+                float32 v = V[i][(j << 3) + k];
+                float32 norme2 = u * u + v * v; // norme au carre
                 val |= (norme2 < t2) ? 0 : mask;
 
-                mask = mask>>1; // Arthur en big endian
+                mask = mask >> 1; // Arthur en big endian
             }
             out[i][j] = val;
         }
     }
 }
-// ---------------------------------------------------------------------------
-void threshold_compact_bigend(uint8** in, uint8** out, int w, int h, uint8 threshold)
-// ---------------------------------------------------------------------------
-{
-    for (int i=0 ; i<h ; i++) {
-        for (int j=0 ; j<w ; j++) {
+
+void threshold_compact_bigend(uint8** in, uint8** out, int w, int h, uint8 threshold) {
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
             uint8 val = 0;
             uint8 mask = 0x80;
-            
+
             // boucle sur les 8 bits
-            for (int k=0 ; k<8 ; k++) {
-                val |= (in[i][(j<<3)+k]<threshold) ? 0 : mask;
-                mask = mask>>1;
+            for (int k = 0; k < 8; k++) {
+                val |= (in[i][(j << 3) + k] < threshold) ? 0 : mask;
+                mask = mask >> 1;
             }
             out[i][j] = val;
         }
     }
 }
 
-
-// ---------------------------------------------------------------------------------------------
-void threshold_norme_littleend(float32**U, float32**V, uint8** out, int i0, int i1, int j0, int j1, float threshold)
-// ---------------------------------------------------------------------------------------------
-{
+void threshold_norme_littleend(float32** U, float32** V, uint8** out, int i0, int i1, int j0, int j1, float threshold) {
     float32 t2 = threshold * threshold; // comparaison avec le carre de la norme
     uint8 val = 0;
-    
-    for (int i=i0 ; i<=i1 ; i++) {
-        for (int j=j0 ; j<=j1 ; j++) {
-            
+
+    for (int i = i0; i <= i1; i++) {
+        for (int j = j0; j <= j1; j++) {
+
             float32 u = U[i][j];
             float32 v = V[i][j];
-            float32 norme2 = u*u + v*v; // norme au carre
+            float32 norme2 = u * u + v * v; // norme au carre
             val = (norme2 < t2) ? 0 : 255;
 
             out[i][j] = val;
         }
     }
 }
-// ---------------------------------------------------------------------------------------------
-void threshold_norme_compact_littleend(float32**U, float32**V, uint8** out, int w, int h, float threshold)
-// ---------------------------------------------------------------------------------------------
-{
+
+void threshold_norme_compact_littleend(float32** U, float32** V, uint8** out, int w, int h, float threshold) {
     float32 t2 = threshold * threshold; // comparaison avec le carre de la norme
-    
-    for (int i=0 ; i<h ; i++) {
-        for (int j=0 ; j<w ; j++) {
+
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
             uint8 val = 0;
-            uint8 mask = 0x1;  // little endian
-            
+            uint8 mask = 0x1; // little endian
+
             // boucle sur les 8 bits
-            for (int k=0 ; k<8 ; k++) {
-            
-                float32 u = U[i][(j<<3)+k];
-                float32 v = V[i][(j<<3)+k];
-                float32 norme2 = u*u + v*v; // norme au carre
+            for (int k = 0; k < 8; k++) {
+
+                float32 u = U[i][(j << 3) + k];
+                float32 v = V[i][(j << 3) + k];
+                float32 norme2 = u * u + v * v; // norme au carre
                 val |= (norme2 < t2) ? 0 : mask;
-                mask = mask<<1; //little endian
+                mask = mask << 1; // little endian
             }
             out[i][j] = val;
-    
         }
     }
 }
 
+void pack_ui8vector_bigend(uint8* X1, int src_width, uint8* Y8) {
+    int dst_width = src_width / 8;
 
+    for (int i = 0; i < dst_width; i++) {
 
-// -----------------------------------------------------
-void pack_ui8vector_bigend(uint8* X1, int src_width, uint8* Y8)
-// -----------------------------------------------------
-{
-    int dst_width = src_width/8;
-    
-    for(int i=0; i<dst_width; i++) {
-        
         uint8 x = 0;
-        for(int k=0; k<8; k++) {
-        
-            uint8 b = X1[8*i + k];  
-            x = (x << 1) | b ;      
- 
+        for (int k = 0; k < 8; k++) {
+
+            uint8 b = X1[8 * i + k];
+            x = (x << 1) | b;
         }
         Y8[i] = x;
     }
 }
-// -----------------------------------------------------------------------
-void pack_ui8matrix_bigend(uint8** X1, uint8** Y8, int src_width, int src_height)
-// -----------------------------------------------------------------------
-{
-    for(int i=0; i<src_height; i++) {
+
+void pack_ui8matrix_bigend(uint8** X1, uint8** Y8, int src_width, int src_height) {
+    for (int i = 0; i < src_height; i++) {
         pack_ui8vector_bigend(X1[i], src_width, Y8[i]);
     }
 }
 
-// -----------------------------------------------------
-void pack_ui8vector_littleend(uint8* X1, int src_width, uint8* Y8)
-// -----------------------------------------------------
-{
+void pack_ui8vector_littleend(uint8* X1, int src_width, uint8* Y8) {
 
-    int dst_width = src_width/8;
-    
-    for(int i=0; i<dst_width; i++) {
-        
+    int dst_width = src_width / 8;
+
+    for (int i = 0; i < dst_width; i++) {
+
         uint8 x = 0;
-        for(int k=0; k<8; k++) {
-            
-            uint8 b = X1[8*i + k]; 
-            x = x | (b << k);      
+        for (int k = 0; k < 8; k++) {
+
+            uint8 b = X1[8 * i + k];
+            x = x | (b << k);
         }
         Y8[i] = x;
     }
 }
-// -----------------------------------------------------------------------
-void pack_ui8matrix_littleend(uint8** X1, int src_height, int src_width, uint8** Y8)
-// -----------------------------------------------------------------------
-{
-    for(int i=0; i<src_height; i++) {
+
+void pack_ui8matrix_littleend(uint8** X1, int src_height, int src_width, uint8** Y8) {
+    for (int i = 0; i < src_height; i++) {
         pack_ui8vector_littleend(X1[i], src_width, Y8[i]);
     }
 }
 
-// -----------------------------------------------------
-void pack255_ui8vector_littleend(uint8* X1, int src_width, uint8* Y8)
-// -----------------------------------------------------
-{
+void pack255_ui8vector_littleend(uint8* X1, int src_width, uint8* Y8) {
 
-    int dst_width = src_width/8;
-    
-    for(int i=0; i<dst_width; i++) {
-        
+    int dst_width = src_width / 8;
+
+    for (int i = 0; i < dst_width; i++) {
+
         uint8 x = 0;
 
-        for(int k=0; k<8; k++) {
-            
-            uint8 b = (X1[8*i + k] == 255); 
-            x = x | (b << k);               
+        for (int k = 0; k < 8; k++) {
+
+            uint8 b = (X1[8 * i + k] == 255);
+            x = x | (b << k);
         }
         Y8[i] = x;
     }
 }
-// -----------------------------------------------------------------------
-void pack255_ui8matrix_littleend(uint8** X1, int src_height, int src_width, uint8** Y8)
-// -----------------------------------------------------------------------
-{
-    for(int i=0; i<src_height; i++) {
+
+void pack255_ui8matrix_littleend(uint8** X1, int src_height, int src_width, uint8** Y8) {
+    for (int i = 0; i < src_height; i++) {
         pack255_ui8vector_littleend(X1[i], src_width, Y8[i]);
     }
 }
 
-
-// ---------------------------------------------------------
-void unpack_ui8matrix_bigend(uint8** in, uint8** out, int w, int h)
-// ---------------------------------------------------------
-{
-    for (int i=0 ; i<h ; i++) {
-        for (int j=0 ; j<w ; j++) {
+void unpack_ui8matrix_bigend(uint8** in, uint8** out, int w, int h) {
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
             uint8 mask = 0x80;
-            for (int k=0 ; k<8 ; k++) {
-                out[i][(j<<3)+k] = ((in[i][j]&mask) == 0) ? 0 : 1; 
-                mask = mask>>1;
-            }
-        }
-    }
-}
-// -----------------------------------------------------------
-void unpack_ui32matrix_bigend(uint8** in, uint32** out, int w, int h)
-// -----------------------------------------------------------
-{
-    for (int i=0 ; i<h ; i++) {
-        for (int j=0 ; j<w ; j++) {
-            uint8 mask = 0x80;
-            for (int k=0 ; k<8 ; k++) {
-                out[i][(j<<3)+k] = ((in[i][j]&mask) == 0) ? 0 : 255;
-                mask = mask>>1;
+            for (int k = 0; k < 8; k++) {
+                out[i][(j << 3) + k] = ((in[i][j] & mask) == 0) ? 0 : 1;
+                mask = mask >> 1;
             }
         }
     }
 }
 
-// -----------------------------------------------------------
-void unpack255_ui8matrix_littleend(uint8** in, uint8** out, int w, int h)
-// -----------------------------------------------------------
-{
-    for (int i=0 ; i<h ; i++) {
-        for (int j=0 ; j<w ; j++) {
+void unpack_ui32matrix_bigend(uint8** in, uint32** out, int w, int h) {
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
+            uint8 mask = 0x80;
+            for (int k = 0; k < 8; k++) {
+                out[i][(j << 3) + k] = ((in[i][j] & mask) == 0) ? 0 : 255;
+                mask = mask >> 1;
+            }
+        }
+    }
+}
+
+void unpack255_ui8matrix_littleend(uint8** in, uint8** out, int w, int h) {
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
             uint8 mask = 0x01;
-            for (int k=0 ; k<8 ; k++) {
-                out[i][(j<<3)+k] = ((in[i][j]&mask) == 0) ? 0 : 255;
-                mask = mask<<1;
+            for (int k = 0; k < 8; k++) {
+                out[i][(j << 3) + k] = ((in[i][j] & mask) == 0) ? 0 : 255;
+                mask = mask << 1;
             }
         }
     }
 }
-// -------------------------------------------------------
-void unpack_ui8vector_littleend(uint8* X8, int src_width, uint8* Y1)
-// -------------------------------------------------------
-{
-      for(int i=0; i<src_width; i++) {
-        
+
+void unpack_ui8vector_littleend(uint8* X8, int src_width, uint8* Y1) {
+    for (int i = 0; i < src_width; i++) {
+
         uint8 x = X8[i];
-        
-        for(int k=0; k<8; k++) {
-            Y1[8*i + k] = x & 1;        
+
+        for (int k = 0; k < 8; k++) {
+            Y1[8 * i + k] = x & 1;
             x = x >> 1;
         }
     }
 }
-// -------------------------------------------------------------------------
-void unpack_ui8matrix_littleend(uint8** X8, int src_height, int src_width, uint8** Y1)
-// -------------------------------------------------------------------------
-{
-    for(int i=0; i<src_height; i++) {
+
+void unpack_ui8matrix_littleend(uint8** X8, int src_height, int src_width, uint8** Y1) {
+    for (int i = 0; i < src_height; i++) {
         unpack_ui8vector_littleend(X8[i], src_width, Y1[i]);
     }
 }
 
-
-// -----------------------------------------------------------
-void unpack_ui32matrix_littlend(uint8** in, uint32** out, int w, int h)
-// -----------------------------------------------------------
-{
-    for (int i=0 ; i<h ; i++) {
-        for (int j=0 ; j<w ; j++) {
+void unpack_ui32matrix_littlend(uint8** in, uint32** out, int w, int h) {
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
             uint8 mask = 0x01;
-            for (int k=0 ; k<8 ; k++) {
-                out[i][(j<<3)+k] = ((in[i][j]&mask) == 0) ? 0 : 255;
-                mask = mask<<1;
+            for (int k = 0; k < 8; k++) {
+                out[i][(j << 3) + k] = ((in[i][j] & mask) == 0) ? 0 : 255;
+                mask = mask << 1;
             }
         }
     }
 }
 
-
-
-
-// -----------------------------------------------------------
-void mask_EDT(uint8** I1, uint8** I2, int i0, int i1, int j0, int j1)
-{
+void mask_EDT(uint8** I1, uint8** I2, int i0, int i1, int j0, int j1) {
     int i, j;
     uint8 a, b;
-    for (i = i0; i<= i1 ; i++){
-        for (j = j0; j<= j1 ; j++){
+    for (i = i0; i <= i1; i++) {
+        for (j = j0; j <= j1; j++) {
             a = I1[i][j];
             b = I2[i][j];
-            if ( a == 0 && b != 0){
+            if (a == 0 && b != 0) {
                 I2[i][j] = 0;
             }
         }
     }
 }
-// -----------------------------------------------------------
-void mask_EDT_ui32matrix(uint32** I1, uint32** I2, int i0, int i1, int j0, int j1)
-// -----------------------------------------------------------
-{
+
+void mask_EDT_ui32matrix(uint32** I1, uint32** I2, int i0, int i1, int j0, int j1) {
     int i, j;
     uint32 a, b;
-    for (i = i0; i<= i1 ; i++){
-        for (j = j0; j<= j1 ; j++){
+    for (i = i0; i <= i1; i++) {
+        for (j = j0; j <= j1; j++) {
             a = I1[i][j];
             b = I2[i][j];
-            if ( a == 0 && b != 0){
+            if (a == 0 && b != 0) {
                 I2[i][j] = 0;
             }
         }
     }
 }
-// -----------------------------------------------------------
-void mask_EDT_compact(uint8** I1, uint8** I2, int i0, int i1, int j0, int j1)
-{
+
+void mask_EDT_compact(uint8** I1, uint8** I2, int i0, int i1, int j0, int j1) {
     int i, j, k;
     uint8 a, b, mask, bit;
-    for (i = i0; i<= i1 ; i++){
-        for (j = j0; j<= j1 ; j++){
+    for (i = i0; i <= i1; i++) {
+        for (j = j0; j <= j1; j++) {
             mask = 0x1;
             a = I1[i][j];
-            for(k = 0; k<8; k++){
-                bit = (a & mask)>>k;
-                b = I2[i][(j<<3)+k];
-                if ( bit == 0 && b != 0){
-                    I2[i][(j<<3)+k] = 0;
+            for (k = 0; k < 8; k++) {
+                bit = (a & mask) >> k;
+                b = I2[i][(j << 3) + k];
+                if (bit == 0 && b != 0) {
+                    I2[i][(j << 3) + k] = 0;
                 }
-                mask = mask<<1;
+                mask = mask << 1;
             }
-            
         }
     }
 }
-// ----------------------------------------------------------------
-void histogram(uint8** m, float* h, int i0, int i1, int j0, int j1)
-// ----------------------------------------------------------------
-/* Histogramme normalisé h[i] = n[i] / N */
-{
-    float N = (float)((i1-i0+1)*(j1-j0+1));
-    
-    for (int i=0 ; i<GRAY_LEVEL ; i++) {
+
+void histogram(uint8** m, float* h, int i0, int i1, int j0, int j1) {
+    /* Histogramme normalisé h[i] = n[i] / N */
+    float N = (float)((i1 - i0 + 1) * (j1 - j0 + 1));
+
+    for (int i = 0; i < GRAY_LEVEL; i++) {
         h[i] = 0.0;
     }
-    
-    for (int i=i0 ; i<=i1 ; i++) {
-        for (int j=j0 ; j<=j1 ; j++) {
+
+    for (int i = i0; i <= i1; i++) {
+        for (int j = j0; j <= j1; j++) {
             h[m[i][j]] += 1.0;
         }
     }
-    
-    for (int i=0 ; i<GRAY_LEVEL ; i++) {
+
+    for (int i = 0; i < GRAY_LEVEL; i++) {
         h[i] /= N;
     }
 }
-// -------------------------------------------------------------------------------------------------------
-void histogram_uv_norm_sq(uint8** m, float32** U, float32** V, float32* h, int i0, int i1, int j0, int j1)
-// -------------------------------------------------------------------------------------------------------
-{
-    for (int i=0 ; i<GRAY_LEVEL ; i++) {
+
+void histogram_uv_norm_sq(uint8** m, float32** U, float32** V, float32* h, int i0, int i1, int j0, int j1) {
+    for (int i = 0; i < GRAY_LEVEL; i++) {
         h[i] = 0.0;
     }
-    
+
     float N = 0.0;
-    for (int i=i0 ; i<=i1 ; i++) {
-        for (int j=j0 ; j<=j1 ; j++) {
-            float val = U[i][j]*U[i][j] + V[i][j]*V[i][j];
+    for (int i = i0; i <= i1; i++) {
+        for (int j = j0; j <= j1; j++) {
+            float val = U[i][j] * U[i][j] + V[i][j] * V[i][j];
             h[m[i][j]] += val;
             N += val;
         }
     }
-    
-    for (int i=0 ; i<GRAY_LEVEL ; i++) {
+
+    for (int i = 0; i < GRAY_LEVEL; i++) {
         h[i] /= N;
     }
 }
-// ----------------------------
-int otsu_bcv_k(float* h, int k)
-// ----------------------------
-{
+
+int otsu_bcv_k(float* h, int k) {
     int t = 0;
-    for (int i=0 ; i<k ; i++) {
-        t = otsu_bcv(h, t, GRAY_LEVEL-1);
+    for (int i = 0; i < k; i++) {
+        t = otsu_bcv(h, t, GRAY_LEVEL - 1);
     }
     return t;
 }
 
 /* Otsu's thresholding method */
 /* Between class variance     */
-// -----------------------------------
-int otsu_bcv(float* h, int t0, int t1)
-// -----------------------------------
-{
+int otsu_bcv(float* h, int t0, int t1) {
     // Init class weights and means (u = sum(i * p(i)) / w)
     float w0 = 0.0;
     float sum0 = 0.0;
-    for (int i=0 ; i<=t0 ; i++) {
+    for (int i = 0; i <= t0; i++) {
         w0 += h[i];
         sum0 += t0 * h[i]; // Toutes les intensités < t0 sont mises à t0
     }
     float u0 = (w0 > 0) ? sum0 / w0 : 0.0;
-    
+
     float w1 = 1.0 - w0;
     float sum1 = 0.0;
-    for (int i=t0+1 ; i<GRAY_LEVEL ; i++) {
+    for (int i = t0 + 1; i < GRAY_LEVEL; i++) {
         sum1 += i * h[i];
     }
     float u1 = (w1 > 0) ? sum1 / w1 : 0.0;
-    
+
     float max_bcv = w0 * w1 * (u0 - u1) * (u0 - u1);
     int threshold = t0;
-    
+
     // Find max bcv between t0 and t1
     float p, bcv;
-    for (int t=t0+1 ; t<=t1 ; t++) {
+    for (int t = t0 + 1; t <= t1; t++) {
         p = h[t];
-        
+
         w0 += p;
         w1 -= p;
-        
+
         sum0 += t * p;
         sum1 -= t * p;
-        
+
         u0 = (w0 > 0) ? sum0 / w0 : 0.0;
         u1 = (w1 > 0) ? sum1 / w1 : 0.0;
-        
+
         bcv = w0 * w1 * (u0 - u1) * (u0 - u1);
-        
+
         if (max_bcv < bcv) {
             max_bcv = bcv;
             threshold = t;
         }
     }
-    
+
     return threshold;
 }
 
@@ -526,7 +459,7 @@ int otsu_bcv(float* h, int t0, int t1)
         // Within Class Variance
         wcv = ((float) wBgNum / np) * sigBg + ((float) wFgNum / np) * sigFg;
 
-        
+
         // First value assignment
         if (value == -1) {
             value = wcv;
@@ -538,41 +471,36 @@ int otsu_bcv(float* h, int t0, int t1)
             threshold = i;
         }
     }
-    
+
     return threshold;
 }*/
 
 // OpenMP
-// -------------------------------------------------------------
-void unpack_ui8matrix_omp(uint8** in, uint8** out, int w, int h)
-// -------------------------------------------------------------
-{
-    #ifdef _OPENMP
-    #pragma omp parallel for shared(in, out)
-    #endif
-    for (int i=0 ; i<h ; i++) {
-        for (int j=0 ; j<w ; j++) {
+void unpack_ui8matrix_omp(uint8** in, uint8** out, int w, int h) {
+#ifdef _OPENMP
+#pragma omp parallel for shared(in, out)
+#endif
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
             uint8 mask = 0x80;
-            for (int k=0 ; k<8 ; k++) {
-                out[i][(j<<3)+k] = ((in[i][j]&mask) == 0) ? 0 : 255;
-                mask = mask>>1;
+            for (int k = 0; k < 8; k++) {
+                out[i][(j << 3) + k] = ((in[i][j] & mask) == 0) ? 0 : 255;
+                mask = mask >> 1;
             }
         }
     }
 }
-// ---------------------------------------------------------------
-void unpack_ui32matrix_omp(uint8** in, uint32** out, int w, int h)
-// ---------------------------------------------------------------
-{
-    #ifdef _OPENMP
-    #pragma omp parallel for shared(in, out)
-    #endif
-    for (int i=0 ; i<h ; i++) {
-        for (int j=0 ; j<w ; j++) {
+
+void unpack_ui32matrix_omp(uint8** in, uint32** out, int w, int h) {
+#ifdef _OPENMP
+#pragma omp parallel for shared(in, out)
+#endif
+    for (int i = 0; i < h; i++) {
+        for (int j = 0; j < w; j++) {
             uint8 mask = 0x80;
-            for (int k=0 ; k<8 ; k++) {
-                out[i][(j<<3)+k] = ((in[i][j]&mask) == 0) ? 0 : 255;
-                mask = mask>>1;
+            for (int k = 0; k < 8; k++) {
+                out[i][(j << 3) + k] = ((in[i][j] & mask) == 0) ? 0 : 255;
+                mask = mask >> 1;
             }
         }
     }

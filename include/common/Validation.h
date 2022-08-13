@@ -11,16 +11,16 @@
 #include "Features.h"
 #include "Tracking.h"
 
-#define VALIDATION_MIN_STDDEV       2.0
-#define VALIDATION_MAX_STDDEV       30.0
-#define VALIDATION_MIN_NORME        2.0
-#define VALIDATION_MAX_NORME        20.0
-#define VALIDATION_MIN_SURFACE      18
-#define VALIDATION_MAX_SURFACE      2500
+#define VALIDATION_MIN_STDDEV 2.0
+#define VALIDATION_MAX_STDDEV 30.0
+#define VALIDATION_MIN_NORME 2.0
+#define VALIDATION_MAX_NORME 20.0
+#define VALIDATION_MIN_SURFACE 18
+#define VALIDATION_MAX_SURFACE 2500
 #define VALIDATION_MIN_TRACK_UPDATE 3
 
 typedef struct input {
-    //Debut
+    // Debut
     sint16 t0;
     float32 x0;
     float32 y0;
@@ -41,7 +41,7 @@ typedef struct input {
     float32 track_x1;
     float32 track_y1;
 #endif
-    
+
     // Rectangle englobant
     float32 bb_x0, bb_x1;
     float32 bb_y0, bb_y1;
@@ -57,14 +57,14 @@ typedef struct input {
     float32 b;
     uint8 dirX; // x1 >= x0
     uint8 dirY; // y1 >= <0
-    
-    //infos piste
+
+    // infos piste
     Track* track;
     unsigned track_id;
     float32 xt;
     float32 yt;
-    
-    //compteurs
+
+    // compteurs
     uint16 nb_tracks;
     uint16 hits;
     uint16 is_valid;
@@ -78,7 +78,7 @@ void Validation_print(const Track* tracks, const int tracks_nb);
 void Validation(Track* tracks, int tracks_nb);
 void Validation_free(void);
 
-unsigned gt_count_objects(const ValidationInput* gt_objs, const unsigned n_gt_objs, unsigned *n_stars, unsigned *n_meteors, unsigned *n_noise);
+unsigned gt_count_objects(const ValidationInput* gt_objs, const unsigned n_gt_objs, unsigned* n_stars,
+                          unsigned* n_meteors, unsigned* n_noise);
 
 #endif // __VALIDATION_H__
-

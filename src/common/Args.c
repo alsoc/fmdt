@@ -8,20 +8,17 @@
 
 #include "Args.h"
 
-// -------------------------------------------
-void del_arg(int argc, char **argv, int index)
-// -------------------------------------------
-{
+void del_arg(int argc, char** argv, int index) {
     int i;
-    for (i=index ; i<argc-1 ; i++) argv[i] = argv[i+1];
+    for (i = index; i < argc - 1; i++)
+        argv[i] = argv[i + 1];
     argv[i] = 0;
 }
-// --------------------------------------------------
-int find_arg(int argc, char* argv[], const char *arg)
-// --------------------------------------------------
-{
-    for (int i=0 ; i<argc ; i++) {
-        if (!argv[i]) continue;
+
+int find_arg(int argc, char* argv[], const char* arg) {
+    for (int i = 0; i < argc; i++) {
+        if (!argv[i])
+            continue;
         if (strcmp(argv[i], arg) == 0) {
             // del_arg(argc, argv, i);
             return 1;
@@ -29,14 +26,13 @@ int find_arg(int argc, char* argv[], const char *arg)
     }
     return 0;
 }
-// --------------------------------------------------------------
-int find_int_arg(int argc, char **argv, const char *arg, int def)
-// --------------------------------------------------------------
-{
-    for (int i=0 ; i < argc-1 ; i++) {
-        if (!argv[i]) continue;
+
+int find_int_arg(int argc, char** argv, const char* arg, int def) {
+    for (int i = 0; i < argc - 1; i++) {
+        if (!argv[i])
+            continue;
         if (strcmp(argv[i], arg) == 0) {
-            def = atoi(argv[i+1]);
+            def = atoi(argv[i + 1]);
             // del_arg(argc, argv, i);
             // del_arg(argc, argv, i);
             break;
@@ -44,14 +40,13 @@ int find_int_arg(int argc, char **argv, const char *arg, int def)
     }
     return def;
 }
-// --------------------------------------------------------------------
-float find_float_arg(int argc, char **argv, const char *arg, float def)
-// --------------------------------------------------------------------
-{
-    for (int i=0 ; i<argc-1 ; i++) {
-        if (!argv[i]) continue;
+
+float find_float_arg(int argc, char** argv, const char* arg, float def) {
+    for (int i = 0; i < argc - 1; i++) {
+        if (!argv[i])
+            continue;
         if (strcmp(argv[i], arg) == 0) {
-            def = atof(argv[i+1]);
+            def = atof(argv[i + 1]);
             // del_arg(argc, argv, i);
             // del_arg(argc, argv, i);
             break;
@@ -59,14 +54,13 @@ float find_float_arg(int argc, char **argv, const char *arg, float def)
     }
     return def;
 }
-// -------------------------------------------------------------------
-char* find_char_arg(int argc, char **argv, const char *arg, char* def)
-// -------------------------------------------------------------------
-{
-    for (int i=0 ; i<argc-1 ; i++) {
-        if (!argv[i]) continue;
+
+char* find_char_arg(int argc, char** argv, const char* arg, char* def) {
+    for (int i = 0; i < argc - 1; i++) {
+        if (!argv[i])
+            continue;
         if (strcmp(argv[i], arg) == 0) {
-            def = argv[i+1];
+            def = argv[i + 1];
             // del_arg(argc, argv, i);
             // del_arg(argc, argv, i);
             break;
