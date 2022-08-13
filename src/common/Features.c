@@ -4,77 +4,30 @@
  */
 
 #include <stdio.h>
+#include <string.h>
 
-//#include "Ellipse.h"
 #include "Features.h"
 #include "DebugUtil.h"
 #include "macro_debug.h"
 
-/* ----------------------- */
 void init_MeteorROI (MeteorROI *stats, int n)
-/* ----------------------- */
 {
-    for (int i=0 ; i<n; i++) {
-
-        stats[i].ID          = 0;
-        stats[i].track_id    = 0;
-        stats[i].S           = 0;
-        stats[i].x           = 0;
-        stats[i].y           = 0;
-        stats[i].Sx          = 0;
-        stats[i].Sy          = 0;
-        stats[i].Sx2         = 0;
-        stats[i].Sy2         = 0;
-        stats[i].Sxy         = 0;
-        stats[i].xmin        = 0;
-        stats[i].ymin        = 0;
-        stats[i].xmax        = 0;
-        stats[i].ymax        = 0;
-        stats[i].dx          = 0.0;
-        stats[i].dy          = 0.0;
-        stats[i].error       = 0.0;
-        stats[i].prev        = 0;
-        stats[i].next        = 0;
-        stats[i].time        = 0;
-        stats[i].time_motion = 0;
-        stats[i].motion      = 0;
-        stats[i].state       = 0;
-    }
+    for (int i=0 ; i<n; i++)
+        memset(stats +i, 0, sizeof(MeteorROI));
 }
 
-// -----------------------------------------------------------------------------------------
 void extract_features(uint32** img, int i0, int i1, int j0, int j1, MeteorROI* stats, int n)
-// -----------------------------------------------------------------------------------------
 {
     for (int i=1 ; i<=n ; i++) {
-        stats[i].S           = 0;
-        stats[i].ID          = 0;
-        stats[i].track_id    = 0;
-        stats[i].x           = 0.0;
-        stats[i].y           = 0.0;
-        stats[i].dx          = 0.0;
-        stats[i].dy          = 0.0;
-        stats[i].error       = 0.0;
-        stats[i].Sx          = 0;
-        stats[i].Sy          = 0;
-        stats[i].Sx2         = 0;
-        stats[i].Sy2         = 0;
-        stats[i].Sxy         = 0;
-        stats[i].xmin        = j1;
-        stats[i].xmax        = j0;
-        stats[i].ymin        = i1;
-        stats[i].ymax        = i0;
-        stats[i].prev        = 0;
-        stats[i].next        = 0;
-        stats[i].time        = 0;
-        stats[i].time_motion = 0;
-        stats[i].motion      = 0;
-        stats[i].state       = 0;
+        memset(stats +i, 0, sizeof(MeteorROI));
+        stats[i].xmin = j1;
+        stats[i].xmax = j0;
+        stats[i].ymin = i1;
+        stats[i].ymax = i0;
     }
     
     for (int i=i0 ; i<=i1 ; i++) {
         for (int j=j0 ; j<=j1 ; j++) {
-        
             uint32 e = img[i][j];
             if (e > 0) {
                 stats[e].S += 1;
@@ -93,7 +46,6 @@ void extract_features(uint32** img, int i0, int i1, int j0, int j1, MeteorROI* s
                 if (i < stats[e].ymin) stats[e].ymin = i;
                 if (i > stats[e].ymax) stats[e].ymax = i;
             }
-            
         }
     }
 
@@ -101,13 +53,9 @@ void extract_features(uint32** img, int i0, int i1, int j0, int j1, MeteorROI* s
         stats[i].x = (double)stats[i].Sx/(double)stats[i].S;
         stats[i].y = (double)stats[i].Sy/(double)stats[i].S;
     }
-
 }
 
-
-// -------------------------------------------------------------------------
 void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, MeteorROI* stats, int n, int S_min, int S_max)
-// -------------------------------------------------------------------------
 {
     int x0, x1, y0, y1, id;
     MeteorROI cc;
@@ -147,19 +95,14 @@ void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, Me
                         goto next;
                     }
                 }
-                    
             }
             stats[i].S=0;
 next:;
         }
     }
-
 }
 
-
-// -------------------------------------------------------------------------
 void filter_surface(MeteorROI* stats, int n, uint32** img, uint32 threshold_min, uint32 threshold_max)
-// -------------------------------------------------------------------------
 {
     // Doit on vraiment modifier l'image de départ? ou juste les stats.
     uint32 S, e;
@@ -192,10 +135,7 @@ void filter_surface(MeteorROI* stats, int n, uint32** img, uint32 threshold_min,
     }
 }
 
-
-// -----------------------------------------------------
 int shrink_stats(MeteorROI *stats_src, MeteorROI *stats_dest, int n)
-// -----------------------------------------------------
 {
     int cpt = 0;
 
@@ -225,16 +165,13 @@ int shrink_stats(MeteorROI *stats_src, MeteorROI *stats_dest, int n)
             stats_dest[cpt].time_motion = stats_src[i].time_motion  ;
             stats_dest[cpt].motion = stats_src[i].motion  ;
             stats_dest[cpt].state = stats_src[i].state  ;
-
         }
     }
 
     return cpt;
 }
 
-// -----------------------------------------------------
 void rigid_registration(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, double* theta, double* tx, double* ty)
-// -----------------------------------------------------
 {
     double Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
     MeteorROI cc0, cc1;
@@ -243,7 +180,6 @@ void rigid_registration(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, do
     double xg, yg, xpg, ypg;
     int asso;
     int cpt;
-
     
     Sx    = 0;
     Sxp   = 0;
@@ -254,7 +190,6 @@ void rigid_registration(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, do
     Sx_yp = 0;
     Sy_yp = 0;
     cpt = 0;
-
 
     // parcours tab assos
     for(int i=1; i<=n0; i++){
@@ -283,14 +218,11 @@ void rigid_registration(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, do
     Sy    = 0;
     Syp   = 0;
 
-
     // parcours tab assos
     for(int i=1; i<=n0; i++){
         cc0 = stats0[i];
         asso = stats0[i].next;
 
-
-        
         if (cc0.S>0 && asso){
             // cpt++;
             cc1 = stats1[stats0[i].next];
@@ -299,7 +231,6 @@ void rigid_registration(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, do
             y0 = cc0.y - yg;
             x1 = cc1.x - xpg;
             y1 = cc1.y - ypg;
-
 
             Sx    += x0;
             Sy    += y0;
@@ -315,16 +246,12 @@ void rigid_registration(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, do
     a = cpt*cpt * (Sx_yp - Sxp_y) + (1 - 2 * cpt) * (Sx * Syp - Sxp * Sy);
     b = cpt*cpt * (Sx_xp + Sy_yp) + (1 - 2 * cpt) * (Sx * Sxp + Syp * Sy);
     
-
     *theta = atan2(a,b); 
     *tx = xpg - cos(*theta) * xg + sin(*theta) * yg;
     *ty = ypg - sin(*theta) * xg - cos(*theta) * yg;
- 
 }
 
-// -----------------------------------------------------
 void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, double* theta, double* tx, double* ty, double errMoy, double eType)
-// -----------------------------------------------------
 {
     double Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
     MeteorROI cc0, cc1;
@@ -334,7 +261,6 @@ void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, 
     int asso;
     int cpt;
 
-    
     Sx    = 0;
     Sxp   = 0;
     Sy    = 0;
@@ -366,7 +292,6 @@ void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, 
             Sy    += cc0.y;
             Sxp   += cc1.x;
             Syp   += cc1.y;
-
         }
     }
     
@@ -389,7 +314,6 @@ void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, 
 
         asso = stats0[i].next;
 
-        
         if (cc0.S>0 && asso){
             // cpt++;
             cc1 = stats1[stats0[i].next];
@@ -414,340 +338,13 @@ void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, 
     a = cpt*cpt * (Sx_yp - Sxp_y) + (1 - 2 * cpt) * (Sx * Syp - Sxp * Sy);
     b = cpt*cpt * (Sx_xp + Sy_yp) + (1 - 2 * cpt) * (Sx * Sxp + Syp * Sy);
     
-
     *theta = atan2(a,b); 
     *tx = xpg - cos(*theta) * xg + sin(*theta) * yg;
     *ty = ypg - sin(*theta) * xg - cos(*theta) * yg;
- 
-}
-/*
-// -----------------------------------------------------
-void rigid_registration(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, double* theta, double* tx, double* ty)
-// -----------------------------------------------------
-{
-    double Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
-    MeteorROI cc0, cc1;
-    double x0, y0, x1, y1; 
-    double a, b;
-    double xg, yg, xpg, ypg;
-    int asso;
-    int cpt;
-
-    
-    Sx    = 0;
-    Sxp   = 0;
-    Sy    = 0;
-    Syp   = 0;
-    Sx_xp = 0;
-    Sxp_y = 0;
-    Sx_yp = 0;
-    Sy_yp = 0;
-    cpt = 0;
-
-
-    // parcours tab assos
-    for(int i=1; i<=n0; i++){
-        cc0 = stats0[i];
-        asso = stats0[i].next; // assos[i];
-        
-        if (cc0.S>0 && asso){
-            cpt++;
-            cc1 = stats1[stats0[i].next];
-
-            Sx    += cc0.x;
-            Sy    += cc0.y;
-            Sxp   += cc1.x;
-            Syp   += cc1.y;
-
-        }
-    }
-    
-    xg   = Sx  / cpt;
-    yg   = Sy  / cpt;
-    xpg  = Sxp / cpt;
-    ypg  = Syp / cpt;
-
-    Sx    = 0;
-    Sxp   = 0;
-    Sy    = 0;
-    Syp   = 0;
-
-
-    // parcours tab assos
-    for(int i=1; i<=n0; i++){
-        cc0 = stats0[i];
-        asso = stats0[i].next;
-
-
-        
-        if (cc0.S>0 && asso){
-            cc1 = stats1[stats0[i].next];
-
-            x0 = cc0.x - xg;
-            y0 = cc0.y - yg;
-            x1 = cc1.x - xpg;
-            y1 = cc1.y - ypg;
-
-
-            Sx    += x0;
-            Sy    += y0;
-            Sxp   += x1;
-            Syp   += y1;
-            Sx_xp += x0 * x1;
-            Sxp_y += x1 * y0;
-            Sx_yp += x0 * y1;
-            Sy_yp += y0 * y1;
-
-        }
-    }
-    a = cpt*cpt * (Sx_yp - Sxp_y) + (1 - 2 * cpt) * (Sx * Syp - Sxp * Sy);
-    b = cpt*cpt * (Sx_xp + Sy_yp) + (1 - 2 * cpt) * (Sx * Sxp + Syp * Sy);
-    
-    // *theta = atan2(a,b); 
-    *theta = 0; 
-    *tx = xpg - cos(*theta) * xg + sin(*theta) * yg;
-    *ty = ypg - sin(*theta) * xg - cos(*theta) * yg;
- 
 }
 
-// -----------------------------------------------------
-void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, double* theta, double* tx, double* ty, double errMoy, double eType)
-// -----------------------------------------------------
-{
-    double Sx, Sxp, Sy, Syp;
-    MeteorROI cc0, cc1;
-    double x0, y0, x1, y1; 
-    double xg, yg, xpg, ypg;
-    int asso;
-    int cpt;
-
-    
-    Sx    = 0;
-    Sxp   = 0;
-    Sy    = 0;
-    Syp   = 0;
-    cpt = 0;
-
-
-    // parcours tab assos
-    for(int i=1; i<=n0; i++){
-        cc0 = stats0[i];
-
-        if (fabs(stats0[i].error-errMoy) >  eType) continue; 
-        // -----------------------------------------------------
-void rigid_registration(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, double* theta, double* tx, double* ty)
-// -----------------------------------------------------
-{
-    double Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
-    MeteorROI cc0, cc1;
-    double x0, y0, x1, y1; 
-    double a, b;
-    double xg, yg, xpg, ypg;
-    int asso;
-    int cpt;
-
-    
-    Sx    = 0;
-    Sxp   = 0;
-    Sy    = 0;
-    Syp   = 0;
-    Sx_xp = 0;
-    Sxp_y = 0;
-    Sx_yp = 0;
-    Sy_yp = 0;
-    cpt = 0;
-
-
-    // parcours tab assos
-    for(int i=1; i<=n0; i++){
-        cc0 = stats0[i];
-        asso = stats0[i].next; // assos[i];
-        
-        if (cc0.S>0 && asso){
-            cpt++;
-            cc1 = stats1[stats0[i].next];
-
-            Sx    += cc0.x;
-            Sy    += cc0.y;
-            Sxp   += cc1.x;
-            Syp   += cc1.y;
-
-        }
-    }
-    
-    xg   = Sx  / cpt;
-    yg   = Sy  / cpt;
-    xpg  = Sxp / cpt;
-    ypg  = Syp / cpt;
-
-    Sx    = 0;
-    Sxp   = 0;
-    Sy    = 0;
-    Syp   = 0;
-
-
-    // parcours tab assos
-    for(int i=1; i<=n0; i++){
-        cc0 = stats0[i];
-        asso = stats0[i].next;
-
-
-        
-        if (cc0.S>0 && asso){
-            // cpt++;
-            cc1 = stats1[stats0[i].next];
-
-            x0 = cc0.x - xg;
-            y0 = cc0.y - yg;
-            x1 = cc1.x - xpg;
-            y1 = cc1.y - ypg;
-
-
-            Sx    += x0;
-            Sy    += y0;
-            Sxp   += x1;
-            Syp   += y1;
-            Sx_xp += x0 * x1;
-            Sxp_y += x1 * y0;
-            Sx_yp += x0 * y1;
-            Sy_yp += y0 * y1;
-
-        }
-    }
-    a = cpt*cpt * (Sx_yp - Sxp_y) + (1 - 2 * cpt) * (Sx * Syp - Sxp * Sy);
-    b = cpt*cpt * (Sx_xp + Sy_yp) + (1 - 2 * cpt) * (Sx * Sxp + Syp * Sy);
-    
-
-    *theta = atan2(a,b); 
-    *tx = xpg - cos(*theta) * xg + sin(*theta) * yg;
-    *ty = ypg - sin(*theta) * xg - cos(*theta) * yg;
- 
-}
-
-// -----------------------------------------------------
-void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, double* theta, double* tx, double* ty, double errMoy, double eType)
-// -----------------------------------------------------
-{
-    double Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
-    MeteorROI cc0, cc1;
-    double x0, y0, x1, y1; 
-    double a, b;
-    double xg, yg, xpg, ypg;
-    int asso;
-    int cpt;
-
-    
-    Sx    = 0;
-    Sxp   = 0;
-    Sy    = 0;
-    Syp   = 0;
-    Sx_xp = 0;
-    Sxp_y = 0;
-    Sx_yp = 0;
-    Sy_yp = 0;
-    cpt = 0;
-
-
-    // parcours tab assos
-    for(int i=1; i<=n0; i++){
-        cc0 = stats0[i];
-
-        if (fabs(stats0[i].error-errMoy) >  eType) continue; 
-        
-        asso = stats0[i].next; // assos[i];
-        
-        if (cc0.S>0 && asso){
-            cpt++;
-            cc1 = stats1[stats0[i].next];
-
-            Sx    += cc0.x;
-            Sy    += cc0.y;
-            Sxp   += cc1.x;
-            Syp   += cc1.y;
-
-        }
-    }
-    
-    xg   = Sx  / cpt;
-    yg   = Sy  / cpt;
-    xpg  = Sxp / cpt;
-    ypg  = Syp / cpt;
-
-    Sx    = 0;
-    Sxp   = 0;
-    Sy    = 0;
-    Syp   = 0;
-
-
-    // parcours tab assos
-    for(int i=1; i<=n0; i++){
-        cc0 = stats0[i];
-
-        if (fabs(stats0[i].error-errMoy) >  eType) continue; 
-
-        asso = stats0[i].next;
-
-        
-        if (cc0.S>0 && asso){
-            // cpt++;
-            cc1 = stats1[stats0[i].next];
-
-            x0 = cc0.x - xg;
-            y0 = cc0.y - yg;
-            x1 = cc1.x - xpg;
-            y1 = cc1.y - ypg;
-
-
-            Sx    += x0;
-            Sy    += y0;
-            Sxp   += x1;
-            Syp   += y1;
-            Sx_xp += x0 * x1;
-            Sxp_y += x1 * y0;
-            Sx_yp += x0 * y1;
-            Sy_yp += y0 * y1;
-
-        }
-    }
-    a = cpt*cpt * (Sx_yp - Sxp_y) + (1 - 2 * cpt) * (Sx * Syp - Sxp * Sy);
-    b = cpt*cpt * (Sx_xp + Sy_yp) + (1 - 2 * cpt) * (Sx * Sxp + Syp * Sy);
-    
-
-    *theta = atan2(a,b); 
-    *tx = xpg - cos(*theta) * xg + sin(*theta) * yg;
-    *ty = ypg - sin(*theta) * xg - cos(*theta) * yg;
- 
-}
-        asso = stats0[i].next; // assos[i];
-        
-        if (cc0.S>0 && asso){
-            cpt++;
-            cc1 = stats1[stats0[i].next];
-
-            Sx    += cc0.x;
-            Sy    += cc0.y;
-            Sxp   += cc1.x;
-            Syp   += cc1.y;
-
-        }
-    }
-    
-    xg   = Sx  / cpt;
-    yg   = Sy  / cpt;
-    xpg  = Sxp / cpt;
-    ypg  = Syp / cpt;
-
-    // *theta = 0; 
-    *tx = xpg - cos(*theta) * xg + sin(*theta) * yg;
-    *ty = ypg - sin(*theta) * xg - cos(*theta) * yg;
-}
-
-*/
-
-// Pour l'optimisation : faire une version errorMoy_corrected()
-// ---------------------------------------------------------------------------------------------------
+// TODO: Pour l'optimisation : faire une version errorMoy_corrected()
 double errorMoy(MeteorROI *stats, int n)
-// ---------------------------------------------------------------------------------------------------
 {
     double S = 0.0;
     int cpt = 0;
@@ -762,10 +359,8 @@ double errorMoy(MeteorROI *stats, int n)
     return S/cpt;
 }
 
-// Pour l'optimisation : faire une version ecartType_corrected()
-// -----------------------------------------------------
+// TODO: Pour l'optimisation : faire une version ecartType_corrected()
 double ecartType(MeteorROI *stats, int n, double errMoy)
-// -----------------------------------------------------
 {   
     double S = 0.0;
     int cpt = 0;
@@ -782,9 +377,7 @@ double ecartType(MeteorROI *stats, int n, double errMoy)
     return sqrt(S/cpt);
 }
 
-// -----------------------------------------------------
 void motion_extraction(MeteorROI *stats0, MeteorROI *stats1, int nc0, double theta, double tx, double ty)
-// -----------------------------------------------------
 {
     int cc1;
     double x, y,xp, yp;
@@ -813,8 +406,8 @@ void motion_extraction(MeteorROI *stats0, MeteorROI *stats1, int nc0, double the
     }
 }
 
-void motion(MeteorROI *stats0, MeteorROI *stats1, int n0, int n1, double *theta, double *tx, double *ty){
-
+void motion(MeteorROI *stats0, MeteorROI *stats1, int n0, int n1, double *theta, double *tx, double *ty)
+{
     rigid_registration(stats0, stats1, n0, n1, theta, tx, ty);
     motion_extraction(stats0, stats1, n0, *theta, *tx, *ty);
 
@@ -827,12 +420,8 @@ void motion(MeteorROI *stats0, MeteorROI *stats1, int n0, int n1, double *theta,
     motion_extraction(stats0, stats1, n0, *theta, *tx, *ty);
 }
 
-
-
-// -------------------------------------------------------------
 int analyse_features_ellipse(MeteorROI* stats, int n, float e_threshold)
-// -------------------------------------------------------------
- {
+{
     float32 S, Sx, Sy, Sx2, Sy2, Sxy;
     float32 x_avg, y_avg, m20, m02, m11;
     float32 a2, b2, a, b, e;

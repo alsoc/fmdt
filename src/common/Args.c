@@ -3,9 +3,10 @@
  * LIP6, UPMC, CNRS
  */
 
-#include "Args.h"
 #include <stdlib.h>
 #include <string.h>
+
+#include "Args.h"
 
 // -------------------------------------------
 void del_arg(int argc, char **argv, int index)
