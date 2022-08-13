@@ -8,8 +8,8 @@
 #ifndef __VALIDATION_H__
 #define __VALIDATION_H__
 
-#include "Features.h"
-#include "Tracking.h"
+#include "features.h"
+#include "tracking.h"
 
 #define VALIDATION_MIN_STDDEV 2.0
 #define VALIDATION_MAX_STDDEV 30.0

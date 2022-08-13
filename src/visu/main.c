@@ -4,17 +4,17 @@
  */
 
 #include <inttypes.h>
-#include <nrc2.h>
 #include <stdio.h>
 #include <string.h>
 #include <sys/stat.h>
+#include <nrc2.h>
 
-#include "Ballon.h"
-#include "DebugUtil.h"
-#include "Features.h"
-#include "Tracking.h"
-#include "Validation.h"
-#include "Video.h"
+#include "ballon.h"
+#include "debug_utils.h"
+#include "features.h"
+#include "tracking.h"
+#include "validation.h"
+#include "video.h"
 #include "tools_visu.h"
 
 extern char g_path_video_tracking[200];

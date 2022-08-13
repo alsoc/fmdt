@@ -6,8 +6,8 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "DebugUtil.h"
-#include "Features.h"
+#include "debug_utils.h"
+#include "features.h"
 #include "macro_debug.h"
 
 void features_init_ROI(ROI_t* stats, int n) {

@@ -3,8 +3,9 @@
  * LIP6, UPMC, CNRS
  */
 
-#include <Threshold.h>
 #include <stdio.h>
+
+#include "threshold.h"
 
 void threshold(uint8** m, int i0, int i1, int j0, int j1, uint8 threshold) {
     int i, j;

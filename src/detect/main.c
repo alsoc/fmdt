@@ -5,16 +5,16 @@
 #include <sys/types.h>
 #include <unistd.h>
 
-#include "Args.h"
-#include "Ballon.h"
+#include "args.h"
+#include "ballon.h"
 #include "CCL.h"
-#include "DebugUtil.h"
-#include "Features.h"
+#include "debug_utils.h"
+#include "features.h"
 #include "KPPV.h"
-#include "Threshold.h"
-#include "Tracking.h"
-#include "Validation.h"
-#include "Video.h"
+#include "threshold.h"
+#include "tracking.h"
+#include "validation.h"
+#include "video.h"
 #include "macro_debug.h"
 
 #define SEQUENCE_DST_PATH_HIST "hist/"

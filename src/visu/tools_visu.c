@@ -14,7 +14,7 @@
 #include <vector>
 #endif
 
-#include "DebugUtil.h"
+#include "debug_utils.h"
 #include "tools_visu.h"
 
 rgb8 tools_get_color(enum color_e color) {

@@ -3,12 +3,12 @@
  * LIP6
  */
 
-#include <nrutil.h>
 #include <stdio.h>
 #include <string.h>
+#include <nrutil.h>
 
-#include "DebugUtil.h"
-#include "Features.h"
+#include "debug_utils.h"
+#include "features.h"
 #include "KPPV.h"
 #include "macro_debug.h"
 

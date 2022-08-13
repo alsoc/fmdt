@@ -17,13 +17,13 @@
 #include <sys/stat.h>
 #include <time.h>
 
-#include "Args.h"
+#include "args.h"
 #include "CCL.h"
-#include "DebugUtil.h"
-#include "Features.h"
-#include "Threshold.h"
-#include "Tracking.h"
-#include "Video.h"
+#include "debug_utils.h"
+#include "features.h"
+#include "threshold.h"
+#include "tracking.h"
+#include "video.h"
 #include "macro_debug.h"
 #include "tools_visu.h"
 

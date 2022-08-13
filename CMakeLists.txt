@@ -52,12 +52,12 @@ set(EXECUTABLE_OUTPUT_PATH ${exe_dir})
 # Declare source files to compile ---------------------------------------------
 # -----------------------------------------------------------------------------
 set(src_common_files
-    ${src_dir}/common/Args.c
-    ${src_dir}/common/Features.c
-    ${src_dir}/common/DebugUtil.c
-    ${src_dir}/common/Tracking.c
-    ${src_dir}/common/Validation.c
-    ${src_dir}/common/Video.c
+    ${src_dir}/common/args.c
+    ${src_dir}/common/features.c
+    ${src_dir}/common/debug_utils.c
+    ${src_dir}/common/tracking.c
+    ${src_dir}/common/validation.c
+    ${src_dir}/common/video.c
     ${src_dir}/visu/tools_visu.c)
 list(APPEND tah_src_list ${src_common_files})
 
@@ -70,11 +70,11 @@ list(APPEND tah_targets_list tah-common-obj)
 # executables
 if(TAH_DETECT_EXE)
 	set(src_detect_files
-	    ${src_dir}/detect/Ballon.c
-	    ${src_dir}/detect/CCL_LSL.c
+	    ${src_dir}/detect/ballon.c
+	    ${src_dir}/detect/CCL.c
 	    ${src_dir}/detect/KPPV.c
-	    ${src_dir}/detect/Threshold.c
-	    ${src_dir}/detect/Main_detect.c)
+	    ${src_dir}/detect/threshold.c
+	    ${src_dir}/detect/main.c)
 	list(APPEND tah_src_list ${src_detect_files})
 	add_executable(tah-detect-exe $<TARGET_OBJECTS:tah-common-obj> ${src_detect_files})
 	list(APPEND tah_targets_list tah-detect-exe)
@@ -82,7 +82,7 @@ if(TAH_DETECT_EXE)
 endif()
 if(TAH_VISU_EXE)
 	set(src_visu_files
-	    ${src_dir}/visu/Main_visu.c)
+	    ${src_dir}/visu/main.c)
 	list(APPEND tah_src_list ${src_visu_files})
 	add_executable(tah-visu-exe $<TARGET_OBJECTS:tah-common-obj> ${src_visu_files})
 	list(APPEND tah_targets_list tah-visu-exe)
@@ -90,7 +90,7 @@ if(TAH_VISU_EXE)
 endif()
 if(TAH_CHECK_EXE)
 	set(src_check_files
-	    ${src_dir}/check/Main_check.c)
+	    ${src_dir}/check/main.c)
 	list(APPEND tah_src_list ${src_check_files})
 	add_executable(tah-check-exe $<TARGET_OBJECTS:tah-common-obj> ${src_check_files})
 	list(APPEND tah_targets_list tah-check-exe)
@@ -98,7 +98,7 @@ if(TAH_CHECK_EXE)
 endif()
 if(TAH_MAXRED_EXE)
 	set(src_maxred_files
-	    ${src_dir}/maxred/Main_maxred.c)
+	    ${src_dir}/maxred/main.c)
 	list(APPEND tah_src_list ${src_maxred_files})
 	add_executable(tah-maxred-exe $<TARGET_OBJECTS:tah-common-obj> ${src_maxred_files})
 	list(APPEND tah_targets_list tah-maxred-exe)

@@ -1,6 +1,6 @@
 #include <stdlib.h>
 
-#include "Video.h"
+#include "video.h"
 
 video_t* video_init_from_file(char* filename, int start, int end, int skip, int* i0, int* i1, int* j0, int* j1) {
     video_t* video = (video_t*)malloc(sizeof(video_t));

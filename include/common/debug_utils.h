@@ -6,23 +6,22 @@
  * Copyright (c) 2020-2021, Mathuran KANDEEPAN, LIP6 Sorbonne University
  */
 
-#ifndef __DEBUGUTIL_H__
-#define __DEBUGUTIL_H__
+#ifndef __DEBUG_UTILS_H__
+#define __DEBUG_UTILS_H__
 
 #include <math.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <nrutil.h>
 
-#include "Args.h"
 #include "CCL.h"
-#include "Features.h"
-#include "Threshold.h"
-#include "Tracking.h"
-#include "Video.h"
+#include "features.h"
+#include "threshold.h"
+#include "tracking.h"
+#include "video.h"
 #include "macro_debug.h"
-#include "nrutil.h"
 
 // Timing
 #define BENCH(X, n, cpp)                                                                                               \
@@ -129,4 +128,4 @@ void convert_ui8vector_ui32vector(uint8* X, long nl, long nh, uint32* Y);
 void convert_ui8matrix_ui32matrix(uint8** X, int nrl, int nrh, int ncl, int nch, uint32** Y);
 void WritePNMrow(uint8* line, int width, FILE* file); // defined in NRC but private...
 
-#endif //__DEBUGUTIL_H__
+#endif //__DEBUG_UTILS_H__

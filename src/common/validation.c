@@ -3,9 +3,9 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "DebugUtil.h"
-#include "Tracking.h"
-#include "Validation.h"
+#include "debug_utils.h"
+#include "tracking.h"
+#include "validation.h"
 #include "tools_visu.h"
 
 #define TOLERANCE_DIRECTION 5

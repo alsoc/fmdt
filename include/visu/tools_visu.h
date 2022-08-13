@@ -8,7 +8,7 @@
 
 #include <nrc2.h>
 
-#include "Tracking.h"
+#include "tracking.h"
 
 typedef struct BB_coord_t {
     int track_id;

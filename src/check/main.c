@@ -8,9 +8,10 @@
 #include <string.h>
 #include <sys/stat.h>
 
-#include "DebugUtil.h"
-#include "Tracking.h"
-#include "Validation.h"
+#include "args.h"
+#include "debug_utils.h"
+#include "tracking.h"
+#include "validation.h"
 
 #define SIZE_MAX_TRACKS 1000
 

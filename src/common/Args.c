@@ -6,7 +6,7 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "Args.h"
+#include "args.h"
 
 void args_del_arg(int argc, char** argv, int index) {
     int i;

@@ -3,12 +3,12 @@
  * Copyright (c) 2021-2022, Mathuran KANDEEPAN, LIP6 Sorbonne University
  */
 
-#include <nrutil.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <nrutil.h>
 
-#include "Args.h"
-#include "Ballon.h"
+#include "args.h"
+#include "ballon.h"
 #include "macro_debug.h"
 
 ballon_t* ballon_alloc(int i0, int i1, int j0, int j1, int b) {

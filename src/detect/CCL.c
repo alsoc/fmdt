@@ -5,10 +5,10 @@
 
 #include <stdio.h>
 #include <stdlib.h>
-
-#include <Ballon.h>
-#include <CCL.h>
 #include <assert.h>
+
+#include "ballon.h"
+#include "CCL.h"
 
 static uint32** g_er;  // Relative labels
 static uint32** g_ea;  // Absolute labels

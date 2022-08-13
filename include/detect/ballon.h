@@ -11,15 +11,15 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <time.h>
+#include <nrutil.h>
 
-#include "Args.h"
+#include "args.h"
 #include "CCL.h"
-#include "Features.h"
-#include "Threshold.h"
-#include "Tracking.h"
-#include "Video.h"
+#include "features.h"
+#include "threshold.h"
+#include "tracking.h"
+#include "video.h"
 #include "macro_debug.h"
-#include "nrutil.h"
 
 #define SIZE_MAX_METEORROI 18000
 #define SIZE_MAX_TRACKS 1000
