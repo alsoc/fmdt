@@ -52,7 +52,7 @@ void main_detect(int argc, char** argv)
     int   def_k              =      3;
     int   def_r_extrapol     =      5;
     int   def_d_line         =     25;
-    int   def_frame_star     =      3;
+    int   def_min_fra_star   =      3;
     float def_diff_deviation =    4.f;
     char* def_input_video    =   NULL;
     char* def_output_frames  =   NULL;
@@ -75,7 +75,7 @@ void main_detect(int argc, char** argv)
         fprintf(stderr, "  -k                  Number of neighbours                                                 [%d]\n", def_k             );
         fprintf(stderr, "  --r-extrapol        Search radius for the next CC in case of extrapolation               [%d]\n", def_r_extrapol    );
         fprintf(stderr, "  --d-line            Position tolerance of a point going through a line                   [%d]\n", def_d_line        );
-        fprintf(stderr, "  --frame-star        Minimum number of frames required to track a star                    [%d]\n", def_frame_star    );
+        fprintf(stderr, "  --min-fra-star      Minimum number of frames required to track a star                    [%d]\n", def_min_fra_star  );
         fprintf(stderr, "  --diff-deviation    Differential deviation factor for motion detection (motion error of      \n"                    );
         fprintf(stderr, "                      one CC has to be superior to diff_deviation * standard deviation)    [%f]\n", def_diff_deviation);
         fprintf(stderr, "  --track-all         Track all object types (star, meteor or noise)                           \n"                    );
@@ -94,7 +94,7 @@ void main_detect(int argc, char** argv)
     int k                = find_int_arg  (argc, argv, "-k",               def_k             );
     int r_extrapol       = find_int_arg  (argc, argv, "--r-extrapol",     def_r_extrapol    );
     int d_line           = find_int_arg  (argc, argv, "--d-line",         def_d_line        );
-    int frame_star       = find_int_arg  (argc, argv, "--frame-star",     def_frame_star    );
+    int min_fra_star     = find_int_arg  (argc, argv, "--min-fra-star",   def_min_fra_star  );
     float diff_deviation = find_float_arg(argc, argv, "--diff-deviation", def_diff_deviation);
     char* input_video    = find_char_arg (argc, argv, "--input-video",    def_input_video   );
     char* output_frames  = find_char_arg (argc, argv, "--output-frames",  def_output_frames );
@@ -125,7 +125,7 @@ void main_detect(int argc, char** argv)
     printf("#  * k             = %d\n",    k);
     printf("#  * r-extrapol    = %d\n",    r_extrapol);
     printf("#  * d-line        = %d\n",    d_line);
-    printf("#  * frame-star    = %d\n",    frame_star);
+    printf("#  * min-fra-star  = %d\n",    min_fra_star);
     printf("#  * diff-deviaton = %4.2f\n", diff_deviation);
     printf("#  * track-all     = %d\n",    track_all);
     printf("#\n");
@@ -150,8 +150,8 @@ void main_detect(int argc, char** argv)
     Track tracks[SIZE_MAX_TRACKS];
     Track tracks_stars[SIZE_MAX_TRACKS];
 
-    int  offset =  0;
-    int  last   = -1;
+    int offset     =  0;
+    int tracks_cnt = -1;
 
 	int n0 = 0;
 	int n1 = 0;
@@ -247,7 +247,7 @@ void main_detect(int argc, char** argv)
 
       	//--------------------------------------------------------//
         PUTS("\t Step 6: Tracking");
-        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &last, &offset, theta, tx, ty, r_extrapol, d_line, diff_deviation, track_all, frame_star);
+        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &tracks_cnt, &offset, theta, tx, ty, r_extrapol, d_line, diff_deviation, track_all, min_fra_star);
         
         //--------------------------------------------------------//
         PUTS("\t [DEBUG] Saving frames");
@@ -262,7 +262,7 @@ void main_detect(int argc, char** argv)
         if (output_stats){
     	    //create_debug_files (frame);
             disp(path_debug);
-            saveAssoConflicts(path_debug, frame, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink, tracks, last+1);
+            saveAssoConflicts(path_debug, frame, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink, tracks, tracks_cnt+1);
             // saveMotion(path_motion, theta, tx, ty, frame-1);
             // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
             // saveError(path_error, stats0, n0);
@@ -274,7 +274,7 @@ void main_detect(int argc, char** argv)
         n0 = n_shrink;
         n_frames++;
 
-        n_tracks = track_count_objects(tracks, (unsigned)last+1, &n_stars, &n_meteors, &n_noise);
+        n_tracks = track_count_objects(tracks, (unsigned)tracks_cnt+1, &n_stars, &n_meteors, &n_noise);
         fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\r", n_meteors, n_stars, n_noise, n_tracks);
         fflush(stderr);
     }
@@ -282,8 +282,8 @@ void main_detect(int argc, char** argv)
     
     if (output_bb)
         saveTabBB(path_bounding_box, tabBB, tracks, NB_FRAMES, track_all);
-    //saveTracks(path_tracks, tracks, last);
-    printTracks2(stdout, tracks, last+1);
+    //saveTracks(path_tracks, tracks, tracks_cnt);
+    printTracks2(stdout, tracks, tracks_cnt+1);
 
     printf("# Statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);

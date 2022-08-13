@@ -78,7 +78,7 @@ The list of available arguments:
 | `--d-line`        | int      | 25          | No      | Approximation factor of the rectilinear trajectory of meteors. |
 | `--diff-deviaton` | float    | 4.0         | No      | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
 | `--track-all`     | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`meteor`, `star` or `noise`). |
-| `--frame-star`    | int      | 3           | No      | Minimum number of frames required to track a star. |
+| `--min-fra-star`  | int      | 3           | No      | Minimum number of frames required to track a star. |
 
 Output text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.
 
