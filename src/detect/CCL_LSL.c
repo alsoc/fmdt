@@ -10,31 +10,31 @@
 #include <assert.h>
 #include <Ballon.h>
 
-static uint32** er;   // Relative labels
-static uint32** ea;   // Absolute labels
-static uint32** era;  // Relative/Absolute labels equivalences;
-static uint32** rlc;  // Run-length coding
-static uint32* eq;    // Table d'équivalence
-static uint32* ner;   // Number of relative labels
+static uint32** g_er;   // Relative labels
+static uint32** g_ea;   // Absolute labels
+static uint32** g_era;  // Relative/Absolute labels equivalences;
+static uint32** g_rlc;  // Run-length coding
+static uint32*  g_eq;   // Table d'équivalence
+static uint32*  g_ner;  // Number of relative labels
 
 void CCL_LSL_init(int i0, int i1, int j0, int j1) {
     long n = (i1-i0+1)*(j1-j0+1);
-    er    = ui32matrix(i0, i1, j0, j1);
-    ea    = ui32matrix(i0, i1, j0, j1);
-    era   = ui32matrix(i0, i1, j0, j1);
-    rlc   = ui32matrix(i0, i1, j0, j1);
-    eq    = ui32vector(0,  n);
-    ner   = ui32vector(i0, i1);
+    g_er  = ui32matrix(i0, i1, j0, j1);
+    g_ea  = ui32matrix(i0, i1, j0, j1);
+    g_era = ui32matrix(i0, i1, j0, j1);
+    g_rlc = ui32matrix(i0, i1, j0, j1);
+    g_eq  = ui32vector(0,  n);
+    g_ner = ui32vector(i0, i1);
 }
 
 void CCL_LSL_free(int i0, int i1, int j0, int j1) {
     long n = (i1-i0+1)*(j1-j0+1);
-    free_ui32matrix(er,    i0, i1, j0, j1);
-    free_ui32matrix(ea,    i0, i1, j0, j1);
-    free_ui32matrix(era,   i0, i1, j0, j1);
-    free_ui32matrix(rlc,   i0, i1, j0, j1);
-    free_ui32vector(eq,    0,  n);
-    free_ui32vector(ner,   i0, i1);
+    free_ui32matrix(g_er,  i0, i1, j0, j1);
+    free_ui32matrix(g_ea,  i0, i1, j0, j1);
+    free_ui32matrix(g_era, i0, i1, j0, j1);
+    free_ui32matrix(g_rlc, i0, i1, j0, j1);
+    free_ui32vector(g_eq,  0,  n);
+    free_ui32vector(g_ner, i0, i1);
 }
 
 void LSL_Segment_Detection(uint32* line_er, uint32* line_rlc, uint32* line_ner, uint32* line, int j0, int j1) {
@@ -84,25 +84,25 @@ void LSL_Equivalence_Construction(uint32* line_rlc, uint32* line_era, uint32* pr
             
         if (er1 >= er0) { // Adjacency -> connect components
             ea = prevline_era[er0];
-            a = eq[ea];
+            a = g_eq[ea];
             for (erk=er0+2 ; erk<=er1 ; erk+=2) {
                 eak = prevline_era[erk];
-                ak = eq[eak];
-                while (ak != eq[ak]) {ak = eq[ak];}
+                ak = g_eq[eak];
+                while (ak != g_eq[ak]) {ak = g_eq[ak];}
                 if (a < ak) {
-                    eq[eak] = a; // Minimum propagation
+                    g_eq[eak] = a; // Minimum propagation
                 }
                 
                 if (a > ak) {
                     a = ak;
-                    eq[ea] = a;
+                    g_eq[ea] = a;
                     ea = eak;
                 }
             }
             line_era[er] = a; // Global minimum
         } else { // No adjacency -> new label
             line_era[er] = *nea;
-            eq[*nea] = *nea;
+            g_eq[*nea] = *nea;
             (*nea)++;
         }
     }
@@ -113,18 +113,18 @@ uint32 CCL_LSL(uint32** img, int i0, int i1, int j0, int j1)
  {
     // Step #1 - Segment detection
     for (int i=i0 ; i<=i1 ; i++) {
-        LSL_Segment_Detection(er[i], rlc[i], &ner[i], img[i], j0, j1);
+        LSL_Segment_Detection(g_er[i], g_rlc[i], &g_ner[i], img[i], j0, j1);
     }
     
     // Step #2 - Equivalence construction
     uint32 nea = i0;
-    uint32 n = ner[i0];
+    uint32 n = g_ner[i0];
     for (int k=0 ; k<n ; k+=2) {
-        eq[nea] = nea;
-        era[i0][k+1] = nea++;
+        g_eq[nea] = nea;
+        g_era[i0][k+1] = nea++;
     } 
     for (int i=i0+1 ; i<=i1 ; i++) {
-        LSL_Equivalence_Construction(rlc[i], era[i], er[i-1], era[i-1], ner[i], j0, j1, &nea);
+        LSL_Equivalence_Construction(g_rlc[i], g_era[i], g_er[i-1], g_era[i-1], g_ner[i], j0, j1, &nea);
     }
     
     // Step #3 - Relative to Absolute label conversion
@@ -132,23 +132,23 @@ uint32 CCL_LSL(uint32** img, int i0, int i1, int j0, int j1)
     // Step #4 - Resolution of equivalence classes
     uint32 trueN = 0;
     for (int i=0 ; i<nea ; i++) {
-        if (i != eq[i]) {
-            eq[i] = eq[eq[i]];
+        if (i != g_eq[i]) {
+            g_eq[i] = g_eq[g_eq[i]];
         } else {
-            eq[i] = trueN++;
+            g_eq[i] = trueN++;
         }
     }
     
     // Step #5 - Final image labeling
     for (int i=i0 ; i<=i1 ; i++) {
-        n = ner[i];
+        n = g_ner[i];
         for (int k=0 ; k<n ; k+=2) {
-            int a = rlc[i][k];
-            int b = rlc[i][k+1];
+            int a = g_rlc[i][k];
+            int b = g_rlc[i][k+1];
             
             // Step #3 merged with step #5
-            uint32 val = era[i][er[i][a]];
-            val = eq[val]+1;
+            uint32 val = g_era[i][g_er[i][a]];
+            val = g_eq[val]+1;
             
             for (int j=a ; j<=b ; j++)
                 img[i][j] = val;

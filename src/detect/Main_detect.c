@@ -21,21 +21,21 @@
 #define SEQUENCE_DST_PATH_HIST "hist/"
 #define SEQUENCE_NDIGIT 5
 
-extern char path_stats_0[200];
-extern char path_stats_1[200];
-extern char path_frames_binary[250];
-extern char path_frames_output[250];
-extern char path_motion[200];
-extern char path_extraction[200];
-extern char path_error[200];
-extern char path_tracks[200];
-extern char path_bounding_box[200];
-extern char path_debug[150];
-extern char path_video_tracking[200];
-extern uint32 *conflicts;
-extern uint32 **nearest;
-extern float32 **distances; 
-extern elemBB *tabBB[NB_FRAMES];
+extern char g_path_stats_0[200];
+extern char g_path_stats_1[200];
+extern char g_path_frames_binary[250];
+extern char g_path_frames_output[250];
+extern char g_path_motion[200];
+extern char g_path_extraction[200];
+extern char g_path_error[200];
+extern char g_path_tracks[200];
+extern char g_path_bounding_box[200];
+extern char g_path_debug[150];
+extern char g_path_video_tracking[200];
+extern uint32 *g_conflicts;
+extern uint32 **g_nearest;
+extern float32 **g_distances;
+extern elemBB *g_tabBB[NB_FRAMES];
 
 // ======================================
 void main_detect(int argc, char** argv)
@@ -195,7 +195,7 @@ void main_detect(int argc, char** argv)
     CCL_LSL_init(i0, i1, j0, j1);
     initTabBB();
 
-    disp(path_tracks);
+    disp(g_path_tracks);
 
     // ----------------//
     // -- TRAITEMENT --//
@@ -253,16 +253,16 @@ void main_detect(int argc, char** argv)
         PUTS("\t [DEBUG] Saving frames");
         if (output_frames){
 	        create_frames_files(frame);
-            disp(path_frames_binary);
-            saveFrame_ui32matrix(path_frames_binary, ballon->SH32, i0, i1, j0, j1);
+            disp(g_path_frames_binary);
+            saveFrame_ui32matrix(g_path_frames_binary, ballon->SH32, i0, i1, j0, j1);
             // saveFrame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
         }
 
         PUTS("\t [DEBUG] Saving stats");
         if (output_stats){
     	    //create_debug_files (frame);
-            disp(path_debug);
-            saveAssoConflicts(path_debug, frame, conflicts, nearest, distances, n0, n_shrink, stats0, stats_shrink, tracks, tracks_cnt+1);
+            disp(g_path_debug);
+            saveAssoConflicts(g_path_debug, frame, g_conflicts, g_nearest, g_distances, n0, n_shrink, stats0, stats_shrink, tracks, tracks_cnt+1);
             // saveMotion(path_motion, theta, tx, ty, frame-1);
             // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
             // saveError(path_error, stats0, n0);
@@ -281,8 +281,8 @@ void main_detect(int argc, char** argv)
     fprintf(stderr, "\n");
     
     if (output_bb)
-        saveTabBB(path_bounding_box, tabBB, tracks, NB_FRAMES, track_all);
-    //saveTracks(path_tracks, tracks, tracks_cnt);
+        saveTabBB(g_path_bounding_box, g_tabBB, tracks, NB_FRAMES, track_all);
+    //saveTracks(g_path_tracks, tracks, tracks_cnt);
     printTracks2(stdout, tracks, tracks_cnt+1);
 
     printf("# Statistics:\n");

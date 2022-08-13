@@ -3,18 +3,19 @@
  * Copyright (c) 2020-2020, Lionel Lacassagne, all rights reserved, LIP6 Sorbonne University, CNRS
  */
 
-//#include <Ellipse.h>
-#include <Features.h>
-#include <DebugUtil.h>
 #include <stdio.h>
-#include <macro_debug.h>
 
+//#include "Ellipse.h"
+#include "Features.h"
+#include "DebugUtil.h"
+#include "macro_debug.h"
 
 /* ----------------------- */
 void init_MeteorROI (MeteorROI *stats, int n)
 /* ----------------------- */
 {
-    for (int i=0 ; i<n ; i++) {
+    for (int i=0 ; i<n; i++) {
+
         stats[i].ID          = 0;
         stats[i].track_id    = 0;
         stats[i].S           = 0;

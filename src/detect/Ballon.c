@@ -2,15 +2,14 @@
  * Copyright (c) 2021-2022, Clara CIOCAN, LIP6 Sorbonne University
  * Copyright (c) 2021-2022, Mathuran KANDEEPAN, LIP6 Sorbonne University
  */
-#include "nrutil.h"
-#include "Args.h"
-#include "macro_debug.h"
-#include "Ballon.h"
 
 #include <stdlib.h>
 #include <stdio.h>
-#include <stdio.h>
+#include <nrutil.h>
 
+#include "Args.h"
+#include "macro_debug.h"
+#include "Ballon.h"
 
 // ---------------------------------------------------------------------------------------------------
 Ballon* allocBallon(int i0, int i1, int j0, int j1, int b)

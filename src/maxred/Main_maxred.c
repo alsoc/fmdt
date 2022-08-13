@@ -167,7 +167,7 @@ void main_maxred(int argc, char** argv)
             listBB[t].ymax = (tracks[t].begin.y < tracks[t].end.y ? tracks[t].end.y : tracks[t].begin.y) + delta;
 
             if (tracks[t].obj_type != UNKNOWN)
-                listBB[t].color = obj_type_to_color[tracks[t].obj_type];
+                listBB[t].color = g_obj_type_to_color[tracks[t].obj_type];
             else {
                 fprintf(stderr, "(EE) This should never happen... ('t' = %d, 'tracks[t].obj_type' = %d)\n", t, tracks[t].obj_type);
                 exit(-1);

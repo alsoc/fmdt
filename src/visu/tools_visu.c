@@ -18,40 +18,40 @@
 #include "DebugUtil.h"
 #include "tools_visu.h"
 
-enum Color_t obj_type_to_color[N_OBJ_TYPES];
-char obj_type_to_string[N_OBJ_TYPES][64];
-char obj_type_to_string_with_spaces[N_OBJ_TYPES][64];
+enum Color_t g_obj_type_to_color[N_OBJ_TYPES];
+char g_obj_type_to_string[N_OBJ_TYPES][64];
+char g_obj_type_to_string_with_spaces[N_OBJ_TYPES][64];
 
 void init_global_data() {
-    obj_type_to_color[UNKNOWN] = UNKNOWN_COLOR;
-    obj_type_to_color[STAR]    = STAR_COLOR;
-    obj_type_to_color[METEOR]  = METEOR_COLOR;
-    obj_type_to_color[NOISE]   = NOISE_COLOR;
+    g_obj_type_to_color[UNKNOWN] = UNKNOWN_COLOR;
+    g_obj_type_to_color[STAR]    = STAR_COLOR;
+    g_obj_type_to_color[METEOR]  = METEOR_COLOR;
+    g_obj_type_to_color[NOISE]   = NOISE_COLOR;
 
-    char str_unknown[64] = UNKNOWN_STR; sprintf(obj_type_to_string[UNKNOWN], "%s", str_unknown);
-    char str_star   [64] = STAR_STR;    sprintf(obj_type_to_string[STAR   ], "%s", str_star   );
-    char str_meteor [64] = METEOR_STR;  sprintf(obj_type_to_string[METEOR ], "%s", str_meteor );
-    char str_noise  [64] = NOISE_STR;   sprintf(obj_type_to_string[NOISE  ], "%s", str_noise  );
+    char str_unknown[64] = UNKNOWN_STR; sprintf(g_obj_type_to_string[UNKNOWN], "%s", str_unknown);
+    char str_star   [64] = STAR_STR;    sprintf(g_obj_type_to_string[STAR   ], "%s", str_star   );
+    char str_meteor [64] = METEOR_STR;  sprintf(g_obj_type_to_string[METEOR ], "%s", str_meteor );
+    char str_noise  [64] = NOISE_STR;   sprintf(g_obj_type_to_string[NOISE  ], "%s", str_noise  );
 
     unsigned max = 0;
     for (int i = 0; i < N_OBJ_TYPES; i++)
-        if (strlen(obj_type_to_string[i]) > max)
-            max = strlen(obj_type_to_string[i]);
+        if (strlen(g_obj_type_to_string[i]) > max)
+            max = strlen(g_obj_type_to_string[i]);
 
     for (int i = 0; i < N_OBJ_TYPES; i++) {
-        int len = strlen(obj_type_to_string[i]);
+        int len = strlen(g_obj_type_to_string[i]);
         int diff = max - len;
         for (int c = len; c >= 0; c--)
-            obj_type_to_string_with_spaces[i][diff +c] = obj_type_to_string[i][c];
+            g_obj_type_to_string_with_spaces[i][diff +c] = g_obj_type_to_string[i][c];
         for (int c = 0; c < diff; c++)
-            obj_type_to_string_with_spaces[i][c] = ' ';
+            g_obj_type_to_string_with_spaces[i][c] = ' ';
     }
 }
 
 enum Obj_type string_to_obj_type(const char* string) {
     enum Obj_type obj = UNKNOWN;
     for (int i = 0; i < N_OBJ_TYPES; i++)
-        if(!strcmp(string, obj_type_to_string[i])) {
+        if(!strcmp(string, g_obj_type_to_string[i])) {
             obj = (enum Obj_type)i;
             break;
         }
@@ -91,7 +91,7 @@ void draw_legend_squares(rgb8** img, unsigned box_size, unsigned h_space, unsign
                                            (i +1) * v_space + (i +1) * box_size, // ymax
                                            (  +1) * h_space + (  +0) * box_size, // xmin
                                            (  +1) * h_space + (  +1) * box_size, // xmax
-                                           get_color(obj_type_to_color[i])));    // color
+                                           get_color(g_obj_type_to_color[i])));  // color
 
     if (validation)
         // add false positve meteor
@@ -109,12 +109,12 @@ void draw_legend_texts(cv::Mat &cv_img, unsigned box_size, unsigned h_space, uns
     //                          color        pos         text
     std::vector<std::tuple<cv::Scalar, cv::Point, std::string>> txt_list;
     for (int i = 0; i < N_OBJ_TYPES; i++) {
-        rgb8 color = get_color(obj_type_to_color[i]);
+        rgb8 color = get_color(g_obj_type_to_color[i]);
         unsigned x = 2 * h_space + box_size;
         unsigned y = ((i +1) * v_space + (i +1) * box_size) -2;
         txt_list.push_back(std::make_tuple(cv::Scalar(color.b, color.g, color.r),
                                            cv::Point(x, y),
-                                           std::string(obj_type_to_string[i])));
+                                           std::string(g_obj_type_to_string[i])));
     }
 
     if (validation) {

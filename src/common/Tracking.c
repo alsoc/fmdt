@@ -3,8 +3,8 @@
  * Copyright (c) 2021-2022, Mathuran KANDEEPAN, LIP6 Sorbonne University
  */
 
-#include "ffmpeg-io/reader.h"
-#include "ffmpeg-io/writer.h"
+#include <ffmpeg-io/reader.h>
+#include <ffmpeg-io/writer.h>
 #include <stdlib.h>
 #include <string.h>
 #include <stdio.h>
@@ -27,14 +27,13 @@
 #define SIZE_BUF 10000
 #define INF 9999999
 
+static Buf g_buffer[SIZE_BUF];
+elemBB* g_tabBB[NB_FRAMES];
 
-static Buf buffer[SIZE_BUF];
-elemBB* tabBB[NB_FRAMES];
-
-extern uint32 **nearest;
-extern float32 **distances;
-extern uint32 *conflicts;
-extern char path_bounding_box[200];
+extern uint32 **g_nearest;
+extern float32 **g_distances;
+extern uint32 *g_conflicts;
+extern char g_path_bounding_box[200];
 
 unsigned track_count_objects(const Track* tracks, const int n_tracks, unsigned *n_stars, unsigned *n_meteors, unsigned *n_noise)
 {
@@ -56,7 +55,7 @@ unsigned track_count_objects(const Track* tracks, const int n_tracks, unsigned *
 void initTabBB()
 {
     for(int i = 0; i < NB_FRAMES; i++){
-        tabBB[i] = NULL;
+        g_tabBB[i] = NULL;
     }
 }
 
@@ -69,8 +68,8 @@ void addToList(uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, uint16 track_id, 
     newE->bb_x = bb_x;
     newE->bb_y = bb_y;
     newE->track_id = track_id;
-    newE->next = tabBB[frame];
-    tabBB[frame] = newE;
+    newE->next = g_tabBB[frame];
+    g_tabBB[frame] = newE;
 }
 
 void clear_index_Track(Track *tracks, int i)
@@ -86,16 +85,16 @@ void init_Track(Track *tracks, int n)
 
 void clear_index_buffer(int i)
 {
-    MeteorROI *s0 = &buffer[i].stats0; memset(s0, 0, sizeof(MeteorROI));
-    MeteorROI *s1 = &buffer[i].stats1; memset(s1, 0, sizeof(MeteorROI));
-    buffer[i].frame = 0;
+    MeteorROI *s0 = &g_buffer[i].stats0; memset(s0, 0, sizeof(MeteorROI));
+    MeteorROI *s1 = &g_buffer[i].stats1; memset(s1, 0, sizeof(MeteorROI));
+    g_buffer[i].frame = 0;
 }
 
 void clear_buffer_history(int frame, int history_size){
     int diff;
     for(int i = 0; i < SIZE_BUF; i++){
-        if(buffer[i].frame != 0){
-            diff = frame - buffer[i].frame;
+        if(g_buffer[i].frame != 0){
+            diff = frame - g_buffer[i].frame;
             if (diff >= history_size)
                 clear_index_buffer(i);
         }
@@ -105,20 +104,20 @@ void clear_buffer_history(int frame, int history_size){
 void insert_buffer(MeteorROI stats0, MeteorROI stats1, int frame)
 {
     for (int i = 0; i < SIZE_BUF; i++)
-        if (buffer[i].stats0.ID == 0) {
-            memcpy(&buffer[i].stats0, &stats0, sizeof(MeteorROI));
-            memcpy(&buffer[i].stats1, &stats1, sizeof(MeteorROI));
-            buffer[i].frame = frame;
+        if (g_buffer[i].stats0.ID == 0) {
+            memcpy(&g_buffer[i].stats0, &stats0, sizeof(MeteorROI));
+            memcpy(&g_buffer[i].stats1, &stats1, sizeof(MeteorROI));
+            g_buffer[i].frame = frame;
             return;
         }
-    fprintf(stderr, "(EE) This sould never happen, out of buffer ('SIZE_BUF' = %d)\n", SIZE_BUF);
+    fprintf(stderr, "(EE) This sould never happen, out of 'g_buffer' ('SIZE_BUF' = %d)\n", SIZE_BUF);
     exit(-1);
 }
 
 int search_buf_stat(int ROI_id, int frame)
 {
     for (int i = 0; i < SIZE_BUF; i++)
-        if (frame  == buffer[i].frame + 1 && ROI_id == buffer[i].stats0.ID)
+        if (frame  == g_buffer[i].frame + 1 && ROI_id == g_buffer[i].stats0.ID)
             return i;
     return -1;
 }
@@ -304,8 +303,8 @@ void fill_ROI_list(MeteorROI *ROI_list[256], const unsigned n_ROI, MeteorROI *la
     int k = search_buf_stat(last_ROI->prev, frame);
     for (int f = 1; f < n_ROI; f++) {
         if (k != -1) {
-            ROI_list[cpt++] = &buffer[k].stats0;
-            k = search_buf_stat(buffer[k].stats0.prev, frame-f);
+            ROI_list[cpt++] = &g_buffer[k].stats0;
+            k = search_buf_stat(g_buffer[k].stats0.prev, frame-f);
         } else {
             fprintf(stderr, "(EE) This should never happen ('k' = -1, 'f' = %d.\n", f);
             exit(-1);

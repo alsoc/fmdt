@@ -21,9 +21,9 @@ enum Color_t {MISC = 0, GRAY, GREEN, RED, PURPLE, ORANGE, BLUE, YELLOW, N_COLOR_
 #define NOISE_STR   "noise"
 #define UNKNOWN_STR "unknown"
 
-extern enum Color_t obj_type_to_color[N_OBJ_TYPES];
-extern char obj_type_to_string[N_OBJ_TYPES][64];
-extern char obj_type_to_string_with_spaces[N_OBJ_TYPES][64];
+extern enum Color_t g_obj_type_to_color[N_OBJ_TYPES];
+extern char g_obj_type_to_string[N_OBJ_TYPES][64];
+extern char g_obj_type_to_string_with_spaces[N_OBJ_TYPES][64];
 
 typedef struct coordBB {
     int track_id;

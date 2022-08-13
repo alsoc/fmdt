@@ -17,9 +17,9 @@
 #include "tools_visu.h"
 #include "Ballon.h"
 
-extern char path_video_tracking[200];
-extern char path_bounding_box[200];
-extern char path_frames_output[250];
+extern char g_path_video_tracking[200];
+extern char g_path_bounding_box[200];
+extern char g_path_frames_output[250];
 
 coordBB listBB[200];
 
@@ -122,10 +122,10 @@ void main_visu(int argc, char** argv)
         fprintf(stderr, "(WW) '--natural-num' will not work because '--show-ids' is not set.\n");
 #endif
 
-    // char *path_bounding_box;
+    // char *g_path_bounding_box;
     disp(src_path_video);
-    sprintf(path_bounding_box, "%s", input_bb);
-    disp(path_bounding_box);
+    sprintf(g_path_bounding_box, "%s", input_bb);
+    disp(g_path_bounding_box);
 
     Track tracks[SIZE_MAX_TRACKS];
 
@@ -141,7 +141,7 @@ void main_visu(int argc, char** argv)
 	   create_frames_dir(dest_path_frames);
 
     disp(src_path);
-    disp(path_bounding_box);
+    disp(g_path_bounding_box);
 
     // recupere les tracks
     parseTracks(src_path, tracks, &nb_tracks);
@@ -175,13 +175,13 @@ void main_visu(int argc, char** argv)
     }
 
     // open BB pour l'affichage des rectangles englobants
-    FILE * file_bb = fopen(path_bounding_box, "r");
+    FILE * file_bb = fopen(g_path_bounding_box, "r");
     if (file_bb == NULL) {
-        fprintf(stderr, "(EE) cannot open file '%s'\n", path_bounding_box);
+        fprintf(stderr, "(EE) cannot open file '%s'\n", g_path_bounding_box);
         return;
     }
 
-    disp(path_bounding_box);
+    disp(g_path_bounding_box);
     // parcours des BB à afficher
     char lines[1000];
     fgets(lines, 100, file_bb);
@@ -193,7 +193,7 @@ void main_visu(int argc, char** argv)
     writer_video_out.input.width = j1 - j0 + 1;
     writer_video_out.input.height = i1 - i0 + 1;
     writer_video_out.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
-    if (!ffmpeg_start_writer(&writer_video_out, path_video_tracking, NULL)) {
+    if (!ffmpeg_start_writer(&writer_video_out, g_path_video_tracking, NULL)) {
         fprintf(stderr, "(EE) Something went wrong when starting to write output video.");
         exit(-1);
     }
@@ -209,7 +209,7 @@ void main_visu(int argc, char** argv)
         // affiche tous les BB de l'image
         while(frame_bb == frame){
             if (tracks[LUT_tracks_id[track_id]].obj_type != UNKNOWN)
-                color = obj_type_to_color[tracks[LUT_tracks_id[track_id]].obj_type];
+                color = g_obj_type_to_color[tracks[LUT_tracks_id[track_id]].obj_type];
             else {
                 fprintf(stderr, "(EE) This should never happen... ('cpt' = %d, 'track_id' = %d, 'LUT_tracks_id[track_id]' = %d, 'tracks[LUT_tracks_id[track_id]].obj_type' = %d)\n", cpt, track_id, LUT_tracks_id[track_id], tracks[LUT_tracks_id[track_id]].obj_type);
                 exit(-1);
@@ -245,7 +245,7 @@ void main_visu(int argc, char** argv)
         }
         if (dest_path_frames) {
             create_frames_files(frame);
-            saveFrame(path_frames_output, (const rgb8**)img_bb, j1, i1);
+            saveFrame(g_path_frames_output, (const rgb8**)img_bb, j1, i1);
         }
     }
     free_rgb8matrix(img_bb, 0, i1, 0, j1);

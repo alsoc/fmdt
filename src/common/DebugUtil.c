@@ -30,20 +30,13 @@
 
 #define SIZE_BUF 20
 
-char path_stats_0[250], path_stats_1[250];
-char path_frames_binary[250], path_frames_output[250];
-char path_video_tracking[250];
-char path_motion[200], path_extraction[200], path_error[200], path_tracks[200], path_bounding_box[200];
-char path_debug[250];
-char path_frames_binary_dir[200], path_frames_output_dir[200], path_stats_f[200], path_video_f[200];
-char path_assoconflicts_f[150];
-
-extern uint32 **nearest;
-extern float32 **distances;
-extern uint32 *conflicts;
-
-
-
+char g_path_stats_0[250], g_path_stats_1[250];
+char g_path_frames_binary[250], g_path_frames_output[250];
+char g_path_video_tracking[250];
+char g_path_motion[200], g_path_extraction[200], g_path_error[200], g_path_tracks[200], g_path_bounding_box[200];
+char g_path_debug[250];
+char g_path_frames_binary_dir[200], g_path_frames_output_dir[200], g_path_stats_f[200], g_path_video_f[200];
+char g_path_assoconflicts_f[150];
 
 /******************
  * Data gathering *
@@ -127,7 +120,7 @@ void saveErrorMoy(const char *filename, double errMoy, double eType)
 // ---------------------------------------------------------------------------------------------------
 {
     char path[200];
-    sprintf(path, "%s/%s", path_assoconflicts_f, filename);
+    sprintf(path, "%s/%s", g_path_assoconflicts_f, filename);
     disp(path);
     FILE *f = fopen(path, "a");
     if (f == NULL){
@@ -190,7 +183,7 @@ void printTracks2(FILE *f, Track* tracks, int n)
                    tracks[i].timestamp+tracks[i].time,
                    tracks[i].end.x,
                    tracks[i].end.y,
-                   obj_type_to_string_with_spaces[tracks[i].obj_type]);
+                   g_obj_type_to_string_with_spaces[tracks[i].obj_type]);
             track_id++;
         }
     }
@@ -274,7 +267,7 @@ void saveStats_file(FILE *f, MeteorROI* stats, int n, Track* tracks)
             fprintf(f, "   %4d || %4d | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f  \n",
                     stats[i].ID,
                     stats[i].track_id,
-                    obj_type_to_string_with_spaces[tracks[stats[i].track_id -1].obj_type],
+                    g_obj_type_to_string_with_spaces[tracks[stats[i].track_id -1].obj_type],
                     stats[i].xmin,
                     stats[i].xmax,
                     stats[i].ymin,
@@ -1357,8 +1350,8 @@ void get_bouding_box_path_from_tracks_path(char* path_tracks)
     disp(next);
     
     // *path_bb = malloc(sizeof(strlen(next)) + strlen("/bounding_box.txt") + 1);
-    sprintf(path_bounding_box, "%sbounding_box.txt", next);
-    disp(path_bounding_box);
+    sprintf(g_path_bounding_box, "%sbounding_box.txt", next);
+    disp(g_path_bounding_box);
     disp(next);
     free(next);
 }
@@ -1370,7 +1363,7 @@ void create_debug_dir(char *output_dest)
 {
     struct stat status = { 0 };
 
-    sprintf(path_debug, "%s/", output_dest);
+    sprintf(g_path_debug, "%s/", output_dest);
 
     if( stat(output_dest, &status) == -1 ) {
         mkdir( output_dest, 0700 );
@@ -1383,8 +1376,8 @@ void create_tracks_dir(char *output_dest)
 {
     struct stat status = { 0 };
 
-    sprintf(path_bounding_box, "%s/bounding_box.txt", output_dest);
-    sprintf(path_tracks,       "%s/tracks.txt",       output_dest);
+    sprintf(g_path_bounding_box, "%s/bounding_box.txt", output_dest);
+    sprintf(g_path_tracks,       "%s/tracks.txt",       output_dest);
 
     if( stat(output_dest, &status) == -1 ) {
         mkdir(output_dest, 0700 );
@@ -1395,7 +1388,7 @@ void create_tracks_dir(char *output_dest)
 void create_bb_file(char *filename)
 // ==========================================================================================================================================================================
 {
-    sprintf(path_bounding_box, "%s", filename);
+    sprintf(g_path_bounding_box, "%s", filename);
 }
 
 // ==========================================================================================================================================================================
@@ -1404,17 +1397,17 @@ void create_frames_dir(char *dest_path)
 {
     struct stat status = { 0 };
 
-    sprintf(path_frames_binary_dir, "%s/", dest_path);
-    sprintf(path_frames_output_dir, "%s/", dest_path);
+    sprintf(g_path_frames_binary_dir, "%s/", dest_path);
+    sprintf(g_path_frames_output_dir, "%s/", dest_path);
 
     if( stat(dest_path, &status) == -1 ) {
         mkdir( dest_path, 0700 );
     }
-    if( stat(path_frames_binary_dir, &status) == -1 ) {
-        mkdir( path_frames_binary_dir, 0700 );
+    if( stat(g_path_frames_binary_dir, &status) == -1 ) {
+        mkdir( g_path_frames_binary_dir, 0700 );
     }
-    if( stat(path_frames_output_dir, &status) == -1 ) {
-        mkdir( path_frames_output_dir, 0700 );
+    if( stat(g_path_frames_output_dir, &status) == -1 ) {
+        mkdir( g_path_frames_output_dir, 0700 );
     }
 }
 
@@ -1424,10 +1417,10 @@ void create_video_dir(char *dest_path)
 {
     struct stat status = { 0 };
 
-    sprintf(path_video_f, "%s/", dest_path);
+    sprintf(g_path_video_f, "%s/", dest_path);
 
-    if( stat(path_video_f, &status) == -1 ) {
-        mkdir(path_video_f, 0700 );
+    if( stat(g_path_video_f, &status) == -1 ) {
+        mkdir(g_path_video_f, 0700 );
     }
 }
 
@@ -1436,23 +1429,23 @@ void create_video_dir(char *dest_path)
 void create_debug_files(int frame)
 // ==========================================================================================================================================================================
 {
-    sprintf(path_stats_0, "%s/%05d.txt", path_stats_f, frame);
-    sprintf(path_stats_1, "%s/%05d.txt", path_stats_f, frame+1);
+    sprintf(g_path_stats_0, "%s/%05d.txt", g_path_stats_f, frame);
+    sprintf(g_path_stats_1, "%s/%05d.txt", g_path_stats_f, frame+1);
 }
 
 // ==========================================================================================================================================================================
 void create_frames_files(int frame)
 // ==========================================================================================================================================================================
 {
-    sprintf(path_frames_binary, "%s/%05d.ppm", path_frames_binary_dir, frame);
-    sprintf(path_frames_output, "%s/%05d.ppm", path_frames_output_dir, frame);
+    sprintf(g_path_frames_binary, "%s/%05d.ppm", g_path_frames_binary_dir, frame);
+    sprintf(g_path_frames_output, "%s/%05d.ppm", g_path_frames_output_dir, frame);
 }
 
 // ==========================================================================================================================================================================
 void create_videos_files(char *filename)
 // ==========================================================================================================================================================================
 {
-    sprintf(path_video_tracking, "%s", filename);
+    sprintf(g_path_video_tracking, "%s", filename);
 }
 
 /* ----------------------------------------------------------------------------- */
