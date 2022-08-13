@@ -35,7 +35,7 @@ void main_maxred(int argc, char** argv) {
     int def_end_frame = 200000;
     char* def_validation = NULL;
 
-    if (find_arg(argc, argv, "-h")) {
+    if (args_find_arg(argc, argv, "-h")) {
         fprintf(stderr, "  --input-video     Video source                             [%s]\n", def_input_video);
         fprintf(stderr, "  --input-tracks    Path to the tracks files                 [%s]\n", def_input_tracks);
         fprintf(stderr, "  --output-frame    Path to the frames output                [%s]\n", def_output_frame);
@@ -51,15 +51,15 @@ void main_maxred(int argc, char** argv) {
     }
 
     // Parsing Arguments
-    char* input_video = find_char_arg(argc, argv, "--input-video", def_input_video);
-    char* input_tracks = find_char_arg(argc, argv, "--input-tracks", def_input_tracks);
-    char* dest_path_frame = find_char_arg(argc, argv, "--output-frame", def_output_frame);
-    int start = find_int_arg(argc, argv, "--start-frame", def_start_frame);
-    int end = find_int_arg(argc, argv, "--end-frame", def_end_frame);
-    char* validation = find_char_arg(argc, argv, "--validation", def_validation);
+    char* input_video = args_find_char_arg(argc, argv, "--input-video", def_input_video);
+    char* input_tracks = args_find_char_arg(argc, argv, "--input-tracks", def_input_tracks);
+    char* dest_path_frame = args_find_char_arg(argc, argv, "--output-frame", def_output_frame);
+    int start = args_find_int_arg(argc, argv, "--start-frame", def_start_frame);
+    int end = args_find_int_arg(argc, argv, "--end-frame", def_end_frame);
+    char* validation = args_find_char_arg(argc, argv, "--validation", def_validation);
 #ifdef OPENCV_LINK
-    int show_ids = find_arg(argc, argv, "--show-ids");
-    int natural_num = find_arg(argc, argv, "--natural-num");
+    int show_ids = args_find_arg(argc, argv, "--show-ids");
+    int natural_num = args_find_arg(argc, argv, "--natural-num");
 #endif
 
     // heading display
@@ -105,6 +105,8 @@ void main_maxred(int argc, char** argv) {
     disp(input_video);
     disp(dest_path_frame);
 
+    tracking_init_global_data();
+
     // sequence
     int frame;
     int skip = 0;
@@ -117,7 +119,7 @@ void main_maxred(int argc, char** argv) {
     // -- INITIALISATION VIDEO-- //
     // ------------------------- //
     PUTS("INIT VIDEO");
-    Video* video = Video_init_from_file(input_video, start, end, skip, &i0, &i1, &j0, &j1);
+    video_t* video = video_init_from_file(input_video, start, end, skip, &i0, &i1, &j0, &j1);
 
     // ---------------- //
     // -- ALLOCATION -- //
@@ -130,7 +132,7 @@ void main_maxred(int argc, char** argv) {
     // -- TRAITEMENT --//
     // ----------------//
     PUTS("LOOP");
-    while (Video_nextFrame(video, img)) {
+    while (video_get_next_frame(video, img)) {
         frame = video->frame_current - 1;
         fprintf(stderr, "(II) Frame n°%4d\r", frame);
         max_reduce(Max, i0, i1, j0, j1, img);
@@ -138,18 +140,17 @@ void main_maxred(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (input_tracks) {
-        Track tracks[SIZE_MAX_TRACKS];
+        track_t tracks[SIZE_MAX_TRACKS];
         int n_tracks = 0;
-        init_Track(tracks, SIZE_MAX_TRACKS);
-        parseTracks(input_tracks, tracks, &n_tracks);
-        // printTracks2(tracks, n_tracks);
+        tracking_init_tracks(tracks, SIZE_MAX_TRACKS);
+        parse_tracks(input_tracks, tracks, &n_tracks);
 
         if (validation) {
-            Validation_init(validation);
-            Validation(tracks, n_tracks);
+            validation_init(validation);
+            validation_process(tracks, n_tracks);
         }
 
-        coordBB* listBB = (coordBB*)malloc(sizeof(coordBB) * n_tracks);
+        BB_coord_t* listBB = (BB_coord_t*)malloc(sizeof(BB_coord_t) * n_tracks);
         for (int t = 0; t < n_tracks; t++) {
 #ifdef OPENCV_LINK
             listBB[t].track_id = natural_num ? (t + 1) : tracks[t].id;
@@ -177,13 +178,13 @@ void main_maxred(int argc, char** argv) {
         }
 
         rgb8** img_bb = rgb8matrix(i0, i1, j0, j1);
-        convert_img_grayscale_to_rgb((const uint8**)Max, img_bb, i0, i1, j0, j1);
+        tools_convert_img_grayscale_to_rgb((const uint8**)Max, img_bb, i0, i1, j0, j1);
         int n_BB = n_tracks;
-        draw_BB(img_bb, listBB, n_BB);
+        tools_draw_BB(img_bb, listBB, n_BB);
 #ifdef OPENCV_LINK
-        draw_text(img_bb, j1, i1, listBB, n_BB, validation ? 1 : 0, show_ids);
+        tools_draw_text(img_bb, j1, i1, listBB, n_BB, validation ? 1 : 0, show_ids);
 #endif
-        saveFrame(dest_path_frame, (const rgb8**)img_bb, j1, i1);
+        tools_save_frame(dest_path_frame, (const rgb8**)img_bb, j1, i1);
 
         free(listBB);
         free(img_bb);
@@ -196,14 +197,12 @@ void main_maxred(int argc, char** argv) {
     // ----------
     free_ui8matrix(img, i0, i1, j0, j1);
     free_ui8matrix(Max, i0, i1, j0, j1);
-    Video_free(video);
+    video_free(video);
 
     printf("# End of the program, exiting.\n");
 }
 
 int main(int argc, char** argv) {
-    init_global_data();
     main_maxred(argc, argv);
-
     return 0;
 }

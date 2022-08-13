@@ -19,7 +19,7 @@ uint32** g_nearest;
 float32** g_distances;
 uint32* g_conflicts; // debug
 
-void kppv_init(int i0, int i1, int j0, int j1) {
+void KPPV_init(int i0, int i1, int j0, int j1) {
     g_nearest = ui32matrix(i0, i1, j0, j1);
     g_distances = f32matrix(i0, i1, j0, j1);
     g_conflicts = ui32vector(j0, j1);
@@ -29,12 +29,12 @@ void kppv_init(int i0, int i1, int j0, int j1) {
     zero_ui32vector(g_conflicts, j0, j1);
 }
 
-void kppv_free(int i0, int i1, int j0, int j1) {
+void KPPV_free(int i0, int i1, int j0, int j1) {
     free_ui32matrix(g_nearest, i0, i1, j0, j1);
     free_f32matrix(g_distances, i0, i1, j0, j1);
     free_ui32vector(g_conflicts, j0, j1);
 }
-void distance_calc(MeteorROI* stats0, MeteorROI* stats1, int nc0, int nc1) {
+void distance_calc(ROI_t* stats0, ROI_t* stats1, int nc0, int nc1) {
     float32 d, x0, x1, y0, y1;
 
     // parcours des stats 0
@@ -60,7 +60,7 @@ void distance_calc(MeteorROI* stats0, MeteorROI* stats1, int nc0, int nc1) {
     }
 }
 
-void kppv(MeteorROI* stats0, MeteorROI* stats1, int nc0, int nc1, int k) {
+void KPPV_match1(ROI_t* stats0, ROI_t* stats1, int nc0, int nc1, int k) {
     int k_index, val, cpt;
     cpt = 0;
 
@@ -102,7 +102,7 @@ void kppv(MeteorROI* stats0, MeteorROI* stats1, int nc0, int nc1, int k) {
     }
 }
 
-void mis_en_correspondance(MeteorROI* stats0, MeteorROI* stats1, int nc0, int nc1) {
+void KPPV_match2(ROI_t* stats0, ROI_t* stats1, int nc0, int nc1) {
     float32 d;
     int rang = 1;
 
@@ -136,7 +136,7 @@ void mis_en_correspondance(MeteorROI* stats0, MeteorROI* stats1, int nc0, int nc
     }
 }
 
-void kppv_routine(MeteorROI* stats0, MeteorROI* stats1, int nc0, int nc1, int k) {
-    kppv(stats0, stats1, nc0, nc1, k);
-    mis_en_correspondance(stats0, stats1, nc0, nc1);
+void KPPV_match(ROI_t* stats0, ROI_t* stats1, int nc0, int nc1, int k) {
+    KPPV_match1(stats0, stats1, nc0, nc1, k);
+    KPPV_match2(stats0, stats1, nc0, nc1);
 }

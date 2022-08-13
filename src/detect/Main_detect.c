@@ -16,7 +16,6 @@
 #include "Validation.h"
 #include "Video.h"
 #include "macro_debug.h"
-#include "tools_visu.h"
 
 #define SEQUENCE_DST_PATH_HIST "hist/"
 #define SEQUENCE_NDIGIT 5
@@ -35,12 +34,9 @@ extern char g_path_video_tracking[200];
 extern uint32* g_conflicts;
 extern uint32** g_nearest;
 extern float32** g_distances;
-extern elemBB* g_tabBB[NB_FRAMES];
+extern BB_t* g_tabBB[NB_FRAMES];
 
-// ======================================
-void main_detect(int argc, char** argv)
-// ======================================
-{
+void main_detect(int argc, char** argv) {
     // default values
     int def_start_frame = 0;
     int def_end_frame = 200000;
@@ -60,7 +56,7 @@ void main_detect(int argc, char** argv)
     char* def_output_stats = NULL;
 
     // Help
-    if (find_arg(argc, argv, "-h")) {
+    if (args_find_arg(argc, argv, "-h")) {
         fprintf(stderr,
                 "  --input-video       Video source                                                         [%s]\n",
                 def_input_video);
@@ -112,30 +108,30 @@ void main_detect(int argc, char** argv)
                 "                      one CC has to be superior to diff_deviation * standard deviation)    [%f]\n",
                 def_diff_deviation);
         fprintf(stderr,
-                "  --track-all         Track all object types (star, meteor or noise)                           \n");
+                "  --track-all         track_t all object types (star, meteor or noise)                           \n");
         fprintf(stderr,
                 "  -h                  This help                                                                \n");
         exit(1);
     }
 
     // Parsing Arguments
-    int start = find_int_arg(argc, argv, "--start-frame", def_start_frame);
-    int end = find_int_arg(argc, argv, "--end-frame", def_end_frame);
-    int skip = find_int_arg(argc, argv, "--skip-frames", def_skip_frames);
-    int light_min = find_int_arg(argc, argv, "--light-min", def_light_min);
-    int light_max = find_int_arg(argc, argv, "--light-max", def_light_max);
-    int surface_min = find_int_arg(argc, argv, "--surface-min", def_surface_min);
-    int surface_max = find_int_arg(argc, argv, "--surface-max", def_surface_max);
-    int k = find_int_arg(argc, argv, "-k", def_k);
-    int r_extrapol = find_int_arg(argc, argv, "--r-extrapol", def_r_extrapol);
-    int d_line = find_int_arg(argc, argv, "--d-line", def_d_line);
-    int min_fra_star = find_int_arg(argc, argv, "--min-fra-star", def_min_fra_star);
-    float diff_deviation = find_float_arg(argc, argv, "--diff-deviation", def_diff_deviation);
-    char* input_video = find_char_arg(argc, argv, "--input-video", def_input_video);
-    char* output_frames = find_char_arg(argc, argv, "--output-frames", def_output_frames);
-    char* output_bb = find_char_arg(argc, argv, "--output-bb", def_output_bb);
-    char* output_stats = find_char_arg(argc, argv, "--output-stats", def_output_stats);
-    int track_all = find_arg(argc, argv, "--track-all");
+    int start = args_find_int_arg(argc, argv, "--start-frame", def_start_frame);
+    int end = args_find_int_arg(argc, argv, "--end-frame", def_end_frame);
+    int skip = args_find_int_arg(argc, argv, "--skip-frames", def_skip_frames);
+    int light_min = args_find_int_arg(argc, argv, "--light-min", def_light_min);
+    int light_max = args_find_int_arg(argc, argv, "--light-max", def_light_max);
+    int surface_min = args_find_int_arg(argc, argv, "--surface-min", def_surface_min);
+    int surface_max = args_find_int_arg(argc, argv, "--surface-max", def_surface_max);
+    int k = args_find_int_arg(argc, argv, "-k", def_k);
+    int r_extrapol = args_find_int_arg(argc, argv, "--r-extrapol", def_r_extrapol);
+    int d_line = args_find_int_arg(argc, argv, "--d-line", def_d_line);
+    int min_fra_star = args_find_int_arg(argc, argv, "--min-fra-star", def_min_fra_star);
+    float diff_deviation = args_find_float_arg(argc, argv, "--diff-deviation", def_diff_deviation);
+    char* input_video = args_find_char_arg(argc, argv, "--input-video", def_input_video);
+    char* output_frames = args_find_char_arg(argc, argv, "--output-frames", def_output_frames);
+    char* output_bb = args_find_char_arg(argc, argv, "--output-bb", def_output_bb);
+    char* output_stats = args_find_char_arg(argc, argv, "--output-stats", def_output_stats);
+    int track_all = args_find_arg(argc, argv, "--track-all");
 
     // heading display
     printf("#  -----------------------\n");
@@ -180,11 +176,11 @@ void main_detect(int argc, char** argv)
     int frame;
 
     // CC
-    MeteorROI stats0[SIZE_MAX_METEORROI];
-    MeteorROI stats1[SIZE_MAX_METEORROI];
-    MeteorROI stats_shrink[SIZE_MAX_METEORROI];
-    Track tracks[SIZE_MAX_TRACKS];
-    Track tracks_stars[SIZE_MAX_TRACKS];
+    ROI_t stats0[SIZE_MAX_METEORROI];
+    ROI_t stats1[SIZE_MAX_METEORROI];
+    ROI_t stats_shrink[SIZE_MAX_METEORROI];
+    track_t tracks[SIZE_MAX_TRACKS];
+    track_t tracks_stars[SIZE_MAX_TRACKS];
 
     int offset = 0;
     int tracks_cnt = -1;
@@ -211,7 +207,7 @@ void main_detect(int argc, char** argv)
     // -- INITIALISATION VIDEO-- //
     // ------------------------- //
     PUTS("INIT VIDEO");
-    Video* video = Video_init_from_file(input_video, start, end, skip, &i0, &i1, &j0, &j1);
+    video_t* video = video_init_from_file(input_video, start, end, skip, &i0, &i1, &j0, &j1);
 
     // ---------------- //
     // -- ALLOCATION -- //
@@ -219,20 +215,21 @@ void main_detect(int argc, char** argv)
     PUTS("ALLOC");
 
     // struct for image processing
-    Ballon* ballon = allocBallon(i0, i1, j0, j1, b);
+    ballon_t* ballon = ballon_alloc(i0, i1, j0, j1, b);
 
     // -------------------------- //
     // -- INITIALISATION MATRIX-- //
     // -------------------------- //
 
-    initBallon(ballon, i0, i1, j0, j1, b);
-    kppv_init(0, SIZE_MAX_KPPV, 0, SIZE_MAX_KPPV);
-    init_MeteorROI(stats0, SIZE_MAX_METEORROI);
-    init_MeteorROI(stats1, SIZE_MAX_METEORROI);
-    init_Track(tracks, SIZE_MAX_TRACKS);
-    init_Track(tracks_stars, SIZE_MAX_TRACKS);
+    tracking_init_global_data();
+    ballon_init(ballon, i0, i1, j0, j1, b);
+    KPPV_init(0, SIZE_MAX_KPPV, 0, SIZE_MAX_KPPV);
+    features_init_ROI(stats0, SIZE_MAX_METEORROI);
+    features_init_ROI(stats1, SIZE_MAX_METEORROI);
+    tracking_init_tracks(tracks, SIZE_MAX_TRACKS);
+    tracking_init_tracks(tracks_stars, SIZE_MAX_TRACKS);
     CCL_LSL_init(i0, i1, j0, j1);
-    initTabBB();
+    tracking_init_array_BB();
 
     disp(g_path_tracks);
 
@@ -241,14 +238,14 @@ void main_detect(int argc, char** argv)
     // ----------------//
 
     PUTS("LOOP");
-    if (!Video_nextFrame(video, ballon->I0)) {
+    if (!video_get_next_frame(video, ballon->I0)) {
         exit(1);
     }
 
     printf("# The program is running...\n");
     unsigned n_frames = 0;
     unsigned n_tracks = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
-    while (Video_nextFrame(video, ballon->I1)) {
+    while (video_get_next_frame(video, ballon->I1)) {
 
         frame = video->frame_current - 2;
 
@@ -267,27 +264,27 @@ void main_detect(int argc, char** argv)
 
         //--------------------------------------------------------//
         PUTS("\t Step 2 : ECC/ACC");
-        n1 = CCL_LSL(ballon->SM32, i0, i1, j0, j1);
+        n1 = CCL_LSL_apply(ballon->SM32, i0, i1, j0, j1);
         idisp(n1);
-        extract_features(ballon->SM32, i0, i1, j0, j1, stats1, n1);
+        features_extract(ballon->SM32, i0, i1, j0, j1, stats1, n1);
 
         //--------------------------------------------------------//
         PUTS("\t Step 3 : seuillage hysteresis && filter surface");
-        merge_HI_CCL_v2(ballon->SH32, ballon->SM32, i0, i1, j0, j1, stats1, n1, surface_min, surface_max);
-        int n_shrink = shrink_stats(stats1, stats_shrink, n1);
+        features_merge_HI_CCL_v2(ballon->SH32, ballon->SM32, i0, i1, j0, j1, stats1, n1, surface_min, surface_max);
+        int n_shrink = features_shrink_stats(stats1, stats_shrink, n1);
 
         //--------------------------------------------------------//
         PUTS("\t Step 4 : mise en correspondance");
-        kppv_routine(stats0, stats_shrink, n0, n_shrink, k);
+        KPPV_match(stats0, stats_shrink, n0, n_shrink, k);
 
         //--------------------------------------------------------//
         PUTS("\t Step 5 : recalage");
-        motion(stats0, stats_shrink, n0, n_shrink, &theta, &tx, &ty);
+        features_motion(stats0, stats_shrink, n0, n_shrink, &theta, &tx, &ty);
 
         //--------------------------------------------------------//
-        PUTS("\t Step 6: Tracking");
-        Tracking(stats0, stats_shrink, tracks, n0, n_shrink, frame, &tracks_cnt, &offset, theta, tx, ty, r_extrapol,
-                 d_line, diff_deviation, track_all, min_fra_star);
+        PUTS("\t Step 6: tracking");
+        tracking_perform(stats0, stats_shrink, tracks, n0, n_shrink, frame, &tracks_cnt, &offset, theta, tx, ty,
+                         r_extrapol, d_line, diff_deviation, track_all, min_fra_star);
 
         //--------------------------------------------------------//
         PUTS("\t [DEBUG] Saving frames");
@@ -315,8 +312,8 @@ void main_detect(int argc, char** argv)
         n0 = n_shrink;
         n_frames++;
 
-        n_tracks = track_count_objects(tracks, (unsigned)tracks_cnt + 1, &n_stars, &n_meteors, &n_noise);
-        fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\r", n_meteors, n_stars,
+        n_tracks = tracking_count_objects(tracks, (unsigned)tracks_cnt + 1, &n_stars, &n_meteors, &n_noise);
+        fprintf(stderr, " -- track_ts = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\r", n_meteors, n_stars,
                 n_noise, n_tracks);
         fflush(stderr);
     }
@@ -324,8 +321,8 @@ void main_detect(int argc, char** argv)
 
     if (output_bb)
         saveTabBB(g_path_bounding_box, g_tabBB, tracks, NB_FRAMES, track_all);
-    // saveTracks(g_path_tracks, tracks, tracks_cnt);
-    printTracks2(stdout, tracks, tracks_cnt + 1);
+    // save_tracks(g_path_tracks, tracks, tracks_cnt);
+    print_tracks2(stdout, tracks, tracks_cnt + 1);
 
     printf("# Statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
@@ -336,18 +333,16 @@ void main_detect(int argc, char** argv)
     // -- free --
     // ----------
 
-    freeBallon(ballon, i0, i1, j0, j1, b);
-
+    ballon_free(ballon, i0, i1, j0, j1, b);
     free(path);
     free(filename);
-    Video_free(video);
+    video_free(video);
     CCL_LSL_free(i0, i1, j0, j1);
-    kppv_free(0, 50, 0, 50);
+    KPPV_free(0, 50, 0, 50);
     printf("# End of the program, exiting.\n");
 }
 
 int main(int argc, char** argv) {
-    init_global_data();
     main_detect(argc, argv);
     return 0;
 }

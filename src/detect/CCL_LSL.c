@@ -37,7 +37,7 @@ void CCL_LSL_free(int i0, int i1, int j0, int j1) {
     free_ui32vector(g_ner, i0, i1);
 }
 
-void LSL_Segment_Detection(uint32* line_er, uint32* line_rlc, uint32* line_ner, uint32* line, int j0, int j1) {
+void LSL_segment_detection(uint32* line_er, uint32* line_rlc, uint32* line_ner, uint32* line, int j0, int j1) {
     uint32 j_curr;
     uint32 j_prev = 0;
     uint32 f = 0; // Front detection
@@ -60,7 +60,7 @@ void LSL_Segment_Detection(uint32* line_er, uint32* line_rlc, uint32* line_ner, 
     *line_ner = er;
 }
 
-void LSL_Equivalence_Construction(uint32* line_rlc, uint32* line_era, uint32* prevline_er, uint32* prevline_era, int n,
+void LSL_equivalence_construction(uint32* line_rlc, uint32* line_era, uint32* prevline_er, uint32* prevline_era, int n,
                                   int x0, int x1, uint32* nea) {
     int k, er, j0, j1, er0, er1, ea, a, erk, eak, ak;
     for (k = 0; k < n; k += 2) {
@@ -111,10 +111,10 @@ void LSL_Equivalence_Construction(uint32* line_rlc, uint32* line_era, uint32* pr
     }
 }
 
-uint32 CCL_LSL(uint32** img, int i0, int i1, int j0, int j1) {
+uint32 CCL_LSL_apply(uint32** img, int i0, int i1, int j0, int j1) {
     // Step #1 - Segment detection
     for (int i = i0; i <= i1; i++) {
-        LSL_Segment_Detection(g_er[i], g_rlc[i], &g_ner[i], img[i], j0, j1);
+        LSL_segment_detection(g_er[i], g_rlc[i], &g_ner[i], img[i], j0, j1);
     }
 
     // Step #2 - Equivalence construction
@@ -125,7 +125,7 @@ uint32 CCL_LSL(uint32** img, int i0, int i1, int j0, int j1) {
         g_era[i0][k + 1] = nea++;
     }
     for (int i = i0 + 1; i <= i1; i++) {
-        LSL_Equivalence_Construction(g_rlc[i], g_era[i], g_er[i - 1], g_era[i - 1], g_ner[i], j0, j1, &nea);
+        LSL_equivalence_construction(g_rlc[i], g_era[i], g_er[i - 1], g_era[i - 1], g_ner[i], j0, j1, &nea);
     }
 
     // Step #3 - Relative to Absolute label conversion

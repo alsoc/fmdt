@@ -11,7 +11,6 @@
 #include "DebugUtil.h"
 #include "Tracking.h"
 #include "Validation.h"
-#include "tools_visu.h"
 
 #define SIZE_MAX_TRACKS 1000
 
@@ -20,7 +19,7 @@ void main_validation(int argc, char** argv) {
     char* def_input_tracks = NULL;
     char* def_validation = NULL;
 
-    if (find_arg(argc, argv, "-h")) {
+    if (args_find_arg(argc, argv, "-h")) {
         fprintf(stderr, "  --input-tracks    Path vers le fichier avec les tracks                [%s]\n",
                 def_input_tracks);
         fprintf(stderr, "  --validation      Fichier contenant la vérité terrain de la séquence  [%s]\n",
@@ -30,8 +29,8 @@ void main_validation(int argc, char** argv) {
     }
 
     // Parsing Arguments
-    char* src_path = find_char_arg(argc, argv, "--input-tracks", def_input_tracks);
-    char* validation = find_char_arg(argc, argv, "--validation", def_validation);
+    char* src_path = args_find_char_arg(argc, argv, "--input-tracks", def_input_tracks);
+    char* validation = args_find_char_arg(argc, argv, "--validation", def_validation);
 
     // heading display
     printf("#  ----------------------\n");
@@ -59,27 +58,26 @@ void main_validation(int argc, char** argv) {
     disp(src_path);
     disp(validation);
 
-    Track tracks[SIZE_MAX_TRACKS];
+    track_t tracks[SIZE_MAX_TRACKS];
     int nb_tracks = 0;
-    init_Track(tracks, SIZE_MAX_TRACKS);
+    tracking_init_global_data();
+    tracking_init_tracks(tracks, SIZE_MAX_TRACKS);
 
     // recupere les tracks
-    parseTracks(src_path, tracks, &nb_tracks);
-    // printTracks(tracks, nb_tracks);
+    parse_tracks(src_path, tracks, &nb_tracks);
+    // print_tracks(tracks, nb_tracks);
 
     printf("# The program is running...\n");
 
     // validation pour établir si une track est vrai/faux positif
-    Validation_init(validation);
-    Validation(tracks, nb_tracks);
-    Validation_print(tracks, nb_tracks);
+    validation_init(validation);
+    validation_process(tracks, nb_tracks);
+    validation_print(tracks, nb_tracks);
 
     printf("# End of the program, exiting.\n");
 }
 
 int main(int argc, char** argv) {
-    init_global_data();
     main_validation(argc, argv);
-
     return 0;
 }

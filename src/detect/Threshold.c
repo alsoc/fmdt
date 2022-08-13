@@ -333,14 +333,6 @@ void histogram_uv_norm_sq(uint8** m, float32** U, float32** V, float32* h, int i
     }
 }
 
-int otsu_bcv_k(float* h, int k) {
-    int t = 0;
-    for (int i = 0; i < k; i++) {
-        t = otsu_bcv(h, t, GRAY_LEVEL - 1);
-    }
-    return t;
-}
-
 /* Otsu's thresholding method */
 /* Between class variance     */
 int otsu_bcv(float* h, int t0, int t1) {
@@ -386,6 +378,14 @@ int otsu_bcv(float* h, int t0, int t1) {
     }
 
     return threshold;
+}
+
+int otsu_bcv_k(float* h, int k) {
+    int t = 0;
+    for (int i = 0; i < k; i++) {
+        t = otsu_bcv(h, t, GRAY_LEVEL - 1);
+    }
+    return t;
 }
 
 /* Otsu's thresholding method */

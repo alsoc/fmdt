@@ -6,11 +6,7 @@
 #define __MACRO_DEBUG_H__
 
 // ENABLE_DEBUG : macro definissant le fonctionnement general des macros de debug
-// si macro active, debug
-// si macro inactive, release
-// #define ENABLE_CONTROL : macro pour activer le controle d'acces
 
-// #define DEBUG
 // ----------------------------------------------------- //
 // -- ne rien ecrire en desous de cette ligne ---------- //
 // ----------------------------------------------------- //

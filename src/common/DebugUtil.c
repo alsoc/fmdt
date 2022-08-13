@@ -37,7 +37,7 @@ char g_path_debug[250];
 char g_path_frames_binary_dir[200], g_path_frames_output_dir[200], g_path_stats_f[200], g_path_video_f[200];
 char g_path_assoconflicts_f[150];
 
-void printStats(MeteorROI* stats, int n)
+void printStats(ROI_t* stats, int n)
 {
     int cpt = 0;
     for (int i = 1; i <= n; i++) {
@@ -61,7 +61,7 @@ void printStats(MeteorROI* stats, int n)
     printf("\n");
 }
 
-void printBuffer(Buf* buffer, int n)
+void printBuffer(ROIx2_t* buffer, int n)
 {
     for (int i = 0; i < n; i++) {
         if (buffer[i].stats0.ID > 0)
@@ -70,10 +70,10 @@ void printBuffer(Buf* buffer, int n)
     printf("\n");
 }
 
-void printTabBB(elemBB** tabBB, int n) {
+void printTabBB(BB_t** tabBB, int n) {
     for (int i = 0; i < n; i++) {
         if (tabBB[i] != NULL) {
-            for (elemBB* current = tabBB[i]; current != NULL; current = current->next) {
+            for (BB_t* current = tabBB[i]; current != NULL; current = current->next) {
                 printf("%d %d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y,
                        current->track_id);
             }
@@ -81,7 +81,7 @@ void printTabBB(elemBB** tabBB, int n) {
     }
 }
 
-void saveTabBB(const char* filename, elemBB** tabBB, Track* tracks, int n, int track_all) {
+void saveTabBB(const char* filename, BB_t** tabBB, track_t* tracks, int n, int track_all) {
     FILE* f = fopen(filename, "w");
     if (f == NULL) {
         fprintf(stderr, "(EE) error ouverture %s \n", filename);
@@ -90,7 +90,7 @@ void saveTabBB(const char* filename, elemBB** tabBB, Track* tracks, int n, int t
 
     for (int i = 0; i < n; i++) {
         if (tabBB[i] != NULL) {
-            for (elemBB* current = tabBB[i]; current != NULL; current = current->next) {
+            for (BB_t* current = tabBB[i]; current != NULL; current = current->next) {
                 if (track_all || (!track_all && tracks[(current->track_id) - 1].obj_type == METEOR))
                     fprintf(f, "%d %d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y,
                             current->track_id);
@@ -116,7 +116,7 @@ void saveErrorMoy(const char* filename, double errMoy, double eType)
     fclose(f);
 }
 
-void printTracks(Track* tracks, int last)
+void print_tracks(track_t* tracks, int last)
 {
     printf("%d\n", last + 1);
 
@@ -130,10 +130,10 @@ void printTracks(Track* tracks, int last)
                tracks[i].is_valid, tracks[i].obj_type);
 }
 
-void printTracks2(FILE* f, Track* tracks, int n)
+void print_tracks2(FILE* f, track_t* tracks, int n)
 {
     fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
-    fprintf(f, "#  Track ||           Begin           ||            End            ||  Object \n");
+    fprintf(f, "#  track ||           Begin           ||            End            ||  Object \n");
     fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
     fprintf(f, "# -------||---------|--------|--------||---------|--------|--------||---------\n");
     fprintf(f, "#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type \n");
@@ -149,7 +149,7 @@ void printTracks2(FILE* f, Track* tracks, int n)
         }
 }
 
-void parseStats(const char* filename, MeteorROI* stats, int* n)
+void parseStats(const char* filename, ROI_t* stats, int* n)
 {
     char lines[200];
     int id, xmin, xmax, ymin, ymax, s, sx, sy, prev, next;
@@ -187,7 +187,7 @@ void parseStats(const char* filename, MeteorROI* stats, int* n)
     fclose(file);
 }
 
-void saveStats_file(FILE* f, MeteorROI* stats, int n, Track* tracks)
+void saveStats_file(FILE* f, ROI_t* stats, int n, track_t* tracks)
 {
     int cpt = 0;
     for (int i = 1; i <= n; i++) {
@@ -198,7 +198,7 @@ void saveStats_file(FILE* f, MeteorROI* stats, int n, Track* tracks)
     fprintf(f, "# Regions of interest (ROI) [%d]: \n", cpt);
     if (cpt) {
         fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------\n");
-        fprintf(f, "#   ROI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       \n");
+        fprintf(f, "#   ROI ||      track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       \n");
         fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------\n");
         fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------\n");
         fprintf(f, "#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y \n");
@@ -216,7 +216,7 @@ void saveStats_file(FILE* f, MeteorROI* stats, int n, Track* tracks)
     }
 }
 
-void saveStats(const char* filename, MeteorROI* stats, int n, Track* tracks)
+void saveStats(const char* filename, ROI_t* stats, int n, track_t* tracks)
 {
     FILE* f = fopen(filename, "w");
     if (f == NULL) {
@@ -227,7 +227,7 @@ void saveStats(const char* filename, MeteorROI* stats, int n, Track* tracks)
     fclose(f);
 }
 
-void saveTracks(const char* filename, Track* tracks, int n)
+void save_tracks(const char* filename, track_t* tracks, int n)
 {
     FILE* f = fopen(filename, "w");
     if (f == NULL) {
@@ -266,7 +266,7 @@ void saveBoundingBox(const char* filename, uint16 rx, uint16 ry, uint16 bb_x, ui
     fclose(f);
 }
 
-void parseTracks(const char* filename, Track* tracks, int* n)
+void parse_tracks(const char* filename, track_t* tracks, int* n)
 {
     FILE* fp;
     char* line = NULL;
@@ -301,7 +301,7 @@ void parseTracks(const char* filename, Track* tracks, int* n)
             tracks[*n].end.y = y1;
             // tracks[*n].bb_x   = bb_x;
             // tracks[*n].bb_y   = bb_y;
-            tracks[*n].obj_type = string_to_obj_type((const char*)obj_type_str);
+            tracks[*n].obj_type = tracking_string_to_obj_type((const char*)obj_type_str);
             (*n)++;
         }
     }
@@ -325,7 +325,7 @@ void saveMotion(const char* filename, double theta, double tx, double ty, int fr
     fclose(f);
 }
 
-void saveError(const char* filename, MeteorROI* stats, int n)
+void saveError(const char* filename, ROI_t* stats, int n)
 {
     double S = 0;
     int cpt = 0;
@@ -346,7 +346,7 @@ void saveError(const char* filename, MeteorROI* stats, int n)
     fclose(f);
 }
 
-void saveAsso(const char* filename, uint32** Nearest, float32** distances, int nc0, MeteorROI* stats)
+void saveAsso(const char* filename, uint32** Nearest, float32** distances, int nc0, ROI_t* stats)
 {
     FILE* f = fopen(filename, "w");
     if (f == NULL) {
@@ -379,7 +379,7 @@ void saveAsso(const char* filename, uint32** Nearest, float32** distances, int n
     fclose(f);
 }
 
-void saveAsso_VT(const char* filename, int nc0, MeteorROI* stats, int frame)
+void saveAsso_VT(const char* filename, int nc0, ROI_t* stats, int frame)
 {
     FILE* f = fopen(filename, "a");
     if (f == NULL) {
@@ -438,7 +438,7 @@ void saveConflicts(const char* filename, uint32* conflicts, uint32** Nearest, fl
 }
 
 void saveAssoConflicts(const char* path, int frame, uint32* conflicts, uint32** Nearest, float32** distances,
-                       int n_asso, int n_conflict, MeteorROI* stats0, MeteorROI* stats1, Track* tracks, int n_tracks)
+                       int n_asso, int n_conflict, ROI_t* stats0, ROI_t* stats1, track_t* tracks, int n_tracks)
 {
     assert(frame >= 0);
 
@@ -469,8 +469,8 @@ void saveAssoConflicts(const char* path, int frame, uint32* conflicts, uint32** 
     int j;
 
     if (cpt) {
-        double errMoy = errorMoy(stats0, n_asso);
-        double eType = ecartType(stats0, n_asso, errMoy);
+        double errMoy = features_error_moy(stats0, n_asso);
+        double eType = features_ecart_type(stats0, n_asso, errMoy);
         fprintf(f, "# * mean error    = %.3f\n", errMoy);
         fprintf(f, "# * std deviation = %.3f\n", eType);
 
@@ -496,9 +496,9 @@ void saveAssoConflicts(const char* path, int frame, uint32* conflicts, uint32** 
     }
 
     fprintf(f, "#\n");
-    fprintf(f, "# Tracks [%d]:\n", n_tracks);
+    fprintf(f, "# tracks [%d]:\n", n_tracks);
     if (n_tracks)
-        printTracks2(f, tracks, n_tracks);
+        print_tracks2(f, tracks, n_tracks);
 
     // // Conflicts
     // cpt = 0;
@@ -523,7 +523,7 @@ void saveAssoConflicts(const char* path, int frame, uint32* conflicts, uint32** 
     fclose(f);
 }
 
-void saveMotionExtraction(char* filename, MeteorROI* stats0, MeteorROI* stats1, int nc0, double theta, double tx,
+void saveMotionExtraction(char* filename, ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx,
                           double ty, int frame)
 {
     // Version DEBUG : il faut implémenter une version pour le main
@@ -533,8 +533,8 @@ void saveMotionExtraction(char* filename, MeteorROI* stats0, MeteorROI* stats1, 
         return;
     }
 
-    double errMoy = errorMoy(stats0, nc0);
-    double eType = ecartType(stats0, nc0, errMoy);
+    double errMoy = features_error_moy(stats0, nc0);
+    double eType = features_ecart_type(stats0, nc0, errMoy);
 
     for (int i = 1; i <= nc0; i++) {
         float32 e = stats0[i].error;
@@ -551,7 +551,7 @@ void saveMotionExtraction(char* filename, MeteorROI* stats0, MeteorROI* stats1, 
     fclose(f);
 }
 
-void filter_speed_binarize(uint32** in, int i0, int i1, int j0, int j1, uint8** out, MeteorROI* stats) {
+void filter_speed_binarize(uint32** in, int i0, int i1, int j0, int j1, uint8** out, ROI_t* stats) {
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
             if (stats[in[i][j]].S != 0) {
@@ -696,7 +696,7 @@ void saveFrame_ui32matrix(const char* filename, uint32** I, int i0, int i1, int 
     free_rgb8matrix(img, 0, h - 1, 0, w - 1);
 }
 
-void saveFrame_tracking(const char* filename, uint8** I, Track* tracks, int tracks_nb, int i0, int i1, int j0, int j1) {
+void saveFrame_tracking(const char* filename, uint8** I, track_t* tracks, int tracks_nb, int i0, int i1, int j0, int j1) {
     rgb8 green;
     green.g = 255;
     green.b = 000;
@@ -779,7 +779,7 @@ void saveFrame_tracking(const char* filename, uint8** I, Track* tracks, int trac
     free_rgb8matrix(img, 0, h - 1, 0, w - 1);
 }
 
-void saveVideoFrame_tracking(const char* filename, uint8** I, Track* tracks, int tracks_nb, int i0, int i1, int j0,
+void saveVideoFrame_tracking(const char* filename, uint8** I, track_t* tracks, int tracks_nb, int i0, int i1, int j0,
                              int j1) {
     rgb8 green;
     green.g = 255;
@@ -935,7 +935,7 @@ void HsvToRgb(rgb8* pixel, uint8 h, uint8 s, uint8 v) {
 }
 
 void saveFrame_quad(const char* filename, uint8** I0, uint8** I1, uint32** I2, uint32** I3, int nbLabel,
-                    MeteorROI* stats, int i0, int i1, int j0, int j1) {
+                    ROI_t* stats, int i0, int i1, int j0, int j1) {
     int w = (j1 - j0 + 1);
     int h = (i1 - i0 + 1);
 

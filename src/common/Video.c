@@ -2,10 +2,10 @@
 
 #include "Video.h"
 
-Video* Video_init_from_file(char* filename, int start, int end, int skip, int* i0, int* i1, int* j0, int* j1) {
-    Video* video = (Video*)malloc(sizeof(Video));
+video_t* video_init_from_file(char* filename, int start, int end, int skip, int* i0, int* i1, int* j0, int* j1) {
+    video_t* video = (video_t*)malloc(sizeof(video_t));
     if (!video) {
-        fprintf(stderr, "(EE) can't allocate Video structure\n");
+        fprintf(stderr, "(EE) can't allocate video structure\n");
         exit(1);
     }
 
@@ -36,7 +36,7 @@ Video* Video_init_from_file(char* filename, int start, int end, int skip, int* i
     return video;
 }
 
-static int Video_getFrame(Video* video, uint8** I) {
+static int video_get_frame(video_t* video, uint8** I) {
     if (video->frame_current > video->frame_end || video->ffmpeg.error || !ffmpeg_read2d(&video->ffmpeg, I)) {
         if (video->ffmpeg.error != 22) // 22 == EOF
             fprintf(stderr, "(EE) %s\n", ffmpeg_error2str(video->ffmpeg.error));
@@ -46,16 +46,16 @@ static int Video_getFrame(Video* video, uint8** I) {
     return video->frame_current <= video->frame_end;
 }
 
-int Video_nextFrame(Video* video, uint8** I) {
+int video_get_next_frame(video_t* video, uint8** I) {
     int r;
     int skip = ((video->frame_current < video->frame_start) ? video->frame_start - 1 : video->frame_skip);
     do {
-        r = Video_getFrame(video, I);
+        r = video_get_frame(video, I);
     } while (r && skip--);
     return r;
 }
 
-void Video_free(Video* video) {
+void video_free(video_t* video) {
     ffmpeg_stop_reader(&video->ffmpeg);
     free(video);
 }

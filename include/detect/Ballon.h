@@ -27,17 +27,16 @@
 #define SIZE_MAX_KPPV 200
 
 typedef struct {
-    uint8 **I0, **I1;       // frame t e t+1
+    uint8 **I0, **I1; // frame t e t+1
     uint8 **SB, **SM, **SH; // hysteresis
-    uint8** I0_1;           // EDT
-
+    uint8** I0_1; // EDT
     uint32** I32;
     uint32** I32_1; // EDT
     uint32 **SB32, **SM32, **SH32;
-} Ballon;
+} ballon_t;
 
-Ballon* allocBallon(int i0, int i1, int j0, int j1, int b);
-void initBallon(Ballon* ballon, int i0, int i1, int j0, int j1, int b);
-void freeBallon(Ballon* ballon, int i0, int i1, int j0, int j1, int b);
+ballon_t* ballon_alloc(int i0, int i1, int j0, int j1, int b);
+void ballon_init(ballon_t* ballon, int i0, int i1, int j0, int j1, int b);
+void ballon_free(ballon_t* ballon, int i0, int i1, int j0, int j1, int b);
 
 #endif // __BALLON_H__

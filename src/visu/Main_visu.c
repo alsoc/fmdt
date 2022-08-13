@@ -21,9 +21,9 @@ extern char g_path_video_tracking[200];
 extern char g_path_bounding_box[200];
 extern char g_path_frames_output[250];
 
-coordBB listBB[200];
+BB_coord_t listBB[200];
 
-void addToListBB(coordBB* coord, int rx, int ry, int bb_x, int bb_y, int track_id, enum Color_t color) {
+void add_to_BB_coord_list(BB_coord_t* coord, int rx, int ry, int bb_x, int bb_y, int track_id, enum color_e color) {
     coord->track_id = track_id;
     coord->ymin = bb_y - ry;
     coord->ymax = bb_y + ry;
@@ -41,7 +41,7 @@ void main_visu(int argc, char** argv) {
     char* def_output_frames = NULL;
     char* def_validation = NULL;
 
-    if (find_arg(argc, argv, "-h")) {
+    if (args_find_arg(argc, argv, "-h")) {
         fprintf(stderr, "  --input-tracks     Path vers le fichier avec les tracks                [%s]\n",
                 def_input_tracks);
         fprintf(stderr, "  --input-bb         Path vers le fichier avec les bounding boxes        [%s]\n",
@@ -63,15 +63,15 @@ void main_visu(int argc, char** argv) {
     }
 
     // Parsing Arguments
-    char* src_path = find_char_arg(argc, argv, "--input-tracks", def_input_tracks);
-    char* input_bb = find_char_arg(argc, argv, "--input-bb", def_input_bb);
-    char* src_path_video = find_char_arg(argc, argv, "--input-video", def_input_video);
-    char* dest_path_video = find_char_arg(argc, argv, "--output-video", def_output_video);
-    char* dest_path_frames = find_char_arg(argc, argv, "--output-frames", def_output_frames);
-    char* validation = find_char_arg(argc, argv, "--validation", def_validation);
+    char* src_path = args_find_char_arg(argc, argv, "--input-tracks", def_input_tracks);
+    char* input_bb = args_find_char_arg(argc, argv, "--input-bb", def_input_bb);
+    char* src_path_video = args_find_char_arg(argc, argv, "--input-video", def_input_video);
+    char* dest_path_video = args_find_char_arg(argc, argv, "--output-video", def_output_video);
+    char* dest_path_frames = args_find_char_arg(argc, argv, "--output-frames", def_output_frames);
+    char* validation = args_find_char_arg(argc, argv, "--validation", def_validation);
 #ifdef OPENCV_LINK
-    int show_ids = find_arg(argc, argv, "--show-ids");
-    int natural_num = find_arg(argc, argv, "--natural-num");
+    int show_ids = args_find_arg(argc, argv, "--show-ids");
+    int natural_num = args_find_arg(argc, argv, "--natural-num");
 #endif
 
     // heading display
@@ -97,7 +97,7 @@ void main_visu(int argc, char** argv) {
 
     int b = 1;
     int i0, i1, j0, j1;
-    enum Color_t color = MISC;
+    enum color_e color = MISC;
     int frame, frame_bb;
     int rx, ry, bb_x, bb_y, track_id;
     int start = 0;
@@ -131,10 +131,11 @@ void main_visu(int argc, char** argv) {
     sprintf(g_path_bounding_box, "%s", input_bb);
     disp(g_path_bounding_box);
 
-    Track tracks[SIZE_MAX_TRACKS];
+    track_t tracks[SIZE_MAX_TRACKS];
 
     int nb_tracks = 0;
-    init_Track(tracks, SIZE_MAX_TRACKS);
+    tracking_init_global_data();
+    tracking_init_tracks(tracks, SIZE_MAX_TRACKS);
 
     // debug/output paths and files
     if (dest_path_frames)
@@ -148,8 +149,8 @@ void main_visu(int argc, char** argv) {
     disp(g_path_bounding_box);
 
     // recupere les tracks
-    parseTracks(src_path, tracks, &nb_tracks);
-    // printTracks2(tracks, nb_tracks);
+    parse_tracks(src_path, tracks, &nb_tracks);
+    // print_tracks2(tracks, nb_tracks);
 
     int max_LUT = 0;
     for (int i = 0; i < nb_tracks; i++)
@@ -161,19 +162,19 @@ void main_visu(int argc, char** argv) {
         LUT_tracks_id[tracks[i].id] = i;
 
     unsigned n_tracks = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
-    n_tracks = track_count_objects(tracks, nb_tracks, &n_stars, &n_meteors, &n_noise);
-    printf("# Tracks read from file = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\n", n_meteors, n_stars,
+    n_tracks = tracking_count_objects(tracks, nb_tracks, &n_stars, &n_meteors, &n_noise);
+    printf("# track_ts read from file = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\n", n_meteors, n_stars,
            n_noise, n_tracks);
 
     // init
-    Video* video = Video_init_from_file(src_path_video, start, end, 0, &i0, &i1, &j0, &j1);
+    video_t* video = video_init_from_file(src_path_video, start, end, 0, &i0, &i1, &j0, &j1);
     uint8** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
 
     // validation pour établir si une track est vrai/faux positif
     if (validation) {
         disp(validation);
-        Validation_init(validation);
-        Validation(tracks, nb_tracks);
+        validation_init(validation);
+        validation_process(tracks, nb_tracks);
     } else {
         PUTS("NO VALIDATION");
     }
@@ -204,7 +205,7 @@ void main_visu(int argc, char** argv) {
     rgb8** img_bb = rgb8matrix(0, i1, 0, j1);
 
     // parcours de la video
-    while (Video_nextFrame(video, I0)) {
+    while (video_get_next_frame(video, I0)) {
         frame = video->frame_current - 1;
         fprintf(stderr, "(II) Frame n°%-4d\r", frame);
         fflush(stderr);
@@ -231,7 +232,7 @@ void main_visu(int argc, char** argv) {
 #else
             int display_track_id = track_id;
 #endif
-            addToListBB(listBB + cpt, rx, ry, bb_x, bb_y, display_track_id, color);
+            add_to_BB_coord_list(listBB + cpt, rx, ry, bb_x, bb_y, display_track_id, color);
 
             if (fgets(lines, 100, file_bb) == NULL) {
                 frame_bb = -1;
@@ -243,10 +244,10 @@ void main_visu(int argc, char** argv) {
             cpt++;
         }
 
-        convert_img_grayscale_to_rgb((const uint8**)I0, img_bb, i0, i1, j0, j1);
-        draw_BB(img_bb, listBB, cpt);
+        tools_convert_img_grayscale_to_rgb((const uint8**)I0, img_bb, i0, i1, j0, j1);
+        tools_draw_BB(img_bb, listBB, cpt);
 #ifdef OPENCV_LINK
-        draw_text(img_bb, j1, i1, listBB, cpt, validation ? 1 : 0, show_ids);
+        tools_draw_text(img_bb, j1, i1, listBB, cpt, validation ? 1 : 0, show_ids);
 #endif
         if (!ffmpeg_write2d(&writer_video_out, (uint8_t**)img_bb)) {
             fprintf(stderr, "(EE) ffmpeg_write2d: %s, frame: %d\n", ffmpeg_error2str(writer_video_out.error), frame);
@@ -254,7 +255,7 @@ void main_visu(int argc, char** argv) {
         }
         if (dest_path_frames) {
             create_frames_files(frame);
-            saveFrame(g_path_frames_output, (const rgb8**)img_bb, j1, i1);
+            tools_save_frame(g_path_frames_output, (const rgb8**)img_bb, j1, i1);
         }
     }
     free_rgb8matrix(img_bb, 0, i1, 0, j1);
@@ -267,7 +268,6 @@ void main_visu(int argc, char** argv) {
 }
 
 int main(int argc, char** argv) {
-    init_global_data();
     main_visu(argc, argv);
     return 0;
 }

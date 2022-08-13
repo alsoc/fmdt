@@ -10,14 +10,14 @@
 #include "Features.h"
 #include "macro_debug.h"
 
-void init_MeteorROI(MeteorROI* stats, int n) {
+void features_init_ROI(ROI_t* stats, int n) {
     for (int i = 0; i < n; i++)
-        memset(stats + i, 0, sizeof(MeteorROI));
+        memset(stats + i, 0, sizeof(ROI_t));
 }
 
-void extract_features(uint32** img, int i0, int i1, int j0, int j1, MeteorROI* stats, int n) {
+void features_extract(uint32** img, int i0, int i1, int j0, int j1, ROI_t* stats, int n) {
     for (int i = 1; i <= n; i++) {
-        memset(stats + i, 0, sizeof(MeteorROI));
+        memset(stats + i, 0, sizeof(ROI_t));
         stats[i].xmin = j1;
         stats[i].xmax = j0;
         stats[i].ymin = i1;
@@ -53,10 +53,10 @@ void extract_features(uint32** img, int i0, int i1, int j0, int j1, MeteorROI* s
     }
 }
 
-void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, MeteorROI* stats, int n, int S_min,
-                     int S_max) {
+void features_merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, ROI_t* stats, int n, int S_min,
+                              int S_max) {
     int x0, x1, y0, y1, id;
-    MeteorROI cc;
+    ROI_t cc;
 
     for (int i = 1; i <= n; i++) {
         cc = stats[i];
@@ -100,7 +100,7 @@ void merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, Me
     }
 }
 
-void filter_surface(MeteorROI* stats, int n, uint32** img, uint32 threshold_min, uint32 threshold_max) {
+void features_filter_surface(ROI_t* stats, int n, uint32** img, uint32 threshold_min, uint32 threshold_max) {
     // Doit on vraiment modifier l'image de départ? ou juste les stats.
     uint32 S, e;
     int i0, i1, j0, j1;
@@ -133,21 +133,21 @@ void filter_surface(MeteorROI* stats, int n, uint32** img, uint32 threshold_min,
     }
 }
 
-int shrink_stats(MeteorROI* stats_src, MeteorROI* stats_dest, int n) {
+int features_shrink_stats(ROI_t* stats_src, ROI_t* stats_dest, int n) {
     int cpt = 0;
     for (int i = 1; i <= n; i++) {
         if (stats_src[i].S > 0) {
             cpt++;
-            memcpy(stats_dest +cpt, stats_src +i, sizeof(MeteorROI));
+            memcpy(stats_dest +cpt, stats_src +i, sizeof(ROI_t));
             stats_dest[cpt].ID = cpt;
         }
     }
     return cpt;
 }
 
-void rigid_registration(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, double* theta, double* tx, double* ty) {
+void features_rigid_registration(ROI_t* stats0, ROI_t* stats1, int n0, int n1, double* theta, double* tx, double* ty) {
     double Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
-    MeteorROI cc0, cc1;
+    ROI_t cc0, cc1;
     double x0, y0, x1, y1;
     double a, b;
     double xg, yg, xpg, ypg;
@@ -222,10 +222,10 @@ void rigid_registration(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, do
     *ty = ypg - sin(*theta) * xg - cos(*theta) * yg;
 }
 
-void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, double* theta, double* tx,
-                                  double* ty, double errMoy, double eType) {
+void features_rigid_registration_corrected(ROI_t* stats0, ROI_t* stats1, int n0, int n1, double* theta, double* tx,
+                                           double* ty, double errMoy, double eType) {
     double Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
-    MeteorROI cc0, cc1;
+    ROI_t cc0, cc1;
     double x0, y0, x1, y1;
     double a, b;
     double xg, yg, xpg, ypg;
@@ -314,7 +314,7 @@ void rigid_registration_corrected(MeteorROI* stats0, MeteorROI* stats1, int n0, 
 }
 
 // TODO: Pour l'optimisation : faire une version errorMoy_corrected()
-double errorMoy(MeteorROI* stats, int n) {
+double features_error_moy(ROI_t* stats, int n) {
     double S = 0.0;
     int cpt = 0;
 
@@ -330,7 +330,7 @@ double errorMoy(MeteorROI* stats, int n) {
 }
 
 // TODO: Pour l'optimisation : faire une version ecartType_corrected()
-double ecartType(MeteorROI* stats, int n, double errMoy) {
+double features_ecart_type(ROI_t* stats, int n, double errMoy) {
     double S = 0.0;
     int cpt = 0;
     float32 e;
@@ -347,7 +347,7 @@ double ecartType(MeteorROI* stats, int n, double errMoy) {
     return sqrt(S / cpt);
 }
 
-void motion_extraction(MeteorROI* stats0, MeteorROI* stats1, int nc0, double theta, double tx, double ty) {
+void features_motion_extraction(ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx, double ty) {
     int cc1;
     double x, y, xp, yp;
     float32 dx, dy;
@@ -375,20 +375,20 @@ void motion_extraction(MeteorROI* stats0, MeteorROI* stats1, int nc0, double the
     }
 }
 
-void motion(MeteorROI* stats0, MeteorROI* stats1, int n0, int n1, double* theta, double* tx, double* ty) {
-    rigid_registration(stats0, stats1, n0, n1, theta, tx, ty);
-    motion_extraction(stats0, stats1, n0, *theta, *tx, *ty);
+void features_motion(ROI_t* stats0, ROI_t* stats1, int n0, int n1, double* theta, double* tx, double* ty) {
+    features_rigid_registration(stats0, stats1, n0, n1, theta, tx, ty);
+    features_motion_extraction(stats0, stats1, n0, *theta, *tx, *ty);
 
-    double errMoy = errorMoy(stats0, n0);
-    double eType = ecartType(stats0, n0, errMoy);
+    double errMoy = features_error_moy(stats0, n0);
+    double eType = features_ecart_type(stats0, n0, errMoy);
 
     // saveErrorMoy("first_error.txt", errMoy, eType);
 
-    rigid_registration_corrected(stats0, stats1, n0, n1, theta, tx, ty, errMoy, eType);
-    motion_extraction(stats0, stats1, n0, *theta, *tx, *ty);
+    features_rigid_registration_corrected(stats0, stats1, n0, n1, theta, tx, ty, errMoy, eType);
+    features_motion_extraction(stats0, stats1, n0, *theta, *tx, *ty);
 }
 
-int analyse_features_ellipse(MeteorROI* stats, int n, float e_threshold) {
+int features_analyse_ellipse(ROI_t* stats, int n, float e_threshold) {
     float32 S, Sx, Sy, Sx2, Sy2, Sxy;
     float32 x_avg, y_avg, m20, m02, m11;
     float32 a2, b2, a, b, e;
