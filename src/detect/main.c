@@ -20,17 +20,6 @@
 #define SEQUENCE_DST_PATH_HIST "hist/"
 #define SEQUENCE_NDIGIT 5
 
-extern char g_path_stats_0[200];
-extern char g_path_stats_1[200];
-extern char g_path_frames_binary[250];
-extern char g_path_frames_output[250];
-extern char g_path_motion[200];
-extern char g_path_extraction[200];
-extern char g_path_error[200];
-extern char g_path_tracks[200];
-extern char g_path_bounding_box[200];
-extern char g_path_debug[150];
-extern char g_path_video_tracking[200];
 extern uint32* g_conflicts;
 extern uint32** g_nearest;
 extern float32** g_distances;
@@ -58,16 +47,16 @@ void main_detect(int argc, char** argv) {
     // Help
     if (args_find_arg(argc, argv, "-h")) {
         fprintf(stderr,
-                "  --input-video       Video source                                                         [%s]\n",
+                "  --input-video       Path to video file                                                   [%s]\n",
                 def_input_video);
         fprintf(stderr,
-                "  --output-frames     Path frames output for debug                                         [%s]\n",
+                "  --output-frames     Path to frames output folder                                         [%s]\n",
                 def_output_frames);
         fprintf(stderr,
                 "  --output-bb         Path to the file containing the bounding boxes (frame by frame)      [%s]\n",
                 def_output_bb);
         fprintf(stderr,
-                "  --output-stats      TODO!                                                                [%s]\n",
+                "  --output-stats      TODO! Path to folder                                                 [%s]\n",
                 def_output_stats);
         fprintf(stderr,
                 "  --start-frame       Starting point of the video                                          [%d]\n",
@@ -108,16 +97,16 @@ void main_detect(int argc, char** argv) {
                 "                      one CC has to be superior to diff_deviation * standard deviation)    [%f]\n",
                 def_diff_deviation);
         fprintf(stderr,
-                "  --track-all         track_t all object types (star, meteor or noise)                           \n");
+                "  --track-all         Tracks all object types (star, meteor or noise)                          \n");
         fprintf(stderr,
                 "  -h                  This help                                                                \n");
         exit(1);
     }
 
     // Parsing Arguments
-    int start = args_find_int_arg(argc, argv, "--start-frame", def_start_frame);
-    int end = args_find_int_arg(argc, argv, "--end-frame", def_end_frame);
-    int skip = args_find_int_arg(argc, argv, "--skip-frames", def_skip_frames);
+    int start_frame = args_find_int_arg(argc, argv, "--start-frame", def_start_frame);
+    int end_frame = args_find_int_arg(argc, argv, "--end-frame", def_end_frame);
+    int skip_frames = args_find_int_arg(argc, argv, "--skip-frames", def_skip_frames);
     int light_min = args_find_int_arg(argc, argv, "--light-min", def_light_min);
     int light_max = args_find_int_arg(argc, argv, "--light-max", def_light_max);
     int surface_min = args_find_int_arg(argc, argv, "--surface-min", def_surface_min);
@@ -146,9 +135,9 @@ void main_detect(int argc, char** argv) {
     printf("#  * output-frames = %s\n", output_frames);
     printf("#  * output-bb     = %s\n", output_bb);
     printf("#  * output-stats  = %s\n", output_stats);
-    printf("#  * start-frame   = %d\n", start);
-    printf("#  * end-frame     = %d\n", end);
-    printf("#  * skip-frames   = %d\n", skip);
+    printf("#  * start-frame   = %d\n", start_frame);
+    printf("#  * end-frame     = %d\n", end_frame);
+    printf("#  * skip-frames   = %d\n", skip_frames);
     printf("#  * light-min     = %d\n", light_min);
     printf("#  * light-max     = %d\n", light_max);
     printf("#  * surface-min   = %d\n", surface_min);
@@ -171,7 +160,6 @@ void main_detect(int argc, char** argv) {
         fprintf(stderr, "(II) '--output-stats' is missing -> no stats will be saved\n");
 
     // sequence
-    char* filename;
     double theta, tx, ty;
     int frame;
 
@@ -180,7 +168,6 @@ void main_detect(int argc, char** argv) {
     ROI_t stats1[SIZE_MAX_METEORROI];
     ROI_t stats_shrink[SIZE_MAX_METEORROI];
     track_t tracks[SIZE_MAX_TRACKS];
-    track_t tracks_stars[SIZE_MAX_TRACKS];
 
     int offset = 0;
     int tracks_cnt = -1;
@@ -192,21 +179,11 @@ void main_detect(int argc, char** argv) {
     int b = 1;
     int i0, i1, j0, j1;
 
-    // path management
-    char* path;
-    split_path_file(&path, &filename, input_video);
-    if (output_stats)
-        create_debug_dir(output_stats);
-    if (output_frames)
-        create_frames_dir(output_frames);
-    if (output_bb)
-        create_bb_file(output_bb);
-
     // ------------------------- //
     // -- INITIALISATION VIDEO-- //
     // ------------------------- //
     PUTS("INIT VIDEO");
-    video_t* video = video_init_from_file(input_video, start, end, skip, &i0, &i1, &j0, &j1);
+    video_t* video = video_init_from_file(input_video, start_frame, end_frame, skip_frames, &i0, &i1, &j0, &j1);
 
     // ---------------- //
     // -- ALLOCATION -- //
@@ -226,7 +203,6 @@ void main_detect(int argc, char** argv) {
     features_init_ROI(stats0, SIZE_MAX_METEORROI);
     features_init_ROI(stats1, SIZE_MAX_METEORROI);
     tracking_init_tracks(tracks, SIZE_MAX_TRACKS);
-    tracking_init_tracks(tracks_stars, SIZE_MAX_TRACKS);
     CCL_LSL_init(i0, i1, j0, j1);
     tracking_init_array_BB();
 
@@ -235,15 +211,13 @@ void main_detect(int argc, char** argv) {
     // ----------------//
 
     PUTS("LOOP");
-    if (!video_get_next_frame(video, ballon->I0)) {
+    if (!video_get_next_frame(video, ballon->I0))
         exit(1);
-    }
 
     printf("# The program is running...\n");
     unsigned n_frames = 0;
     unsigned n_tracks = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     while (video_get_next_frame(video, ballon->I1)) {
-
         frame = video->frame_current - 2;
 
         fprintf(stderr, "(II) Frame n°%4d", frame);
@@ -285,16 +259,16 @@ void main_detect(int argc, char** argv) {
         //--------------------------------------------------------//
         PUTS("\t [DEBUG] Saving frames");
         if (output_frames) {
-            create_frames_files(frame);
-            save_frame_ui32matrix(g_path_frames_binary, ballon->SH32, i0, i1, j0, j1);
+            create_folder(output_frames);
+            save_frame_ui32matrix(output_frames, ballon->SH32, i0, i1, j0, j1);
             // save_frame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
         }
 
         PUTS("\t [DEBUG] Saving stats");
         if (output_stats) {
-            // create_debug_files (frame);
-            save_asso_conflicts(g_path_debug, frame, g_conflicts, g_nearest, g_distances, n0, n_shrink, stats0,
-                                stats_shrink, tracks, tracks_cnt + 1);
+            create_folder(output_stats);
+            KPPV_save_asso_conflicts(output_stats, frame, g_conflicts, g_nearest, g_distances, n0, n_shrink, stats0,
+                                     stats_shrink, tracks, tracks_cnt + 1);
             // save_motion(path_motion, theta, tx, ty, frame-1);
             // save_motionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
             // save_error(path_error, stats0, n0);
@@ -314,9 +288,9 @@ void main_detect(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (output_bb)
-        save_array_BB(g_path_bounding_box, g_tabBB, tracks, NB_FRAMES, track_all);
+        tracking_save_array_BB(output_bb, g_tabBB, tracks, NB_FRAMES, track_all);
     // save_tracks(g_path_tracks, tracks, tracks_cnt);
-    print_tracks2(stdout, tracks, tracks_cnt + 1);
+    tracking_print_tracks(stdout, tracks, tracks_cnt + 1);
 
     printf("# Statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
@@ -328,8 +302,6 @@ void main_detect(int argc, char** argv) {
     // ----------
 
     ballon_free(ballon, i0, i1, j0, j1, b);
-    free(path);
-    free(filename);
     video_free(video);
     CCL_LSL_free(i0, i1, j0, j1);
     KPPV_free(0, 50, 0, 50);

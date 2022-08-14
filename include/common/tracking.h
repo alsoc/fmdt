@@ -30,7 +30,7 @@ extern enum color_e g_obj_type_to_color[N_OBJECTS];
 extern char g_obj_type_to_string[N_OBJECTS][64];
 extern char g_obj_type_to_string_with_spaces[N_OBJECTS][64];
 
-typedef struct {
+typedef struct track {
     // unsigned state;
     unsigned timestamp;
     uint16 id;
@@ -96,5 +96,12 @@ void tracking_perform(ROI_t* stats0, ROI_t* stats1, track_t* tracks, int nc0, in
 // return the real number of tracks
 unsigned tracking_count_objects(const track_t* tracks, const int n_tracks, unsigned* n_stars, unsigned* n_meteors,
                                  unsigned* n_noise);
+
+void tracking_print_array_BB(BB_t** tabBB, int n);
+void tracking_print_tracks(FILE* f, track_t* tracks, int n);
+void tracking_print_buffer(ROIx2_t* buffer, int n);
+void tracking_parse_tracks(const char* filename, track_t* tracks, int* n);
+void tracking_save_tracks(const char* filename, track_t* tracks, int n);
+void tracking_save_array_BB(const char* filename, BB_t** tabBB, track_t* tracks, int n, int track_all);
 
 #endif // __TRACKING_H__

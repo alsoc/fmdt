@@ -53,9 +53,9 @@ void main_maxred(int argc, char** argv) {
     // Parsing Arguments
     char* input_video = args_find_char_arg(argc, argv, "--input-video", def_input_video);
     char* input_tracks = args_find_char_arg(argc, argv, "--input-tracks", def_input_tracks);
-    char* dest_path_frame = args_find_char_arg(argc, argv, "--output-frame", def_output_frame);
-    int start = args_find_int_arg(argc, argv, "--start-frame", def_start_frame);
-    int end = args_find_int_arg(argc, argv, "--end-frame", def_end_frame);
+    char* output_frame = args_find_char_arg(argc, argv, "--output-frame", def_output_frame);
+    int start_frame = args_find_int_arg(argc, argv, "--start-frame", def_start_frame);
+    int end_frame = args_find_int_arg(argc, argv, "--end-frame", def_end_frame);
     char* validation = args_find_char_arg(argc, argv, "--validation", def_validation);
 #ifdef OPENCV_LINK
     int show_ids = args_find_arg(argc, argv, "--show-ids");
@@ -73,9 +73,9 @@ void main_maxred(int argc, char** argv) {
     printf("# -----------\n");
     printf("#  * input-video  = %s\n", input_video);
     printf("#  * input-tracks = %s\n", input_tracks);
-    printf("#  * output-frame = %s\n", dest_path_frame);
-    printf("#  * start-frame  = %d\n", start);
-    printf("#  * end-frame    = %d\n", end);
+    printf("#  * output-frame = %s\n", output_frame);
+    printf("#  * start-frame  = %d\n", start_frame);
+    printf("#  * end-frame    = %d\n", end_frame);
 #ifdef OPENCV_LINK
     printf("#  * show-ids     = %d\n", show_ids);
     printf("#  * natural-num  = %d\n", natural_num);
@@ -87,7 +87,7 @@ void main_maxred(int argc, char** argv) {
         fprintf(stderr, "(EE) '--input-video' is missing\n");
         exit(1);
     }
-    if (!dest_path_frame) {
+    if (!output_frame) {
         fprintf(stderr, "(EE) '--output-frame' is missing\n");
         exit(1);
     }
@@ -116,7 +116,7 @@ void main_maxred(int argc, char** argv) {
     // -- INITIALISATION VIDEO-- //
     // ------------------------- //
     PUTS("INIT VIDEO");
-    video_t* video = video_init_from_file(input_video, start, end, skip, &i0, &i1, &j0, &j1);
+    video_t* video = video_init_from_file(input_video, start_frame, end_frame, skip, &i0, &i1, &j0, &j1);
 
     // ---------------- //
     // -- ALLOCATION -- //
@@ -140,7 +140,7 @@ void main_maxred(int argc, char** argv) {
         track_t tracks[SIZE_MAX_TRACKS];
         int n_tracks = 0;
         tracking_init_tracks(tracks, SIZE_MAX_TRACKS);
-        parse_tracks(input_tracks, tracks, &n_tracks);
+        tracking_parse_tracks(input_tracks, tracks, &n_tracks);
 
         if (validation) {
             validation_init(validation);
@@ -181,12 +181,12 @@ void main_maxred(int argc, char** argv) {
 #ifdef OPENCV_LINK
         tools_draw_text(img_bb, j1, i1, listBB, n_BB, validation ? 1 : 0, show_ids);
 #endif
-        tools_save_frame(dest_path_frame, (const rgb8**)img_bb, j1, i1);
+        tools_save_frame(output_frame, (const rgb8**)img_bb, j1, i1);
 
         free(listBB);
         free(img_bb);
     } else {
-        SavePGM_ui8matrix(Max, i0, i1, j0, j1, dest_path_frame);
+        SavePGM_ui8matrix(Max, i0, i1, j0, j1, output_frame);
     }
 
     // ----------

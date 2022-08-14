@@ -32,7 +32,6 @@ BB_t* g_tabBB[NB_FRAMES];
 extern uint32** g_nearest;
 extern float32** g_distances;
 extern uint32* g_conflicts;
-extern char g_path_bounding_box[200];
 
 enum color_e g_obj_type_to_color[N_OBJECTS];
 char g_obj_type_to_string[N_OBJECTS][64];
@@ -395,4 +394,135 @@ void tracking_perform(ROI_t* stats0, ROI_t* stats1, track_t* tracks, int nc0, in
     update_existing_tracks(stats0, stats1, tracks, nc1, frame, offset, tracks_cnt, theta, tx, ty, r_extrapol, d_line,
                            track_all);
     clear_buffer_history(frame, min_frames_star);
+}
+
+void tracking_print_array_BB(BB_t** tabBB, int n) {
+    for (int i = 0; i < n; i++) {
+        if (tabBB[i] != NULL) {
+            for (BB_t* current = tabBB[i]; current != NULL; current = current->next) {
+                printf("%d %d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y,
+                       current->track_id);
+            }
+        }
+    }
+}
+
+void tracking_print_tracks(FILE* f, track_t* tracks, int n)
+{
+    fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
+    fprintf(f, "#  Track ||           Begin           ||            End            ||  Object \n");
+    fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
+    fprintf(f, "# -------||---------|--------|--------||---------|--------|--------||---------\n");
+    fprintf(f, "#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type \n");
+    fprintf(f, "# -------||---------|--------|--------||---------|--------|--------||---------\n");
+
+    unsigned track_id = 0;
+    for (int i = 0; i < n; i++)
+        if (tracks[i].time) {
+            fprintf(f, "   %5d || %7d | %6.1f | %6.1f || %7d | %6.1f | %6.1f || %s \n", tracks[i].id,
+                    tracks[i].timestamp, tracks[i].begin.x, tracks[i].begin.y, tracks[i].timestamp + tracks[i].time,
+                    tracks[i].end.x, tracks[i].end.y, g_obj_type_to_string_with_spaces[tracks[i].obj_type]);
+            track_id++;
+        }
+}
+
+void tracking_print_buffer(ROIx2_t* buffer, int n)
+{
+    for (int i = 0; i < n; i++) {
+        if (buffer[i].stats0.ID > 0)
+            printf("i = %2d \t %4d \t %4d \t %4d  \n", i, buffer[i].stats0.ID, buffer[i].stats1.time, buffer[i].frame);
+    }
+    printf("\n");
+}
+
+void tracking_parse_tracks(const char* filename, track_t* tracks, int* n)
+{
+    FILE* fp;
+    char* line = NULL;
+    size_t len = 0;
+    ssize_t read;
+
+    fp = fopen(filename, "r");
+    if (fp == NULL) {
+        fprintf(stderr, "(EE) Can't open '%s'\n", filename);
+        exit(EXIT_FAILURE);
+    }
+
+    int tid, t0, t1;
+    float32 x0, x1, y0, y1;
+    // int bb_x, bb_y;
+    // int obj_type;
+    char obj_type_str[1024];
+
+    *n = 0;
+    while ((read = getline(&line, &len, fp)) != -1) {
+        // printf("Retrieved line of length %zu:\n", read);
+        if (line[0] != '#') {
+            sscanf(line, "%d || %d | %f | %f || %d | %f | %f || %s ", &tid, &t0, &x0, &y0, &t1, &x1, &y1, obj_type_str);
+
+            tracks[*n].id = tid;
+            tracks[*n].timestamp = t0;
+            tracks[*n].time = t1 - t0;
+            tracks[*n].state = 0;
+            tracks[*n].begin.x = x0;
+            tracks[*n].begin.y = y0;
+            tracks[*n].end.x = x1;
+            tracks[*n].end.y = y1;
+            // tracks[*n].bb_x   = bb_x;
+            // tracks[*n].bb_y   = bb_y;
+            tracks[*n].obj_type = tracking_string_to_obj_type((const char*)obj_type_str);
+            (*n)++;
+        }
+    }
+
+    fclose(fp);
+    if (line)
+        free(line);
+}
+
+void tracking_save_tracks(const char* filename, track_t* tracks, int n) {
+    FILE* f = fopen(filename, "w");
+    if (f == NULL) {
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
+        exit(1);
+    }
+
+    int cpt = 0;
+    for (int i = 0; i <= n; i++) {
+        if (tracks[i].time)
+            cpt++;
+    }
+
+    fprintf(f, "%d\n", cpt);
+
+    if (cpt != 0) {
+        for (int i = 0; i <= n; i++) {
+            if (tracks[i].time) {
+                fprintf(f, "%4d \t %6.1f \t %6.1f \t %4d \t %6.1f \t %6.1f \t %4d \t %4d \t %4d\n", tracks[i].timestamp,
+                        tracks[i].begin.x, tracks[i].begin.y, tracks[i].timestamp + tracks[i].time, tracks[i].end.x,
+                        tracks[i].end.y, tracks[i].bb_x, tracks[i].bb_y, tracks[i].obj_type);
+            }
+        }
+    }
+    fclose(f);
+}
+
+void tracking_save_array_BB(const char* filename, BB_t** tabBB, track_t* tracks, int n, int track_all) {
+    FILE* f = fopen(filename, "w");
+    if (f == NULL) {
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
+        exit(1);
+    }
+
+    for (int i = 0; i < n; i++) {
+        if (tabBB[i] != NULL) {
+            for (BB_t* current = tabBB[i]; current != NULL; current = current->next) {
+                if (track_all || (!track_all && tracks[(current->track_id) - 1].obj_type == METEOR))
+                    fprintf(f, "%d %d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y,
+                            current->track_id);
+            }
+        }
+    }
+
+    fclose(f);
 }

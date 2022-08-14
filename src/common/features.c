@@ -439,3 +439,173 @@ int features_analyse_ellipse(ROI_t* stats, int n, float e_threshold) {
     }
     return true_n;
 }
+
+void features_print_stats(ROI_t* stats, int n)
+{
+    int cpt = 0;
+    for (int i = 1; i <= n; i++) {
+        if (stats[i].S > 0) {
+            cpt++;
+        }
+    }
+    printf("Nombre de CC : %d\n", cpt);
+
+    if (cpt == 0)
+        return;
+
+    for (int i = 1; i <= n; i++) {
+        if (stats[i].S > 0)
+            printf("%4d \t %4d \t %4d \t %4d \t %4d \t %3d \t %4d \t %4d \t %7.1f \t %7.1f \t %4d \t %4d \t %4d \t "
+                   "%7.1lf \t %d\n",
+                   stats[i].ID, stats[i].xmin, stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx,
+                   stats[i].Sy, stats[i].x, stats[i].y, stats[i].prev, stats[i].next, stats[i].time, stats[i].error,
+                   stats[i].motion);
+    }
+    printf("\n");
+}
+
+void features_parse_stats(const char* filename, ROI_t* stats, int* n)
+{
+    char lines[200];
+    int id, xmin, xmax, ymin, ymax, s, sx, sy, prev, next;
+    double x, y;
+    float32 dx, dy, error;
+    FILE* file = fopen(filename, "r");
+    if (file == NULL) {
+        fprintf(stderr, "(EE) cannot open file '%s'\n", filename);
+        return;
+    }
+
+    // pour l'instant, n représente l'id max des stas mais c'est à changer
+    fgets(lines, 100, file);
+    sscanf(lines, "%d", n);
+
+    while (fgets(lines, 200, file)) {
+        sscanf(lines, "%d %d %d %d %d %d %d %d %lf %lf %f %f %f %d %d", &id, &xmin, &xmax, &ymin, &ymax, &s, &sx, &sy,
+               &x, &y, &dx, &dy, &error, &prev, &next);
+        stats[id].ID = id;
+        stats[id].xmin = xmin;
+        stats[id].xmax = xmax;
+        stats[id].ymin = ymin;
+        stats[id].ymax = ymax;
+        stats[id].S = s;
+        stats[id].Sx = sx;
+        stats[id].Sy = sy;
+        stats[id].x = x;
+        stats[id].y = y;
+        stats[id].dx = dx;
+        stats[id].dy = dy;
+        stats[id].error = error;
+        stats[id].prev = prev;
+        stats[id].next = next;
+    }
+    fclose(file);
+}
+
+void features_save_stats_file(FILE* f, ROI_t* stats, int n, track_t* tracks) {
+    int cpt = 0;
+    for (int i = 1; i <= n; i++)
+        if (stats[i].S != 0)
+            cpt++;
+
+    fprintf(f, "# Regions of interest (ROI) [%d]: \n", cpt);
+    if (cpt) {
+        fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------\n");
+        fprintf(f, "#   ROI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       \n");
+        fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------\n");
+        fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------\n");
+        fprintf(f, "#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y \n");
+        fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------\n");
+    }
+
+    for (int i = 1; i <= n; i++) {
+        if (stats[i].S != 0) {
+            fprintf(f, "   %4d || %4d | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f  \n",
+                    stats[i].ID, stats[i].track_id,
+                    g_obj_type_to_string_with_spaces[tracks[stats[i].track_id - 1].obj_type], stats[i].xmin,
+                    stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx, stats[i].Sy, stats[i].x,
+                    stats[i].y);
+        }
+    }
+}
+
+void features_save_stats(const char* filename, ROI_t* stats, int n, track_t* tracks) {
+    FILE* f = fopen(filename, "w");
+    if (f == NULL) {
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
+        exit(1);
+    }
+    features_save_stats_file(f, stats, n, tracks);
+    fclose(f);
+}
+
+void features_save_motion(const char* filename, double theta, double tx, double ty, int frame) {
+    FILE* f = fopen(filename, "a");
+    if (f == NULL) {
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
+        exit(1);
+    }
+
+    fprintf(f, "%d - %d\n", frame, frame + 1);
+    fprintf(f, "%6.7f \t %6.4f \t %6.4f \n", theta, tx, ty);
+    fprintf(f, "---------------------------------------------------------------\n");
+    fclose(f);
+}
+
+void features_save_error(const char* filename, ROI_t* stats, int n) {
+    double S = 0;
+    int cpt = 0;
+    FILE* f = fopen(filename, "a");
+    if (f == NULL) {
+        fprintf(stderr, "(EE) error ouverture %s \n", filename);
+        exit(1);
+    }
+
+    for (int i = 1; i <= n; i++) {
+        if (stats[i].S > 0) {
+            S += stats[i].error;
+            cpt++;
+        }
+    }
+
+    fprintf(f, "%.2f\n", S / cpt);
+    fclose(f);
+}
+
+void features_save_error_moy(const char* filename, double errMoy, double eType) {
+    char path[200];
+    FILE* f = fopen(filename, "a");
+    if (f == NULL) {
+        fprintf(stderr, "(EE) error ouverture %s \n", path);
+        exit(1);
+    }
+    fprintf(f, "%5.2f \t %5.2f \n", errMoy, eType);
+    fclose(f);
+}
+
+void features_save_motion_extraction(char* filename, ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx,
+                                     double ty, int frame) {
+    // Version DEBUG : il faut implémenter une version pour le main
+    FILE* f = fopen(filename, "a");
+    if (f == NULL) {
+        fprintf(stderr, "motion : cannot open file\n");
+        return;
+    }
+
+    double errMoy = features_error_moy(stats0, nc0);
+    double eType = features_ecart_type(stats0, nc0, errMoy);
+
+    for (int i = 1; i <= nc0; i++) {
+        float32 e = stats0[i].error;
+        // si mouvement detecté
+        if (fabs(e - errMoy) > 1.5 * eType) {
+            fprintf(f, "%d - %d\n", frame, frame + 1);
+            fprintf(f,
+                    "CC en mouvement: %2d \t dx:%.3f \t dy: %.3f \t xmin: %3d \t xmax: %3d \t ymin: %3d \t ymax: %3d\n",
+                    stats0[i].ID, stats0[i].dx, stats0[i].dy, stats0[i].xmin, stats0[i].xmax, stats0[i].ymin,
+                    stats0[i].ymax);
+            fprintf(f, "---------------------------------------------------------------\n");
+        }
+    }
+    fclose(f);
+}

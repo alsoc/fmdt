@@ -21,16 +21,14 @@ void main_validation(int argc, char** argv) {
     char* def_validation = NULL;
 
     if (args_find_arg(argc, argv, "-h")) {
-        fprintf(stderr, "  --input-tracks    Path vers le fichier avec les tracks                [%s]\n",
-                def_input_tracks);
-        fprintf(stderr, "  --validation      Fichier contenant la vérité terrain de la séquence  [%s]\n",
-                def_validation);
-        fprintf(stderr, "  -h                This help                                               \n");
+        fprintf(stderr, "  --input-tracks    Path to tracks file        [%s]\n", def_input_tracks);
+        fprintf(stderr, "  --validation      Path to ground truth file  [%s]\n", def_validation);
+        fprintf(stderr, "  -h                This help                      \n");
         exit(1);
     }
 
     // Parsing Arguments
-    char* src_path = args_find_char_arg(argc, argv, "--input-tracks", def_input_tracks);
+    char* input_tracks = args_find_char_arg(argc, argv, "--input-tracks", def_input_tracks);
     char* validation = args_find_char_arg(argc, argv, "--validation", def_validation);
 
     // heading display
@@ -42,11 +40,11 @@ void main_validation(int argc, char** argv) {
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
-    printf("#  * input-tracks = %s\n", src_path);
+    printf("#  * input-tracks = %s\n", input_tracks);
     printf("#  * validation   = %s\n", validation);
     printf("#\n");
 
-    if (!src_path) {
+    if (!input_tracks) {
         fprintf(stderr, "(EE) '--input-tracks' is missing\n");
         exit(1);
     }
@@ -62,8 +60,7 @@ void main_validation(int argc, char** argv) {
     tracking_init_tracks(tracks, SIZE_MAX_TRACKS);
 
     // recupere les tracks
-    parse_tracks(src_path, tracks, &nb_tracks);
-    // print_tracks(tracks, nb_tracks);
+    tracking_parse_tracks(input_tracks, tracks, &nb_tracks);
 
     printf("# The program is running...\n");
 

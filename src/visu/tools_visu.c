@@ -6,12 +6,12 @@
 #include <stdio.h>
 #include <string.h>
 #ifdef OPENCV_LINK
+#include <tuple>
+#include <vector>
 #include <iostream>
 #include <opencv2/core/core.hpp>
 #include <opencv2/highgui/highgui.hpp>
 #include <opencv2/imgproc.hpp>
-#include <tuple>
-#include <vector>
 #endif
 
 #include "debug_utils.h"
@@ -242,8 +242,8 @@ void tools_save_frame(const char* filename, const rgb8** I_bb, int w, int h) {
     FILE* file;
     file = fopen(filename, "wb");
     if (file == NULL) {
-        char message[256] = "ouverture du fichier %s impossible dans saveFrame_listBB\n";
-        nrerror(message);
+        fprintf(stderr, "(EE) Failed opening '%s' file\n", filename);
+        exit(-1);
     }
 
     /* enregistrement de l'image au format rpgm */
