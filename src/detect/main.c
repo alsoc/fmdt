@@ -291,7 +291,7 @@ void main_detect(int argc, char** argv) {
         if (output_frames) {
             create_frames_files(frame);
             disp(g_path_frames_binary);
-            saveFrame_ui32matrix(g_path_frames_binary, ballon->SH32, i0, i1, j0, j1);
+            save_frame_ui32matrix(g_path_frames_binary, ballon->SH32, i0, i1, j0, j1);
             // saveFrame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
         }
 
@@ -299,11 +299,11 @@ void main_detect(int argc, char** argv) {
         if (output_stats) {
             // create_debug_files (frame);
             disp(g_path_debug);
-            saveAssoConflicts(g_path_debug, frame, g_conflicts, g_nearest, g_distances, n0, n_shrink, stats0,
-                              stats_shrink, tracks, tracks_cnt + 1);
-            // saveMotion(path_motion, theta, tx, ty, frame-1);
-            // saveMotionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
-            // saveError(path_error, stats0, n0);
+            save_asso_conflicts(g_path_debug, frame, g_conflicts, g_nearest, g_distances, n0, n_shrink, stats0,
+                                stats_shrink, tracks, tracks_cnt + 1);
+            // save_motion(path_motion, theta, tx, ty, frame-1);
+            // save_motionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
+            // save_error(path_error, stats0, n0);
         }
 
         //--------------------------------------------------------//
@@ -320,7 +320,7 @@ void main_detect(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (output_bb)
-        saveTabBB(g_path_bounding_box, g_tabBB, tracks, NB_FRAMES, track_all);
+        save_array_BB(g_path_bounding_box, g_tabBB, tracks, NB_FRAMES, track_all);
     // save_tracks(g_path_tracks, tracks, tracks_cnt);
     print_tracks2(stdout, tracks, tracks_cnt + 1);
 

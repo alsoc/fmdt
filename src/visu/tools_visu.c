@@ -250,7 +250,7 @@ void tools_save_frame(const char* filename, const rgb8** I_bb, int w, int h) {
     sprintf(buffer, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i < h; i++)
-        WritePNMrow((uint8*)I_bb[i], w - 1, file);
+        write_PNM_row((uint8*)I_bb[i], w - 1, file);
 
     /* fermeture du fichier */
     fclose(file);

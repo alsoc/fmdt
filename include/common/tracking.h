@@ -61,7 +61,7 @@ typedef struct {
     int cur;
 } track_t;
 
-// track_ts states
+// Tracks states
 #define TRACK_NEW (1)
 #define TRACK_FINISHED (2)
 #define TRACK_EXTRAPOLATED (3)

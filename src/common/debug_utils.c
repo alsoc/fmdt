@@ -37,7 +37,7 @@ char g_path_debug[250];
 char g_path_frames_binary_dir[200], g_path_frames_output_dir[200], g_path_stats_f[200], g_path_video_f[200];
 char g_path_assoconflicts_f[150];
 
-void printStats(ROI_t* stats, int n)
+void print_stats(ROI_t* stats, int n)
 {
     int cpt = 0;
     for (int i = 1; i <= n; i++) {
@@ -61,7 +61,7 @@ void printStats(ROI_t* stats, int n)
     printf("\n");
 }
 
-void printBuffer(ROIx2_t* buffer, int n)
+void print_buffer(ROIx2_t* buffer, int n)
 {
     for (int i = 0; i < n; i++) {
         if (buffer[i].stats0.ID > 0)
@@ -70,7 +70,7 @@ void printBuffer(ROIx2_t* buffer, int n)
     printf("\n");
 }
 
-void printTabBB(BB_t** tabBB, int n) {
+void print_array_BB(BB_t** tabBB, int n) {
     for (int i = 0; i < n; i++) {
         if (tabBB[i] != NULL) {
             for (BB_t* current = tabBB[i]; current != NULL; current = current->next) {
@@ -81,7 +81,7 @@ void printTabBB(BB_t** tabBB, int n) {
     }
 }
 
-void saveTabBB(const char* filename, BB_t** tabBB, track_t* tracks, int n, int track_all) {
+void save_array_BB(const char* filename, BB_t** tabBB, track_t* tracks, int n, int track_all) {
     FILE* f = fopen(filename, "w");
     if (f == NULL) {
         fprintf(stderr, "(EE) error ouverture %s \n", filename);
@@ -101,7 +101,7 @@ void saveTabBB(const char* filename, BB_t** tabBB, track_t* tracks, int n, int t
     fclose(f);
 }
 
-void saveErrorMoy(const char* filename, double errMoy, double eType)
+void save_error_moy(const char* filename, double errMoy, double eType)
 {
     char path[200];
     sprintf(path, "%s/%s", g_path_assoconflicts_f, filename);
@@ -133,7 +133,7 @@ void print_tracks(track_t* tracks, int last)
 void print_tracks2(FILE* f, track_t* tracks, int n)
 {
     fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
-    fprintf(f, "#  track ||           Begin           ||            End            ||  Object \n");
+    fprintf(f, "#  Track ||           Begin           ||            End            ||  Object \n");
     fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
     fprintf(f, "# -------||---------|--------|--------||---------|--------|--------||---------\n");
     fprintf(f, "#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type \n");
@@ -149,7 +149,7 @@ void print_tracks2(FILE* f, track_t* tracks, int n)
         }
 }
 
-void parseStats(const char* filename, ROI_t* stats, int* n)
+void parse_stats(const char* filename, ROI_t* stats, int* n)
 {
     char lines[200];
     int id, xmin, xmax, ymin, ymax, s, sx, sy, prev, next;
@@ -198,7 +198,7 @@ void saveStats_file(FILE* f, ROI_t* stats, int n, track_t* tracks)
     fprintf(f, "# Regions of interest (ROI) [%d]: \n", cpt);
     if (cpt) {
         fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------\n");
-        fprintf(f, "#   ROI ||      track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       \n");
+        fprintf(f, "#   ROI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       \n");
         fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------\n");
         fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------\n");
         fprintf(f, "#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y \n");
@@ -255,7 +255,7 @@ void save_tracks(const char* filename, track_t* tracks, int n)
     fclose(f);
 }
 
-void saveBoundingBox(const char* filename, uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, int frame)
+void save_bounding_box(const char* filename, uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, int frame)
 {
     FILE* f = fopen(filename, "a");
     if (f == NULL) {
@@ -311,7 +311,7 @@ void parse_tracks(const char* filename, track_t* tracks, int* n)
         free(line);
 }
 
-void saveMotion(const char* filename, double theta, double tx, double ty, int frame)
+void save_motion(const char* filename, double theta, double tx, double ty, int frame)
 {
     FILE* f = fopen(filename, "a");
     if (f == NULL) {
@@ -325,7 +325,7 @@ void saveMotion(const char* filename, double theta, double tx, double ty, int fr
     fclose(f);
 }
 
-void saveError(const char* filename, ROI_t* stats, int n)
+void save_error(const char* filename, ROI_t* stats, int n)
 {
     double S = 0;
     int cpt = 0;
@@ -346,7 +346,7 @@ void saveError(const char* filename, ROI_t* stats, int n)
     fclose(f);
 }
 
-void saveAsso(const char* filename, uint32** Nearest, float32** distances, int nc0, ROI_t* stats)
+void save_asso(const char* filename, uint32** Nearest, float32** distances, int nc0, ROI_t* stats)
 {
     FILE* f = fopen(filename, "w");
     if (f == NULL) {
@@ -379,7 +379,7 @@ void saveAsso(const char* filename, uint32** Nearest, float32** distances, int n
     fclose(f);
 }
 
-void saveAsso_VT(const char* filename, int nc0, ROI_t* stats, int frame)
+void save_asso_VT(const char* filename, int nc0, ROI_t* stats, int frame)
 {
     FILE* f = fopen(filename, "a");
     if (f == NULL) {
@@ -403,8 +403,8 @@ void saveAsso_VT(const char* filename, int nc0, ROI_t* stats, int frame)
     fclose(f);
 }
 
-void saveConflicts(const char* filename, uint32* conflicts, uint32** Nearest, float32** distances, int n_asso,
-                   int n_conflict)
+void save_conflicts(const char* filename, uint32* conflicts, uint32** Nearest, float32** distances, int n_asso,
+                    int n_conflict)
 {
     FILE* f = fopen(filename, "w");
     if (f == NULL) {
@@ -437,8 +437,8 @@ void saveConflicts(const char* filename, uint32* conflicts, uint32** Nearest, fl
     fclose(f);
 }
 
-void saveAssoConflicts(const char* path, int frame, uint32* conflicts, uint32** Nearest, float32** distances,
-                       int n_asso, int n_conflict, ROI_t* stats0, ROI_t* stats1, track_t* tracks, int n_tracks)
+void save_asso_conflicts(const char* path, int frame, uint32* conflicts, uint32** Nearest, float32** distances,
+                         int n_asso, int n_conflict, ROI_t* stats0, ROI_t* stats1, track_t* tracks, int n_tracks)
 {
     assert(frame >= 0);
 
@@ -523,8 +523,8 @@ void saveAssoConflicts(const char* path, int frame, uint32* conflicts, uint32** 
     fclose(f);
 }
 
-void saveMotionExtraction(char* filename, ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx,
-                          double ty, int frame)
+void save_motion_extraction(char* filename, ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx,
+                            double ty, int frame)
 {
     // Version DEBUG : il faut implémenter une version pour le main
     FILE* f = fopen(filename, "a");
@@ -608,7 +608,7 @@ rgb8** load_image_color(const char* filename, long* i0, long* i1, long* j0, long
     return img;
 }
 
-void saveFrame_threshold(const char* filename, uint8** I0, uint8** I1, int i0, int i1, int j0, int j1) {
+void save_frame_threshold(const char* filename, uint8** I0, uint8** I1, int i0, int i1, int j0, int j1) {
     int w = (j1 - j0 + 1);
     int h = (i1 - i0 + 1);
 
@@ -648,7 +648,7 @@ void saveFrame_threshold(const char* filename, uint8** I0, uint8** I1, int i0, i
     sprintf(buffer, "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= h - 1; i++)
-        WritePNMrow((uint8*)img[i], 2 * w - 1, file);
+        write_PNM_row((uint8*)img[i], 2 * w - 1, file);
 
     /* fermeture du fichier */
     fclose(file);
@@ -656,7 +656,7 @@ void saveFrame_threshold(const char* filename, uint8** I0, uint8** I1, int i0, i
     free_rgb8matrix(img, 0, h - 1, 0, 2 * w - 1);
 }
 
-void saveFrame_ui32matrix(const char* filename, uint32** I, int i0, int i1, int j0, int j1) {
+void save_frame_ui32matrix(const char* filename, uint32** I, int i0, int i1, int j0, int j1) {
     int w = (j1 - j0 + 1);
     int h = (i1 - i0 + 1);
 
@@ -688,7 +688,7 @@ void saveFrame_ui32matrix(const char* filename, uint32** I, int i0, int i1, int 
     sprintf(buffer, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= h - 1; i++)
-        WritePNMrow((uint8*)img[i], w - 1, file);
+        write_PNM_row((uint8*)img[i], w - 1, file);
 
     /* fermeture du fichier */
     fclose(file);
@@ -696,7 +696,8 @@ void saveFrame_ui32matrix(const char* filename, uint32** I, int i0, int i1, int 
     free_rgb8matrix(img, 0, h - 1, 0, w - 1);
 }
 
-void saveFrame_tracking(const char* filename, uint8** I, track_t* tracks, int tracks_nb, int i0, int i1, int j0, int j1) {
+void save_frame_tracking(const char* filename, uint8** I, track_t* tracks, int tracks_nb, int i0, int i1, int j0,
+                         int j1) {
     rgb8 green;
     green.g = 255;
     green.b = 000;
@@ -771,7 +772,7 @@ void saveFrame_tracking(const char* filename, uint8** I, track_t* tracks, int tr
     sprintf(buffer, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= h - 1; i++)
-        WritePNMrow((uint8*)img[i], w - 1, file);
+        write_PNM_row((uint8*)img[i], w - 1, file);
 
     /* fermeture du fichier */
     fclose(file);
@@ -779,8 +780,8 @@ void saveFrame_tracking(const char* filename, uint8** I, track_t* tracks, int tr
     free_rgb8matrix(img, 0, h - 1, 0, w - 1);
 }
 
-void saveVideoFrame_tracking(const char* filename, uint8** I, track_t* tracks, int tracks_nb, int i0, int i1, int j0,
-                             int j1) {
+void save_video_frame_tracking(const char* filename, uint8** I, track_t* tracks, int tracks_nb, int i0, int i1, int j0,
+                               int j1) {
     rgb8 green;
     green.g = 255;
     green.b = 000;
@@ -845,7 +846,7 @@ void saveVideoFrame_tracking(const char* filename, uint8** I, track_t* tracks, i
     free_rgb8matrix(img, 0, i1, 0, j1);
 }
 
-void saveFrame_ui8matrix(const char* filename, uint8** I, int i0, int i1, int j0, int j1) {
+void save_frame_ui8matrix(const char* filename, uint8** I, int i0, int i1, int j0, int j1) {
     int w = (j1 - j0 + 1);
     int h = (i1 - i0 + 1);
 
@@ -875,7 +876,7 @@ void saveFrame_ui8matrix(const char* filename, uint8** I, int i0, int i1, int j0
     sprintf(buffer, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= h - 1; i++)
-        WritePNMrow((uint8*)img[i], w - 1, file);
+        write_PNM_row((uint8*)img[i], w - 1, file);
 
     /* fermeture du fichier */
     fclose(file);
@@ -934,8 +935,8 @@ void HsvToRgb(rgb8* pixel, uint8 h, uint8 s, uint8 v) {
     }
 }
 
-void saveFrame_quad(const char* filename, uint8** I0, uint8** I1, uint32** I2, uint32** I3, int nbLabel,
-                    ROI_t* stats, int i0, int i1, int j0, int j1) {
+void save_frame_quad(const char* filename, uint8** I0, uint8** I1, uint32** I2, uint32** I3, int nbLabel,
+                     ROI_t* stats, int i0, int i1, int j0, int j1) {
     int w = (j1 - j0 + 1);
     int h = (i1 - i0 + 1);
 
@@ -1020,7 +1021,7 @@ void saveFrame_quad(const char* filename, uint8** I0, uint8** I1, uint32** I2, u
     sprintf(buffer, "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(2 * h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= 2 * h - 1; i++)
-        WritePNMrow((uint8*)img[i], 2 * w - 1, file);
+        write_PNM_row((uint8*)img[i], 2 * w - 1, file);
 
     /* fermeture du fichier */
     fclose(file);
@@ -1028,8 +1029,8 @@ void saveFrame_quad(const char* filename, uint8** I0, uint8** I1, uint32** I2, u
     free_rgb8matrix(img, 0, 2 * h - 1, 0, 2 * w - 1);
 }
 
-void saveFrame_quad_hysteresis(const char* filename, uint8** I0, uint32** SH, uint32** SB, uint32** Y, int i0, int i1,
-                               int j0, int j1) {
+void save_frame_quad_hysteresis(const char* filename, uint8** I0, uint32** SH, uint32** SB, uint32** Y, int i0, int i1,
+                                int j0, int j1) {
     int w = (j1 - j0 + 1);
     int h = (i1 - i0 + 1);
 
@@ -1091,7 +1092,7 @@ void saveFrame_quad_hysteresis(const char* filename, uint8** I0, uint32** SH, ui
     sprintf(buffer, "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(2 * h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= 2 * h - 1; i++)
-        WritePNMrow((uint8*)img[i], 2 * w - 1, file);
+        write_PNM_row((uint8*)img[i], 2 * w - 1, file);
 
     /* fermeture du fichier */
     fclose(file);
@@ -1281,7 +1282,7 @@ void convert_ui8matrix_ui32matrix(uint8** X, int nrl, int nrh, int ncl, int nch,
     }
 }
 
-void WritePNMrow(uint8* line, int width, FILE* file) {
+void write_PNM_row(uint8* line, int width, FILE* file) {
     /* Le fichier est deja ouvert et ne sera pas ferme a la fin */
     fwrite(&(line[0]), sizeof(byte), 3 * sizeof(byte) * width, file);
 }
