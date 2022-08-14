@@ -56,9 +56,6 @@ void main_validation(int argc, char** argv) {
         exit(1);
     }
 
-    disp(src_path);
-    disp(validation);
-
     track_t tracks[SIZE_MAX_TRACKS];
     int nb_tracks = 0;
     tracking_init_global_data();

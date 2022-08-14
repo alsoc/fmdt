@@ -195,7 +195,6 @@ void main_detect(int argc, char** argv) {
     // path management
     char* path;
     split_path_file(&path, &filename, input_video);
-    disp(filename);
     if (output_stats)
         create_debug_dir(output_stats);
     if (output_frames)
@@ -231,8 +230,6 @@ void main_detect(int argc, char** argv) {
     CCL_LSL_init(i0, i1, j0, j1);
     tracking_init_array_BB();
 
-    disp(g_path_tracks);
-
     // ----------------//
     // -- TRAITEMENT --//
     // ----------------//
@@ -265,7 +262,6 @@ void main_detect(int argc, char** argv) {
         //--------------------------------------------------------//
         PUTS("\t Step 2 : ECC/ACC");
         n1 = CCL_LSL_apply(ballon->SM32, i0, i1, j0, j1);
-        idisp(n1);
         features_extract(ballon->SM32, i0, i1, j0, j1, stats1, n1);
 
         //--------------------------------------------------------//
@@ -290,15 +286,13 @@ void main_detect(int argc, char** argv) {
         PUTS("\t [DEBUG] Saving frames");
         if (output_frames) {
             create_frames_files(frame);
-            disp(g_path_frames_binary);
             save_frame_ui32matrix(g_path_frames_binary, ballon->SH32, i0, i1, j0, j1);
-            // saveFrame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
+            // save_frame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
         }
 
         PUTS("\t [DEBUG] Saving stats");
         if (output_stats) {
             // create_debug_files (frame);
-            disp(g_path_debug);
             save_asso_conflicts(g_path_debug, frame, g_conflicts, g_nearest, g_distances, n0, n_shrink, stats0,
                                 stats_shrink, tracks, tracks_cnt + 1);
             // save_motion(path_motion, theta, tx, ty, frame-1);

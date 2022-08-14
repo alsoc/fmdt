@@ -53,7 +53,6 @@ int validation_init(char* val_objects_file) {
     g_val_objects = (validation_obj_t*)malloc(g_n_val_objects * sizeof(validation_obj_t));
 
     int i = 0;
-    idisp(g_n_val_objects);
     while (i < g_n_val_objects && !feof(file)) {
         if (fscanf(file, "%s %hu \t %f \t %f \t %hu \t %f \t %f \n", tmp_obj_type, &g_val_objects[i].t0,
                    &g_val_objects[i].x0, &g_val_objects[i].y0, &g_val_objects[i].t1, &g_val_objects[i].x1,
@@ -83,8 +82,6 @@ int validation_init(char* val_objects_file) {
 
             g_val_objects[i].dirX = g_val_objects[i].x1 > g_val_objects[i].x0; // vers la droite
             g_val_objects[i].dirY = g_val_objects[i].y0 < g_val_objects[i].y1; // vers le bas
-            // idisp(g_val_objects[i].dirY);
-            // idisp(g_val_objects[i].dirX);
 
             if (g_val_objects[i].dirX) {
                 if (g_val_objects[i].dirY) {
@@ -208,7 +205,6 @@ void validation_free(void) {}
 
 void validation_process(track_t* tracks, int tracks_nb) {
     track_t* track;
-    idisp(tracks_nb);
     for (int t = 0; t < tracks_nb; t++) {
         track = &tracks[t];
         validation_obj_t* val_obj = NULL;

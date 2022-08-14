@@ -175,15 +175,10 @@ void track_extrapolate(track_t* t, int theta, int tx, int ty) {
 
     t->x = x + u;
     t->y = y + v;
-
-    fdisp(t->x);
-    fdisp(t->y);
 }
 
 void update_bounding_box(track_t* track, ROI_t stats, int frame) {
     PUTS("UPDATE BB");
-    idisp(stats.xmin);
-    idisp(stats.xmax);
     uint16 rx, ry, bb_x, bb_y;
 
     assert(stats.xmin || stats.xmax || stats.ymin || stats.ymax);

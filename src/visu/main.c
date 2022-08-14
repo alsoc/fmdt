@@ -126,10 +126,7 @@ void main_visu(int argc, char** argv) {
         fprintf(stderr, "(WW) '--natural-num' will not work because '--show-ids' is not set.\n");
 #endif
 
-    // char *g_path_bounding_box;
-    disp(src_path_video);
     sprintf(g_path_bounding_box, "%s", input_bb);
-    disp(g_path_bounding_box);
 
     track_t tracks[SIZE_MAX_TRACKS];
 
@@ -144,9 +141,6 @@ void main_visu(int argc, char** argv) {
 
     if (dest_path_frames)
         create_frames_dir(dest_path_frames);
-
-    disp(src_path);
-    disp(g_path_bounding_box);
 
     // recupere les tracks
     parse_tracks(src_path, tracks, &nb_tracks);
@@ -172,7 +166,6 @@ void main_visu(int argc, char** argv) {
 
     // validation pour établir si une track est vrai/faux positif
     if (validation) {
-        disp(validation);
         validation_init(validation);
         validation_process(tracks, nb_tracks);
     } else {
@@ -186,7 +179,6 @@ void main_visu(int argc, char** argv) {
         return;
     }
 
-    disp(g_path_bounding_box);
     // parcours des BB à afficher
     char lines[1000];
     fgets(lines, 100, file_bb);

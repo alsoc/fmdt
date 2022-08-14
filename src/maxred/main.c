@@ -102,9 +102,6 @@ void main_maxred(int argc, char** argv) {
 
     printf("# The program is running...\n");
 
-    disp(input_video);
-    disp(dest_path_frame);
-
     tracking_init_global_data();
 
     // sequence

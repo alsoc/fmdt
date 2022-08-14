@@ -249,7 +249,6 @@ void features_rigid_registration_corrected(ROI_t* stats0, ROI_t* stats1, int n0,
 
         if (fabs(stats0[i].error - errMoy) > eType) {
             stats0[i].motion = 1;
-            // fdisp(stats0[i].error);
             cpt1++;
             continue;
         }
@@ -276,7 +275,6 @@ void features_rigid_registration_corrected(ROI_t* stats0, ROI_t* stats1, int n0,
     Sy = 0;
     Syp = 0;
 
-    idisp(cpt1);
     // parcours tab assos
     for (int i = 1; i <= n0; i++) {
         cc0 = stats0[i];

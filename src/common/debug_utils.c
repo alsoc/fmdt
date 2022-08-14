@@ -105,14 +105,12 @@ void save_error_moy(const char* filename, double errMoy, double eType)
 {
     char path[200];
     sprintf(path, "%s/%s", g_path_assoconflicts_f, filename);
-    disp(path);
     FILE* f = fopen(path, "a");
     if (f == NULL) {
         fprintf(stderr, "(EE) error ouverture %s \n", path);
         exit(1);
     }
     fprintf(f, "%5.2f \t %5.2f \n", errMoy, eType);
-
     fclose(f);
 }
 
@@ -190,11 +188,10 @@ void parse_stats(const char* filename, ROI_t* stats, int* n)
 void saveStats_file(FILE* f, ROI_t* stats, int n, track_t* tracks)
 {
     int cpt = 0;
-    for (int i = 1; i <= n; i++) {
-        // idisp(i);
+    for (int i = 1; i <= n; i++)
         if (stats[i].S != 0)
             cpt++;
-    }
+
     fprintf(f, "# Regions of interest (ROI) [%d]: \n", cpt);
     if (cpt) {
         fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------\n");
@@ -738,28 +735,16 @@ void save_frame_tracking(const char* filename, uint8** I, track_t* tracks, int t
         }
     }
 
-    for (int i = 0; i < tracks_nb + 1; i++) {
-        idisp(tracks[i].time);
-        idisp(tracks[i].state);
+    for (int i = 0; i < tracks_nb + 1; i++)
         if (tracks[i].state != TRACK_LOST && tracks[i].time >= 2 && tracks[i].state != TRACK_EXTRAPOLATED &&
             tracks[i].state != TRACK_FINISHED) {
             int ymin = clamp(tracks[i].bb_y - tracks[i].ry, 1, i1 - 1);
             int ymax = clamp(tracks[i].bb_y + tracks[i].ry, 1, i1 - 1);
             int xmin = clamp(tracks[i].bb_x - tracks[i].rx, 1, j1 - 1);
             int xmax = clamp(tracks[i].bb_x + tracks[i].rx, 1, j1 - 1);
-            idisp(xmin);
-            idisp(xmax);
-            idisp(ymin);
-            idisp(ymax);
-            if (tracks[i].time >= 2) {
-                // if(tracks[i].is_valid) {
-
-                // if(tracks[i].state != TRACK_EXTRAPOLATED)
+            if (tracks[i].time >= 2)
                 plot_bounding_box(img, ymin, ymax, xmin, xmax, 1, green);
-                // else plot_bounding_box(img, ymin,ymax,xmin,xmax, 2, blue);
-            }
         }
-    }
 
     file = fopen(filename, "wb");
     if (file == NULL) {
@@ -820,28 +805,17 @@ void save_video_frame_tracking(const char* filename, uint8** I, track_t* tracks,
         }
     }
 
-    for (int i = 0; i < tracks_nb + 1; i++) {
-        idisp(tracks[i].time);
-        idisp(tracks[i].state);
+    for (int i = 0; i < tracks_nb + 1; i++)
         if (tracks[i].state != TRACK_LOST && tracks[i].time >= 3 && tracks[i].state != TRACK_EXTRAPOLATED &&
             tracks[i].state != TRACK_FINISHED) {
             int ymin = clamp(tracks[i].bb_y - tracks[i].ry - 5, 1, i1 - 1);
             int ymax = clamp(tracks[i].bb_y + tracks[i].ry + 5, 1, i1 - 1);
             int xmin = clamp(tracks[i].bb_x - tracks[i].rx - 5, 1, j1 - 1);
             int xmax = clamp(tracks[i].bb_x + tracks[i].rx + 5, 1, j1 - 1);
-            idisp(xmin);
-            idisp(xmax);
-            idisp(ymin);
-            idisp(ymax);
-            if (tracks[i].time >= 3) {
-                // if(tracks[i].is_valid) {
-
-                // if(tracks[i].state != TRACK_EXTRAPOLATED)
+            if (tracks[i].time >= 3)
                 plot_bounding_box(img, ymin, ymax, xmin, xmax, 2, green);
-                // else plot_bounding_box(img, ymin,ymax,xmin,xmax, 2, blue);
-            }
         }
-    }
+
     ffmpeg_write2d(&writer, (uint8_t**)img);
     free_rgb8matrix(img, 0, i1, 0, j1);
 }
@@ -1143,7 +1117,6 @@ void split_path_file(char** p, char** f, char* pf) {
 }
 
 void get_data_from_tracks_path(char* path, int* light_min, int* light_max, char** filename) {
-    disp(path);
     char *res, *tmp, *min, *max;
     res = strstr(path, "SB_");
     res += 3;
@@ -1166,9 +1139,6 @@ void get_data_from_tracks_path(char* path, int* light_min, int* light_max, char*
 
     *filename = strndup(res, tmp - res);
 
-    idisp(*light_min);
-    idisp(*light_max);
-    disp(*filename);
     free(min);
     free(max);
 }
