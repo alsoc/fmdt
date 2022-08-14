@@ -65,32 +65,32 @@
         b = tmp;                                                                                                       \
     }
 
-void save_bounding_box(const char* filename, uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, int frame);
+// void save_bounding_box(const char* filename, uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, int frame);
 void plot_bounding_box(rgb8** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8 color);
 
 // Analysing
-void filter_speed_binarize(uint32** in, int i0, int i1, int j0, int j1, uint8** out, ROI_t* stats);
+// void filter_speed_binarize(uint32** in, int i0, int i1, int j0, int j1, uint8** out, ROI_t* stats);
 
 // Image
-rgb8** load_image_color(const char* filename, long* i0, long* i1, long* j0, long* j1);
-void save_frame_threshold(const char* filename, uint8** I0, uint8** I1, int i0, int i1, int j0, int j1);
-void save_frame_quad(const char* filename, uint8** I0, uint8** I1, uint32** I2, uint32** I3, int nbLabel,
-                     ROI_t* stats, int i0, int i1, int j0, int j1);
+// rgb8** load_image_color(const char* filename, long* i0, long* i1, long* j0, long* j1);
+// void save_frame_threshold(const char* filename, uint8** I0, uint8** I1, int i0, int i1, int j0, int j1);
+// void save_frame_quad(const char* filename, uint8** I0, uint8** I1, uint32** I2, uint32** I3, int nbLabel,
+//                      ROI_t* stats, int i0, int i1, int j0, int j1);
 void save_frame_ui32matrix(const char* filename, uint32** I, int i0, int i1, int j0, int j1);
-void save_frame_ui8matrix(const char* filename, uint8** I, int i0, int i1, int j0, int j1);
-void save_max(const char* filename, uint8** I, int i0, int i1, int j0, int j1);
-void save_frame_quad_hysteresis(const char* filename, uint8** I0, uint32** SH, uint32** SB, uint32** Y, int i0, int i1,
-                                int j0, int j1);
-void save_video_frame_tracking(const char* filename, uint8** I, track_t* tracks, int tracks_nb, int i0, int i1, int j0,
-                               int j1);
-void save_frame_tracking(const char* filename, uint8** I, track_t* tracks, int tracks_nb, int i0, int i1, int j0,
-                         int j1);
+// void save_frame_ui8matrix(const char* filename, uint8** I, int i0, int i1, int j0, int j1);
+// void save_max(const char* filename, uint8** I, int i0, int i1, int j0, int j1);
+// void save_frame_quad_hysteresis(const char* filename, uint8** I0, uint32** SH, uint32** SB, uint32** Y, int i0, int i1,
+//                                 int j0, int j1);
+// void save_video_frame_tracking(const char* filename, uint8** I, track_t* tracks, int tracks_nb, int i0, int i1, int j0,
+//                                int j1);
+// void save_frame_tracking(const char* filename, uint8** I, track_t* tracks, int tracks_nb, int i0, int i1, int j0,
+//                          int j1);
 
 void create_folder(char* folder_path);
 
 void copy_ui8matrix_ui8matrix(uint8** X, int i0, int i1, int j0, int j1, uint8** Y);
-void convert_ui8vector_ui32vector(uint8* X, long nl, long nh, uint32* Y);
-void convert_ui8matrix_ui32matrix(uint8** X, int nrl, int nrh, int ncl, int nch, uint32** Y);
+// void convert_ui8vector_ui32vector(uint8* X, long nl, long nh, uint32* Y);
+// void convert_ui8matrix_ui32matrix(uint8** X, int nrl, int nrh, int ncl, int nch, uint32** Y);
 void write_PNM_row(uint8* line, int width, FILE* file);
 
 #endif //__DEBUG_UTILS_H__

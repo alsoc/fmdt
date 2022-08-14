@@ -39,26 +39,26 @@ typedef struct track track_t; // defined in "tracking.h"
 
 void features_init_ROI(ROI_t* stats, int n);
 void features_extract(uint32** img, int i0, int i1, int j0, int j1, ROI_t* stats, int n);
-void features_filter_surface(ROI_t* stats, int n, uint32** img, uint32 threshold_min, uint32 threshold_max);
+// void features_filter_surface(ROI_t* stats, int n, uint32** img, uint32 threshold_min, uint32 threshold_max);
 void features_merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, ROI_t* stats, int n, int S_min,
                               int S_max);
 int features_shrink_stats(ROI_t* stats_src, ROI_t* stats_dest, int n);
 double features_ecart_type(ROI_t* stats, int n, double errMoy);
 double features_error_moy(ROI_t* stats, int n);
 void features_motion(ROI_t* stats0, ROI_t* stats1, int n0, int n1, double* theta, double* tx, double* ty);
-void features_motion_extraction(ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx, double ty);
-int features_analyse_ellipse(ROI_t* stats, int n, float e_threshold);
+// void features_motion_extraction(ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx, double ty);
+// int features_analyse_ellipse(ROI_t* stats, int n, float e_threshold);
 
-void features_print_stats(ROI_t* stats, int n);
-void features_parse_stats(const char* filename, ROI_t* stats, int* n);
-void features_save_stats(const char* filename, ROI_t* stats, int n, track_t* tracks);
+// void features_print_stats(ROI_t* stats, int n);
+// void features_parse_stats(const char* filename, ROI_t* stats, int* n);
+// void features_save_stats(const char* filename, ROI_t* stats, int n, track_t* tracks);
 void features_save_stats_file(FILE* f, ROI_t* stats, int n, track_t* tracks);
-void features_save_stats(const char* filename, ROI_t* stats, int n, track_t* tracks);
+// void features_save_stats(const char* filename, ROI_t* stats, int n, track_t* tracks);
 
-void features_save_motion(const char* filename, double theta, double tx, double ty, int frame);
-void features_save_error(const char* filename, ROI_t* stats, int n);
-void features_save_error_moy(const char* filename, double errMoy, double eType);
-void features_save_motion_extraction(char* filename, ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx,
-                                     double ty, int frame);
+// void features_save_motion(const char* filename, double theta, double tx, double ty, int frame);
+// void features_save_error(const char* filename, ROI_t* stats, int n);
+// void features_save_error_moy(const char* filename, double errMoy, double eType);
+// void features_save_motion_extraction(char* filename, ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx,
+//                                      double ty, int frame);
 
 #endif // __FEATURES_H__
