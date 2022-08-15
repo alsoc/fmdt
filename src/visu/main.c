@@ -10,12 +10,11 @@
 #include <nrc2.h>
 
 #include "ballon.h"
-#include "debug_utils.h"
+#include "tools.h"
 #include "features.h"
 #include "tracking.h"
 #include "validation.h"
 #include "video.h"
-#include "tools_visu.h"
 
 BB_coord_t listBB[200];
 
@@ -124,22 +123,25 @@ void main_visu(int argc, char** argv) {
 
     track_t tracks[SIZE_MAX_TRACKS];
 
-    int nb_tracks = 0;
+    int n_tracks = 0;
     tracking_init_global_data();
     tracking_init_tracks(tracks, SIZE_MAX_TRACKS);
-    tracking_parse_tracks(input_tracks, tracks, &nb_tracks);
+    tracking_parse_tracks(input_tracks, tracks, &n_tracks);
 
     int max_LUT = 0;
-    for (int i = 0; i < nb_tracks; i++)
+    for (int i = 0; i < n_tracks; i++)
         if (tracks[i].id > max_LUT)
             max_LUT = tracks[i].id;
     int* LUT_tracks_id = (int*)malloc(sizeof(int) * (max_LUT + 1));
     memset(LUT_tracks_id, -1, max_LUT + 1);
-    for (int i = 0; i < nb_tracks; i++)
+    for (int i = 0; i < n_tracks; i++)
         LUT_tracks_id[tracks[i].id] = i;
 
-    unsigned n_tracks = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
-    n_tracks = tracking_count_objects(tracks, nb_tracks, &n_stars, &n_meteors, &n_noise);
+    unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
+    if (tracking_count_objects(tracks, n_tracks, &n_stars, &n_meteors, &n_noise) != n_tracks) {
+        fprintf(stderr, "(EE) 'tracking_count_objects' returned different number of tracks...\n");
+        exit(-1);
+    }
     printf("# track_ts read from file = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\n", n_meteors, n_stars,
            n_noise, n_tracks);
 
@@ -150,7 +152,7 @@ void main_visu(int argc, char** argv) {
     // validation pour établir si une track est vrai/faux positif
     if (validation) {
         validation_init(validation);
-        validation_process(tracks, nb_tracks);
+        validation_process(tracks, n_tracks);
     } else {
         PUTS("NO VALIDATION");
     }
@@ -229,7 +231,7 @@ void main_visu(int argc, char** argv) {
             exit(-1);
         }
         if (output_frames) {
-            create_folder(output_frames);
+            tools_create_folder(output_frames);
             char filename_cur_frame[256];
             sprintf(filename_cur_frame, "%s/%05d.ppm", output_frames, frame);
             tools_save_frame(filename_cur_frame, (const rgb8**)img_bb, j1, i1);

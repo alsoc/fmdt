@@ -8,14 +8,14 @@
 #include "args.h"
 #include "ballon.h"
 #include "CCL.h"
-#include "debug_utils.h"
+#include "tools.h"
 #include "features.h"
 #include "KPPV.h"
 #include "threshold.h"
 #include "tracking.h"
 #include "validation.h"
 #include "video.h"
-#include "macro_debug.h"
+#include "macros.h"
 
 #define SEQUENCE_DST_PATH_HIST "hist/"
 #define SEQUENCE_NDIGIT 5
@@ -224,14 +224,14 @@ void main_detect(int argc, char** argv) {
 
         //---------------------------------------------------------//
         PUTS("\t Step 1 : seuillage low/high");
-        copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SH);
-        copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SM);
+        tools_copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SH);
+        tools_copy_ui8matrix_ui8matrix(ballon->I0, i0, i1, j0, j1, ballon->SM);
         //---------------------------------------------------------//
         threshold_high(ballon->SM, i0, i1, j0, j1, light_min);
         threshold_high(ballon->SH, i0, i1, j0, j1, light_max);
         //---------------------------------------------------------//
-        convert_ui8matrix_ui32matrix(ballon->SM, i0, i1, j0, j1, ballon->SM32);
-        convert_ui8matrix_ui32matrix(ballon->SH, i0, i1, j0, j1, ballon->SH32);
+        tools_convert_ui8matrix_ui32matrix(ballon->SM, i0, i1, j0, j1, ballon->SM32);
+        tools_convert_ui8matrix_ui32matrix(ballon->SH, i0, i1, j0, j1, ballon->SH32);
 
         //--------------------------------------------------------//
         PUTS("\t Step 2 : ECC/ACC");
@@ -259,19 +259,19 @@ void main_detect(int argc, char** argv) {
         //--------------------------------------------------------//
         PUTS("\t [DEBUG] Saving frames");
         if (output_frames) {
-            create_folder(output_frames);
-            save_frame_ui32matrix(output_frames, ballon->SH32, i0, i1, j0, j1);
-            // save_frame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
+            tools_create_folder(output_frames);
+            tools_save_frame_ui32matrix(output_frames, ballon->SH32, i0, i1, j0, j1);
+            // tools_save_frame_ui8matrix(path_frames_binary, ballon->I0, i0, i1, j0, j1);
         }
 
         PUTS("\t [DEBUG] Saving stats");
         if (output_stats) {
-            create_folder(output_stats);
+            tools_create_folder(output_stats);
             KPPV_save_asso_conflicts(output_stats, frame, g_conflicts, g_nearest, g_distances, n0, n_shrink, stats0,
                                      stats_shrink, tracks, tracks_cnt + 1);
-            // save_motion(path_motion, theta, tx, ty, frame-1);
-            // save_motionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
-            // save_error(path_error, stats0, n0);
+            // tools_save_motion(path_motion, theta, tx, ty, frame-1);
+            // tools_save_motionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
+            // tools_save_error(path_error, stats0, n0);
         }
 
         //--------------------------------------------------------//
@@ -289,7 +289,7 @@ void main_detect(int argc, char** argv) {
 
     if (output_bb)
         tracking_save_array_BB(output_bb, g_tabBB, tracks, NB_FRAMES, track_all);
-    // save_tracks(g_path_tracks, tracks, tracks_cnt);
+    // tools_save_tracks(g_path_tracks, tracks, tracks_cnt);
     tracking_print_tracks(stdout, tracks, tracks_cnt + 1);
 
     printf("# Statistics:\n");

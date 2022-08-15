@@ -9,10 +9,9 @@
 #include <sys/stat.h>
 
 #include "ballon.h"
-#include "debug_utils.h"
+#include "tools.h"
 #include "tracking.h"
 #include "validation.h"
-#include "tools_visu.h"
 
 void max_reduce(uint8** M, int i0, int i1, int j0, int j1, uint8** I) {
     for (int i = i0; i <= i1; i++) {

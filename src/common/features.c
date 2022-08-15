@@ -6,9 +6,9 @@
 #include <stdio.h>
 #include <string.h>
 
-#include "debug_utils.h"
+#include "tools.h"
+#include "macros.h"
 #include "features.h"
-#include "macro_debug.h"
 
 void features_init_ROI(ROI_t* stats, int n) {
     for (int i = 0; i < n; i++)

@@ -9,7 +9,7 @@
 #include <sys/stat.h>
 
 #include "args.h"
-#include "debug_utils.h"
+#include "tools.h"
 #include "tracking.h"
 #include "validation.h"
 
@@ -55,19 +55,17 @@ void main_validation(int argc, char** argv) {
     }
 
     track_t tracks[SIZE_MAX_TRACKS];
-    int nb_tracks = 0;
+    int n_tracks = 0;
     tracking_init_global_data();
     tracking_init_tracks(tracks, SIZE_MAX_TRACKS);
-
-    // recupere les tracks
-    tracking_parse_tracks(input_tracks, tracks, &nb_tracks);
+    tracking_parse_tracks(input_tracks, tracks, &n_tracks);
 
     printf("# The program is running...\n");
 
     // validation pour établir si une track est vrai/faux positif
     validation_init(validation);
-    validation_process(tracks, nb_tracks);
-    validation_print(tracks, nb_tracks);
+    validation_process(tracks, n_tracks);
+    validation_print(tracks, n_tracks);
 
     printf("# End of the program, exiting.\n");
 }

@@ -8,13 +8,13 @@
 #include <nrutil.h>
 #include <assert.h>
 
-#include "debug_utils.h"
+#include "tools.h"
 #include "features.h"
 #include "KPPV.h"
-#include "macro_debug.h"
+#include "macros.h"
 
 #define INF32 0xFFFFFFFF
-#define MAX 100
+#define MAX_DIST 100
 
 uint32** g_nearest;
 float32** g_distances;
@@ -35,6 +35,7 @@ void KPPV_free(int i0, int i1, int j0, int j1) {
     free_f32matrix(g_distances, i0, i1, j0, j1);
     free_ui32vector(g_conflicts, j0, j1);
 }
+
 void distance_calc(ROI_t* stats0, ROI_t* stats1, int nc0, int nc1) {
     float32 d, x0, x1, y0, y1;
 
@@ -53,7 +54,7 @@ void distance_calc(ROI_t* stats0, ROI_t* stats1, int nc0, int nc1) {
                     // distances au carré
                     d = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0);
 
-                    // if d > MAX, on peut economiser l'accès mémoire (a implementer)
+                    // if d > MAX_DIST, on peut economiser l'accès mémoire (a implementer)
                     g_distances[i][j] = d;
                 }
             }
@@ -79,7 +80,7 @@ void KPPV_match1(ROI_t* stats0, ROI_t* stats1, int nc0, int nc1, int k) {
         for (int i = 1; i <= nc0; i++) {
             for (int j = 1; j <= nc1; j++) {
                 // if une distance est calculée et ne fait pas pas déjà parti du tab nearest
-                if ((g_distances[i][j] != INF32) && (g_nearest[i][j] == 0) && (g_distances[i][j] < MAX)) {
+                if ((g_distances[i][j] != INF32) && (g_nearest[i][j] == 0) && (g_distances[i][j] < MAX_DIST)) {
                     val = g_distances[i][j];
                     cpt = 0;
                     // // compte le nombre de distances < val

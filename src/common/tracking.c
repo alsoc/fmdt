@@ -16,12 +16,12 @@
 #include "args.h"
 #include "ballon.h"
 #include "CCL.h"
-#include "debug_utils.h"
+#include "tools.h"
 #include "features.h"
 #include "threshold.h"
 #include "tracking.h"
 #include "video.h"
-#include "macro_debug.h"
+#include "macros.h"
 
 #define SIZE_BUF 10000
 #define INF 9999999

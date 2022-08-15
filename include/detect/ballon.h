@@ -19,7 +19,7 @@
 #include "threshold.h"
 #include "tracking.h"
 #include "video.h"
-#include "macro_debug.h"
+#include "macros.h"
 
 #define SIZE_MAX_METEORROI 18000
 #define SIZE_MAX_TRACKS 1000
