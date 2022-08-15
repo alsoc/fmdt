@@ -3,11 +3,11 @@
  * LIP6, UPMC, CNRS
  */
 
-#include <stdio.h>
-
 #include "threshold.h"
 
-void threshold(uint8** m, int i0, int i1, int j0, int j1, uint8 threshold) {
+#define GRAY_LEVEL 256
+
+void threshold(uint8_t** m, int i0, int i1, int j0, int j1, uint8_t threshold) {
     int i, j;
     for (i = i0; i <= i1; i++) {
         for (j = j0; j <= j1; j++) {
@@ -16,9 +16,9 @@ void threshold(uint8** m, int i0, int i1, int j0, int j1, uint8 threshold) {
     }
 }
 
-void threshold_high(uint8** m, int i0, int i1, int j0, int j1, uint8 th) { threshold(m, i0, i1, j0, j1, th); }
+void threshold_high(uint8_t** m, int i0, int i1, int j0, int j1, uint8_t th) { threshold(m, i0, i1, j0, j1, th); }
 
-void threshold_low(uint8** m, int i0, int i1, int j0, int j1, uint8 threshold) {
+void threshold_low(uint8_t** m, int i0, int i1, int j0, int j1, uint8_t threshold) {
     int i, j;
     for (i = i0; i <= i1; i++) {
         for (j = j0; j <= j1; j++) {
@@ -27,7 +27,7 @@ void threshold_low(uint8** m, int i0, int i1, int j0, int j1, uint8 threshold) {
     }
 }
 
-float max_norme(float32** U, float32** V, int i0, int i1, int j0, int j1) {
+float max_norme(float** U, float** V, int i0, int i1, int j0, int j1) {
     float maxi = 0;
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
@@ -39,20 +39,20 @@ float max_norme(float32** U, float32** V, int i0, int i1, int j0, int j1) {
     return maxi;
 }
 
-void threshold_norme_compact_bigend(float32** U, float32** V, uint8** out, int w, int h, float threshold) {
-    float32 t2 = threshold * threshold; // comparaison avec le carre de la norme
+void threshold_norme_compact_bigend(float** U, float** V, uint8_t** out, int w, int h, float threshold) {
+    float t2 = threshold * threshold; // comparaison avec le carre de la norme
 
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
-            uint8 val = 0;
-            uint8 mask = 0x80; // Arthur en big endian.
+            uint8_t val = 0;
+            uint8_t mask = 0x80; // Arthur en big endian.
 
             // boucle sur les 8 bits
             for (int k = 0; k < 8; k++) {
 
-                float32 u = U[i][(j << 3) + k];
-                float32 v = V[i][(j << 3) + k];
-                float32 norme2 = u * u + v * v; // norme au carre
+                float u = U[i][(j << 3) + k];
+                float v = V[i][(j << 3) + k];
+                float norme2 = u * u + v * v; // norme au carre
                 val |= (norme2 < t2) ? 0 : mask;
 
                 mask = mask >> 1; // Arthur en big endian
@@ -62,11 +62,11 @@ void threshold_norme_compact_bigend(float32** U, float32** V, uint8** out, int w
     }
 }
 
-void threshold_compact_bigend(uint8** in, uint8** out, int w, int h, uint8 threshold) {
+void threshold_compact_bigend(uint8_t** in, uint8_t** out, int w, int h, uint8_t threshold) {
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
-            uint8 val = 0;
-            uint8 mask = 0x80;
+            uint8_t val = 0;
+            uint8_t mask = 0x80;
 
             // boucle sur les 8 bits
             for (int k = 0; k < 8; k++) {
@@ -78,16 +78,16 @@ void threshold_compact_bigend(uint8** in, uint8** out, int w, int h, uint8 thres
     }
 }
 
-void threshold_norme_littleend(float32** U, float32** V, uint8** out, int i0, int i1, int j0, int j1, float threshold) {
-    float32 t2 = threshold * threshold; // comparaison avec le carre de la norme
-    uint8 val = 0;
+void threshold_norme_littleend(float** U, float** V, uint8_t** out, int i0, int i1, int j0, int j1, float threshold) {
+    float t2 = threshold * threshold; // comparaison avec le carre de la norme
+    uint8_t val = 0;
 
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
 
-            float32 u = U[i][j];
-            float32 v = V[i][j];
-            float32 norme2 = u * u + v * v; // norme au carre
+            float u = U[i][j];
+            float v = V[i][j];
+            float norme2 = u * u + v * v; // norme au carre
             val = (norme2 < t2) ? 0 : 255;
 
             out[i][j] = val;
@@ -95,20 +95,20 @@ void threshold_norme_littleend(float32** U, float32** V, uint8** out, int i0, in
     }
 }
 
-void threshold_norme_compact_littleend(float32** U, float32** V, uint8** out, int w, int h, float threshold) {
-    float32 t2 = threshold * threshold; // comparaison avec le carre de la norme
+void threshold_norme_compact_littleend(float** U, float** V, uint8_t** out, int w, int h, float threshold) {
+    float t2 = threshold * threshold; // comparaison avec le carre de la norme
 
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
-            uint8 val = 0;
-            uint8 mask = 0x1; // little endian
+            uint8_t val = 0;
+            uint8_t mask = 0x1; // little endian
 
             // boucle sur les 8 bits
             for (int k = 0; k < 8; k++) {
 
-                float32 u = U[i][(j << 3) + k];
-                float32 v = V[i][(j << 3) + k];
-                float32 norme2 = u * u + v * v; // norme au carre
+                float u = U[i][(j << 3) + k];
+                float v = V[i][(j << 3) + k];
+                float norme2 = u * u + v * v; // norme au carre
                 val |= (norme2 < t2) ? 0 : mask;
                 mask = mask << 1; // little endian
             }
@@ -117,76 +117,76 @@ void threshold_norme_compact_littleend(float32** U, float32** V, uint8** out, in
     }
 }
 
-void pack_ui8vector_bigend(uint8* X1, int src_width, uint8* Y8) {
+void pack_ui8vector_bigend(uint8_t* X1, int src_width, uint8_t* Y8) {
     int dst_width = src_width / 8;
 
     for (int i = 0; i < dst_width; i++) {
 
-        uint8 x = 0;
+        uint8_t x = 0;
         for (int k = 0; k < 8; k++) {
 
-            uint8 b = X1[8 * i + k];
+            uint8_t b = X1[8 * i + k];
             x = (x << 1) | b;
         }
         Y8[i] = x;
     }
 }
 
-void pack_ui8matrix_bigend(uint8** X1, uint8** Y8, int src_width, int src_height) {
+void pack_ui8matrix_bigend(uint8_t** X1, uint8_t** Y8, int src_width, int src_height) {
     for (int i = 0; i < src_height; i++) {
         pack_ui8vector_bigend(X1[i], src_width, Y8[i]);
     }
 }
 
-void pack_ui8vector_littleend(uint8* X1, int src_width, uint8* Y8) {
+void pack_ui8vector_littleend(uint8_t* X1, int src_width, uint8_t* Y8) {
 
     int dst_width = src_width / 8;
 
     for (int i = 0; i < dst_width; i++) {
 
-        uint8 x = 0;
+        uint8_t x = 0;
         for (int k = 0; k < 8; k++) {
 
-            uint8 b = X1[8 * i + k];
+            uint8_t b = X1[8 * i + k];
             x = x | (b << k);
         }
         Y8[i] = x;
     }
 }
 
-void pack_ui8matrix_littleend(uint8** X1, int src_height, int src_width, uint8** Y8) {
+void pack_ui8matrix_littleend(uint8_t** X1, int src_height, int src_width, uint8_t** Y8) {
     for (int i = 0; i < src_height; i++) {
         pack_ui8vector_littleend(X1[i], src_width, Y8[i]);
     }
 }
 
-void pack255_ui8vector_littleend(uint8* X1, int src_width, uint8* Y8) {
+void pack255_ui8vector_littleend(uint8_t* X1, int src_width, uint8_t* Y8) {
 
     int dst_width = src_width / 8;
 
     for (int i = 0; i < dst_width; i++) {
 
-        uint8 x = 0;
+        uint8_t x = 0;
 
         for (int k = 0; k < 8; k++) {
 
-            uint8 b = (X1[8 * i + k] == 255);
+            uint8_t b = (X1[8 * i + k] == 255);
             x = x | (b << k);
         }
         Y8[i] = x;
     }
 }
 
-void pack255_ui8matrix_littleend(uint8** X1, int src_height, int src_width, uint8** Y8) {
+void pack255_ui8matrix_littleend(uint8_t** X1, int src_height, int src_width, uint8_t** Y8) {
     for (int i = 0; i < src_height; i++) {
         pack255_ui8vector_littleend(X1[i], src_width, Y8[i]);
     }
 }
 
-void unpack_ui8matrix_bigend(uint8** in, uint8** out, int w, int h) {
+void unpack_ui8matrix_bigend(uint8_t** in, uint8_t** out, int w, int h) {
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
-            uint8 mask = 0x80;
+            uint8_t mask = 0x80;
             for (int k = 0; k < 8; k++) {
                 out[i][(j << 3) + k] = ((in[i][j] & mask) == 0) ? 0 : 1;
                 mask = mask >> 1;
@@ -195,10 +195,10 @@ void unpack_ui8matrix_bigend(uint8** in, uint8** out, int w, int h) {
     }
 }
 
-void unpack_ui32matrix_bigend(uint8** in, uint32** out, int w, int h) {
+void unpack_ui32matrix_bigend(uint8_t** in, uint32_t** out, int w, int h) {
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
-            uint8 mask = 0x80;
+            uint8_t mask = 0x80;
             for (int k = 0; k < 8; k++) {
                 out[i][(j << 3) + k] = ((in[i][j] & mask) == 0) ? 0 : 255;
                 mask = mask >> 1;
@@ -207,10 +207,10 @@ void unpack_ui32matrix_bigend(uint8** in, uint32** out, int w, int h) {
     }
 }
 
-void unpack255_ui8matrix_littleend(uint8** in, uint8** out, int w, int h) {
+void unpack255_ui8matrix_littleend(uint8_t** in, uint8_t** out, int w, int h) {
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
-            uint8 mask = 0x01;
+            uint8_t mask = 0x01;
             for (int k = 0; k < 8; k++) {
                 out[i][(j << 3) + k] = ((in[i][j] & mask) == 0) ? 0 : 255;
                 mask = mask << 1;
@@ -219,10 +219,10 @@ void unpack255_ui8matrix_littleend(uint8** in, uint8** out, int w, int h) {
     }
 }
 
-void unpack_ui8vector_littleend(uint8* X8, int src_width, uint8* Y1) {
+void unpack_ui8vector_littleend(uint8_t* X8, int src_width, uint8_t* Y1) {
     for (int i = 0; i < src_width; i++) {
 
-        uint8 x = X8[i];
+        uint8_t x = X8[i];
 
         for (int k = 0; k < 8; k++) {
             Y1[8 * i + k] = x & 1;
@@ -231,16 +231,16 @@ void unpack_ui8vector_littleend(uint8* X8, int src_width, uint8* Y1) {
     }
 }
 
-void unpack_ui8matrix_littleend(uint8** X8, int src_height, int src_width, uint8** Y1) {
+void unpack_ui8matrix_littleend(uint8_t** X8, int src_height, int src_width, uint8_t** Y1) {
     for (int i = 0; i < src_height; i++) {
         unpack_ui8vector_littleend(X8[i], src_width, Y1[i]);
     }
 }
 
-void unpack_ui32matrix_littlend(uint8** in, uint32** out, int w, int h) {
+void unpack_ui32matrix_littlend(uint8_t** in, uint32_t** out, int w, int h) {
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
-            uint8 mask = 0x01;
+            uint8_t mask = 0x01;
             for (int k = 0; k < 8; k++) {
                 out[i][(j << 3) + k] = ((in[i][j] & mask) == 0) ? 0 : 255;
                 mask = mask << 1;
@@ -249,9 +249,9 @@ void unpack_ui32matrix_littlend(uint8** in, uint32** out, int w, int h) {
     }
 }
 
-void mask_EDT(uint8** I1, uint8** I2, int i0, int i1, int j0, int j1) {
+void mask_EDT(uint8_t** I1, uint8_t** I2, int i0, int i1, int j0, int j1) {
     int i, j;
-    uint8 a, b;
+    uint8_t a, b;
     for (i = i0; i <= i1; i++) {
         for (j = j0; j <= j1; j++) {
             a = I1[i][j];
@@ -263,9 +263,9 @@ void mask_EDT(uint8** I1, uint8** I2, int i0, int i1, int j0, int j1) {
     }
 }
 
-void mask_EDT_ui32matrix(uint32** I1, uint32** I2, int i0, int i1, int j0, int j1) {
+void mask_EDT_ui32matrix(uint32_t** I1, uint32_t** I2, int i0, int i1, int j0, int j1) {
     int i, j;
-    uint32 a, b;
+    uint32_t a, b;
     for (i = i0; i <= i1; i++) {
         for (j = j0; j <= j1; j++) {
             a = I1[i][j];
@@ -277,9 +277,9 @@ void mask_EDT_ui32matrix(uint32** I1, uint32** I2, int i0, int i1, int j0, int j
     }
 }
 
-void mask_EDT_compact(uint8** I1, uint8** I2, int i0, int i1, int j0, int j1) {
+void mask_EDT_compact(uint8_t** I1, uint8_t** I2, int i0, int i1, int j0, int j1) {
     int i, j, k;
-    uint8 a, b, mask, bit;
+    uint8_t a, b, mask, bit;
     for (i = i0; i <= i1; i++) {
         for (j = j0; j <= j1; j++) {
             mask = 0x1;
@@ -296,7 +296,7 @@ void mask_EDT_compact(uint8** I1, uint8** I2, int i0, int i1, int j0, int j1) {
     }
 }
 
-void histogram(uint8** m, float* h, int i0, int i1, int j0, int j1) {
+void histogram(uint8_t** m, float* h, int i0, int i1, int j0, int j1) {
     /* Histogramme normalisé h[i] = n[i] / N */
     float N = (float)((i1 - i0 + 1) * (j1 - j0 + 1));
 
@@ -315,7 +315,7 @@ void histogram(uint8** m, float* h, int i0, int i1, int j0, int j1) {
     }
 }
 
-void histogram_uv_norm_sq(uint8** m, float32** U, float32** V, float32* h, int i0, int i1, int j0, int j1) {
+void histogram_uv_norm_sq(uint8_t** m, float** U, float** V, float* h, int i0, int i1, int j0, int j1) {
     for (int i = 0; i < GRAY_LEVEL; i++) {
         h[i] = 0.0;
     }
@@ -391,7 +391,7 @@ int otsu_bcv_k(float* h, int k) {
 
 /* Otsu's thresholding method */
 /* Within class variance */
-/*int otsu_wcv(uint8** m, int i0, int i1, int j0, int j1) {
+/*int otsu_wcv(uint8_t** m, int i0, int i1, int j0, int j1) {
     int i, j;
     int histVal;
     int np; // Number of pixels of provided image
@@ -477,13 +477,13 @@ int otsu_bcv_k(float* h, int k) {
 }*/
 
 // OpenMP
-void unpack_ui8matrix_omp(uint8** in, uint8** out, int w, int h) {
+void unpack_ui8matrix_omp(uint8_t** in, uint8_t** out, int w, int h) {
 #ifdef _OPENMP
 #pragma omp parallel for shared(in, out)
 #endif
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
-            uint8 mask = 0x80;
+            uint8_t mask = 0x80;
             for (int k = 0; k < 8; k++) {
                 out[i][(j << 3) + k] = ((in[i][j] & mask) == 0) ? 0 : 255;
                 mask = mask >> 1;
@@ -492,13 +492,13 @@ void unpack_ui8matrix_omp(uint8** in, uint8** out, int w, int h) {
     }
 }
 
-void unpack_ui32matrix_omp(uint8** in, uint32** out, int w, int h) {
+void unpack_ui32matrix_omp(uint8_t** in, uint32_t** out, int w, int h) {
 #ifdef _OPENMP
 #pragma omp parallel for shared(in, out)
 #endif
     for (int i = 0; i < h; i++) {
         for (int j = 0; j < w; j++) {
-            uint8 mask = 0x80;
+            uint8_t mask = 0x80;
             for (int k = 0; k < 8; k++) {
                 out[i][(j << 3) + k] = ((in[i][j] & mask) == 0) ? 0 : 255;
                 mask = mask >> 1;

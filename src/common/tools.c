@@ -7,12 +7,9 @@
  */
 
 #include <assert.h>
-#include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 #include <sys/stat.h>
-#include <time.h>
 #ifdef OPENCV_LINK
 #include <tuple>
 #include <vector>
@@ -25,55 +22,46 @@
 #include <ffmpeg-io/writer.h>
 #include <nrc2.h>
 
-#include "args.h"
-#include "CCL.h"
-#include "tools.h"
-#include "features.h"
-#include "threshold.h"
-#include "tracking.h"
-#include "video.h"
 #include "macros.h"
 #include "tools.h"
 
-#define SIZE_BUF 20
-
-rgb8 tools_get_color(enum color_e color) {
-    rgb8 gray;
+rgb8_t tools_get_color(enum color_e color) {
+    rgb8_t gray;
     gray.g = 175;
     gray.b = 175;
     gray.r = 175;
 
-    rgb8 green;
+    rgb8_t green;
     green.g = 255;
     green.b = 000;
     green.r = 000;
 
-    rgb8 red;
+    rgb8_t red;
     red.g = 000;
     red.b = 000;
     red.r = 255;
 
-    rgb8 blue;
+    rgb8_t blue;
     blue.g = 000;
     blue.b = 255;
     blue.r = 000;
 
-    rgb8 purple;
+    rgb8_t purple;
     purple.g = 127;
     purple.b = 255;
     purple.r = 127;
 
-    rgb8 orange;
+    rgb8_t orange;
     orange.r = 255;
     orange.g = 165;
     orange.b = 000;
 
-    rgb8 yellow;
+    rgb8_t yellow;
     yellow.g = 255;
     yellow.b = 000;
     yellow.r = 255;
 
-    rgb8 misc;
+    rgb8_t misc;
     misc.g = 255;
     misc.b = 153;
     misc.r = 153;
@@ -102,16 +90,16 @@ rgb8 tools_get_color(enum color_e color) {
 }
 
 #ifdef OPENCV_LINK // this is C++ code (because OpenCV API is C++ now)
-void tools_draw_legend_squares(rgb8** img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
+void tools_draw_legend_squares(rgb8_t** img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
     //                     ymin      ymax      xmin      xmax     color
-    std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned, rgb8>> box_list;
+    std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned, rgb8_t>> box_list;
 
     for (int i = 0; i < N_OBJECTS; i++)
         box_list.push_back(std::make_tuple((i + 1) * v_space + (i + 0) * box_size,    // ymin
                                            (i + 1) * v_space + (i + 1) * box_size,    // ymax
                                            (+1) * h_space + (+0) * box_size,          // xmin
                                            (+1) * h_space + (+1) * box_size,          // xmax
-                                           tools_get_color(g_obj_type_to_color[i]))); // color
+                                           tools_get_color(g_obj_to_color[i]))); // color
 
     if (validation)
         // add false positve meteor
@@ -130,16 +118,16 @@ void tools_draw_legend_texts(cv::Mat& cv_img, unsigned box_size, unsigned h_spac
     //                          color        pos         text
     std::vector<std::tuple<cv::Scalar, cv::Point, std::string>> txt_list;
     for (int i = 0; i < N_OBJECTS; i++) {
-        rgb8 color = tools_get_color(g_obj_type_to_color[i]);
+        rgb8_t color = tools_get_color(g_obj_to_color[i]);
         unsigned x = 2 * h_space + box_size;
         unsigned y = ((i + 1) * v_space + (i + 1) * box_size) - 2;
         txt_list.push_back(std::make_tuple(cv::Scalar(color.b, color.g, color.r), cv::Point(x, y),
-                                           std::string(g_obj_type_to_string[i])));
+                                           std::string(g_obj_to_string[i])));
     }
 
     if (validation) {
         // add false positve meteor
-        rgb8 color = tools_get_color(RED);
+        rgb8_t color = tools_get_color(RED);
         unsigned x = 2 * h_space + box_size;
         unsigned y = ((N_OBJECTS + 2) * v_space + (N_OBJECTS + 2) * box_size) - 2;
         txt_list.push_back(
@@ -159,14 +147,14 @@ void tools_draw_legend_texts(cv::Mat& cv_img, unsigned box_size, unsigned h_spac
 
 void tools_draw_track_ids(cv::Mat& cv_img, const BB_coord_t* listBB, const int nBB) {
     //                       x    y color        list of ids
-    std::vector<std::tuple<int, int, rgb8, std::vector<int>>> list_of_ids_grouped_by_pos;
+    std::vector<std::tuple<int, int, rgb8_t, std::vector<int>>> list_of_ids_grouped_by_pos;
     for (int i = 0; i < nBB; i++) {
         int x = listBB[i].xmax + 3;
         int y = (listBB[i].ymin) + ((listBB[i].ymax - listBB[i].ymin) / 2);
 
         bool found = false;
         for (auto& l : list_of_ids_grouped_by_pos) {
-            rgb8 c = tools_get_color(listBB[i].color);
+            rgb8_t c = tools_get_color(listBB[i].color);
             if (std::get<0>(l) == x && std::get<1>(l) == y && std::get<2>(l).r == c.r && std::get<2>(l).g == c.g &&
                 std::get<2>(l).b == c.b) {
                 std::get<3>(l).push_back(listBB[i].track_id);
@@ -188,7 +176,7 @@ void tools_draw_track_ids(cv::Mat& cv_img, const BB_coord_t* listBB, const int n
 
         const int x = std::get<0>(id);
         const int y = std::get<1>(id);
-        const rgb8 color = std::get<2>(id);
+        const rgb8_t color = std::get<2>(id);
 
         // writing 'txt' over the image
         cv::Point org(x, y);
@@ -197,7 +185,7 @@ void tools_draw_track_ids(cv::Mat& cv_img, const BB_coord_t* listBB, const int n
     }
 }
 
-void tools_draw_text(rgb8** img, const int img_width, const int img_height, const BB_coord_t* listBB, const int nBB,
+void tools_draw_text(rgb8_t** img, const int img_width, const int img_height, const BB_coord_t* listBB, const int nBB,
                      int validation, int show_ids) {
     unsigned box_size = 20, h_space = 10, v_space = 10;
     tools_draw_legend_squares(img, box_size, h_space, v_space, validation);
@@ -240,7 +228,7 @@ void tools_draw_text(rgb8** img, const int img_width, const int img_height, cons
 }
 #endif
 
-void tools_convert_img_grayscale_to_rgb(const uint8** I, rgb8** I_bb, int i0, int i1, int j0, int j1) {
+void tools_convert_img_grayscale_to_rgb(const uint8** I, rgb8_t** I_bb, int i0, int i1, int j0, int j1) {
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
             I_bb[i][j].r = I[i][j];
@@ -250,13 +238,13 @@ void tools_convert_img_grayscale_to_rgb(const uint8** I, rgb8** I_bb, int i0, in
     }
 }
 
-void tools_draw_BB(rgb8** I_bb, const BB_coord_t* listBB, int n_BB) {
+void tools_draw_BB(rgb8_t** I_bb, const BB_coord_t* listBB, int n_BB) {
     for (int i = 0; i < n_BB; i++)
         tools_plot_bounding_box(I_bb, listBB[i].ymin, listBB[i].ymax, listBB[i].xmin, listBB[i].xmax, 2,
                                 tools_get_color(listBB[i].color));
 }
 
-void tools_save_frame(const char* filename, const rgb8** I_bb, int w, int h) {
+void tools_save_frame(const char* filename, const rgb8_t** I_bb, int w, int h) {
     char buffer[80];
 
     FILE* file;
@@ -286,7 +274,7 @@ void tools_save_bounding_box(const char* filename, uint16 rx, uint16 ry, uint16 
     fclose(f);
 }
 
-void tools_plot_bounding_box(rgb8** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8 color) {
+void tools_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8_t color) {
     for (int b = 0; b < border; b++) {
         ymin++;
         ymax--;
@@ -309,7 +297,7 @@ void tools_filter_speed_binarize(uint32** in, int i0, int i1, int j0, int j1, ui
             out[i][j] = stats[in[i][j]].S ? 0xFF : 0;
 }
 
-rgb8** tools_load_image_color(const char* filename, long* i0, long* i1, long* j0, long* j1) {
+rgb8_t** tools_load_image_color(const char* filename, long* i0, long* i1, long* j0, long* j1) {
     VERBOSE(printf("%s\n", filename););
     ffmpeg_handle reader;
     ffmpeg_init(&reader);
@@ -328,7 +316,7 @@ rgb8** tools_load_image_color(const char* filename, long* i0, long* i1, long* j0
     *i1 = reader.input.height - 1;
     *j1 = reader.input.width - 1;
     VERBOSE(printf("i1=%ld j1=%ld\n", *i1, *j1););
-    rgb8** img = rgb8matrix(*i0, *i1, *j0, *j1);
+    rgb8_t** img = (rgb8_t**)rgb8matrix(*i0, *i1, *j0, *j1);
 
     ffmpeg_start_reader(&reader, filename, NULL);
     ffmpeg_read2d(&reader, (uint8_t**)img);
@@ -344,7 +332,7 @@ void tools_save_frame_threshold(const char* filename, uint8** I0, uint8** I1, in
 
     FILE* file;
 
-    rgb8** img = rgb8matrix(0, h - 1, 0, 2 * w - 1);
+    rgb8_t** img = (rgb8_t**)rgb8matrix(0, h - 1, 0, 2 * w - 1);
     if (img == NULL)
         return;
 
@@ -381,7 +369,7 @@ void tools_save_frame_threshold(const char* filename, uint8** I0, uint8** I1, in
     /* fermeture du fichier */
     fclose(file);
 
-    free_rgb8matrix(img, 0, h - 1, 0, 2 * w - 1);
+    free_rgb8matrix((rgb8**)img, 0, h - 1, 0, 2 * w - 1);
 }
 
 void tools_save_frame_ui32matrix(const char* filename, uint32** I, int i0, int i1, int j0, int j1) {
@@ -392,7 +380,7 @@ void tools_save_frame_ui32matrix(const char* filename, uint32** I, int i0, int i
 
     FILE* file;
 
-    rgb8** img = rgb8matrix(0, h - 1, 0, w - 1);
+    rgb8_t** img = (rgb8_t**)rgb8matrix(0, h - 1, 0, w - 1);
     if (img == NULL)
         return;
 
@@ -421,27 +409,27 @@ void tools_save_frame_ui32matrix(const char* filename, uint32** I, int i0, int i
     /* fermeture du fichier */
     fclose(file);
 
-    free_rgb8matrix(img, 0, h - 1, 0, w - 1);
+    free_rgb8matrix((rgb8**)img, 0, h - 1, 0, w - 1);
 }
 
 void tools_save_frame_tracking(const char* filename, uint8** I, track_t* tracks, int tracks_nb, int i0, int i1, int j0,
                                int j1) {
-    rgb8 green;
+    rgb8_t green;
     green.g = 255;
     green.b = 000;
     green.r = 000;
 
-    rgb8 red;
+    rgb8_t red;
     red.g = 000;
     red.b = 000;
     red.r = 255;
 
-    rgb8 blue;
+    rgb8_t blue;
     blue.g = 000;
     blue.b = 255;
     blue.r = 000;
 
-    rgb8 orange;
+    rgb8_t orange;
     orange.r = 255;
     orange.g = 165;
     orange.b = 000;
@@ -453,7 +441,7 @@ void tools_save_frame_tracking(const char* filename, uint8** I, track_t* tracks,
 
     FILE* file;
 
-    rgb8** img = rgb8matrix(0, h - 1, 0, w - 1);
+    rgb8_t** img = (rgb8_t**)rgb8matrix(0, h - 1, 0, w - 1);
     if (img == NULL)
         return;
 
@@ -493,27 +481,27 @@ void tools_save_frame_tracking(const char* filename, uint8** I, track_t* tracks,
     /* fermeture du fichier */
     fclose(file);
 
-    free_rgb8matrix(img, 0, h - 1, 0, w - 1);
+    free_rgb8matrix((rgb8**)img, 0, h - 1, 0, w - 1);
 }
 
 void tools_save_video_frame_tracking(const char* filename, uint8** I, track_t* tracks, int tracks_nb, int i0, int i1,
                                      int j0, int j1) {
-    rgb8 green;
+    rgb8_t green;
     green.g = 255;
     green.b = 000;
     green.r = 000;
 
-    rgb8 red;
+    rgb8_t red;
     red.g = 000;
     red.b = 000;
     red.r = 255;
 
-    rgb8 blue;
+    rgb8_t blue;
     blue.g = 000;
     blue.b = 255;
     blue.r = 000;
 
-    rgb8 orange;
+    rgb8_t orange;
     orange.r = 255;
     orange.g = 165;
     orange.b = 000;
@@ -527,7 +515,7 @@ void tools_save_video_frame_tracking(const char* filename, uint8** I, track_t* t
         if (!ffmpeg_start_writer(&writer, filename, NULL))
             return;
     }
-    rgb8** img = rgb8matrix(0, i1, 0, j1);
+    rgb8_t** img = (rgb8_t**)rgb8matrix(0, i1, 0, j1);
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
             img[i][j].r = I[i][j];
@@ -548,7 +536,7 @@ void tools_save_video_frame_tracking(const char* filename, uint8** I, track_t* t
         }
 
     ffmpeg_write2d(&writer, (uint8_t**)img);
-    free_rgb8matrix(img, 0, i1, 0, j1);
+    free_rgb8matrix((rgb8**)img, 0, i1, 0, j1);
 }
 
 void tools_save_frame_ui8matrix(const char* filename, uint8** I, int i0, int i1, int j0, int j1) {
@@ -559,7 +547,7 @@ void tools_save_frame_ui8matrix(const char* filename, uint8** I, int i0, int i1,
 
     FILE* file;
 
-    rgb8** img = rgb8matrix(0, h - 1, 0, w - 1);
+    rgb8_t** img = (rgb8_t**)rgb8matrix(0, h - 1, 0, w - 1);
     if (img == NULL)
         return;
 
@@ -586,10 +574,10 @@ void tools_save_frame_ui8matrix(const char* filename, uint8** I, int i0, int i1,
     /* fermeture du fichier */
     fclose(file);
 
-    free_rgb8matrix(img, 0, h - 1, 0, w - 1);
+    free_rgb8matrix((rgb8**)img, 0, h - 1, 0, w - 1);
 }
 
-void tools_HSV_to_RGB(rgb8* pixel, uint8 h, uint8 s, uint8 v) {
+void tools_HSV_to_RGB(rgb8_t* pixel, uint8 h, uint8 s, uint8 v) {
     unsigned char region, remainder, p, q, t;
 
     if (s == 0) {
@@ -649,7 +637,7 @@ void tools_save_frame_quad(const char* filename, uint8** I0, uint8** I1, uint32*
 
     FILE* file;
 
-    rgb8** img = rgb8matrix(0, 2 * h - 1, 0, 2 * w - 1);
+    rgb8_t** img = (rgb8_t**)rgb8matrix(0, 2 * h - 1, 0, 2 * w - 1);
     if (img == NULL)
         return;
 
@@ -682,7 +670,7 @@ void tools_save_frame_quad(const char* filename, uint8** I0, uint8** I1, uint32*
     // Carrés vert sur les CC
     // for (int k=1 ; k<=nbLabel ; k++) {
     //     if (stats[k].S > 3) {
-    //         rgb8 color;
+    //         rgb8_t color;
     //         //tools_HSV_to_RGB(&color, k*255 / nbLabel, 255, 255);
     //         color.r = 0;
     //         color.g = 255;
@@ -731,7 +719,7 @@ void tools_save_frame_quad(const char* filename, uint8** I0, uint8** I1, uint32*
     /* fermeture du fichier */
     fclose(file);
 
-    free_rgb8matrix(img, 0, 2 * h - 1, 0, 2 * w - 1);
+    free_rgb8matrix((rgb8**)img, 0, 2 * h - 1, 0, 2 * w - 1);
 }
 
 void tools_save_frame_quad_hysteresis(const char* filename, uint8** I0, uint32** SH, uint32** SB, uint32** Y, int i0,
@@ -743,7 +731,7 @@ void tools_save_frame_quad_hysteresis(const char* filename, uint8** I0, uint32**
 
     FILE* file;
 
-    rgb8** img = rgb8matrix(0, 2 * h - 1, 0, 2 * w - 1);
+    rgb8_t** img = (rgb8_t**)rgb8matrix(0, 2 * h - 1, 0, 2 * w - 1);
     if (img == NULL)
         return;
 
@@ -802,7 +790,7 @@ void tools_save_frame_quad_hysteresis(const char* filename, uint8** I0, uint32**
     /* fermeture du fichier */
     fclose(file);
 
-    free_rgb8matrix(img, 0, 2 * h - 1, 0, 2 * w - 1);
+    free_rgb8matrix((rgb8**)img, 0, 2 * h - 1, 0, 2 * w - 1);
 }
 
 void tools_save_max(const char* filename, uint8** I, int i0, int i1, int j0, int j1) {

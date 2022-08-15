@@ -1,4 +1,6 @@
 #include <stdlib.h>
+#include <ffmpeg-io/writer.h>
+#include <ffmpeg-io/reader.h>
 
 #include "video.h"
 
@@ -36,7 +38,7 @@ video_t* video_init_from_file(char* filename, int start, int end, int skip, int*
     return video;
 }
 
-static int video_get_frame(video_t* video, uint8** I) {
+static int video_get_frame(video_t* video, uint8_t** I) {
     if (video->frame_current > video->frame_end || video->ffmpeg.error || !ffmpeg_read2d(&video->ffmpeg, I)) {
         if (video->ffmpeg.error != 22) // 22 == EOF
             fprintf(stderr, "(EE) %s\n", ffmpeg_error2str(video->ffmpeg.error));
@@ -46,7 +48,7 @@ static int video_get_frame(video_t* video, uint8** I) {
     return video->frame_current <= video->frame_end;
 }
 
-int video_get_next_frame(video_t* video, uint8** I) {
+int video_get_next_frame(video_t* video, uint8_t** I) {
     int r;
     int skip = ((video->frame_current < video->frame_start) ? video->frame_start - 1 : video->frame_skip);
     do {

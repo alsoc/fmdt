@@ -5,20 +5,18 @@
 
 #include <stdio.h>
 #include <string.h>
-#include <nrutil.h>
 #include <assert.h>
+#include <nrc2.h>
 
 #include "tools.h"
-#include "features.h"
 #include "KPPV.h"
-#include "macros.h"
 
 #define INF32 0xFFFFFFFF
 #define MAX_DIST 100
 
-uint32** g_nearest;
-float32** g_distances;
-uint32* g_conflicts; // debug
+uint32_t** g_nearest;
+float** g_distances;
+uint32_t* g_conflicts; // debug
 
 void KPPV_init(int i0, int i1, int j0, int j1) {
     g_nearest = ui32matrix(i0, i1, j0, j1);
@@ -37,7 +35,7 @@ void KPPV_free(int i0, int i1, int j0, int j1) {
 }
 
 void distance_calc(ROI_t* stats0, ROI_t* stats1, int nc0, int nc1) {
-    float32 d, x0, x1, y0, y1;
+    float d, x0, x1, y0, y1;
 
     // parcours des stats 0
     for (int i = 1; i <= nc0; i++) {
@@ -105,7 +103,7 @@ void KPPV_match1(ROI_t* stats0, ROI_t* stats1, int nc0, int nc1, int k) {
 }
 
 void KPPV_match2(ROI_t* stats0, ROI_t* stats1, int nc0, int nc1) {
-    float32 d;
+    float d;
     int rang = 1;
 
     for (int i = 1; i <= nc0; i++) {
@@ -143,7 +141,7 @@ void KPPV_match(ROI_t* stats0, ROI_t* stats1, int nc0, int nc1, int k) {
     KPPV_match2(stats0, stats1, nc0, nc1);
 }
 
-void KPPV_save_asso(const char* filename, uint32** Nearest, float32** distances, int nc0, ROI_t* stats) {
+void KPPV_save_asso(const char* filename, uint32_t** Nearest, float** distances, int nc0, ROI_t* stats) {
     FILE* f = fopen(filename, "w");
     if (f == NULL) {
         fprintf(stderr, "(EE) error ouverture %s \n", filename);
@@ -198,7 +196,7 @@ void KPPV_save_asso_VT(const char* filename, int nc0, ROI_t* stats, int frame) {
     fclose(f);
 }
 
-void KPPV_save_conflicts(const char* filename, uint32* conflicts, uint32** Nearest, float32** distances, int n_asso,
+void KPPV_save_conflicts(const char* filename, uint32_t* conflicts, uint32_t** Nearest, float** distances, int n_asso,
                          int n_conflict) {
     FILE* f = fopen(filename, "w");
     if (f == NULL) {
@@ -231,7 +229,7 @@ void KPPV_save_conflicts(const char* filename, uint32* conflicts, uint32** Neare
     fclose(f);
 }
 
-void KPPV_save_asso_conflicts(const char* path, int frame, uint32* conflicts, uint32** Nearest, float32** distances,
+void KPPV_save_asso_conflicts(const char* path, int frame, uint32_t* conflicts, uint32_t** Nearest, float** distances,
                               int n_asso, int n_conflict, ROI_t* stats0, ROI_t* stats1, track_t* tracks, int n_tracks) {
     assert(frame >= 0);
 
@@ -281,8 +279,8 @@ void KPPV_save_asso_conflicts(const char* path, int frame, uint32* conflicts, ui
 
         j = stats0[i].next;
         if (j != 0) {
-            float32 dx = stats0[i].dx;
-            float32 dy = stats0[i].dy;
+            float dx = stats0[i].dx;
+            float dy = stats0[i].dy;
             fprintf(f, "  %4d | %4d || %6.2f | %4d || %5.1f | %5.1f | %6.3f \n", i, j, distances[i][j], Nearest[i][j],
                     dx, dy, stats0[i].error);
         }

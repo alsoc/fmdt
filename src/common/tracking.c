@@ -6,71 +6,56 @@
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
-#include <time.h>
-#include <nrutil.h>
-#include <ffmpeg-io/reader.h>
-#include <ffmpeg-io/writer.h>
 
-#include "args.h"
-#include "ballon.h"
-#include "CCL.h"
+#include "defines.h"
 #include "tools.h"
-#include "features.h"
-#include "threshold.h"
-#include "tracking.h"
-#include "video.h"
 #include "macros.h"
+#include "tracking.h"
 
 #define SIZE_BUF 10000
 #define INF 9999999
 
 static ROIx2_t g_buffer[SIZE_BUF];
 BB_t* g_tabBB[NB_FRAMES];
-
-extern uint32** g_nearest;
-extern float32** g_distances;
-extern uint32* g_conflicts;
-
-enum color_e g_obj_type_to_color[N_OBJECTS];
-char g_obj_type_to_string[N_OBJECTS][64];
-char g_obj_type_to_string_with_spaces[N_OBJECTS][64];
+enum color_e g_obj_to_color[N_OBJECTS];
+char g_obj_to_string[N_OBJECTS][64];
+char g_obj_to_string_with_spaces[N_OBJECTS][64];
 
 void tracking_init_global_data() {
-    g_obj_type_to_color[UNKNOWN] = UNKNOWN_COLOR;
-    g_obj_type_to_color[STAR] = STAR_COLOR;
-    g_obj_type_to_color[METEOR] = METEOR_COLOR;
-    g_obj_type_to_color[NOISE] = NOISE_COLOR;
+    g_obj_to_color[UNKNOWN] = UNKNOWN_COLOR;
+    g_obj_to_color[STAR] = STAR_COLOR;
+    g_obj_to_color[METEOR] = METEOR_COLOR;
+    g_obj_to_color[NOISE] = NOISE_COLOR;
 
     char str_unknown[64] = UNKNOWN_STR;
-    sprintf(g_obj_type_to_string[UNKNOWN], "%s", str_unknown);
+    sprintf(g_obj_to_string[UNKNOWN], "%s", str_unknown);
     char str_star[64] = STAR_STR;
-    sprintf(g_obj_type_to_string[STAR], "%s", str_star);
+    sprintf(g_obj_to_string[STAR], "%s", str_star);
     char str_meteor[64] = METEOR_STR;
-    sprintf(g_obj_type_to_string[METEOR], "%s", str_meteor);
+    sprintf(g_obj_to_string[METEOR], "%s", str_meteor);
     char str_noise[64] = NOISE_STR;
-    sprintf(g_obj_type_to_string[NOISE], "%s", str_noise);
+    sprintf(g_obj_to_string[NOISE], "%s", str_noise);
 
     unsigned max = 0;
     for (int i = 0; i < N_OBJECTS; i++)
-        if (strlen(g_obj_type_to_string[i]) > max)
-            max = strlen(g_obj_type_to_string[i]);
+        if (strlen(g_obj_to_string[i]) > max)
+            max = strlen(g_obj_to_string[i]);
 
     for (int i = 0; i < N_OBJECTS; i++) {
-        int len = strlen(g_obj_type_to_string[i]);
+        int len = strlen(g_obj_to_string[i]);
         int diff = max - len;
         for (int c = len; c >= 0; c--)
-            g_obj_type_to_string_with_spaces[i][diff + c] = g_obj_type_to_string[i][c];
+            g_obj_to_string_with_spaces[i][diff + c] = g_obj_to_string[i][c];
         for (int c = 0; c < diff; c++)
-            g_obj_type_to_string_with_spaces[i][c] = ' ';
+            g_obj_to_string_with_spaces[i][c] = ' ';
     }
 }
 
 enum obj_e tracking_string_to_obj_type(const char* string) {
     enum obj_e obj = UNKNOWN;
     for (int i = 0; i < N_OBJECTS; i++)
-        if (!strcmp(string, g_obj_type_to_string[i])) {
+        if (!strcmp(string, g_obj_to_string[i])) {
             obj = (enum obj_e)i;
             break;
         }
@@ -106,7 +91,7 @@ void tracking_init_array_BB() {
         g_tabBB[i] = NULL;
 }
 
-void add_to_list(uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, uint16 track_id, int frame) {
+void add_to_list(uint16_t rx, uint16_t ry, uint16_t bb_x, uint16_t bb_y, uint16_t track_id, int frame) {
     assert(frame < NB_FRAMES);
     BB_t* newE = (BB_t*)malloc(sizeof(BB_t));
     newE->rx = rx;
@@ -162,8 +147,8 @@ int search_buf_stat(int ROI_id, int frame) {
 }
 
 void track_extrapolate(track_t* t, int theta, int tx, int ty) {
-    float32 u, v;
-    float32 x, y;
+    float u, v;
+    float x, y;
     t->state = TRACK_LOST;
     // compensation du mouvement + calcul vitesse entre t-1 et t
     u = t->end.x - t->end.dx - t->x;
@@ -178,12 +163,12 @@ void track_extrapolate(track_t* t, int theta, int tx, int ty) {
 
 void update_bounding_box(track_t* track, ROI_t stats, int frame) {
     PUTS("UPDATE BB");
-    uint16 rx, ry, bb_x, bb_y;
+    uint16_t rx, ry, bb_x, bb_y;
 
     assert(stats.xmin || stats.xmax || stats.ymin || stats.ymax);
 
-    bb_x = (uint16)ceil((double)((stats.xmin + stats.xmax)) / 2);
-    bb_y = (uint16)ceil((double)((stats.ymin + stats.ymax)) / 2);
+    bb_x = (uint16_t)ceil((double)((stats.xmin + stats.xmax)) / 2);
+    bb_y = (uint16_t)ceil((double)((stats.ymin + stats.ymax)) / 2);
     rx = (bb_x - stats.xmin) + 5;
     ry = (bb_y - stats.ymin) + 5;
 
@@ -246,13 +231,13 @@ void update_existing_tracks(ROI_t* stats0, ROI_t* stats1, track_t* tracks, int n
             if (tracks[i].state == TRACK_UPDATED || tracks[i].state == TRACK_NEW) {
                 next = stats0[tracks[i].end.ID].next;
                 if (next) {
-                    float32 a;
-                    float32 dx = (stats1[next].x - stats0[tracks[i].end.ID].x);
-                    float32 dy = (stats1[next].y - stats0[tracks[i].end.ID].y);
+                    float a;
+                    float dx = (stats1[next].x - stats0[tracks[i].end.ID].x);
+                    float dy = (stats1[next].y - stats0[tracks[i].end.ID].y);
 
                     a = (dx == 0) ? INF : (dy / dx);
 
-                    float32 y = tracks[i].a * stats1[next].x + tracks[i].b;
+                    float y = tracks[i].a * stats1[next].x + tracks[i].b;
 
                     if ((fabs(stats1[next].y - y) < d_line) &&
                         ((dx * tracks[i].dx >= 0.0f) && (dy * tracks[i].dy >= 0.0f)) &&
@@ -302,8 +287,8 @@ void insert_new_track(ROI_t* ROI_list[256], unsigned n_ROI, track_t* tracks, int
     tracks[tracks_cnt].id = tracks_cnt + 1;
     tracks[tracks_cnt].begin = *first_ROI;
     tracks[tracks_cnt].end = *last_ROI;
-    tracks[tracks_cnt].bb_x = (uint16)ceil((double)((first_ROI->xmin + first_ROI->xmax)) / 2);
-    tracks[tracks_cnt].bb_y = (uint16)ceil((double)((first_ROI->ymin + first_ROI->ymax)) / 2);
+    tracks[tracks_cnt].bb_x = (uint16_t)ceil((double)((first_ROI->xmin + first_ROI->xmax)) / 2);
+    tracks[tracks_cnt].bb_y = (uint16_t)ceil((double)((first_ROI->ymin + first_ROI->ymax)) / 2);
     tracks[tracks_cnt].time = n_ROI - 1; // TODO: -1 is wrong, fix this where 'track_t.time' is used later in the code
     tracks[tracks_cnt].timestamp = frame - (n_ROI);
     tracks[tracks_cnt].state = TRACK_NEW;
@@ -350,7 +335,7 @@ void create_new_tracks(ROI_t* stats0, ROI_t* stats1, track_t* tracks, int nc0, i
     double eType = features_ecart_type(stats0, nc0, errMoy);
 
     for (int i = 1; i <= nc0; i++) {
-        float32 e = stats0[i].error;
+        float e = stats0[i].error;
         int asso = stats0[i].next;
         if (asso) {
             // si mouvement detecté
@@ -421,7 +406,7 @@ void tracking_print_tracks(FILE* f, track_t* tracks, int n)
         if (tracks[i].time) {
             fprintf(f, "   %5d || %7d | %6.1f | %6.1f || %7d | %6.1f | %6.1f || %s \n", tracks[i].id,
                     tracks[i].timestamp, tracks[i].begin.x, tracks[i].begin.y, tracks[i].timestamp + tracks[i].time,
-                    tracks[i].end.x, tracks[i].end.y, g_obj_type_to_string_with_spaces[tracks[i].obj_type]);
+                    tracks[i].end.x, tracks[i].end.y, g_obj_to_string_with_spaces[tracks[i].obj_type]);
             track_id++;
         }
 }
@@ -449,7 +434,7 @@ void tracking_parse_tracks(const char* filename, track_t* tracks, int* n)
     }
 
     int tid, t0, t1;
-    float32 x0, x1, y0, y1;
+    float x0, x1, y0, y1;
     // int bb_x, bb_y;
     // int obj_type;
     char obj_type_str[1024];

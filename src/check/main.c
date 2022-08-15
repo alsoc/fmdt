@@ -3,17 +3,14 @@
  * LIP6
  */
 
-#include <inttypes.h>
 #include <stdio.h>
 #include <string.h>
-#include <sys/stat.h>
+#include <stdlib.h>
 
 #include "args.h"
-#include "tools.h"
+#include "defines.h"
 #include "tracking.h"
 #include "validation.h"
-
-#define SIZE_MAX_TRACKS 1000
 
 void main_validation(int argc, char** argv) {
     // default values

@@ -3,21 +3,25 @@
  * LIP6
  */
 
-#include <inttypes.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
+#include <stdint.h>
+#include <nrc2.h>
 
-#include "ballon.h"
+#include "macros.h"
+#include "args.h"
+#include "defines.h"
 #include "tools.h"
 #include "tracking.h"
 #include "validation.h"
+#include "video.h"
 
-void max_reduce(uint8** M, int i0, int i1, int j0, int j1, uint8** I) {
+void max_reduce(uint8_t** M, int i0, int i1, int j0, int j1, uint8_t** I) {
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
-            uint8 x = I[i][j];
-            uint8 m = M[i][j];
+            uint8_t x = I[i][j];
+            uint8_t m = M[i][j];
             if (x > m) {
                 M[i][j] = x;
             }
@@ -121,8 +125,8 @@ void main_maxred(int argc, char** argv) {
     // -- ALLOCATION -- //
     // ---------------- //
     PUTS("ALLOC");
-    uint8** img = ui8matrix(i0, i1, j0, j1);
-    uint8** Max = ui8matrix(i0, i1, j0, j1);
+    uint8_t** img = (uint8_t**)ui8matrix(i0, i1, j0, j1);
+    uint8_t** Max = (uint8_t**)ui8matrix(i0, i1, j0, j1);
 
     // ----------------//
     // -- TRAITEMENT --//
@@ -160,7 +164,7 @@ void main_maxred(int argc, char** argv) {
             listBB[t].ymax = (tracks[t].begin.y < tracks[t].end.y ? tracks[t].end.y : tracks[t].begin.y) + delta;
 
             if (tracks[t].obj_type != UNKNOWN)
-                listBB[t].color = g_obj_type_to_color[tracks[t].obj_type];
+                listBB[t].color = g_obj_to_color[tracks[t].obj_type];
             else {
                 fprintf(stderr, "(EE) This should never happen... ('t' = %d, 'tracks[t].obj_type' = %d)\n", t,
                         tracks[t].obj_type);
@@ -173,14 +177,14 @@ void main_maxred(int argc, char** argv) {
                 listBB[t].color = RED; // RED   = false positive 'meteor'
         }
 
-        rgb8** img_bb = rgb8matrix(i0, i1, j0, j1);
-        tools_convert_img_grayscale_to_rgb((const uint8**)Max, img_bb, i0, i1, j0, j1);
+        rgb8_t** img_bb = (rgb8_t**)rgb8matrix(i0, i1, j0, j1);
+        tools_convert_img_grayscale_to_rgb((const uint8_t**)Max, img_bb, i0, i1, j0, j1);
         int n_BB = n_tracks;
         tools_draw_BB(img_bb, listBB, n_BB);
 #ifdef OPENCV_LINK
         tools_draw_text(img_bb, j1, i1, listBB, n_BB, validation ? 1 : 0, show_ids);
 #endif
-        tools_save_frame(output_frame, (const rgb8**)img_bb, j1, i1);
+        tools_save_frame(output_frame, (const rgb8_t**)img_bb, j1, i1);
 
         free(listBB);
         free(img_bb);

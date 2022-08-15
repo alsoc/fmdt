@@ -5,9 +5,9 @@
 
 #include <stdio.h>
 #include <string.h>
+#include <math.h>
 
 #include "tools.h"
-#include "macros.h"
 #include "features.h"
 
 void features_init_ROI(ROI_t* stats, int n) {
@@ -15,7 +15,7 @@ void features_init_ROI(ROI_t* stats, int n) {
         memset(stats + i, 0, sizeof(ROI_t));
 }
 
-void features_extract(uint32** img, int i0, int i1, int j0, int j1, ROI_t* stats, int n) {
+void features_extract(uint32_t** img, int i0, int i1, int j0, int j1, ROI_t* stats, int n) {
     for (int i = 1; i <= n; i++) {
         memset(stats + i, 0, sizeof(ROI_t));
         stats[i].xmin = j1;
@@ -26,7 +26,7 @@ void features_extract(uint32** img, int i0, int i1, int j0, int j1, ROI_t* stats
 
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
-            uint32 e = img[i][j];
+            uint32_t e = img[i][j];
             if (e > 0) {
                 stats[e].S += 1;
                 stats[e].ID = e;
@@ -53,7 +53,7 @@ void features_extract(uint32** img, int i0, int i1, int j0, int j1, ROI_t* stats
     }
 }
 
-void features_merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, ROI_t* stats, int n, int S_min,
+void features_merge_HI_CCL_v2(uint32_t** HI, uint32_t** M, int i0, int i1, int j0, int j1, ROI_t* stats, int n, int S_min,
                               int S_max) {
     int x0, x1, y0, y1, id;
     ROI_t cc;
@@ -100,11 +100,11 @@ void features_merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, i
     }
 }
 
-void features_filter_surface(ROI_t* stats, int n, uint32** img, uint32 threshold_min, uint32 threshold_max) {
+void features_filter_surface(ROI_t* stats, int n, uint32_t** img, uint32_t threshold_min, uint32_t threshold_max) {
     // Doit on vraiment modifier l'image de départ? ou juste les stats.
-    uint32 S, e;
+    uint32_t S, e;
     int i0, i1, j0, j1;
-    uint16 id;
+    uint16_t id;
 
     for (int i = 1; i <= n; i++) {
         S = stats[i].S;
@@ -331,7 +331,7 @@ double features_error_moy(ROI_t* stats, int n) {
 double features_ecart_type(ROI_t* stats, int n, double errMoy) {
     double S = 0.0;
     int cpt = 0;
-    float32 e;
+    float e;
 
     for (int i = 1; i <= n; i++) {
 
@@ -348,8 +348,8 @@ double features_ecart_type(ROI_t* stats, int n, double errMoy) {
 void features_motion_extraction(ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx, double ty) {
     int cc1;
     double x, y, xp, yp;
-    float32 dx, dy;
-    float32 e;
+    float dx, dy;
+    float e;
 
     for (int i = 1; i <= nc0; i++) {
         cc1 = stats0[i].next; // assos[i];
@@ -387,9 +387,9 @@ void features_motion(ROI_t* stats0, ROI_t* stats1, int n0, int n1, double* theta
 }
 
 int features_analyse_ellipse(ROI_t* stats, int n, float e_threshold) {
-    float32 S, Sx, Sy, Sx2, Sy2, Sxy;
-    float32 x_avg, y_avg, m20, m02, m11;
-    float32 a2, b2, a, b, e;
+    float S, Sx, Sy, Sx2, Sy2, Sxy;
+    float x_avg, y_avg, m20, m02, m11;
+    float a2, b2, a, b, e;
 
     int true_n = 0;
 
@@ -423,8 +423,8 @@ int features_analyse_ellipse(ROI_t* stats, int n, float e_threshold) {
         // e = sqrt(a2 - b2) / a;
         // e = a / b;
 
-        // float32 abs_diff = fabs(theta - stats[i].angle_UV);
-        // float32 angle_diff = min(min(abs_diff, 360-abs_diff), fabs(180-abs_diff));
+        // float abs_diff = fabs(theta - stats[i].angle_UV);
+        // float angle_diff = min(min(abs_diff, 360-abs_diff), fabs(180-abs_diff));
 
         // test inverse de ce qui est naturel de faire (coherent avec e = b/a, mais INVERSE !) LL 2020
         if (e > e_threshold /*&&  angle_diff > 10*/) {
@@ -469,7 +469,7 @@ void features_parse_stats(const char* filename, ROI_t* stats, int* n)
     char lines[200];
     int id, xmin, xmax, ymin, ymax, s, sx, sy, prev, next;
     double x, y;
-    float32 dx, dy, error;
+    float dx, dy, error;
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         fprintf(stderr, "(EE) cannot open file '%s'\n", filename);
@@ -522,7 +522,7 @@ void features_save_stats_file(FILE* f, ROI_t* stats, int n, track_t* tracks) {
         if (stats[i].S != 0) {
             fprintf(f, "   %4d || %4d | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f  \n",
                     stats[i].ID, stats[i].track_id,
-                    g_obj_type_to_string_with_spaces[tracks[stats[i].track_id - 1].obj_type], stats[i].xmin,
+                    g_obj_to_string_with_spaces[tracks[stats[i].track_id - 1].obj_type], stats[i].xmin,
                     stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx, stats[i].Sy, stats[i].x,
                     stats[i].y);
         }
@@ -596,7 +596,7 @@ void features_save_motion_extraction(char* filename, ROI_t* stats0, ROI_t* stats
     double eType = features_ecart_type(stats0, nc0, errMoy);
 
     for (int i = 1; i <= nc0; i++) {
-        float32 e = stats0[i].error;
+        float e = stats0[i].error;
         // si mouvement detecté
         if (fabs(e - errMoy) > 1.5 * eType) {
             fprintf(f, "%d - %d\n", frame, frame + 1);

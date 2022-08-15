@@ -6,41 +6,40 @@
 #ifndef __FEATURES_H__
 #define __FEATURES_H__
 
-#include <math.h>
-#include <nrutil.h>
+#include <stdint.h>
 
 typedef struct {
-    uint16 xmin;
-    uint16 xmax;
-    uint16 ymin;
-    uint16 ymax;
-    uint32 S; // number of points
-    uint16 ID; // ID
-    int track_id;
-    float32 x; // abscisse du centre d'inertie x = Sx / S
-    float32 y; // ordonnee du centre d'inertie y = Sy / S
-    uint32 Sx; // sum of x properties
-    uint32 Sy; // sum of y properties
-    uint64 Sx2;
-    uint64 Sxy;
-    uint64 Sy2;
-    float32 dx; // erreur par rapport a l`image recalee
-    float32 dy; // erreur par rapport a l`image recalee
-    float32 error;
-    int time;
-    int time_motion;
-    int prev; // associated CC from t-1 -> t -> t+1
-    int next; // associated CC from t-1 -> t -> t+1
-    uint8 motion; // debug
-    uint8 state;
+    uint16_t xmin;
+    uint16_t xmax;
+    uint16_t ymin;
+    uint16_t ymax;
+    uint32_t S; // number of points
+    uint16_t ID; // ID
+    int32_t track_id;
+    float x; // abscisse du centre d'inertie x = Sx / S
+    float y; // ordonnee du centre d'inertie y = Sy / S
+    uint32_t Sx; // sum of x properties
+    uint32_t Sy; // sum of y properties
+    uint64_t Sx2;
+    uint64_t Sxy;
+    uint64_t Sy2;
+    float dx; // erreur par rapport a l`image recalee
+    float dy; // erreur par rapport a l`image recalee
+    float error;
+    int32_t time;
+    int32_t time_motion;
+    int32_t prev; // associated CC from t-1 -> t -> t+1
+    int32_t next; // associated CC from t-1 -> t -> t+1
+    uint8_t motion; // debug
+    uint8_t state;
 } ROI_t;
 
 typedef struct track track_t; // defined in "tracking.h"
 
 void features_init_ROI(ROI_t* stats, int n);
-void features_extract(uint32** img, int i0, int i1, int j0, int j1, ROI_t* stats, int n);
-// void features_filter_surface(ROI_t* stats, int n, uint32** img, uint32 threshold_min, uint32 threshold_max);
-void features_merge_HI_CCL_v2(uint32** HI, uint32** M, int i0, int i1, int j0, int j1, ROI_t* stats, int n, int S_min,
+void features_extract(uint32_t** img, int i0, int i1, int j0, int j1, ROI_t* stats, int n);
+// void features_filter_surface(ROI_t* stats, int n, uint32_t** img, uint32_t threshold_min, uint32_t threshold_max);
+void features_merge_HI_CCL_v2(uint32_t** HI, uint32_t** M, int i0, int i1, int j0, int j1, ROI_t* stats, int n, int S_min,
                               int S_max);
 int features_shrink_stats(ROI_t* stats_src, ROI_t* stats_dest, int n);
 double features_ecart_type(ROI_t* stats, int n, double errMoy);

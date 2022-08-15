@@ -3,13 +3,10 @@
  * Copyright (c) 2021-2022, Mathuran KANDEEPAN, LIP6 Sorbonne University
  */
 
-#include <stdio.h>
 #include <stdlib.h>
-#include <nrutil.h>
+#include <nrc2.h>
 
-#include "args.h"
 #include "ballon.h"
-#include "macros.h"
 
 ballon_t* ballon_alloc(int i0, int i1, int j0, int j1, int b) {
     ballon_t* ballon = (ballon_t*)malloc(sizeof(ballon_t));

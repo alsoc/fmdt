@@ -5,6 +5,8 @@
 #ifndef __TRACKING_H__
 #define __TRACKING_H__
 
+#include <stdint.h>
+
 #include "features.h"
 
 /*
@@ -26,38 +28,34 @@ enum color_e { MISC = 0, GRAY, GREEN, RED, PURPLE, ORANGE, BLUE, YELLOW, N_COLOR
 #define NOISE_STR "noise"
 #define UNKNOWN_STR "unknown"
 
-extern enum color_e g_obj_type_to_color[N_OBJECTS];
-extern char g_obj_type_to_string[N_OBJECTS][64];
-extern char g_obj_type_to_string_with_spaces[N_OBJECTS][64];
-
 typedef struct track {
     // unsigned state;
     unsigned timestamp;
-    uint16 id;
+    uint16_t id;
     ROI_t begin;
     ROI_t end;
-    float32 x;
-    float32 y;
-    float32 dx;
-    float32 dy;
-    uint32 time;
-    uint16 bb_x;
-    uint16 bb_y;
-    uint16 rx;
-    uint16 ry;
+    float x;
+    float y;
+    float dx;
+    float dy;
+    uint32_t time;
+    uint16_t bb_x;
+    uint16_t bb_y;
+    uint16_t rx;
+    uint16_t ry;
     // equation de la droite : y = ax + b
-    float32 a;
-    float32 b;
-    float32 xmin;
-    float32 xmax;
-    float32 ymin;
-    float32 ymax;
+    float a;
+    float b;
+    float xmin;
+    float xmax;
+    float ymin;
+    float ymax;
     int state;
     enum obj_e obj_type;
     // Resultat validation (bad design)
-    uint8 is_valid;
+    uint8_t is_valid;
     // Juste pour afficher les vitesses
-    float32 vitesse[300];
+    float vitesse[300];
     int cur;
 } track_t;
 
@@ -77,13 +75,18 @@ typedef struct {
 } ROIx2_t;
 
 typedef struct BB_t {
-    uint16 bb_x;
-    uint16 bb_y;
-    uint16 rx;
-    uint16 ry;
-    uint16 track_id;
+    uint16_t bb_x;
+    uint16_t bb_y;
+    uint16_t rx;
+    uint16_t ry;
+    uint16_t track_id;
     struct BB_t* next;
 } BB_t;
+
+extern BB_t* g_tabBB[NB_FRAMES];
+extern enum color_e g_obj_to_color[N_OBJECTS];
+extern char g_obj_to_string[N_OBJECTS][64];
+extern char g_obj_to_string_with_spaces[N_OBJECTS][64];
 
 void tracking_init_global_data();
 enum obj_e tracking_string_to_obj_type(const char* string);

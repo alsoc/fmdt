@@ -1,13 +1,10 @@
 #include <assert.h>
 #include <stdio.h>
-#include <stdlib.h>
 #include <string.h>
 
-#include "tools.h"
-#include "tracking.h"
+#include "macros.h"
 #include "validation.h"
 
-#define TOLERANCE_DIRECTION 5
 #define TOLERANCE_DISTANCEMIN 20 // 8
 
 static unsigned g_n_val_objects = 0;
@@ -29,12 +26,12 @@ int validation_init(char* val_objects_file) {
 
     // count the number of lines
     char tmp_obj_type[1024];
-    sint16 tmp_t0;
-    float32 tmp_x0;
-    float32 tmp_y0;
-    sint16 tmp_t1;
-    float32 tmp_x1;
-    float32 tmp_y1;
+    int16_t tmp_t0;
+    float tmp_x0;
+    float tmp_y0;
+    int16_t tmp_t1;
+    float tmp_x1;
+    float tmp_y1;
     g_n_val_objects = 0;
     while (!feof(file) && fscanf(file, "%s %hu \t %f \t %f \t %hu \t %f \t %f \n", tmp_obj_type, &tmp_t0, &tmp_x0,
                                  &tmp_y0, &tmp_t1, &tmp_x1, &tmp_y1))
@@ -151,7 +148,7 @@ void validation_print(const track_t* tracks, const int tracks_nb) {
                             g_val_objects[i].track_x0, g_val_objects[i].track_y0, g_val_objects[i].track_x1,
                             g_val_objects[i].track_y1););
             printf("   %3d | %s ||    %3d | %3d || %5d | %5d ||  %5d  \n", i,
-                   g_obj_type_to_string_with_spaces[g_val_objects[i].obj_type], g_val_objects[i].hits, expected_hits,
+                   g_obj_to_string_with_spaces[g_val_objects[i].obj_type], g_val_objects[i].hits, expected_hits,
                    g_val_objects[i].t0, g_val_objects[i].t1, g_val_objects[i].nb_tracks);
 
             unsigned tmp = (g_val_objects[i].hits <= expected_hits)

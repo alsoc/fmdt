@@ -3,15 +3,16 @@
  * LIP6
  */
 
-#include <inttypes.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <string.h>
-#include <sys/stat.h>
 #include <nrc2.h>
+#include <ffmpeg-io/writer.h>
 
-#include "ballon.h"
+#include "macros.h"
+#include "args.h"
+#include "defines.h"
 #include "tools.h"
-#include "features.h"
 #include "tracking.h"
 #include "validation.h"
 #include "video.h"
@@ -142,12 +143,12 @@ void main_visu(int argc, char** argv) {
         fprintf(stderr, "(EE) 'tracking_count_objects' returned different number of tracks...\n");
         exit(-1);
     }
-    printf("# track_ts read from file = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\n", n_meteors, n_stars,
+    printf("# Tracks read from file = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\n", n_meteors, n_stars,
            n_noise, n_tracks);
 
     // init
     video_t* video = video_init_from_file(input_video, start, end, 0, &i0, &i1, &j0, &j1);
-    uint8** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
+    uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
 
     // validation pour établir si une track est vrai/faux positif
     if (validation) {
@@ -179,7 +180,7 @@ void main_visu(int argc, char** argv) {
         fprintf(stderr, "(EE) Something went wrong when starting to write output video.");
         exit(-1);
     }
-    rgb8** img_bb = rgb8matrix(0, i1, 0, j1);
+    rgb8_t** img_bb = (rgb8_t**)rgb8matrix(0, i1, 0, j1);
 
     // parcours de la video
     while (video_get_next_frame(video, I0)) {
@@ -191,7 +192,7 @@ void main_visu(int argc, char** argv) {
         // affiche tous les BB de l'image
         while (frame_bb == frame) {
             if (tracks[LUT_tracks_id[track_id]].obj_type != UNKNOWN)
-                color = g_obj_type_to_color[tracks[LUT_tracks_id[track_id]].obj_type];
+                color = g_obj_to_color[tracks[LUT_tracks_id[track_id]].obj_type];
             else {
                 fprintf(stderr,
                         "(EE) This should never happen... ('cpt' = %d, 'track_id' = %d, 'LUT_tracks_id[track_id]' = "
@@ -221,7 +222,7 @@ void main_visu(int argc, char** argv) {
             cpt++;
         }
 
-        tools_convert_img_grayscale_to_rgb((const uint8**)I0, img_bb, i0, i1, j0, j1);
+        tools_convert_img_grayscale_to_rgb((const uint8_t**)I0, img_bb, i0, i1, j0, j1);
         tools_draw_BB(img_bb, listBB, cpt);
 #ifdef OPENCV_LINK
         tools_draw_text(img_bb, j1, i1, listBB, cpt, validation ? 1 : 0, show_ids);
@@ -234,10 +235,10 @@ void main_visu(int argc, char** argv) {
             tools_create_folder(output_frames);
             char filename_cur_frame[256];
             sprintf(filename_cur_frame, "%s/%05d.ppm", output_frames, frame);
-            tools_save_frame(filename_cur_frame, (const rgb8**)img_bb, j1, i1);
+            tools_save_frame(filename_cur_frame, (const rgb8_t**)img_bb, j1, i1);
         }
     }
-    free_rgb8matrix(img_bb, 0, i1, 0, j1);
+    free_rgb8matrix((rgb8**)img_bb, 0, i1, 0, j1);
     ffmpeg_stop_writer(&writer_video_out);
     free_ui8matrix(I0, i0 - b, i1 + b, j0 - b, j1 + b);
     free(LUT_tracks_id);
