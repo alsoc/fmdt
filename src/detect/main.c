@@ -14,7 +14,7 @@
 #include "video.h"
 #include "macros.h"
 
-void main_detect(int argc, char** argv) {
+int main(int argc, char** argv) {
     // default values
     int def_start_frame = 0;
     int def_end_frame = 200000;
@@ -286,9 +286,6 @@ void main_detect(int argc, char** argv) {
     CCL_LSL_free(i0, i1, j0, j1);
     KPPV_free(0, 50, 0, 50);
     printf("# End of the program, exiting.\n");
-}
 
-int main(int argc, char** argv) {
-    main_detect(argc, argv);
-    return 0;
+    return EXIT_SUCCESS;
 }

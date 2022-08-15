@@ -12,7 +12,7 @@
 #include "tracking.h"
 #include "validation.h"
 
-void main_validation(int argc, char** argv) {
+int main(int argc, char** argv) {
     // default values
     char* def_input_tracks = NULL;
     char* def_validation = NULL;
@@ -65,9 +65,6 @@ void main_validation(int argc, char** argv) {
     validation_print(tracks, n_tracks);
 
     printf("# End of the program, exiting.\n");
-}
 
-int main(int argc, char** argv) {
-    main_validation(argc, argv);
-    return 0;
+    return EXIT_SUCCESS;
 }

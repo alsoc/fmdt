@@ -4,6 +4,7 @@
  */
 
 #include <stdio.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <string.h>
 #include <nrc2.h>
@@ -17,7 +18,8 @@
 #include "validation.h"
 #include "video.h"
 
-BB_coord_t listBB[200];
+#define BB_LIST_SIZE 200
+BB_coord_t g_listBB[BB_LIST_SIZE];
 
 void add_to_BB_coord_list(BB_coord_t* coord, int rx, int ry, int bb_x, int bb_y, int track_id, enum color_e color) {
     coord->track_id = track_id;
@@ -28,7 +30,7 @@ void add_to_BB_coord_list(BB_coord_t* coord, int rx, int ry, int bb_x, int bb_y,
     coord->color = color;
 }
 
-void main_visu(int argc, char** argv) {
+int main(int argc, char** argv) {
     // default values
     char* def_input_tracks = NULL;
     char* def_input_bb = NULL;
@@ -162,7 +164,7 @@ void main_visu(int argc, char** argv) {
     FILE* file_bb = fopen(input_bb, "r");
     if (file_bb == NULL) {
         fprintf(stderr, "(EE) cannot open file '%s'\n", input_bb);
-        return;
+        return EXIT_FAILURE;
     }
 
     // parcours des BB à afficher
@@ -210,7 +212,8 @@ void main_visu(int argc, char** argv) {
 #else
             int display_track_id = track_id;
 #endif
-            add_to_BB_coord_list(listBB + cpt, rx, ry, bb_x, bb_y, display_track_id, color);
+            assert(cpt < BB_LIST_SIZE);
+            add_to_BB_coord_list(g_listBB + cpt, rx, ry, bb_x, bb_y, display_track_id, color);
 
             if (fgets(lines, 100, file_bb) == NULL) {
                 frame_bb = -1;
@@ -223,9 +226,9 @@ void main_visu(int argc, char** argv) {
         }
 
         tools_convert_img_grayscale_to_rgb((const uint8_t**)I0, img_bb, i0, i1, j0, j1);
-        tools_draw_BB(img_bb, listBB, cpt);
+        tools_draw_BB(img_bb, g_listBB, cpt);
 #ifdef OPENCV_LINK
-        tools_draw_text(img_bb, j1, i1, listBB, cpt, validation ? 1 : 0, show_ids);
+        tools_draw_text(img_bb, j1, i1, g_listBB, cpt, validation ? 1 : 0, show_ids);
 #endif
         if (!ffmpeg_write2d(&writer_video_out, (uint8_t**)img_bb)) {
             fprintf(stderr, "(EE) ffmpeg_write2d: %s, frame: %d\n", ffmpeg_error2str(writer_video_out.error), frame);
@@ -245,9 +248,6 @@ void main_visu(int argc, char** argv) {
 
     printf("# The video has been written.\n");
     printf("# End of the program, exiting.\n");
-}
 
-int main(int argc, char** argv) {
-    main_visu(argc, argv);
-    return 0;
+    return EXIT_SUCCESS;
 }

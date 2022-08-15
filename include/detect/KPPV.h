@@ -3,8 +3,7 @@
  * LIP6, SU, CNRS
  */
 
-#ifndef __KPPV_H__
-#define __KPPV_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -26,4 +25,3 @@ void KPPV_save_asso_conflicts(const char* filename, int frame, uint32_t* conflic
                               float** distances, int n_asso, int n_conflict, ROI_t* stats0, ROI_t* stats1,
                               track_t* tracks, int n_tracks);
 
-#endif //__KPPV_H__

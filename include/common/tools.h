@@ -6,8 +6,7 @@
  * Copyright (c) 2020-2021, Mathuran KANDEEPAN, LIP6 Sorbonne University
  */
 
-#ifndef __TOOLS_H__
-#define __TOOLS_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -61,5 +60,3 @@ void tools_copy_ui8matrix_ui8matrix(uint8_t** X, int i0, int i1, int j0, int j1,
 // void tools_convert_ui8vector_ui32vector(uint8_t* X, long nl, long nh, uint32_t* Y);
 void tools_convert_ui8matrix_ui32matrix(uint8_t** X, int nrl, int nrh, int ncl, int nch, uint32_t** Y);
 void tools_write_PNM_row(uint8_t* line, int width, FILE* file);
-
-#endif //__TOOLS_H__

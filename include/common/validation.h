@@ -5,8 +5,7 @@
  * Maxime MILLET
  */
 
-#ifndef __VALIDATION_H__
-#define __VALIDATION_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -63,5 +62,3 @@ void validation_process(track_t* tracks, int n_tracks);
 void validation_free(void);
 unsigned validation_count_objects(const validation_obj_t* val_objects, const unsigned n_val_objects, unsigned* n_stars,
                                   unsigned* n_meteors, unsigned* n_noise);
-
-#endif // __VALIDATION_H__

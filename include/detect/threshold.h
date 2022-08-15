@@ -4,8 +4,7 @@
  *
  */
 
-#ifndef __THRESHOLD_H__
-#define __THRESHOLD_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -51,5 +50,3 @@ void threshold_high(uint8_t** m, int i0, int i1, int j0, int j1, uint8_t thresho
 // OpenMP
 // void unpack_ui8matrix_omp(uint8_t** in, uint8_t** out, int w, int h);
 // void unpack_ui32matrix_omp(uint8_t** in, uint32_t** out, int w, int h);
-
-#endif // __THRESHOLD_H__

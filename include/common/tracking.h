@@ -2,8 +2,7 @@
 // --- Tracking.h ---
 // ------------------
 
-#ifndef __TRACKING_H__
-#define __TRACKING_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -106,5 +105,3 @@ void tracking_print_tracks(FILE* f, track_t* tracks, int n);
 void tracking_parse_tracks(const char* filename, track_t* tracks, int* n);
 // void tracking_save_tracks(const char* filename, track_t* tracks, int n);
 void tracking_save_array_BB(const char* filename, BB_t** tabBB, track_t* tracks, int n, int track_all);
-
-#endif // __TRACKING_H__

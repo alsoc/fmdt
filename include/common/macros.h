@@ -2,8 +2,7 @@
 /* --- macro_debug.h --- */
 /* --------------------- */
 
-#ifndef __MACROS_H__
-#define __MACROS_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -56,4 +55,3 @@
         b = tmp;                                                                                                       \
     }
 
-#endif // __MACROS_H__

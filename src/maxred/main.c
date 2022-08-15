@@ -29,7 +29,7 @@ void max_reduce(uint8_t** M, int i0, int i1, int j0, int j1, uint8_t** I) {
     }
 }
 
-void main_maxred(int argc, char** argv) {
+int main(int argc, char** argv) {
     // default values
     char* def_input_video = NULL;
     char* def_input_tracks = NULL;
@@ -200,9 +200,6 @@ void main_maxred(int argc, char** argv) {
     video_free(video);
 
     printf("# End of the program, exiting.\n");
-}
 
-int main(int argc, char** argv) {
-    main_maxred(argc, argv);
-    return 0;
+    return EXIT_SUCCESS;
 }

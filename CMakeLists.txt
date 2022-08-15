@@ -36,8 +36,8 @@ set(exe_dir exe)
 
 # Compiler generic options ----------------------------------------------------
 # -----------------------------------------------------------------------------
-# enable C99
-set(CMAKE_C_STANDARD 99)
+# enable C11
+set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
 if (TAH_OPENCV_LINK)
 	# enable C++11

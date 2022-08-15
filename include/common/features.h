@@ -3,10 +3,11 @@
  * LIP6, UPMC, CNRS
  */
 
-#ifndef __FEATURES_H__
-#define __FEATURES_H__
+#pragma once
 
 #include <stdint.h>
+
+#include "tracking.h"
 
 typedef struct {
     uint16_t xmin;
@@ -59,5 +60,3 @@ void features_save_stats_file(FILE* f, ROI_t* stats, int n, track_t* tracks);
 // void features_save_error_moy(const char* filename, double errMoy, double eType);
 // void features_save_motion_extraction(char* filename, ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx,
 //                                      double ty, int frame);
-
-#endif // __FEATURES_H__

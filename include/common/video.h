@@ -1,5 +1,4 @@
-#ifndef __VIDEO_H__
-#define __VIDEO_H__
+#pragma once
 
 #include <stdint.h>
 #include <ffmpeg-io/common.h>
@@ -15,5 +14,3 @@ typedef struct {
 video_t* video_init_from_file(char* filename, int start, int end, int skip, int* i0, int* i1, int* j0, int* j1);
 int video_get_next_frame(video_t* video, uint8_t** I);
 void video_free(video_t* video);
-
-#endif // __VIDEO_H__

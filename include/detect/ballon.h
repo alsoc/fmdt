@@ -3,8 +3,7 @@
  * Copyright (c) 2020-2021, Mathuran KANDEEPAN, LIP6 Sorbonne University
  */
 
-#ifndef __BALLON_H__
-#define __BALLON_H__
+#pragma once
 
 #include <stdint.h>
 
@@ -20,5 +19,3 @@ typedef struct {
 ballon_t* ballon_alloc(int i0, int i1, int j0, int j1, int b);
 void ballon_init(ballon_t* ballon, int i0, int i1, int j0, int j1, int b);
 void ballon_free(ballon_t* ballon, int i0, int i1, int j0, int j1, int b);
-
-#endif // __BALLON_H__
