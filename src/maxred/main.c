@@ -38,7 +38,7 @@ int main(int argc, char** argv) {
     int def_end_frame = 200000;
     char* def_validation = NULL;
 
-    if (args_find_arg(argc, argv, "-h")) {
+    if (args_find(argc, argv, "-h")) {
         fprintf(stderr, "  --input-video     Video source                             [%s]\n", def_input_video);
         fprintf(stderr, "  --input-tracks    Path to the tracks files                 [%s]\n", def_input_tracks);
         fprintf(stderr, "  --output-frame    Path to the frames output                [%s]\n", def_output_frame);
@@ -54,15 +54,15 @@ int main(int argc, char** argv) {
     }
 
     // Parsing Arguments
-    char* input_video = args_find_char_arg(argc, argv, "--input-video", def_input_video);
-    char* input_tracks = args_find_char_arg(argc, argv, "--input-tracks", def_input_tracks);
-    char* output_frame = args_find_char_arg(argc, argv, "--output-frame", def_output_frame);
-    int start_frame = args_find_int_arg(argc, argv, "--start-frame", def_start_frame);
-    int end_frame = args_find_int_arg(argc, argv, "--end-frame", def_end_frame);
-    char* validation = args_find_char_arg(argc, argv, "--validation", def_validation);
+    char* input_video = args_find_char(argc, argv, "--input-video", def_input_video);
+    char* input_tracks = args_find_char(argc, argv, "--input-tracks", def_input_tracks);
+    char* output_frame = args_find_char(argc, argv, "--output-frame", def_output_frame);
+    int start_frame = args_find_int(argc, argv, "--start-frame", def_start_frame);
+    int end_frame = args_find_int(argc, argv, "--end-frame", def_end_frame);
+    char* validation = args_find_char(argc, argv, "--validation", def_validation);
 #ifdef OPENCV_LINK
-    int show_ids = args_find_arg(argc, argv, "--show-ids");
-    int natural_num = args_find_arg(argc, argv, "--natural-num");
+    int show_ids = args_find(argc, argv, "--show-ids");
+    int natural_num = args_find(argc, argv, "--natural-num");
 #endif
 
     // heading display
@@ -140,9 +140,9 @@ int main(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (input_tracks) {
-        track_t tracks[SIZE_MAX_TRACKS];
+        track_t tracks[MAX_TRACKS_SIZE];
         int n_tracks = 0;
-        tracking_init_tracks(tracks, SIZE_MAX_TRACKS);
+        tracking_init_tracks(tracks, MAX_TRACKS_SIZE);
         tracking_parse_tracks(input_tracks, tracks, &n_tracks);
 
         if (validation) {
@@ -180,7 +180,7 @@ int main(int argc, char** argv) {
         rgb8_t** img_bb = (rgb8_t**)rgb8matrix(i0, i1, j0, j1);
         tools_convert_img_grayscale_to_rgb((const uint8_t**)Max, img_bb, i0, i1, j0, j1);
         int n_BB = n_tracks;
-        tools_draw_BB(img_bb, listBB, n_BB);
+        tools_draw_BB(img_bb, listBB, n_BB, j1, i1);
 #ifdef OPENCV_LINK
         tools_draw_text(img_bb, j1, i1, listBB, n_BB, validation ? 1 : 0, show_ids);
 #endif

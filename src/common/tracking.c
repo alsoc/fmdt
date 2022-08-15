@@ -14,11 +14,8 @@
 #include "macros.h"
 #include "tracking.h"
 
-#define SIZE_BUF 10000
 #define INF 9999999
 
-static ROIx2_t g_buffer[SIZE_BUF];
-BB_t* g_tabBB[NB_FRAMES];
 enum color_e g_obj_to_color[N_OBJECTS];
 char g_obj_to_string[N_OBJECTS][64];
 char g_obj_to_string_with_spaces[N_OBJECTS][64];
@@ -87,21 +84,36 @@ unsigned tracking_count_objects(const track_t* tracks, const int n_tracks, unsig
     return (*n_stars) + (*n_meteors) + (*n_noise);
 }
 
-void tracking_init_array_BB() {
-    for (int i = 0; i < NB_FRAMES; i++)
-        g_tabBB[i] = NULL;
+void tracking_init_BB_array(BB_t** BB_array) {
+    for (int i = 0; i < MAX_N_FRAMES; i++)
+        BB_array[i] = NULL;
 }
 
-void add_to_list(uint16_t rx, uint16_t ry, uint16_t bb_x, uint16_t bb_y, uint16_t track_id, int frame) {
-    assert(frame < NB_FRAMES);
+void tracking_free_BB_array(BB_t** BB_array) {
+    unsigned i = 0;
+    while (BB_array[i] != NULL) {
+        BB_t* cur = BB_array[i];
+        while (cur != NULL) {
+            BB_t* next = cur->next;
+            free(cur);
+            cur = NULL;
+            cur = next;
+        }
+        i++;
+    }
+}
+
+void add_to_BB_array(BB_t** BB_array, uint16_t rx, uint16_t ry, uint16_t bb_x, uint16_t bb_y, uint16_t track_id,
+                     int frame) {
+    assert(frame < MAX_N_FRAMES);
     BB_t* newE = (BB_t*)malloc(sizeof(BB_t));
     newE->rx = rx;
     newE->ry = ry;
     newE->bb_x = bb_x;
     newE->bb_y = bb_y;
     newE->track_id = track_id;
-    newE->next = g_tabBB[frame];
-    g_tabBB[frame] = newE;
+    newE->next = BB_array[frame];
+    BB_array[frame] = newE;
 }
 
 void clear_index_track_t(track_t* tracks, int i) { memset(&tracks[i], 0, sizeof(track_t)); }
@@ -111,38 +123,39 @@ void tracking_init_tracks(track_t* tracks, int n) {
         clear_index_track_t(tracks, i);
 }
 
-void clear_index_buffer(int i) {
-    memset(&g_buffer[i].stats0, 0, sizeof(ROI_t));
-    memset(&g_buffer[i].stats1, 0, sizeof(ROI_t));
-    g_buffer[i].frame = 0;
+void clear_ROI_history_elmt(ROIx2_t* ROI_history_elmt) {
+    memset(&ROI_history_elmt->stats0, 0, sizeof(ROI_t));
+    memset(&ROI_history_elmt->stats1, 0, sizeof(ROI_t));
+    ROI_history_elmt->frame = 0;
 }
 
-void clear_buffer_history(int frame, int history_size) {
+void clear_outdated_ROI_history(ROIx2_t* ROI_history, int frame, int history_size) {
     int diff;
-    for (int i = 0; i < SIZE_BUF; i++) {
-        if (g_buffer[i].frame != 0) {
-            diff = frame - g_buffer[i].frame;
+    for (int i = 0; i < MAX_ROI_HISTORY_SIZE; i++) {
+        if (ROI_history[i].frame != 0) {
+            diff = frame - ROI_history[i].frame;
             if (diff >= history_size)
-                clear_index_buffer(i);
+                clear_ROI_history_elmt(ROI_history + i);
         }
     }
 }
 
-void insert_buffer(ROI_t stats0, ROI_t stats1, int frame) {
-    for (int i = 0; i < SIZE_BUF; i++)
-        if (g_buffer[i].stats0.ID == 0) {
-            memcpy(&g_buffer[i].stats0, &stats0, sizeof(ROI_t));
-            memcpy(&g_buffer[i].stats1, &stats1, sizeof(ROI_t));
-            g_buffer[i].frame = frame;
+void insert_ROI_history(ROIx2_t* ROI_history, ROI_t stats0, ROI_t stats1, int frame) {
+    for (int i = 0; i < MAX_ROI_HISTORY_SIZE; i++)
+        if (ROI_history[i].stats0.ID == 0) {
+            memcpy(&ROI_history[i].stats0, &stats0, sizeof(ROI_t));
+            memcpy(&ROI_history[i].stats1, &stats1, sizeof(ROI_t));
+            ROI_history[i].frame = frame;
             return;
         }
-    fprintf(stderr, "(EE) This sould never happen, out of 'g_buffer' ('SIZE_BUF' = %d)\n", SIZE_BUF);
+    fprintf(stderr, "(EE) This sould never happen, out of 'ROI_history' ('MAX_ROI_HISTORY_SIZE' = %d)\n",
+            MAX_ROI_HISTORY_SIZE);
     exit(-1);
 }
 
-int search_buf_stat(int ROI_id, int frame) {
-    for (int i = 0; i < SIZE_BUF; i++)
-        if (frame == g_buffer[i].frame + 1 && ROI_id == g_buffer[i].stats0.ID)
+int search_ROI_history(const ROIx2_t* ROI_history, int ROI_id, int frame) {
+    for (int i = 0; i < MAX_ROI_HISTORY_SIZE; i++)
+        if (frame == ROI_history[i].frame + 1 && ROI_id == ROI_history[i].stats0.ID)
             return i;
     return -1;
 }
@@ -162,7 +175,7 @@ void track_extrapolate(track_t* t, int theta, int tx, int ty) {
     t->y = y + v;
 }
 
-void update_bounding_box(track_t* track, ROI_t stats, int frame) {
+void update_bounding_box(BB_t** BB_array, track_t* track, ROI_t stats, int frame) {
     PUTS("UPDATE BB");
     uint16_t rx, ry, bb_x, bb_y;
 
@@ -179,11 +192,12 @@ void update_bounding_box(track_t* track, ROI_t stats, int frame) {
     track->rx = rx;
     track->ry = ry;
 
-    add_to_list(rx, ry, bb_x, bb_y, track->id, frame - 1);
+    add_to_BB_array(BB_array, rx, ry, bb_x, bb_y, track->id, frame - 1);
 }
 
-void update_existing_tracks(ROI_t* stats0, ROI_t* stats1, track_t* tracks, int nc1, int frame, int* offset,
-                            int* tracks_cnt, int theta, int tx, int ty, int r_extrapol, int d_line, int track_all) {
+void update_existing_tracks(ROI_t* stats0, ROI_t* stats1, track_t* tracks, BB_t** BB_array, int nc1, int frame,
+                            int* offset, int* tracks_cnt, int theta, int tx, int ty, int r_extrapol, int d_line,
+                            int track_all) {
     int next;
     int i;
 
@@ -208,7 +222,7 @@ void update_existing_tracks(ROI_t* stats0, ROI_t* stats1, track_t* tracks, int n
                         tracks[i].end = stats0[j];
                         stats0[j].track_id = tracks[i].id;
                         tracks[i].state = TRACK_UPDATED;
-                        update_bounding_box(tracks + i, stats0[j], frame - 1);
+                        update_bounding_box(BB_array, tracks + i, stats0[j], frame - 1);
                     }
                 }
             }
@@ -265,7 +279,7 @@ void update_existing_tracks(ROI_t* stats0, ROI_t* stats1, track_t* tracks, int n
                     tracks[i].end = stats1[next];
                     tracks[i].time++;
                     stats1[next].track_id = tracks[i].id;
-                    update_bounding_box(tracks + i, stats1[next], frame + 1);
+                    update_bounding_box(BB_array, tracks + i, stats1[next], frame + 1);
                 } else {
                     // on extrapole si pas finished
                     track_extrapolate(&tracks[i], theta, tx, ty);
@@ -276,9 +290,9 @@ void update_existing_tracks(ROI_t* stats0, ROI_t* stats1, track_t* tracks, int n
     }
 }
 
-void insert_new_track(ROI_t* ROI_list[256], unsigned n_ROI, track_t* tracks, int tracks_cnt, int frame,
+void insert_new_track(ROI_t* ROI_list[256], unsigned n_ROI, track_t* tracks, int tracks_cnt, BB_t** BB_array, int frame,
                       enum obj_e type) {
-    assert(tracks_cnt < SIZE_MAX_TRACKS);
+    assert(tracks_cnt < MAX_TRACKS_SIZE);
     assert(n_ROI >= 2);
 
     ROI_t* first_ROI = ROI_list[n_ROI - 1];
@@ -307,20 +321,21 @@ void insert_new_track(ROI_t* ROI_list[256], unsigned n_ROI, track_t* tracks, int
 
     for (unsigned n = 0; n < n_ROI; n++) {
         ROI_list[n]->track_id = tracks[tracks_cnt].id;
-        update_bounding_box(&tracks[tracks_cnt], *ROI_list[n], frame - n);
+        update_bounding_box(BB_array, &tracks[tracks_cnt], *ROI_list[n], frame - n);
     }
 }
 
-void fill_ROI_list(ROI_t* ROI_list[256], const unsigned n_ROI, ROI_t* last_ROI, const unsigned frame) {
+void fill_ROI_list(const ROIx2_t* ROI_history, ROI_t* ROI_list[256], const unsigned n_ROI, ROI_t* last_ROI,
+                   const unsigned frame) {
     assert(n_ROI < 256);
     unsigned cpt = 0;
 
     ROI_list[cpt++] = last_ROI;
-    int k = search_buf_stat(last_ROI->prev, frame);
+    int k = search_ROI_history(ROI_history, last_ROI->prev, frame);
     for (int f = 1; f < n_ROI; f++) {
         if (k != -1) {
-            ROI_list[cpt++] = &g_buffer[k].stats0;
-            k = search_buf_stat(g_buffer[k].stats0.prev, frame - f);
+            ROI_list[cpt++] = (ROI_t*)&ROI_history[k].stats0;
+            k = search_ROI_history(ROI_history, ROI_history[k].stats0.prev, frame - f);
         } else {
             fprintf(stderr, "(EE) This should never happen ('k' = -1, 'f' = %d.\n", f);
             exit(-1);
@@ -329,8 +344,9 @@ void fill_ROI_list(ROI_t* ROI_list[256], const unsigned n_ROI, ROI_t* last_ROI, 
     assert(cpt == n_ROI);
 }
 
-void create_new_tracks(ROI_t* stats0, ROI_t* stats1, track_t* tracks, int nc0, int frame, int* tracks_cnt,
-                       int* offset, float diff_deviation, int track_all, int min_frames_star) {
+void create_new_tracks(ROI_t* stats0, ROI_t* stats1, ROIx2_t* ROI_history, track_t* tracks, BB_t** BB_array,
+                       int nc0, int frame, int* tracks_cnt, int* offset, float diff_deviation, int track_all,
+                       int min_frames_star) {
     ROI_t* ROI_list[256];
     double errMoy = features_error_moy(stats0, nc0);
     double eType = features_ecart_type(stats0, nc0, errMoy);
@@ -354,38 +370,38 @@ void create_new_tracks(ROI_t* stats0, ROI_t* stats1, track_t* tracks, int nc0, i
                         if (tracks[j].end.ID == stats0[i].ID && tracks[j].end.x == stats0[i].x)
                             break;
                     if (j == *tracks_cnt + 1 || *tracks_cnt == -1) {
-                        fill_ROI_list(ROI_list, 3 - 1, &stats0[i], frame);
-                        insert_new_track(ROI_list, 3 - 1, tracks, ++(*tracks_cnt), frame, METEOR);
+                        fill_ROI_list((const ROIx2_t*)ROI_history, ROI_list, 3 - 1, &stats0[i], frame);
+                        insert_new_track(ROI_list, 3 - 1, tracks, ++(*tracks_cnt), BB_array, frame, METEOR);
                     }
                 } else if (stats0[i].time_motion == 1)
-                    insert_buffer(stats0[i], stats1[stats0[i].next], frame);
+                    insert_ROI_history(ROI_history, stats0[i], stats1[stats0[i].next], frame);
             } else if (track_all) {
                 stats0[i].time++;
                 stats1[stats0[i].next].time = stats0[i].time;
                 if (stats0[i].time == min_frames_star - 1) {
-                    fill_ROI_list(ROI_list, min_frames_star - 1, &stats0[i], frame);
-                    insert_new_track(ROI_list, min_frames_star - 1, tracks, ++(*tracks_cnt), frame, STAR);
+                    fill_ROI_list((const ROIx2_t*)ROI_history, ROI_list, min_frames_star - 1, &stats0[i], frame);
+                    insert_new_track(ROI_list, min_frames_star - 1, tracks, ++(*tracks_cnt), BB_array, frame, STAR);
                 } else
-                    insert_buffer(stats0[i], stats1[stats0[i].next], frame);
+                    insert_ROI_history(ROI_history, stats0[i], stats1[stats0[i].next], frame);
             }
         }
     }
 }
 
-void tracking_perform(ROI_t* stats0, ROI_t* stats1, track_t* tracks, int nc0, int nc1, int frame, int* tracks_cnt,
-                      int* offset, int theta, int tx, int ty, int r_extrapol, int d_line, float diff_deviation,
-                      int track_all, int min_frames_star) {
-    create_new_tracks(stats0, stats1, tracks, nc0, frame, tracks_cnt, offset, diff_deviation, track_all,
-                      min_frames_star);
-    update_existing_tracks(stats0, stats1, tracks, nc1, frame, offset, tracks_cnt, theta, tx, ty, r_extrapol, d_line,
-                           track_all);
-    clear_buffer_history(frame, min_frames_star);
+void tracking_perform(ROI_t* stats0, ROI_t* stats1, ROIx2_t *ROI_history, track_t* tracks, BB_t** BB_array, int nc0,
+                      int nc1, int frame, int* tracks_cnt, int* offset, int theta, int tx, int ty, int r_extrapol,
+                      int d_line, float diff_deviation, int track_all, int min_frames_star) {
+    create_new_tracks(stats0, stats1, ROI_history, tracks, BB_array, nc0, frame, tracks_cnt, offset, diff_deviation,
+                      track_all, min_frames_star);
+    update_existing_tracks(stats0, stats1, tracks, BB_array, nc1, frame, offset, tracks_cnt, theta, tx, ty, r_extrapol,
+                           d_line, track_all);
+    clear_outdated_ROI_history(ROI_history, frame, min_frames_star);
 }
 
-void tracking_print_array_BB(BB_t** tabBB, int n) {
+void tracking_print_array_BB(BB_t** BB_array, int n) {
     for (int i = 0; i < n; i++) {
-        if (tabBB[i] != NULL) {
-            for (BB_t* current = tabBB[i]; current != NULL; current = current->next) {
+        if (BB_array[i] != NULL) {
+            for (BB_t* current = BB_array[i]; current != NULL; current = current->next) {
                 printf("%d %d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y,
                        current->track_id);
             }

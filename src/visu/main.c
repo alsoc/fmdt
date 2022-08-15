@@ -18,9 +18,6 @@
 #include "validation.h"
 #include "video.h"
 
-#define BB_LIST_SIZE 200
-BB_coord_t g_listBB[BB_LIST_SIZE];
-
 void add_to_BB_coord_list(BB_coord_t* coord, int rx, int ry, int bb_x, int bb_y, int track_id, enum color_e color) {
     coord->track_id = track_id;
     coord->ymin = bb_y - ry;
@@ -39,7 +36,7 @@ int main(int argc, char** argv) {
     char* def_output_frames = NULL;
     char* def_validation = NULL;
 
-    if (args_find_arg(argc, argv, "-h")) {
+    if (args_find(argc, argv, "-h")) {
         fprintf(stderr, "  --input-tracks     Path vers le fichier avec les tracks                [%s]\n",
                 def_input_tracks);
         fprintf(stderr, "  --input-bb         Path vers le fichier avec les bounding boxes        [%s]\n",
@@ -61,15 +58,15 @@ int main(int argc, char** argv) {
     }
 
     // Parsing Arguments
-    char* input_tracks = args_find_char_arg(argc, argv, "--input-tracks", def_input_tracks);
-    char* input_bb = args_find_char_arg(argc, argv, "--input-bb", def_input_bb);
-    char* input_video = args_find_char_arg(argc, argv, "--input-video", def_input_video);
-    char* output_video = args_find_char_arg(argc, argv, "--output-video", def_output_video);
-    char* output_frames = args_find_char_arg(argc, argv, "--output-frames", def_output_frames);
-    char* validation = args_find_char_arg(argc, argv, "--validation", def_validation);
+    char* input_tracks = args_find_char(argc, argv, "--input-tracks", def_input_tracks);
+    char* input_bb = args_find_char(argc, argv, "--input-bb", def_input_bb);
+    char* input_video = args_find_char(argc, argv, "--input-video", def_input_video);
+    char* output_video = args_find_char(argc, argv, "--output-video", def_output_video);
+    char* output_frames = args_find_char(argc, argv, "--output-frames", def_output_frames);
+    char* validation = args_find_char(argc, argv, "--validation", def_validation);
 #ifdef OPENCV_LINK
-    int show_ids = args_find_arg(argc, argv, "--show-ids");
-    int natural_num = args_find_arg(argc, argv, "--natural-num");
+    int show_ids = args_find(argc, argv, "--show-ids");
+    int natural_num = args_find(argc, argv, "--natural-num");
 #endif
 
     // heading display
@@ -124,11 +121,12 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--natural-num' will not work because '--show-ids' is not set.\n");
 #endif
 
-    track_t tracks[SIZE_MAX_TRACKS];
+    track_t* tracks = (track_t*)malloc(MAX_TRACKS_SIZE * sizeof(track_t));
+    BB_coord_t* BB_list = (BB_coord_t*)malloc(MAX_BB_LIST_SIZE * sizeof(BB_coord_t*));
 
     int n_tracks = 0;
     tracking_init_global_data();
-    tracking_init_tracks(tracks, SIZE_MAX_TRACKS);
+    tracking_init_tracks(tracks, MAX_TRACKS_SIZE);
     tracking_parse_tracks(input_tracks, tracks, &n_tracks);
 
     int max_LUT = 0;
@@ -212,8 +210,8 @@ int main(int argc, char** argv) {
 #else
             int display_track_id = track_id;
 #endif
-            assert(cpt < BB_LIST_SIZE);
-            add_to_BB_coord_list(g_listBB + cpt, rx, ry, bb_x, bb_y, display_track_id, color);
+            assert(cpt < MAX_BB_LIST_SIZE);
+            add_to_BB_coord_list(BB_list + cpt, rx, ry, bb_x, bb_y, display_track_id, color);
 
             if (fgets(lines, 100, file_bb) == NULL) {
                 frame_bb = -1;
@@ -221,14 +219,13 @@ int main(int argc, char** argv) {
             }
             // cherche prochain BB à afficher
             sscanf(lines, "%d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id);
-
             cpt++;
         }
 
         tools_convert_img_grayscale_to_rgb((const uint8_t**)I0, img_bb, i0, i1, j0, j1);
-        tools_draw_BB(img_bb, g_listBB, cpt);
+        tools_draw_BB(img_bb, BB_list, cpt, j1, i1);
 #ifdef OPENCV_LINK
-        tools_draw_text(img_bb, j1, i1, g_listBB, cpt, validation ? 1 : 0, show_ids);
+        tools_draw_text(img_bb, j1, i1, BB_list, cpt, validation ? 1 : 0, show_ids);
 #endif
         if (!ffmpeg_write2d(&writer_video_out, (uint8_t**)img_bb)) {
             fprintf(stderr, "(EE) ffmpeg_write2d: %s, frame: %d\n", ffmpeg_error2str(writer_video_out.error), frame);
@@ -245,6 +242,8 @@ int main(int argc, char** argv) {
     ffmpeg_stop_writer(&writer_video_out);
     free_ui8matrix(I0, i0 - b, i1 + b, j0 - b, j1 + b);
     free(LUT_tracks_id);
+    free(tracks);
+    free(BB_list);
 
     printf("# The video has been written.\n");
     printf("# End of the program, exiting.\n");

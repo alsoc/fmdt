@@ -4,36 +4,37 @@
  */
 
 #include <assert.h>
+#include <stdlib.h>
 #include <nrc2.h>
 
 #include "defines.h"
 #include "CCL.h"
 
-static uint32_t** g_er;  // Relative labels
-static uint32_t** g_ea;  // Absolute labels
-static uint32_t** g_era; // Relative/Absolute labels equivalences;
-static uint32_t** g_rlc; // Run-length coding
-static uint32_t* g_eq;   // Table d'équivalence
-static uint32_t* g_ner;  // Number of relative labels
-
-void CCL_LSL_init(int i0, int i1, int j0, int j1) {
-    long n = (i1 - i0 + 1) * (j1 - j0 + 1);
-    g_er = ui32matrix(i0, i1, j0, j1);
-    g_ea = ui32matrix(i0, i1, j0, j1);
-    g_era = ui32matrix(i0, i1, j0, j1);
-    g_rlc = ui32matrix(i0, i1, j0, j1);
-    g_eq = ui32vector(0, n);
-    g_ner = ui32vector(i0, i1);
+CCL_data_t* CCL_LSL_init(int i0, int i1, int j0, int j1) {
+    CCL_data_t* data = (CCL_data_t*)malloc(sizeof(CCL_data_t));
+    data->i0 = i0;
+    data->i1 = i1;
+    data->j0 = j0;
+    data->j1 = j1;
+    long n = (data->i1 - data->i0 + 1) * (data->j1 - data->j0 + 1);
+    data->er = ui32matrix(data->i0, data->i1, data->j0, data->j1);
+    //data->ea = ui32matrix(data->i0, data->i1, data->j0, data->j1);
+    data->era = ui32matrix(data->i0, data->i1, data->j0, data->j1);
+    data->rlc = ui32matrix(data->i0, data->i1, data->j0, data->j1);
+    data->eq = ui32vector(0, n);
+    data->ner = ui32vector(data->i0, data->i1);
+    return data;
 }
 
-void CCL_LSL_free(int i0, int i1, int j0, int j1) {
-    long n = (i1 - i0 + 1) * (j1 - j0 + 1);
-    free_ui32matrix(g_er, i0, i1, j0, j1);
-    free_ui32matrix(g_ea, i0, i1, j0, j1);
-    free_ui32matrix(g_era, i0, i1, j0, j1);
-    free_ui32matrix(g_rlc, i0, i1, j0, j1);
-    free_ui32vector(g_eq, 0, n);
-    free_ui32vector(g_ner, i0, i1);
+void CCL_LSL_free(CCL_data_t* data) {
+    long n = (data->i1 - data->i0 + 1) * (data->j1 - data->j0 + 1);
+    free_ui32matrix(data->er, data->i0, data->i1, data->j0, data->j1);
+    //free_ui32matrix(data->ea, data->i0, data->i1, data->j0, data->j1);
+    free_ui32matrix(data->era, data->i0, data->i1, data->j0, data->j1);
+    free_ui32matrix(data->rlc, data->i0, data->i1, data->j0, data->j1);
+    free_ui32vector(data->eq, 0, n);
+    free_ui32vector(data->ner, data->i0, data->i1);
+    free(data);
 }
 
 void LSL_segment_detection(uint32_t* line_er, uint32_t* line_rlc, uint32_t* line_ner, uint32_t* line, int j0, int j1) {
@@ -59,8 +60,8 @@ void LSL_segment_detection(uint32_t* line_er, uint32_t* line_rlc, uint32_t* line
     *line_ner = er;
 }
 
-void LSL_equivalence_construction(uint32_t* line_rlc, uint32_t* line_era, uint32_t* prevline_er, uint32_t* prevline_era,
-                                  int n, int x0, int x1, uint32_t* nea) {
+void LSL_equivalence_construction(CCL_data_t* data, uint32_t* line_rlc, uint32_t* line_era, uint32_t* prevline_er,
+                                  uint32_t* prevline_era, int n, int x0, int x1, uint32_t* nea) {
     int k, er, j0, j1, er0, er1, ea, a, erk, eak, ak;
     for (k = 0; k < n; k += 2) {
         er = k + 1;
@@ -84,47 +85,48 @@ void LSL_equivalence_construction(uint32_t* line_rlc, uint32_t* line_era, uint32
 
         if (er1 >= er0) { // Adjacency -> connect components
             ea = prevline_era[er0];
-            a = g_eq[ea];
+            a = data->eq[ea];
             for (erk = er0 + 2; erk <= er1; erk += 2) {
                 eak = prevline_era[erk];
-                ak = g_eq[eak];
-                while (ak != g_eq[ak]) {
-                    ak = g_eq[ak];
+                ak = data->eq[eak];
+                while (ak != data->eq[ak]) {
+                    ak = data->eq[ak];
                 }
                 if (a < ak) {
-                    g_eq[eak] = a; // Minimum propagation
+                    data->eq[eak] = a; // Minimum propagation
                 }
 
                 if (a > ak) {
                     a = ak;
-                    g_eq[ea] = a;
+                    data->eq[ea] = a;
                     ea = eak;
                 }
             }
             line_era[er] = a; // Global minimum
         } else {              // No adjacency -> new label
             line_era[er] = *nea;
-            g_eq[*nea] = *nea;
+            data->eq[*nea] = *nea;
             (*nea)++;
         }
     }
 }
 
-uint32_t CCL_LSL_apply(uint32_t** img, int i0, int i1, int j0, int j1) {
+uint32_t CCL_LSL_apply(CCL_data_t* data, uint32_t** img, int i0, int i1, int j0, int j1) {
     // Step #1 - Segment detection
     for (int i = i0; i <= i1; i++) {
-        LSL_segment_detection(g_er[i], g_rlc[i], &g_ner[i], img[i], j0, j1);
+        LSL_segment_detection(data->er[i], data->rlc[i], &data->ner[i], img[i], j0, j1);
     }
 
     // Step #2 - Equivalence construction
     uint32_t nea = i0;
-    uint32_t n = g_ner[i0];
+    uint32_t n = data->ner[i0];
     for (int k = 0; k < n; k += 2) {
-        g_eq[nea] = nea;
-        g_era[i0][k + 1] = nea++;
+        data->eq[nea] = nea;
+        data->era[i0][k + 1] = nea++;
     }
     for (int i = i0 + 1; i <= i1; i++) {
-        LSL_equivalence_construction(g_rlc[i], g_era[i], g_er[i - 1], g_era[i - 1], g_ner[i], j0, j1, &nea);
+        LSL_equivalence_construction(data, data->rlc[i], data->era[i], data->er[i - 1], data->era[i - 1], data->ner[i],
+                                     j0, j1, &nea);
     }
 
     // Step #3 - Relative to Absolute label conversion
@@ -132,30 +134,30 @@ uint32_t CCL_LSL_apply(uint32_t** img, int i0, int i1, int j0, int j1) {
     // Step #4 - Resolution of equivalence classes
     uint32_t trueN = 0;
     for (int i = 0; i < nea; i++) {
-        if (i != g_eq[i]) {
-            g_eq[i] = g_eq[g_eq[i]];
+        if (i != data->eq[i]) {
+            data->eq[i] = data->eq[data->eq[i]];
         } else {
-            g_eq[i] = trueN++;
+            data->eq[i] = trueN++;
         }
     }
 
     // Step #5 - Final image labeling
     for (int i = i0; i <= i1; i++) {
-        n = g_ner[i];
+        n = data->ner[i];
         for (int k = 0; k < n; k += 2) {
-            int a = g_rlc[i][k];
-            int b = g_rlc[i][k + 1];
+            int a = data->rlc[i][k];
+            int b = data->rlc[i][k + 1];
 
             // Step #3 merged with step #5
-            uint32_t val = g_era[i][g_er[i][a]];
-            val = g_eq[val] + 1;
+            uint32_t val = data->era[i][data->er[i][a]];
+            val = data->eq[val] + 1;
 
             for (int j = a; j <= b; j++)
                 img[i][j] = val;
         }
     }
 
-    assert(trueN < SIZE_MAX_METEORROI);
+    assert(trueN < MAX_ROI_SIZE);
 
     return trueN;
 }

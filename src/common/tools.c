@@ -239,10 +239,14 @@ void tools_convert_img_grayscale_to_rgb(const uint8** I, rgb8_t** I_bb, int i0, 
     }
 }
 
-void tools_draw_BB(rgb8_t** I_bb, const BB_coord_t* listBB, int n_BB) {
-    for (int i = 0; i < n_BB; i++)
-        tools_plot_bounding_box(I_bb, listBB[i].ymin, listBB[i].ymax, listBB[i].xmin, listBB[i].xmax, 2,
-                                tools_get_color(listBB[i].color));
+void tools_draw_BB(rgb8_t** I_bb, const BB_coord_t* listBB, int n_BB, int w, int h) {
+    for (int i = 0; i < n_BB; i++) {
+        int ymin = CLAMP(listBB[i].ymin, 0, h - 1);
+        int ymax = CLAMP(listBB[i].ymax, 0, h - 1);
+        int xmin = CLAMP(listBB[i].xmin, 0, w - 1);
+        int xmax = CLAMP(listBB[i].xmax, 0, w - 1);
+        tools_plot_bounding_box(I_bb, ymin, ymax, xmin, xmax, 2, tools_get_color(listBB[i].color));
+    }
 }
 
 void tools_save_frame(const char* filename, const rgb8_t** I_bb, int w, int h) {

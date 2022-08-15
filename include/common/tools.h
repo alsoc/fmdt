@@ -30,7 +30,7 @@ void tools_convert_img_grayscale_to_rgb(const uint8_t** I, rgb8_t** I_bb, int i0
 void tools_draw_text(rgb8_t** img, const int img_width, const int img_height, const BB_coord_t* listBB, const int nBB,
                      int validation, int show_ids);
 #endif
-void tools_draw_BB(rgb8_t** I_bb, const BB_coord_t* listBB, int n_BB);
+void tools_draw_BB(rgb8_t** I_bb, const BB_coord_t* listBB, int n_BB, int w, int h);
 void tools_save_frame(const char* filename, const rgb8_t** I_bb, int w, int h);
 
 // void tools_save_bounding_box(const char* filename, uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, int frame);
