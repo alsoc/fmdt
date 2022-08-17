@@ -1,4 +1,16 @@
-# Meteors Detection Project
+# FMDT -- *Fast Meteor Detection Toolbox*
+
+## Contents
+
+[1. Dependencies](#dependencies)  
+[2. Compilation with CMake](#compilation-with-cmake)  
+[3. User Documentation](#user-documentation)  
+[3.1. Detection Executable](#detection-executable)  
+[3.2. Visualization Executable](#visualization-executable)  
+[3.3. Checking Executable](#checking-executable)  
+[3.4. Max-reduction Executable](#max-reduction-executable)  
+[3.5. Examples of use](#examples-of-use)  
+[3.6. Input and Output Text Formats](#input-and-output-text-formats)  
 
 ## Dependencies
 
@@ -25,22 +37,24 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -funroll-loops -fstri
 **Tips**: on Apple Silicon M1 CPUs and with Apple Clang, use `-mcpu=apple-m1` instead of `-march=native`.
 
 The `CMake` file comes with several options:
- * `-DTAH_DETECT_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the detection chain executable.
- * `-DTAH_VISU_EXE`   [default=`ON`] {possible:`ON`,`OFF`}: compile the visual tracking executable.
- * `-DTAH_CHECK_EXE`  [default=`ON`] {possible:`ON`,`OFF`}: compile the check executable.
- * `-DTAH_MAXRED_EXE` [default=`ON`] {possible:`ON`,`OFF`}: compile the max accumulator executable.
+ * `-DTAH_DETECT_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the detection chain executable.
+ * `-DTAH_VISU_EXE`    [default=`ON` ] {possible:`ON`,`OFF`}: compile the visual tracking executable.
+ * `-DTAH_CHECK_EXE`   [default=`ON` ] {possible:`ON`,`OFF`}: compile the check executable.
+ * `-DTAH_MAXRED_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the max reduction executable.
+ * `-DTAH_DEBUG`       [default=`OFF`] {possible:`ON`,`OFF`}: build the project using debugging prints: these additional prints will be output on `stderr` and prefixed by `(DBG)`.
+ * `-DTAH_OPENCV_LINK` [default=`OFF`] {possible:`ON`,`OFF`}: link with OpenCV library (required to enable `--show-ids` option in `meteor-visu` executable.
 
-## Short User Documentation
+## User Documentation
 
 This project generates 4 different executables:
   - `meteor-detect`: meteors detection chain.
   - `meteor-visu`: visualization of the detected meteors.
   - `meteor-check`: validation of the detected meteors with the field truth.
-  - `meteor-maxred`: accumulator of grayscale on a video.
+  - `meteor-maxred`: max reduction of grayscale pixels on a video.
 
 The next sub-sections describe *how to use* the generated executables.
 
-### Detection with `meteor-detect`
+### Detection Executable
 
 The meteors detection chain is located here: `./exe/meteor-detect`.
 
@@ -63,9 +77,12 @@ The list of available arguments:
 | `--r-extrapol`    | int      | 5           | No      | Search radius for CC extrapolation (piece-wise tracking). |
 | `--d-line`        | int      | 25          | No      | Approximation factor of the rectilinear trajectory of meteors. |
 | `--diff-deviaton` | float    | 4.0         | No      | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
+| `--track-all`     | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`meteor`, `star` or `noise`). |
+| `--min-fra-star`  | int      | 3           | No      | Minimum number of frames required to track a star. |
 
+Output text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.
 
-### Visualization with `meteor-visu`
+### Visualization Executable
 
 The meteors visualization program is located here: `./exe/meteor-visu`.
 
@@ -74,15 +91,19 @@ The list of available arguments:
 | **Argument**      | **Type** | **Default**    | **Req** | **Description** |
 | :---              | :---     | :---           | :---    | :--- |
 | `--input-video`   | str      | None           | Yes     | Input video path. |
-| `--input-tracks`  | str      | None           | Yes     | The track file corresponding to the input video (generated from `meteor-detect`). |
+| `--input-tracks`  | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `meteor-detect`). |
 | `--input-bb`      | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `meteor-detect`). |
 | `--output-video`  | str      | "out_visu.mp4" | No      | Path of the output video (MPEG-4 format) with meteor tracking colored rectangles. If `--validation` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--validation` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
 | `--output-frames` | str      | None           | No      | Path of the output frames for debug (PPM format). |
+| `--show-ids`      | bool     | -              | No      | Show the object ids on the output video and frames. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
+| `--natural-num`   | bool     | -              | No      | Natural numbering of the object ids, work only if `--show-ids` is set. |
 | `--validation`    | str      | None           | No      | File containing the ground truth. |
 
 **Note**: to run `meteor-visu`, it is required to run `meteor-detect` before and on the same input video. This will generate the required `tracks.txt` and `bounding_box.txt` files.
 
-### Checking with `meteor-check`
+Input text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.
+
+### Checking Executable
 
 The meteors checking program is located here: `./exe/meteor-check`.
 
@@ -90,23 +111,29 @@ The list of available arguments:
 
 | **Argument**     | **Type** | **Default** | **Req** | **Description** |
 | :---             | :---     | :---        | :---    | :--- |
-| `--input-tracks` | str      |  None       | Yes     | The track file corresponding to the input video (generated from `meteor-detect`). |
-| `--validation`   | str      |  None       | Yes     | File containing the ground truth. |
+| `--input-tracks` | str      | None        | Yes     | The track file corresponding to the input video (generated from `meteor-detect`). |
+| `--validation`   | str      | None        | Yes     | File containing the ground truth. |
 
 **Note**: to run `meteor-check`, it is required to run `meteor-detect` before. This will generate the required `tracks.txt` file.
 
-### Checking with `meteor-maxred`
+Input/output text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.
 
-The meteors checking program is located here: `./exe/meteor-maxred`.
+### Max-reduction Executable
+
+The max-reduction generation program is located here: `./exe/meteor-maxred`.
 
 The list of available arguments:
 
 | **Argument**     | **Type** | **Default** | **Req** | **Description** |
 | :---             | :---     | :---        | :---    | :--- |
-| `--input-video`  | str      |  None       | Yes     | Input video path. |
-| `--output-frame` | str      |  None       | Yes     | Path of the output frame (PGM format). |
-| `--start-frame`  | int      | 0           | No      | First frame id to start the detection in the video sequence. |
-| `--end-frame`    | int      | 200000      | No      | Last frame id to stop the detection in the video sequence. |
+| `--input-video`  | str      | None        | Yes     | Input video path. |
+| `--input-tracks` | str      | None        | No      | The tracks file corresponding to the input video (generated from `meteor-detect`). |
+| `--output-frame` | str      | None        | Yes     | Path of the output frame (PGM format). |
+| `--start-frame`  | int      | 0           | No      | First frame id to start the max-reduction in the video sequence. |
+| `--end-frame`    | int      | 200000      | No      | Last frame id to stop the max-reduction in the video sequence. |
+| `--show-ids`     | bool     | -           | No      | Show the object ids on the output video and frames, works only if `--input-tracks` is set. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
+| `--natural-num`  | bool     | -           | No      | Natural numbering of the object ids, works only if `--show-ids` is set. |
+| `--validation`   | str      | None        | No      | File containing the ground truth. |
 
 ### Examples of use
 
@@ -153,5 +180,102 @@ Use `meteor-check` with the following arguments:
 Use `meteor-maxred` with the following arguments:
 
 ```shell
-./exe/meteor-maxred --input-video ./2022_05_31_tauh_34_meteors.mp4 --output-frame .
+./exe/meteor-maxred --input-video ./2022_05_31_tauh_34_meteors.mp4 --output-frame out_maxred.pgm
 ```
+
+### Input and Output Text Formats
+
+This section details the various text formats used by the toolchain.
+For each text format, the `#` character can be used for comments (at the beginning of a new line).
+
+#### Tracks: `stdout` of `meteor-detect` / `--input-tracks` in `meteor-visu` and `meteor-check`
+
+The tracks represent the detected objects in the video sequence.
+
+```
+# -------||---------------------------||---------------------------||---------
+#  Track ||           Begin           ||            End            ||  Object
+# -------||---------------------------||---------------------------||---------
+# -------||---------|--------|--------||---------|--------|--------||---------
+#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type
+# -------||---------|--------|--------||---------|--------|--------||---------
+    {id} ||  {fbeg} | {xbeg} | {ybeg} ||  {fend} | {xend} | {yend} || {otype}
+```
+
+* `{id}`: a positive integer value representing a unique track identifier.
+* `{fbeg}`: a positive integer value representing the first frame in the video sequence when the track is detected.
+* `{xbeg}`: a positive real value of the x-axis coordinate (beginning of the track).
+* `{ybeg}`: a positive real value of the y-axis coordinate (beginning of the track).
+* `{fend}`: a positive integer value representing the last frame in the video sequence when the track is detected.
+* `{xend}`: a positive real value of the x-axis coordinate (end of the track).
+* `{yend}`: a positive real value of the y-axis coordinate (end of the track).
+* `{otype}`: a string of the object type, can be: `meteor`, `star` or `noise`.
+
+#### Bounding Boxes: `--output-bb` in `meteor-detect` / `--input-bb` in `meteor-visu`
+
+The bounding boxes can be output by `meteor-detect` (with the `--output-bb` argument) and are required by `meteor-visu`.
+Each bounding box defines the area of an object, frame by frame.
+
+Here is the corresponding line format:
+```
+{frame_id} {x_radius} {y_radius} {center_x} {center_y} {track_id}
+```
+Each line corresponds to a frame and to an object, each value is separated by a space character.
+
+#### Ground Truth: `--validation` in `meteor-visu` & `meteor-check`
+
+Ground truth file gives objects positions over time. Here is the expected text format of a line:
+
+```
+{object_type} {begin_frame} {begin_x} {begin_y} {end_frame} {end_x} {end_y}
+```
+
+`{object_type}` can be `meteor`, `star` or `noise`.
+`{begin_frame}`, `{begin_x}`, `{begin_y}`, `{end_frame}`, `{end_x}`, `{end_y}` are positive integers.
+Each line corresponds to an object and each value is separated by a space character.
+
+#### Check Report: `stdout` in `meteor-check`
+
+The first part of `meteor-check` `stdout` is a table where each entry corresponds to an object of the ground truth (GT):
+
+```
+# ---------------||---------------||-----------------||--------
+#    GT Object   ||      Hits     ||    GT Frames    || Tracks
+# ---------------||---------------||-----------------||--------
+# -----|---------||--------|------||--------|--------||--------
+#   Id |    Type || Detect |  GT  ||  Start |  Stop  ||      #
+# -----|---------||--------|------||--------|--------||--------
+ {oid} | {otype} ||   {dh} | {gh} || {staf} | {stof} ||   {nt}
+```
+
+* `{oid}`: a positive integer value representing a unique identifier of ground truth object.
+* `{otype}`: a string of the object type, can be: `meteor`, `star` or `noise`.
+* `{dh}`: a positive integer value of the number of frames when the object is detected (from the tracks, `--input-tracks`).
+* `{gh}`: a positive integer value of the number of frame when the object is present (from the ground truth, `--validation`).
+* `{staf}`: a positive integer value of the frame start (from the ground truth, `--validation`).
+* `{stof}`: a positive integer value of the frame stop (from the ground truth, `--validation`).
+* `{nt}`: a positive integer value of the number of tracks that match the ground truth object.
+
+In a second part, `meteor-check` `stdout` gives some statistics in the following format (`{pi}` stands for *positive integer* and `{pf}` for *positive float*):
+
+```
+Statistics:
+  - Number of GT objs = ['meteor': {pi}, 'star': {pi}, 'noise': {pi}, 'all': {pi}]
+  - Number of tracks  = ['meteor': {pi}, 'star': {pi}, 'noise': {pi}, 'all': {pi}]
+  - True positives    = ['meteor': {pi}, 'star': {pi}, 'noise': {pi}, 'all': {pi}]
+  - False positives   = ['meteor': {pi}, 'star': {pi}, 'noise': {pi}, 'all': {pi}]
+  - True negative     = ['meteor': {pi}, 'star': {pi}, 'noise': {pi}, 'all': {pi}]
+  - False negative    = ['meteor': {pi}, 'star': {pi}, 'noise': {pi}, 'all': {pi}]
+  - Tracking rate     = ['meteor': {pf}, 'star': {pf}, 'noise': {pf}, 'all': {pf}]
+```
+
+* `Number of GT objs`: the number of objects from the ground truth.
+* `Number of tracks`: the number of objects from the tracks (`meteor-detect` output).
+* `True positives`: number of detected objects that are in the ground truth (with the same type).
+* `False positives`: number of detected objects that are not in the ground truth (or that have a different type).
+* `True negative`: number of detected objects that are different from the current type of object. For instance, if we focus on `meteor` object type, the number of false negatives is the sum of all the objects in the tracks that are `star` or `noise`.
+* `False negative`: number of non-detected objects (present in the ground truth and not present in the tracks).
+* `Tracking rate`: the sum of detected hits on the sum of the ground truth hits. Range is between 1 (perfect tracking) and 0 (nothing is tracked). When there are more hits in a track than in the ground truth, the detected hits are the ground truth hits minus the extra hits of the track.
+
+For each line, the `meteor`, `star` and `noise` object types are considered.
+`all` stands for all types, sometime `all` can be mean-less.
