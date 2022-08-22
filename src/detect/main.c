@@ -19,7 +19,7 @@ int main(int argc, char** argv) {
     // default values
     int def_start_frame = 0;
     int def_end_frame = 200000;
-    int def_skip_frames = 0;
+    int def_skip_fra = 0;
     int def_light_min = 55;
     int def_light_max = 80;
     int def_surface_min = 3;
@@ -27,76 +27,76 @@ int main(int argc, char** argv) {
     int def_k = 3;
     int def_r_extrapol = 5;
     int def_d_line = 25;
-    int def_min_fra_star = 3;
-    float def_diff_deviation = 4.f;
-    char* def_input_video = NULL;
-    char* def_output_frames = NULL;
-    char* def_output_bb = NULL;
-    char* def_output_stats = NULL;
+    int def_fra_star_min = 3;
+    float def_diff_dev = 4.f;
+    char* def_in_video = NULL;
+    char* def_out_frames = NULL;
+    char* def_out_bb = NULL;
+    char* def_out_stats = NULL;
 
     // Help
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr,
-                "  --input-video       Path to video file                                                   [%s]\n",
-                def_input_video);
+                "  --in-video        Path to video file                                                     [%s]\n",
+                def_in_video);
         fprintf(stderr,
-                "  --output-frames     Path to frames output folder                                         [%s]\n",
-                def_output_frames);
+                "  --out-frames      Path to frames output folder                                           [%s]\n",
+                def_out_frames);
         fprintf(stderr,
-                "  --output-bb         Path to the file containing the bounding boxes (frame by frame)      [%s]\n",
-                def_output_bb);
+                "  --out-bb          Path to the file containing the bounding boxes (frame by frame)        [%s]\n",
+                def_out_bb);
         fprintf(stderr,
-                "  --output-stats      TODO! Path to folder                                                 [%s]\n",
-                def_output_stats);
+                "  --out-stats       TODO! Path to folder                                                   [%s]\n",
+                def_out_stats);
         fprintf(stderr,
-                "  --start-frame       Starting point of the video                                          [%d]\n",
+                "  --fra-start       Starting point of the video                                            [%d]\n",
                 def_start_frame);
         fprintf(stderr,
-                "  --end-frame         Ending point of the video                                            [%d]\n",
+                "  --end-fra         Ending point of the video                                              [%d]\n",
                 def_end_frame);
         fprintf(stderr,
-                "  --skip-frames       Number of skipped frames                                             [%d]\n",
-                def_skip_frames);
+                "  --skip-fra        Number of skipped frames                                               [%d]\n",
+                def_skip_fra);
         fprintf(stderr,
-                "  --light-min         Low hysteresis threshold (grayscale [0;255])                         [%d]\n",
+                "  --light-min       Low hysteresis threshold (grayscale [0;255])                           [%d]\n",
                 def_light_min);
         fprintf(stderr,
-                "  --light-max         High hysteresis threshold (grayscale [0;255])                        [%d]\n",
+                "  --light-max       High hysteresis threshold (grayscale [0;255])                          [%d]\n",
                 def_light_max);
         fprintf(stderr,
-                "  --surface-min       Maximum area of the CC                                               [%d]\n",
+                "  --surface-min     Maximum area of the CC                                                 [%d]\n",
                 def_surface_min);
         fprintf(stderr,
-                "  --surface-max       Minimum area of the CC                                               [%d]\n",
+                "  --surface-max     Minimum area of the CC                                                 [%d]\n",
                 def_surface_max);
         fprintf(stderr,
-                "  -k                  Number of neighbours                                                 [%d]\n",
+                "  -k                Number of neighbours                                                   [%d]\n",
                 def_k);
         fprintf(stderr,
-                "  --r-extrapol        Search radius for the next CC in case of extrapolation               [%d]\n",
+                "  --r-extrapol      Search radius for the next CC in case of extrapolation                 [%d]\n",
                 def_r_extrapol);
         fprintf(stderr,
-                "  --d-line            Position tolerance of a point going through a line                   [%d]\n",
+                "  --d-line          Position tolerance of a point going through a line                     [%d]\n",
                 def_d_line);
         fprintf(stderr,
-                "  --min-fra-star      Minimum number of frames required to track a star                    [%d]\n",
-                def_min_fra_star);
+                "  --fra-star-min    Minimum number of frames required to track a star                      [%d]\n",
+                def_fra_star_min);
         fprintf(stderr,
-                "  --diff-deviation    Differential deviation factor for motion detection (motion error of      \n");
+                "  --diff-dev        Differential deviation factor for motion detection (motion error of        \n");
         fprintf(stderr,
-                "                      one CC has to be superior to diff_deviation * standard deviation)    [%f]\n",
-                def_diff_deviation);
+                "                    one CC has to be superior to 'diff deviation' * 'standard deviation')  [%f]\n",
+                def_diff_dev);
         fprintf(stderr,
-                "  --track-all         Tracks all object types (star, meteor or noise)                          \n");
+                "  --track-all       Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
-                "  -h                  This help                                                                \n");
+                "  -h                This help                                                                  \n");
         exit(1);
     }
 
     // Parsing Arguments
-    int start_frame = args_find_int(argc, argv, "--start-frame", def_start_frame);
-    int end_frame = args_find_int(argc, argv, "--end-frame", def_end_frame);
-    int skip_frames = args_find_int(argc, argv, "--skip-frames", def_skip_frames);
+    int start_fra = args_find_int(argc, argv, "--fra-start", def_start_frame);
+    int end_fra = args_find_int(argc, argv, "--end-fra", def_end_frame);
+    int skip_fra = args_find_int(argc, argv, "--skip-fra", def_skip_fra);
     int light_min = args_find_int(argc, argv, "--light-min", def_light_min);
     int light_max = args_find_int(argc, argv, "--light-max", def_light_max);
     int surface_min = args_find_int(argc, argv, "--surface-min", def_surface_min);
@@ -104,12 +104,12 @@ int main(int argc, char** argv) {
     int k = args_find_int(argc, argv, "-k", def_k);
     int r_extrapol = args_find_int(argc, argv, "--r-extrapol", def_r_extrapol);
     int d_line = args_find_int(argc, argv, "--d-line", def_d_line);
-    int min_fra_star = args_find_int(argc, argv, "--min-fra-star", def_min_fra_star);
-    float diff_deviation = args_find_float(argc, argv, "--diff-deviation", def_diff_deviation);
-    char* input_video = args_find_char(argc, argv, "--input-video", def_input_video);
-    char* output_frames = args_find_char(argc, argv, "--output-frames", def_output_frames);
-    char* output_bb = args_find_char(argc, argv, "--output-bb", def_output_bb);
-    char* output_stats = args_find_char(argc, argv, "--output-stats", def_output_stats);
+    int fra_star_min = args_find_int(argc, argv, "--fra-star-min", def_fra_star_min);
+    float diff_dev = args_find_float(argc, argv, "--diff-dev", def_diff_dev);
+    char* in_video = args_find_char(argc, argv, "--in-video", def_in_video);
+    char* out_frames = args_find_char(argc, argv, "--out-frames", def_out_frames);
+    char* out_bb = args_find_char(argc, argv, "--out-bb", def_out_bb);
+    char* out_stats = args_find_char(argc, argv, "--out-stats", def_out_stats);
     int track_all = args_find(argc, argv, "--track-all");
 
     // heading display
@@ -121,33 +121,33 @@ int main(int argc, char** argv) {
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
-    printf("#  * input-video   = %s\n", input_video);
-    printf("#  * output-frames = %s\n", output_frames);
-    printf("#  * output-bb     = %s\n", output_bb);
-    printf("#  * output-stats  = %s\n", output_stats);
-    printf("#  * start-frame   = %d\n", start_frame);
-    printf("#  * end-frame     = %d\n", end_frame);
-    printf("#  * skip-frames   = %d\n", skip_frames);
-    printf("#  * light-min     = %d\n", light_min);
-    printf("#  * light-max     = %d\n", light_max);
-    printf("#  * surface-min   = %d\n", surface_min);
-    printf("#  * surface-max   = %d\n", surface_max);
-    printf("#  * k             = %d\n", k);
-    printf("#  * r-extrapol    = %d\n", r_extrapol);
-    printf("#  * d-line        = %d\n", d_line);
-    printf("#  * min-fra-star  = %d\n", min_fra_star);
-    printf("#  * diff-deviaton = %4.2f\n", diff_deviation);
-    printf("#  * track-all     = %d\n", track_all);
+    printf("#  * in-video     = %s\n", in_video);
+    printf("#  * out-bb       = %s\n", out_bb);
+    printf("#  * out-frames   = %s\n", out_frames);
+    printf("#  * out-stats    = %s\n", out_stats);
+    printf("#  * fra-start    = %d\n", start_fra);
+    printf("#  * end-fra      = %d\n", end_fra);
+    printf("#  * skip-fra     = %d\n", skip_fra);
+    printf("#  * light-min    = %d\n", light_min);
+    printf("#  * light-max    = %d\n", light_max);
+    printf("#  * surface-min  = %d\n", surface_min);
+    printf("#  * surface-max  = %d\n", surface_max);
+    printf("#  * k            = %d\n", k);
+    printf("#  * r-extrapol   = %d\n", r_extrapol);
+    printf("#  * d-line       = %d\n", d_line);
+    printf("#  * fra-star-min = %d\n", fra_star_min);
+    printf("#  * diff-dev     = %4.2f\n", diff_dev);
+    printf("#  * track-all    = %d\n", track_all);
     printf("#\n");
 
-    if (!input_video) {
-        fprintf(stderr, "(EE) '--input-video' is missing\n");
+    if (!in_video) {
+        fprintf(stderr, "(EE) '--in-video' is missing\n");
         exit(1);
     }
-    if (!output_frames)
-        fprintf(stderr, "(II) '--output-frames' is missing -> no frames will be saved\n");
-    if (!output_stats)
-        fprintf(stderr, "(II) '--output-stats' is missing -> no stats will be saved\n");
+    if (!out_frames)
+        fprintf(stderr, "(II) '--out-frames' is missing -> no frames will be saved\n");
+    if (!out_stats)
+        fprintf(stderr, "(II) '--out-stats' is missing -> no stats will be saved\n");
 
     // sequence
     double theta, tx, ty;
@@ -176,7 +176,7 @@ int main(int argc, char** argv) {
     // ------------------------- //
 
     PUTS("INIT VIDEO");
-    video_t* video = video_init_from_file(input_video, start_frame, end_frame, skip_frames, &i0, &i1, &j0, &j1);
+    video_t* video = video_init_from_file(in_video, start_fra, end_fra, skip_fra, &i0, &i1, &j0, &j1);
 
     // ---------------- //
     // -- ALLOCATION -- //
@@ -240,18 +240,18 @@ int main(int argc, char** argv) {
 
         PUTS("\t Step 6: tracking");
         tracking_perform(stats0, stats_shrink, ROI_history, tracks, BB_array, n0, n_shrink, frame, &tracks_cnt, &offset,
-                         theta, tx, ty, r_extrapol, d_line, diff_deviation, track_all, min_fra_star);
+                         theta, tx, ty, r_extrapol, d_line, diff_dev, track_all, fra_star_min);
 
         PUTS("\t [DEBUG] Saving frames");
-        if (output_frames) {
-            tools_create_folder(output_frames);
-            tools_save_frame_ui32matrix(output_frames, ballon->SH32, i0, i1, j0, j1);
+        if (out_frames) {
+            tools_create_folder(out_frames);
+            tools_save_frame_ui32matrix(out_frames, ballon->SH32, i0, i1, j0, j1);
         }
 
         PUTS("\t [DEBUG] Saving stats");
-        if (output_stats) {
-            tools_create_folder(output_stats);
-            KPPV_save_asso_conflicts(output_stats, frame, kppv_data, n0, n_shrink, stats0, stats_shrink, tracks,
+        if (out_stats) {
+            tools_create_folder(out_stats);
+            KPPV_save_asso_conflicts(out_stats, frame, kppv_data, n0, n_shrink, stats0, stats_shrink, tracks,
                                      tracks_cnt + 1);
             // tools_save_motion(path_motion, theta, tx, ty, frame-1);
             // tools_save_motionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
@@ -270,8 +270,8 @@ int main(int argc, char** argv) {
     }
     fprintf(stderr, "\n");
 
-    if (output_bb)
-        tracking_save_array_BB(output_bb, BB_array, tracks, MAX_N_FRAMES, track_all);
+    if (out_bb)
+        tracking_save_array_BB(out_bb, BB_array, tracks, MAX_N_FRAMES, track_all);
     tracking_print_tracks(stdout, tracks, tracks_cnt + 1);
 
     printf("# Statistics:\n");

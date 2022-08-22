@@ -115,7 +115,7 @@ void tools_draw_legend_squares(rgb8_t** img, unsigned box_size, unsigned h_space
                                 std::get<4>(box));
 }
 
-void tools_draw_legend_texts(cv::Mat& cv_img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
+void tools_draw_legend_text(cv::Mat& cv_img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
     //                          color        pos         text
     std::vector<std::tuple<cv::Scalar, cv::Point, std::string>> txt_list;
     for (int i = 0; i < N_OBJECTS; i++) {
@@ -146,7 +146,7 @@ void tools_draw_legend_texts(cv::Mat& cv_img, unsigned box_size, unsigned h_spac
                     cv::LINE_AA);             // ?
 }
 
-void tools_draw_track_ids(cv::Mat& cv_img, const BB_coord_t* listBB, const int nBB) {
+void tools_draw_track_id(cv::Mat& cv_img, const BB_coord_t* listBB, const int nBB) {
     //                       x    y color        list of ids
     std::vector<std::tuple<int, int, rgb8_t, std::vector<int>>> list_of_ids_grouped_by_pos;
     for (int i = 0; i < nBB; i++) {
@@ -187,7 +187,7 @@ void tools_draw_track_ids(cv::Mat& cv_img, const BB_coord_t* listBB, const int n
 }
 
 void tools_draw_text(rgb8_t** img, const int img_width, const int img_height, const BB_coord_t* listBB, const int nBB,
-                     int validation, int show_ids) {
+                     int validation, int show_id) {
     unsigned box_size = 20, h_space = 10, v_space = 10;
     tools_draw_legend_squares(img, box_size, h_space, v_space, validation);
 
@@ -210,9 +210,9 @@ void tools_draw_text(rgb8_t** img, const int img_width, const int img_height, co
             cv_img.at<cv::Vec3b>(i, j)[0] = img[i][j].b;
         }
 
-    if (show_ids)
-        tools_draw_track_ids(cv_img, listBB, nBB);
-    tools_draw_legend_texts(cv_img, box_size, h_space, v_space, validation);
+    if (show_id)
+        tools_draw_track_id(cv_img, listBB, nBB);
+    tools_draw_legend_text(cv_img, box_size, h_space, v_space, validation);
 
     // // debug: show image inside a window.
     // cv::imshow("Output", cv_img);

@@ -42,7 +42,7 @@ The `CMake` file comes with several options:
  * `-DTAH_CHECK_EXE`   [default=`ON` ] {possible:`ON`,`OFF`}: compile the check executable.
  * `-DTAH_MAXRED_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the max reduction executable.
  * `-DTAH_DEBUG`       [default=`OFF`] {possible:`ON`,`OFF`}: build the project using debugging prints: these additional prints will be output on `stderr` and prefixed by `(DBG)`.
- * `-DTAH_OPENCV_LINK` [default=`OFF`] {possible:`ON`,`OFF`}: link with OpenCV library (required to enable `--show-ids` option in `meteor-visu` executable.
+ * `-DTAH_OPENCV_LINK` [default=`OFF`] {possible:`ON`,`OFF`}: link with OpenCV library (required to enable `--show-id` option in `meteor-visu` executable).
 
 ## User Documentation
 
@@ -60,25 +60,25 @@ The meteors detection chain is located here: `./exe/meteor-detect`.
 
 The list of available arguments:
 
-| **Argument**      | **Type** | **Default** | **Req** | **Description** |
-| :---              | :---     | :---        | :---    | :--- |
-| `--input-video`   | str      | None        | Yes     | Input video path where we want to detect meteors. |
-| `--output-bb`     | str      | None        | No      | Path to the bounding boxes file required by `meteor-visu` to draw detection rectangles. |
-| `--output-frames` | str      | None        | No      | Path of the output frames for debug (PPM format). |
-| `--output-stats`  | str      | None        | No      | TODO. |
-| `--start-frame`   | int      | 0           | No      | First frame id to start the detection in the video sequence. |
-| `--end-frame`     | int      | 200000      | No      | Last frame id to stop the detection in the video sequence. |
-| `--skip-frames`   | int      | 0           | No      | Number of frames to skip. |
-| `--light-min`     | int      | 55          | No      | Minimum light intensity hysteresis threshold (grayscale [0;255]). |
-| `--light-max`     | int      | 80          | No      | Maximum light intensity hysteresis threshold (grayscale [0;255]). |
-| `--surface-min`   | int      | 3           | No      | Minimum surface of the CCs in pixel. |
-| `--surface-max`   | int      | 1000        | No      | Maximum surface of the CCs in pixel. |
-| `-k`              | int      | 3           | No      | Number of neighbors in the k-nearest neighbor matching (KPPV algorithm). |
-| `--r-extrapol`    | int      | 5           | No      | Search radius for CC extrapolation (piece-wise tracking). |
-| `--d-line`        | int      | 25          | No      | Approximation factor of the rectilinear trajectory of meteors. |
-| `--diff-deviaton` | float    | 4.0         | No      | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
-| `--track-all`     | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`meteor`, `star` or `noise`). |
-| `--min-fra-star`  | int      | 3           | No      | Minimum number of frames required to track a star. |
+| **Argument**     | **Type** | **Default** | **Req** | **Description** |
+| :---             | :---     | :---        | :---    | :--- |
+| `--in-video`     | str      | None        | Yes     | Input video path where we want to detect meteors. |
+| `--out-bb`       | str      | None        | No      | Path to the bounding boxes file required by `meteor-visu` to draw detection rectangles. |
+| `--out-frames`   | str      | None        | No      | Path of the output frames for debug (PPM format). |
+| `--out-stats`    | str      | None        | No      | TODO. |
+| `--fra-start`    | int      | 0           | No      | First frame id to start the detection in the video sequence. |
+| `--fra-end`      | int      | 200000      | No      | Last frame id to stop the detection in the video sequence. |
+| `--skip-fra`     | int      | 0           | No      | Number of frames to skip. |
+| `--light-min`    | int      | 55          | No      | Minimum light intensity hysteresis threshold (grayscale [0;255]). |
+| `--light-max`    | int      | 80          | No      | Maximum light intensity hysteresis threshold (grayscale [0;255]). |
+| `--surface-min`  | int      | 3           | No      | Minimum surface of the CCs in pixel. |
+| `--surface-max`  | int      | 1000        | No      | Maximum surface of the CCs in pixel. |
+| `-k`             | int      | 3           | No      | Number of neighbors in the k-nearest neighbor matching (KPPV algorithm). |
+| `--r-extrapol`   | int      | 5           | No      | Search radius for CC extrapolation (piece-wise tracking). |
+| `--d-line`       | int      | 25          | No      | Approximation factor of the rectilinear trajectory of meteors. |
+| `--diff-dev`     | float    | 4.0         | No      | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
+| `--track-all`    | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`meteor`, `star` or `noise`). |
+| `--fra-star-min` | int      | 3           | No      | Minimum number of frames required to track a star. |
 
 Output text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.
 
@@ -88,16 +88,16 @@ The meteors visualization program is located here: `./exe/meteor-visu`.
 
 The list of available arguments:
 
-| **Argument**      | **Type** | **Default**    | **Req** | **Description** |
-| :---              | :---     | :---           | :---    | :--- |
-| `--input-video`   | str      | None           | Yes     | Input video path. |
-| `--input-tracks`  | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `meteor-detect`). |
-| `--input-bb`      | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `meteor-detect`). |
-| `--output-video`  | str      | "out_visu.mp4" | No      | Path of the output video (MPEG-4 format) with meteor tracking colored rectangles. If `--validation` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--validation` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
-| `--output-frames` | str      | None           | No      | Path of the output frames for debug (PPM format). |
-| `--show-ids`      | bool     | -              | No      | Show the object ids on the output video and frames. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
-| `--natural-num`   | bool     | -              | No      | Natural numbering of the object ids, work only if `--show-ids` is set. |
-| `--validation`    | str      | None           | No      | File containing the ground truth. |
+| **Argument**   | **Type** | **Default**    | **Req** | **Description** |
+| :---           | :---     | :---           | :---    | :--- |
+| `--in-video`   | str      | None           | Yes     | Input video path. |
+| `--in-tracks`  | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `meteor-detect`). |
+| `--in-bb`      | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `meteor-detect`). |
+| `--in-gt`      | str      | None           | No      | File containing the ground truth. |
+| `--out-video`  | str      | "out_visu.mp4" | No      | Path of the output video (MPEG-4 format) with meteor tracking colored rectangles. If `--in-gt` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--in-gt` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
+| `--out-frames` | str      | None           | No      | Path of the output frames for debug (PPM format). |
+| `--show-id`    | bool     | -              | No      | Show the object ids on the output video and frames. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
+| `--nat-num`    | bool     | -              | No      | Natural numbering of the object ids, work only if `--show-id` is set. |
 
 **Note**: to run `meteor-visu`, it is required to run `meteor-detect` before and on the same input video. This will generate the required `tracks.txt` and `bounding_box.txt` files.
 
@@ -109,10 +109,10 @@ The meteors checking program is located here: `./exe/meteor-check`.
 
 The list of available arguments:
 
-| **Argument**     | **Type** | **Default** | **Req** | **Description** |
-| :---             | :---     | :---        | :---    | :--- |
-| `--input-tracks` | str      | None        | Yes     | The track file corresponding to the input video (generated from `meteor-detect`). |
-| `--validation`   | str      | None        | Yes     | File containing the ground truth. |
+| **Argument**  | **Type** | **Default** | **Req** | **Description** |
+| :---          | :---     | :---        | :---    | :--- |
+| `--in-tracks` | str      | None        | Yes     | The track file corresponding to the input video (generated from `meteor-detect`). |
+| `--in-gt`     | str      | None        | Yes     | File containing the ground truth. |
 
 **Note**: to run `meteor-check`, it is required to run `meteor-detect` before. This will generate the required `tracks.txt` file.
 
@@ -124,16 +124,16 @@ The max-reduction generation program is located here: `./exe/meteor-maxred`.
 
 The list of available arguments:
 
-| **Argument**     | **Type** | **Default** | **Req** | **Description** |
-| :---             | :---     | :---        | :---    | :--- |
-| `--input-video`  | str      | None        | Yes     | Input video path. |
-| `--input-tracks` | str      | None        | No      | The tracks file corresponding to the input video (generated from `meteor-detect`). |
-| `--output-frame` | str      | None        | Yes     | Path of the output frame (PGM format). |
-| `--start-frame`  | int      | 0           | No      | First frame id to start the max-reduction in the video sequence. |
-| `--end-frame`    | int      | 200000      | No      | Last frame id to stop the max-reduction in the video sequence. |
-| `--show-ids`     | bool     | -           | No      | Show the object ids on the output video and frames, works only if `--input-tracks` is set. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
-| `--natural-num`  | bool     | -           | No      | Natural numbering of the object ids, works only if `--show-ids` is set. |
-| `--validation`   | str      | None        | No      | File containing the ground truth. |
+| **Argument**  | **Type** | **Default** | **Req** | **Description** |
+| :---          | :---     | :---        | :---    | :--- |
+| `--in-video`  | str      | None        | Yes     | Input video path. |
+| `--in-tracks` | str      | None        | No      | The tracks file corresponding to the input video (generated from `meteor-detect`). |
+| `--in-gt`     | str      | None        | No      | File containing the ground truth. |
+| `--out-frame` | str      | None        | Yes     | Path of the output frame (PGM format). |
+| `--fra-start` | int      | 0           | No      | First frame id to start the max-reduction in the video sequence. |
+| `--fra-end`   | int      | 200000      | No      | Last frame id to stop the max-reduction in the video sequence. |
+| `--show-id`   | bool     | -           | No      | Show the object ids on the output video and frames, works only if `--in-tracks` is set. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
+| `--nat-num`   | bool     | -           | No      | Natural numbering of the object ids, works only if `--show-id` is set. |
 
 ### Examples of use
 
@@ -142,13 +142,13 @@ Download a video sequence containing meteors here: https://lip6.fr/adrien.cassag
 #### Step 1: Meteors detection
 
 ```shell
-./exe/meteor-detect --input-video ./2022_05_31_tauh_34_meteors.mp4
+./exe/meteor-detect --in-video ./2022_05_31_tauh_34_meteors.mp4
 ```
 
 Write tracks and bounding boxes into text files for `meteor-visu` and `meteor-check`:
 
 ```shell
-./exe/meteor-detect --input-video ./2022_05_31_tauh_34_meteors.mp4 --output-bb ./out_detect_bb.txt > ./out_detect_tracks.txt
+./exe/meteor-detect --in-video ./2022_05_31_tauh_34_meteors.mp4 --out-bb ./out_detect_bb.txt > ./out_detect_tracks.txt
 ```
 
 #### Step 2: Visualization
@@ -156,23 +156,23 @@ Write tracks and bounding boxes into text files for `meteor-visu` and `meteor-ch
 Visualization **WITHOUT** ground truth:
 
 ```shell
-./exe/meteor-visu --input-video ./2022_05_31_tauh_34_meteors.mp4 --input-tracks ./out_detect_tracks.txt --input-bb ./out_detect_bb.txt
+./exe/meteor-visu --in-video ./2022_05_31_tauh_34_meteors.mp4 --in-tracks ./out_detect_tracks.txt --in-bb ./out_detect_bb.txt
 ```
 
 Visualization **WITH** ground truth:
 
 ```shell
-./exe/meteor-visu --input-video ./2022_05_31_tauh_34_meteors.mp4 --input-tracks ./out_detect_tracks.txt --input-bb ./out_detect_bb.txt --validation ../validation/2022_05_31_tauh_34_meteors.txt
+./exe/meteor-visu --in-video ./2022_05_31_tauh_34_meteors.mp4 --in-tracks ./out_detect_tracks.txt --in-bb ./out_detect_bb.txt --in-gt ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 
-**Note**: by default, the resulting video will be written in the `./out_visu.mp4` file (this behavior can be overloaded with the `--output-video` argument).
+**Note**: by default, the resulting video will be written in the `./out_visu.mp4` file (this behavior can be overloaded with the `--out-video` argument).
 
 #### Step 3: Offline checking
 
 Use `meteor-check` with the following arguments:
 
 ```shell
-./exe/meteor-check --input-tracks ./out_detect_tracks.txt --validation ../validation/2022_05_31_tauh_34_meteors.txt
+./exe/meteor-check --in-tracks ./out_detect_tracks.txt --in-gt ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 
 #### Step 4: Max reduction
@@ -180,7 +180,7 @@ Use `meteor-check` with the following arguments:
 Use `meteor-maxred` with the following arguments:
 
 ```shell
-./exe/meteor-maxred --input-video ./2022_05_31_tauh_34_meteors.mp4 --output-frame out_maxred.pgm
+./exe/meteor-maxred --in-video ./2022_05_31_tauh_34_meteors.mp4 --out-frame out_maxred.pgm
 ```
 
 ### Input and Output Text Formats
@@ -188,7 +188,7 @@ Use `meteor-maxred` with the following arguments:
 This section details the various text formats used by the toolchain.
 For each text format, the `#` character can be used for comments (at the beginning of a new line).
 
-#### Tracks: `stdout` of `meteor-detect` / `--input-tracks` in `meteor-visu` and `meteor-check`
+#### Tracks: `stdout` of `meteor-detect` / `--in-tracks` in `meteor-visu` and `meteor-check`
 
 The tracks represent the detected objects in the video sequence.
 
@@ -211,9 +211,9 @@ The tracks represent the detected objects in the video sequence.
 * `{yend}`: a positive real value of the y-axis coordinate (end of the track).
 * `{otype}`: a string of the object type, can be: `meteor`, `star` or `noise`.
 
-#### Bounding Boxes: `--output-bb` in `meteor-detect` / `--input-bb` in `meteor-visu`
+#### Bounding Boxes: `--out-bb` in `meteor-detect` / `--in-bb` in `meteor-visu`
 
-The bounding boxes can be output by `meteor-detect` (with the `--output-bb` argument) and are required by `meteor-visu`.
+The bounding boxes can be output by `meteor-detect` (with the `--out-bb` argument) and are required by `meteor-visu`.
 Each bounding box defines the area of an object, frame by frame.
 
 Here is the corresponding line format:
@@ -222,7 +222,7 @@ Here is the corresponding line format:
 ```
 Each line corresponds to a frame and to an object, each value is separated by a space character.
 
-#### Ground Truth: `--validation` in `meteor-visu` & `meteor-check`
+#### Ground Truth: `--in-gt` in `meteor-visu`, `meteor-check` & `meteor-maxred`
 
 Ground truth file gives objects positions over time. Here is the expected text format of a line:
 
@@ -250,10 +250,10 @@ The first part of `meteor-check` `stdout` is a table where each entry correspond
 
 * `{oid}`: a positive integer value representing a unique identifier of ground truth object.
 * `{otype}`: a string of the object type, can be: `meteor`, `star` or `noise`.
-* `{dh}`: a positive integer value of the number of frames when the object is detected (from the tracks, `--input-tracks`).
-* `{gh}`: a positive integer value of the number of frame when the object is present (from the ground truth, `--validation`).
-* `{staf}`: a positive integer value of the frame start (from the ground truth, `--validation`).
-* `{stof}`: a positive integer value of the frame stop (from the ground truth, `--validation`).
+* `{dh}`: a positive integer value of the number of frames when the object is detected (from the tracks, `--in-tracks`).
+* `{gh}`: a positive integer value of the number of frame when the object is present (from the ground truth, `--in-gt`).
+* `{staf}`: a positive integer value of the frame start (from the ground truth, `--in-gt`).
+* `{stof}`: a positive integer value of the frame stop (from the ground truth, `--in-gt`).
 * `{nt}`: a positive integer value of the number of tracks that match the ground truth object.
 
 In a second part, `meteor-check` `stdout` gives some statistics in the following format (`{pi}` stands for *positive integer* and `{pf}` for *positive float*):

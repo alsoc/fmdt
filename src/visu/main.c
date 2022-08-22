@@ -29,44 +29,39 @@ void add_to_BB_coord_list(BB_coord_t* coord, int rx, int ry, int bb_x, int bb_y,
 
 int main(int argc, char** argv) {
     // default values
-    char* def_input_tracks = NULL;
-    char* def_input_bb = NULL;
-    char* def_input_video = NULL;
-    char def_output_video[256] = "./out_visu.mp4";
-    char* def_output_frames = NULL;
-    char* def_validation = NULL;
+    char* def_in_tracks = NULL;
+    char* def_in_bb = NULL;
+    char* def_in_video = NULL;
+    char def_out_video[256] = "./out_visu.mp4";
+    char* def_out_frames = NULL;
+    char* def_in_gt = NULL;
 
     if (args_find(argc, argv, "-h")) {
-        fprintf(stderr, "  --input-tracks     Path vers le fichier avec les tracks                [%s]\n",
-                def_input_tracks);
-        fprintf(stderr, "  --input-bb         Path vers le fichier avec les bounding boxes        [%s]\n",
-                def_input_bb);
-        fprintf(stderr, "  --input-video      Path vers la video                                  [%s]\n",
-                def_input_video);
-        fprintf(stderr, "  --output-video     Output de la video (MPEG-4 format)                  [%s]\n",
-                def_output_video);
-        fprintf(stderr, "  --output-frames    Path to the frames output                           [%s]\n",
-                def_output_frames);
+        fprintf(stderr, "  --in-tracks     Path to the tracks file                             [%s]\n", def_in_tracks);
+        fprintf(stderr, "  --in-bb         Path the bounding boxes file                        [%s]\n", def_in_bb);
+        fprintf(stderr, "  --in-video      Path to the inpute video file                       [%s]\n", def_in_video);
+        fprintf(stderr, "  --in-gt         Path to ground truth file                           [%s]\n", def_in_gt);
+        fprintf(stderr, "  --out-video     Path to the output video file (MPEG-4 format)       [%s]\n", def_out_video);
+        fprintf(stderr, "  --out-frames    Path to the frames output folder                    [%s]\n",
+                def_out_frames);
 #ifdef OPENCV_LINK
-        fprintf(stderr, "  --show-ids         Show the object ids on the output video and frames      \n");
-        fprintf(stderr, "  --natural-num     Natural numbering of the object ids                      \n");
+        fprintf(stderr, "  --show-id       Show the object ids on the output video and frames      \n");
+        fprintf(stderr, "  --nat-num       Natural numbering of the object ids                     \n");
 #endif
-        fprintf(stderr, "  --validation       Fichier contenant la vérité terrain de la séquence  [%s]\n",
-                def_validation);
-        fprintf(stderr, "  -h                 This help                                               \n");
+        fprintf(stderr, "  -h              This help                                               \n");
         exit(1);
     }
 
     // Parsing Arguments
-    char* input_tracks = args_find_char(argc, argv, "--input-tracks", def_input_tracks);
-    char* input_bb = args_find_char(argc, argv, "--input-bb", def_input_bb);
-    char* input_video = args_find_char(argc, argv, "--input-video", def_input_video);
-    char* output_video = args_find_char(argc, argv, "--output-video", def_output_video);
-    char* output_frames = args_find_char(argc, argv, "--output-frames", def_output_frames);
-    char* validation = args_find_char(argc, argv, "--validation", def_validation);
+    char* in_tracks = args_find_char(argc, argv, "--in-tracks", def_in_tracks);
+    char* in_bb = args_find_char(argc, argv, "--in-bb", def_in_bb);
+    char* in_video = args_find_char(argc, argv, "--in-video", def_in_video);
+    char* out_video = args_find_char(argc, argv, "--out-video", def_out_video);
+    char* out_frames = args_find_char(argc, argv, "--out-frames", def_out_frames);
+    char* in_gt = args_find_char(argc, argv, "--in-gt", def_in_gt);
 #ifdef OPENCV_LINK
-    int show_ids = args_find(argc, argv, "--show-ids");
-    int natural_num = args_find(argc, argv, "--natural-num");
+    int show_id = args_find(argc, argv, "--show-id");
+    int nat_num = args_find(argc, argv, "--nat-num");
 #endif
 
     // heading display
@@ -78,16 +73,16 @@ int main(int argc, char** argv) {
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
-    printf("#  * input-tracks  = %s\n", input_tracks);
-    printf("#  * input-bb      = %s\n", input_bb);
-    printf("#  * input-video   = %s\n", input_video);
-    printf("#  * output-video  = %s\n", output_video);
-    printf("#  * output-frames = %s\n", output_frames);
+    printf("#  * in-tracks  = %s\n", in_tracks);
+    printf("#  * in-bb      = %s\n", in_bb);
+    printf("#  * in-video   = %s\n", in_video);
+    printf("#  * in-gt      = %s\n", in_gt);
+    printf("#  * out-video  = %s\n", out_video);
+    printf("#  * out-frames = %s\n", out_frames);
 #ifdef OPENCV_LINK
-    printf("#  * show-ids      = %d\n", show_ids);
-    printf("#  * natural-num   = %d\n", natural_num);
+    printf("#  * show-id    = %d\n", show_id);
+    printf("#  * nat-num    = %d\n", nat_num);
 #endif
-    printf("#  * validation    = %s\n", validation);
     printf("#\n");
 
     int b = 1;
@@ -98,27 +93,27 @@ int main(int argc, char** argv) {
     int start = 0;
     int end = 100000;
 
-    if (!input_video) {
-        fprintf(stderr, "(EE) '--input-video' is missing\n");
+    if (!in_video) {
+        fprintf(stderr, "(EE) '--in-video' is missing\n");
         exit(1);
     }
-    if (!input_tracks) {
-        fprintf(stderr, "(EE) '--input-tracks' is missing\n");
+    if (!in_tracks) {
+        fprintf(stderr, "(EE) '--in-tracks' is missing\n");
         exit(1);
     }
-    if (!input_bb) {
-        fprintf(stderr, "(EE) '--input-bb' is missing\n");
+    if (!in_bb) {
+        fprintf(stderr, "(EE) '--in-bb' is missing\n");
         exit(1);
     }
-    if (!output_video) {
-        fprintf(stderr, "(EE) '--output-video' is missing\n");
+    if (!out_video) {
+        fprintf(stderr, "(EE) '--out-video' is missing\n");
         exit(1);
     }
-    if (!output_frames)
-        fprintf(stderr, "(II) '--output-frames' is missing -> no frames will be saved\n");
+    if (!out_frames)
+        fprintf(stderr, "(II) '--out-frames' is missing -> no frames will be saved\n");
 #ifdef OPENCV_LINK
-    if (!show_ids && natural_num)
-        fprintf(stderr, "(WW) '--natural-num' will not work because '--show-ids' is not set.\n");
+    if (!show_id && nat_num)
+        fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set.\n");
 #endif
 
     track_t* tracks = (track_t*)malloc(MAX_TRACKS_SIZE * sizeof(track_t));
@@ -127,7 +122,7 @@ int main(int argc, char** argv) {
     int n_tracks = 0;
     tracking_init_global_data();
     tracking_init_tracks(tracks, MAX_TRACKS_SIZE);
-    tracking_parse_tracks(input_tracks, tracks, &n_tracks);
+    tracking_parse_tracks(in_tracks, tracks, &n_tracks);
 
     int max_LUT = 0;
     for (int i = 0; i < n_tracks; i++)
@@ -147,21 +142,21 @@ int main(int argc, char** argv) {
            n_noise, n_tracks);
 
     // init
-    video_t* video = video_init_from_file(input_video, start, end, 0, &i0, &i1, &j0, &j1);
+    video_t* video = video_init_from_file(in_video, start, end, 0, &i0, &i1, &j0, &j1);
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
 
     // validation pour établir si une track est vrai/faux positif
-    if (validation) {
-        validation_init(validation);
+    if (in_gt) {
+        validation_init(in_gt);
         validation_process(tracks, n_tracks);
     } else {
         PUTS("NO VALIDATION");
     }
 
     // open BB pour l'affichage des rectangles englobants
-    FILE* file_bb = fopen(input_bb, "r");
+    FILE* file_bb = fopen(in_bb, "r");
     if (file_bb == NULL) {
-        fprintf(stderr, "(EE) cannot open file '%s'\n", input_bb);
+        fprintf(stderr, "(EE) cannot open file '%s'\n", in_bb);
         return EXIT_FAILURE;
     }
 
@@ -176,7 +171,7 @@ int main(int argc, char** argv) {
     writer_video_out.input.width = j1 - j0 + 1;
     writer_video_out.input.height = i1 - i0 + 1;
     writer_video_out.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
-    if (!ffmpeg_start_writer(&writer_video_out, output_video, NULL)) {
+    if (!ffmpeg_start_writer(&writer_video_out, out_video, NULL)) {
         fprintf(stderr, "(EE) Something went wrong when starting to write output video.");
         exit(-1);
     }
@@ -200,13 +195,13 @@ int main(int argc, char** argv) {
                         cpt, track_id, LUT_tracks_id[track_id], tracks[LUT_tracks_id[track_id]].obj_type);
                 exit(-1);
             }
-            if (validation && tracks[LUT_tracks_id[track_id]].is_valid == 1)
+            if (in_gt && tracks[LUT_tracks_id[track_id]].is_valid == 1)
                 color = GREEN; // GREEN = true  positive 'meteor'
-            if (validation && tracks[LUT_tracks_id[track_id]].is_valid == 2)
+            if (in_gt && tracks[LUT_tracks_id[track_id]].is_valid == 2)
                 color = RED; // RED   = false positive 'meteor'
 
 #ifdef OPENCV_LINK
-            int display_track_id = natural_num ? (LUT_tracks_id[track_id] + 1) : track_id;
+            int display_track_id = nat_num ? (LUT_tracks_id[track_id] + 1) : track_id;
 #else
             int display_track_id = track_id;
 #endif
@@ -225,16 +220,16 @@ int main(int argc, char** argv) {
         tools_convert_img_grayscale_to_rgb((const uint8_t**)I0, img_bb, i0, i1, j0, j1);
         tools_draw_BB(img_bb, BB_list, cpt, j1, i1);
 #ifdef OPENCV_LINK
-        tools_draw_text(img_bb, j1, i1, BB_list, cpt, validation ? 1 : 0, show_ids);
+        tools_draw_text(img_bb, j1, i1, BB_list, cpt, in_gt ? 1 : 0, show_id);
 #endif
         if (!ffmpeg_write2d(&writer_video_out, (uint8_t**)img_bb)) {
             fprintf(stderr, "(EE) ffmpeg_write2d: %s, frame: %d\n", ffmpeg_error2str(writer_video_out.error), frame);
             exit(-1);
         }
-        if (output_frames) {
-            tools_create_folder(output_frames);
+        if (out_frames) {
+            tools_create_folder(out_frames);
             char filename_cur_frame[256];
-            sprintf(filename_cur_frame, "%s/%05d.ppm", output_frames, frame);
+            sprintf(filename_cur_frame, "%s/%05d.ppm", out_frames, frame);
             tools_save_frame(filename_cur_frame, (const rgb8_t**)img_bb, j1, i1);
         }
     }

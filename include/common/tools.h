@@ -28,7 +28,7 @@ rgb8_t tools_get_color(enum color_e color);
 void tools_convert_img_grayscale_to_rgb(const uint8_t** I, rgb8_t** I_bb, int i0, int i1, int j0, int j1);
 #ifdef OPENCV_LINK
 void tools_draw_text(rgb8_t** img, const int img_width, const int img_height, const BB_coord_t* listBB, const int nBB,
-                     int validation, int show_ids);
+                     int validation, int show_id);
 #endif
 void tools_draw_BB(rgb8_t** I_bb, const BB_coord_t* listBB, int n_BB, int w, int h);
 void tools_save_frame(const char* filename, const rgb8_t** I_bb, int w, int h);
