@@ -85,7 +85,7 @@ void tracking_init_BB_array(BB_t** BB_array);
 void tracking_free_BB_array(BB_t** BB_array);
 void tracking_perform(ROI_t* stats0, ROI_t* stats1, ROIx2_t *ROI_history, track_t* tracks, BB_t** BB_array, int nc0,
                       int nc1, int frame, int* tracks_cnt, int* offset, int theta, int tx, int ty, int r_extrapol,
-                      int d_line, float diff_deviation, int track_all, int frame_star);
+                      int d_line, float diff_dev, int track_all, int fra_star_min);
 
 // return the real number of tracks
 unsigned tracking_count_objects(const track_t* tracks, const int n_tracks, unsigned* n_stars, unsigned* n_meteors,

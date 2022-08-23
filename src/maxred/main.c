@@ -172,9 +172,9 @@ int main(int argc, char** argv) {
             }
 
             if (in_gt && tracks[t].is_valid == 1)
-                listBB[t].color = GREEN; // GREEN = true  positive 'meteor'
+                listBB[t].color = GREEN; // GREEN = true positive 'meteor'
             if (in_gt && tracks[t].is_valid == 2)
-                listBB[t].color = RED; // RED   = false positive 'meteor'
+                listBB[t].color = RED; // RED = false positive 'meteor'
         }
 
         rgb8_t** img_bb = (rgb8_t**)rgb8matrix(i0, i1, j0, j1);

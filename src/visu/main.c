@@ -18,12 +18,14 @@
 #include "validation.h"
 #include "video.h"
 
+#define DELTA_BB 5 // extra pixel size for bounding boxes
+
 void add_to_BB_coord_list(BB_coord_t* coord, int rx, int ry, int bb_x, int bb_y, int track_id, enum color_e color) {
     coord->track_id = track_id;
-    coord->ymin = bb_y - ry;
-    coord->ymax = bb_y + ry;
-    coord->xmin = bb_x - rx;
-    coord->xmax = bb_x + rx;
+    coord->ymin = bb_y - (ry + DELTA_BB);
+    coord->ymax = bb_y + (ry + DELTA_BB);
+    coord->xmin = bb_x - (rx + DELTA_BB);
+    coord->xmax = bb_x + (rx + DELTA_BB);
     coord->color = color;
 }
 

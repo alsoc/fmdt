@@ -116,11 +116,11 @@ void add_to_BB_array(BB_t** BB_array, uint16_t rx, uint16_t ry, uint16_t bb_x, u
     BB_array[frame] = newE;
 }
 
-void clear_index_track_t(track_t* tracks, int i) { memset(&tracks[i], 0, sizeof(track_t)); }
+void clear_index_tracks(track_t* tracks, int i) { memset(&tracks[i], 0, sizeof(track_t)); }
 
 void tracking_init_tracks(track_t* tracks, int n) {
     for (int i = 0; i < n; i++)
-        clear_index_track_t(tracks, i);
+        clear_index_tracks(tracks, i);
 }
 
 void clear_ROI_history_elmt(ROIx2_t* ROI_history_elmt) {
@@ -163,7 +163,7 @@ int search_ROI_history(const ROIx2_t* ROI_history, int ROI_id, int frame) {
 void track_extrapolate(track_t* t, int theta, int tx, int ty) {
     float u, v;
     float x, y;
-    t->state = TRACK_LOST;
+
     // compensation du mouvement + calcul vitesse entre t-1 et t
     u = t->end.x - t->end.dx - t->x;
     v = t->end.y - t->end.dy - t->y;
@@ -176,17 +176,15 @@ void track_extrapolate(track_t* t, int theta, int tx, int ty) {
 }
 
 void update_bounding_box(BB_t** BB_array, track_t* track, ROI_t stats, int frame) {
-    PUTS("UPDATE BB");
     uint16_t rx, ry, bb_x, bb_y;
 
     assert(stats.xmin || stats.xmax || stats.ymin || stats.ymax);
 
     bb_x = (uint16_t)ceil((double)((stats.xmin + stats.xmax)) / 2);
     bb_y = (uint16_t)ceil((double)((stats.ymin + stats.ymax)) / 2);
-    rx = (bb_x - stats.xmin) + 5;
-    ry = (bb_y - stats.ymin) + 5;
+    rx = (bb_x - stats.xmin);
+    ry = (bb_y - stats.ymin);
 
-    // juste pour debug (affichage)
     track->bb_x = bb_x;
     track->bb_y = bb_y;
     track->rx = rx;
@@ -210,7 +208,7 @@ void update_existing_tracks(ROI_t* stats0, ROI_t* stats1, track_t* tracks, BB_t*
     }
     for (i = *offset; i <= *tracks_cnt; i++) {
         if (tracks[i].time > 150 && !track_all) {
-            clear_index_track_t(tracks, i);
+            clear_index_tracks(tracks, i);
             continue;
         }
         if (tracks[i].time && tracks[i].state != TRACK_FINISHED) {
@@ -246,12 +244,9 @@ void update_existing_tracks(ROI_t* stats0, ROI_t* stats1, track_t* tracks, BB_t*
             if (tracks[i].state == TRACK_UPDATED || tracks[i].state == TRACK_NEW) {
                 next = stats0[tracks[i].end.ID].next;
                 if (next) {
-                    float a;
                     float dx = (stats1[next].x - stats0[tracks[i].end.ID].x);
                     float dy = (stats1[next].y - stats0[tracks[i].end.ID].y);
-
-                    a = (dx == 0) ? INF : (dy / dx);
-
+                    float a = (dx == 0) ? INF : (dy / dx);
                     float y = tracks[i].a * stats1[next].x + tracks[i].b;
 
                     if ((fabs(stats1[next].y - y) < d_line) &&
@@ -266,7 +261,7 @@ void update_existing_tracks(ROI_t* stats0, ROI_t* stats1, track_t* tracks, BB_t*
                     } else {
                         if (tracks[i].obj_type == METEOR) {
                             if (!track_all) {
-                                clear_index_track_t(tracks, i);
+                                clear_index_tracks(tracks, i);
                                 continue;
                             } else
                                 tracks[i].obj_type = NOISE;
@@ -283,7 +278,7 @@ void update_existing_tracks(ROI_t* stats0, ROI_t* stats1, track_t* tracks, BB_t*
                 } else {
                     // on extrapole si pas finished
                     track_extrapolate(&tracks[i], theta, tx, ty);
-                    // tracks[i].state = TRACK_FINISHED;
+                    tracks[i].state = TRACK_LOST;
                 }
             }
         }
@@ -345,8 +340,8 @@ void fill_ROI_list(const ROIx2_t* ROI_history, ROI_t* ROI_list[256], const unsig
 }
 
 void create_new_tracks(ROI_t* stats0, ROI_t* stats1, ROIx2_t* ROI_history, track_t* tracks, BB_t** BB_array,
-                       int nc0, int frame, int* tracks_cnt, int* offset, float diff_deviation, int track_all,
-                       int min_frames_star) {
+                       int nc0, int frame, int* tracks_cnt, int* offset, float diff_dev, int track_all,
+                       int fra_star_min) {
     ROI_t* ROI_list[256];
     double errMoy = features_error_moy(stats0, nc0);
     double eType = features_ecart_type(stats0, nc0, errMoy);
@@ -356,7 +351,7 @@ void create_new_tracks(ROI_t* stats0, ROI_t* stats1, ROIx2_t* ROI_history, track
         int asso = stats0[i].next;
         if (asso) {
             // si mouvement detecté
-            if (fabs(e - errMoy) > diff_deviation * eType) {
+            if (fabs(e - errMoy) > diff_dev * eType) {
                 if (stats0[i].state) {
                     PUTS("EXTRAPOLATED");
                     continue; // Extrapolated
@@ -378,9 +373,9 @@ void create_new_tracks(ROI_t* stats0, ROI_t* stats1, ROIx2_t* ROI_history, track
             } else if (track_all) {
                 stats0[i].time++;
                 stats1[stats0[i].next].time = stats0[i].time;
-                if (stats0[i].time == min_frames_star - 1) {
-                    fill_ROI_list((const ROIx2_t*)ROI_history, ROI_list, min_frames_star - 1, &stats0[i], frame);
-                    insert_new_track(ROI_list, min_frames_star - 1, tracks, ++(*tracks_cnt), BB_array, frame, STAR);
+                if (stats0[i].time == fra_star_min - 1) {
+                    fill_ROI_list((const ROIx2_t*)ROI_history, ROI_list, fra_star_min - 1, &stats0[i], frame);
+                    insert_new_track(ROI_list, fra_star_min - 1, tracks, ++(*tracks_cnt), BB_array, frame, STAR);
                 } else
                     insert_ROI_history(ROI_history, stats0[i], stats1[stats0[i].next], frame);
             }
@@ -390,12 +385,12 @@ void create_new_tracks(ROI_t* stats0, ROI_t* stats1, ROIx2_t* ROI_history, track
 
 void tracking_perform(ROI_t* stats0, ROI_t* stats1, ROIx2_t *ROI_history, track_t* tracks, BB_t** BB_array, int nc0,
                       int nc1, int frame, int* tracks_cnt, int* offset, int theta, int tx, int ty, int r_extrapol,
-                      int d_line, float diff_deviation, int track_all, int min_frames_star) {
-    create_new_tracks(stats0, stats1, ROI_history, tracks, BB_array, nc0, frame, tracks_cnt, offset, diff_deviation,
-                      track_all, min_frames_star);
+                      int d_line, float diff_dev, int track_all, int fra_star_min) {
+    create_new_tracks(stats0, stats1, ROI_history, tracks, BB_array, nc0, frame, tracks_cnt, offset, diff_dev,
+                      track_all, fra_star_min);
     update_existing_tracks(stats0, stats1, tracks, BB_array, nc1, frame, offset, tracks_cnt, theta, tx, ty, r_extrapol,
                            d_line, track_all);
-    clear_outdated_ROI_history(ROI_history, frame, min_frames_star);
+    clear_outdated_ROI_history(ROI_history, frame, fra_star_min);
 }
 
 void tracking_print_array_BB(BB_t** BB_array, int n) {
