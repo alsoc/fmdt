@@ -28,6 +28,7 @@ int main(int argc, char** argv) {
     int def_r_extrapol = 5;
     float def_angle_max = 20;
     int def_fra_star_min = 15;
+    int def_fra_meteor_min = 3;
     int def_fra_meteor_max = 100;
     float def_diff_dev = 4.f;
     char* def_in_video = NULL;
@@ -83,6 +84,9 @@ int main(int argc, char** argv) {
                 "  --fra-star-min      Minimum number of frames required to track a star                      [%d]\n",
                 def_fra_star_min);
         fprintf(stderr,
+                "  --fra-meteor-min    Minimum number of frames required to track a meteor                    [%d]\n",
+                def_fra_meteor_min);
+        fprintf(stderr,
                 "  --fra-meteor-max    Maximum number of frames required to track a meteor                    [%d]\n",
                 def_fra_meteor_max);
         fprintf(stderr,
@@ -109,13 +113,14 @@ int main(int argc, char** argv) {
     int r_extrapol = args_find_int(argc, argv, "--r-extrapol", def_r_extrapol);
     float angle_max = args_find_float(argc, argv, "--angle-max", def_angle_max);
     int fra_star_min = args_find_int(argc, argv, "--fra-star-min", def_fra_star_min);
+    int fra_meteor_min = args_find_int(argc, argv, "--fra-meteor-min", def_fra_meteor_min);
+    int fra_meteor_max = args_find_int(argc, argv, "--fra-meteor-max", def_fra_meteor_max);
     float diff_dev = args_find_float(argc, argv, "--diff-dev", def_diff_dev);
     char* in_video = args_find_char(argc, argv, "--in-video", def_in_video);
     char* out_frames = args_find_char(argc, argv, "--out-frames", def_out_frames);
     char* out_bb = args_find_char(argc, argv, "--out-bb", def_out_bb);
     char* out_stats = args_find_char(argc, argv, "--out-stats", def_out_stats);
     int track_all = args_find(argc, argv, "--track-all");
-    int fra_meteor_max = args_find_int(argc, argv, "--fra-meteor-max", def_fra_meteor_max);
 
     // heading display
     printf("#  -----------------------\n");
@@ -141,6 +146,7 @@ int main(int argc, char** argv) {
     printf("#  * r-extrapol     = %d\n", r_extrapol);
     printf("#  * angle-max      = %f\n", angle_max);
     printf("#  * fra-star-min   = %d\n", fra_star_min);
+    printf("#  * fra-meteor-min = %d\n", fra_meteor_min);
     printf("#  * fra-meteor-max = %d\n", fra_meteor_max);
     printf("#  * diff-dev       = %4.2f\n", diff_dev);
     printf("#  * track-all      = %d\n", track_all);
@@ -150,8 +156,16 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--in-video' is missing\n");
         exit(1);
     }
-    if (fra_meteor_max < 3) {
-        fprintf(stderr, "(EE) '--fra-meteor-max' has to be bigger than 3\n");
+    if (fra_star_min < 2) {
+        fprintf(stderr, "(EE) '--fra-star-min' has to be bigger than 1\n");
+        exit(1);
+    }
+    if (fra_meteor_min < 2) {
+        fprintf(stderr, "(EE) '--fra-meteor-min' has to be bigger than 1\n");
+        exit(1);
+    }
+    if (fra_meteor_max < fra_meteor_min) {
+        fprintf(stderr, "(EE) '--fra-meteor-max' has to be bigger than '--fra-meteor-min'\n");
         exit(1);
     }
     if (!out_frames)
@@ -167,7 +181,7 @@ int main(int argc, char** argv) {
     ROI_t* stats_tmp = (ROI_t*)malloc(MAX_ROI_SIZE * sizeof(ROI_t));
     track_t* tracks = (track_t*)malloc(MAX_TRACKS_SIZE * sizeof(track_t));
     BB_t** BB_array = (BB_t**)malloc(MAX_N_FRAMES * sizeof(BB_t*));
-    ROI_buffer_t* ROI_buff = tracking_alloc_ROI_buffer(MAX(fra_star_min, 3));
+    ROI_buffer_t* ROI_buff = tracking_alloc_ROI_buffer(MAX(fra_star_min, fra_meteor_min));
 
     int offset = 0;
     int tracks_cnt = -1;
@@ -249,7 +263,7 @@ int main(int argc, char** argv) {
 
         PUTS("\t Step 6: tracking");
         tracking_perform(ROI_buff, tracks, BB_array, n0, n_shrink, frame, &tracks_cnt, &offset, theta, tx, ty,
-                         r_extrapol, angle_max, diff_dev, track_all, fra_star_min, fra_meteor_max);
+                         r_extrapol, angle_max, diff_dev, track_all, fra_star_min, fra_meteor_min, fra_meteor_max);
 
         PUTS("\t [DEBUG] Saving frames");
         if (out_frames) {

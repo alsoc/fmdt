@@ -79,6 +79,7 @@ The list of available arguments:
 | `--diff-dev`       | float    | 4.0         | No      | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
 | `--track-all`      | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`meteor`, `star` or `noise`). |
 | `--fra-star-min`   | int      | 15          | No      | Minimum number of frames required to track a star. |
+| `--fra-meteor-min` | int      | 3           | No      | Minimum number of frames required to track a meteor. |
 | `--fra-meteor-max` | int      | 100         | No      | Maximum number of frames required to track a meteor. |
 
 Output text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.

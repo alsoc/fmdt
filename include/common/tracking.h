@@ -48,8 +48,6 @@ typedef struct track {
     enum obj_e obj_type;
     // resultat validation (bad design)
     uint8_t is_valid;
-    // juste pour afficher les vitesses
-    // float vitesse[300];
 } track_t;
 
 typedef struct {
@@ -81,7 +79,7 @@ void tracking_init_BB_array(BB_t** BB_array);
 void tracking_free_BB_array(BB_t** BB_array);
 void tracking_perform(ROI_buffer_t* ROI_buff, track_t* tracks, BB_t** BB_array, int nc0, int nc1, int frame,
                       int* tracks_cnt, int* offset, int theta, int tx, int ty, int r_extrapol, float angle_max,
-                      float diff_dev, int track_all, int fra_star_min, int fra_meteor_max);
+                      float diff_dev, int track_all, int fra_star_min, int fra_meteor_min, int fra_meteor_max);
 
 // return the real number of tracks
 unsigned tracking_count_objects(const track_t* tracks, const int n_tracks, unsigned* n_stars, unsigned* n_meteors,
