@@ -27,7 +27,8 @@ int main(int argc, char** argv) {
     int def_k = 3;
     int def_r_extrapol = 5;
     float def_angle_max = 20;
-    int def_fra_star_min = 3;
+    int def_fra_star_min = 15;
+    int def_fra_meteor_max = 100;
     float def_diff_dev = 4.f;
     char* def_in_video = NULL;
     char* def_out_frames = NULL;
@@ -37,59 +38,62 @@ int main(int argc, char** argv) {
     // Help
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr,
-                "  --in-video        Path to video file                                                     [%s]\n",
+                "  --in-video          Path to video file                                                     [%s]\n",
                 def_in_video);
         fprintf(stderr,
-                "  --out-frames      Path to frames output folder                                           [%s]\n",
+                "  --out-frames        Path to frames output folder                                           [%s]\n",
                 def_out_frames);
         fprintf(stderr,
-                "  --out-bb          Path to the file containing the bounding boxes (frame by frame)        [%s]\n",
+                "  --out-bb            Path to the file containing the bounding boxes (frame by frame)        [%s]\n",
                 def_out_bb);
         fprintf(stderr,
-                "  --out-stats       TODO! Path to folder                                                   [%s]\n",
+                "  --out-stats         TODO! Path to folder                                                   [%s]\n",
                 def_out_stats);
         fprintf(stderr,
-                "  --fra-start       Starting point of the video                                            [%d]\n",
+                "  --fra-start         Starting point of the video                                            [%d]\n",
                 def_start_frame);
         fprintf(stderr,
-                "  --end-fra         Ending point of the video                                              [%d]\n",
+                "  --end-fra           Ending point of the video                                              [%d]\n",
                 def_end_frame);
         fprintf(stderr,
-                "  --skip-fra        Number of skipped frames                                               [%d]\n",
+                "  --skip-fra          Number of skipped frames                                               [%d]\n",
                 def_skip_fra);
         fprintf(stderr,
-                "  --light-min       Low hysteresis threshold (grayscale [0;255])                           [%d]\n",
+                "  --light-min         Low hysteresis threshold (grayscale [0;255])                           [%d]\n",
                 def_light_min);
         fprintf(stderr,
-                "  --light-max       High hysteresis threshold (grayscale [0;255])                          [%d]\n",
+                "  --light-max         High hysteresis threshold (grayscale [0;255])                          [%d]\n",
                 def_light_max);
         fprintf(stderr,
-                "  --surface-min     Maximum area of the CC                                                 [%d]\n",
+                "  --surface-min       Maximum area of the CC                                                 [%d]\n",
                 def_surface_min);
         fprintf(stderr,
-                "  --surface-max     Minimum area of the CC                                                 [%d]\n",
+                "  --surface-max       Minimum area of the CC                                                 [%d]\n",
                 def_surface_max);
         fprintf(stderr,
-                "  -k                Number of neighbours                                                   [%d]\n",
+                "  -k                  Number of neighbours                                                   [%d]\n",
                 def_k);
         fprintf(stderr,
-                "  --r-extrapol      Search radius for the next CC in case of extrapolation                 [%d]\n",
+                "  --r-extrapol        Search radius for the next CC in case of extrapolation                 [%d]\n",
                 def_r_extrapol);
         fprintf(stderr,
-                "  --angle-max       Angle max between two consecutive meteor moving points (in degree)     [%f]\n",
+                "  --angle-max         Tracking angle max between two consecutive meteor moving points        [%f]\n",
                 def_angle_max);
         fprintf(stderr,
-                "  --fra-star-min    Minimum number of frames required to track a star                      [%d]\n",
+                "  --fra-star-min      Minimum number of frames required to track a star                      [%d]\n",
                 def_fra_star_min);
         fprintf(stderr,
-                "  --diff-dev        Differential deviation factor for motion detection (motion error of        \n");
+                "  --fra-meteor-max    Maximum number of frames required to track a meteor                    [%d]\n",
+                def_fra_meteor_max);
         fprintf(stderr,
-                "                    one CC has to be superior to 'diff deviation' * 'standard deviation')  [%f]\n",
+                "  --diff-dev          Differential deviation factor for motion detection (motion error of        \n");
+        fprintf(stderr,
+                "                      one CC has to be superior to 'diff deviation' * 'standard deviation')  [%f]\n",
                 def_diff_dev);
         fprintf(stderr,
-                "  --track-all       Tracks all object types (star, meteor or noise)                            \n");
+                "  --track-all         Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
-                "  -h                This help                                                                  \n");
+                "  -h                  This help                                                                  \n");
         exit(1);
     }
 
@@ -111,6 +115,7 @@ int main(int argc, char** argv) {
     char* out_bb = args_find_char(argc, argv, "--out-bb", def_out_bb);
     char* out_stats = args_find_char(argc, argv, "--out-stats", def_out_stats);
     int track_all = args_find(argc, argv, "--track-all");
+    int fra_meteor_max = args_find_int(argc, argv, "--fra-meteor-max", def_fra_meteor_max);
 
     // heading display
     printf("#  -----------------------\n");
@@ -121,27 +126,32 @@ int main(int argc, char** argv) {
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
-    printf("#  * in-video     = %s\n", in_video);
-    printf("#  * out-bb       = %s\n", out_bb);
-    printf("#  * out-frames   = %s\n", out_frames);
-    printf("#  * out-stats    = %s\n", out_stats);
-    printf("#  * fra-start    = %d\n", start_fra);
-    printf("#  * end-fra      = %d\n", end_fra);
-    printf("#  * skip-fra     = %d\n", skip_fra);
-    printf("#  * light-min    = %d\n", light_min);
-    printf("#  * light-max    = %d\n", light_max);
-    printf("#  * surface-min  = %d\n", surface_min);
-    printf("#  * surface-max  = %d\n", surface_max);
-    printf("#  * k            = %d\n", k);
-    printf("#  * r-extrapol   = %d\n", r_extrapol);
-    printf("#  * angle-max    = %f\n", angle_max);
-    printf("#  * fra-star-min = %d\n", fra_star_min);
-    printf("#  * diff-dev     = %4.2f\n", diff_dev);
-    printf("#  * track-all    = %d\n", track_all);
+    printf("#  * in-video       = %s\n", in_video);
+    printf("#  * out-bb         = %s\n", out_bb);
+    printf("#  * out-frames     = %s\n", out_frames);
+    printf("#  * out-stats      = %s\n", out_stats);
+    printf("#  * fra-start      = %d\n", start_fra);
+    printf("#  * end-fra        = %d\n", end_fra);
+    printf("#  * skip-fra       = %d\n", skip_fra);
+    printf("#  * light-min      = %d\n", light_min);
+    printf("#  * light-max      = %d\n", light_max);
+    printf("#  * surface-min    = %d\n", surface_min);
+    printf("#  * surface-max    = %d\n", surface_max);
+    printf("#  * k              = %d\n", k);
+    printf("#  * r-extrapol     = %d\n", r_extrapol);
+    printf("#  * angle-max      = %f\n", angle_max);
+    printf("#  * fra-star-min   = %d\n", fra_star_min);
+    printf("#  * fra-meteor-max = %d\n", fra_meteor_max);
+    printf("#  * diff-dev       = %4.2f\n", diff_dev);
+    printf("#  * track-all      = %d\n", track_all);
     printf("#\n");
 
     if (!in_video) {
         fprintf(stderr, "(EE) '--in-video' is missing\n");
+        exit(1);
+    }
+    if (fra_meteor_max < 3) {
+        fprintf(stderr, "(EE) '--fra-meteor-max' has to be bigger than 3\n");
         exit(1);
     }
     if (!out_frames)
@@ -239,7 +249,7 @@ int main(int argc, char** argv) {
 
         PUTS("\t Step 6: tracking");
         tracking_perform(ROI_buff, tracks, BB_array, n0, n_shrink, frame, &tracks_cnt, &offset, theta, tx, ty,
-                         r_extrapol, angle_max, diff_dev, track_all, fra_star_min);
+                         r_extrapol, angle_max, diff_dev, track_all, fra_star_min, fra_meteor_max);
 
         PUTS("\t [DEBUG] Saving frames");
         if (out_frames) {

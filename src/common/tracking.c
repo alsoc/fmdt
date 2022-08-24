@@ -15,7 +15,6 @@
 #include "tracking.h"
 
 #define INF 9999999
-#define FRA_METEOR_MAX 150
 
 enum color_e g_obj_to_color[N_OBJECTS];
 char g_obj_to_string[N_OBJECTS][64];
@@ -176,7 +175,7 @@ void update_bounding_box(BB_t** BB_array, track_t* track, ROI_t stats, int frame
 
 void update_existing_tracks(ROI_buffer_t* ROI_buff, track_t* tracks, BB_t** BB_array, int nc1, int frame, int* offset,
                             int* tracks_cnt, int theta, int tx, int ty, int r_extrapol, float angle_max,
-                            int track_all) {
+                            int track_all, int fra_meteor_max) {
     ROI_t* stats0 = ROI_buff->data[1];
     ROI_t* stats1 = ROI_buff->data[0];
 
@@ -263,7 +262,7 @@ void update_existing_tracks(ROI_buffer_t* ROI_buff, track_t* tracks, BB_t** BB_a
                     tracks[i].state = TRACK_LOST;
                 }
             }
-            if (tracks[i].time > FRA_METEOR_MAX) {
+            if (tracks[i].time >= fra_meteor_max) {
                 if (tracks[i].obj_type == METEOR)
                     tracks[i].obj_type = NOISE;
                 if (!track_all) {
@@ -353,10 +352,10 @@ void create_new_tracks(ROI_buffer_t* ROI_buff, track_t* tracks, BB_t** BB_array,
 
 void tracking_perform(ROI_buffer_t* ROI_buff, track_t* tracks, BB_t** BB_array, int nc0, int nc1, int frame,
                       int* tracks_cnt, int* offset, int theta, int tx, int ty, int r_extrapol, float angle_max,
-                      float diff_dev, int track_all, int fra_star_min) {
+                      float diff_dev, int track_all, int fra_star_min, int fra_meteor_max) {
     create_new_tracks(ROI_buff, tracks, BB_array, nc0, frame, tracks_cnt, offset, diff_dev, track_all, fra_star_min);
     update_existing_tracks(ROI_buff,tracks, BB_array, nc1, frame, offset, tracks_cnt, theta, tx, ty, r_extrapol,
-                           angle_max, track_all);
+                           angle_max, track_all, fra_meteor_max);
 }
 
 void tracking_print_array_BB(BB_t** BB_array, int n) {
@@ -370,8 +369,7 @@ void tracking_print_array_BB(BB_t** BB_array, int n) {
     }
 }
 
-void tracking_print_tracks(FILE* f, track_t* tracks, int n)
-{
+void tracking_print_tracks(FILE* f, track_t* tracks, int n) {
     fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
     fprintf(f, "#  Track ||           Begin           ||            End            ||  Object \n");
     fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
@@ -389,8 +387,7 @@ void tracking_print_tracks(FILE* f, track_t* tracks, int n)
         }
 }
 
-void tracking_parse_tracks(const char* filename, track_t* tracks, int* n)
-{
+void tracking_parse_tracks(const char* filename, track_t* tracks, int* n) {
     FILE* fp;
     char* line = NULL;
     size_t len = 0;
@@ -417,7 +414,7 @@ void tracking_parse_tracks(const char* filename, track_t* tracks, int* n)
             tracks[*n].id = tid;
             tracks[*n].timestamp = t0;
             tracks[*n].time = t1 - t0;
-            tracks[*n].state = 0;
+            tracks[*n].state = TRACK_FINISHED;
             tracks[*n].begin.x = x0;
             tracks[*n].begin.y = y0;
             tracks[*n].end.x = x1;

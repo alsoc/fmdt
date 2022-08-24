@@ -60,25 +60,26 @@ The meteors detection chain is located here: `./exe/meteor-detect`.
 
 The list of available arguments:
 
-| **Argument**     | **Type** | **Default** | **Req** | **Description** |
-| :---             | :---     | :---        | :---    | :--- |
-| `--in-video`     | str      | None        | Yes     | Input video path where we want to detect meteors. |
-| `--out-bb`       | str      | None        | No      | Path to the bounding boxes file required by `meteor-visu` to draw detection rectangles. |
-| `--out-frames`   | str      | None        | No      | Path of the output frames for debug (PPM format). |
-| `--out-stats`    | str      | None        | No      | TODO. |
-| `--fra-start`    | int      | 0           | No      | First frame id to start the detection in the video sequence. |
-| `--fra-end`      | int      | 200000      | No      | Last frame id to stop the detection in the video sequence. |
-| `--skip-fra`     | int      | 0           | No      | Number of frames to skip. |
-| `--light-min`    | int      | 55          | No      | Minimum light intensity hysteresis threshold (grayscale [0;255]). |
-| `--light-max`    | int      | 80          | No      | Maximum light intensity hysteresis threshold (grayscale [0;255]). |
-| `--surface-min`  | int      | 3           | No      | Minimum surface of the CCs in pixel. |
-| `--surface-max`  | int      | 1000        | No      | Maximum surface of the CCs in pixel. |
-| `-k`             | int      | 3           | No      | Number of neighbors in the k-nearest neighbor matching (KPPV algorithm). |
-| `--r-extrapol`   | int      | 5           | No      | Search radius for CC extrapolation (piece-wise tracking). |
-| `--angle-max`    | float    | 20.0        | No      | Angle max between two consecutive meteor moving points (in degree). |
-| `--diff-dev`     | float    | 4.0         | No      | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
-| `--track-all`    | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`meteor`, `star` or `noise`). |
-| `--fra-star-min` | int      | 3           | No      | Minimum number of frames required to track a star. |
+| **Argument**       | **Type** | **Default** | **Req** | **Description** |
+| :---               | :---     | :---        | :---    | :--- |
+| `--in-video`       | str      | None        | Yes     | Input video path where we want to detect meteors. |
+| `--out-bb`         | str      | None        | No      | Path to the bounding boxes file required by `meteor-visu` to draw detection rectangles. |
+| `--out-frames`     | str      | None        | No      | Path of the output frames for debug (PPM format). |
+| `--out-stats`      | str      | None        | No      | TODO. |
+| `--fra-start`      | int      | 0           | No      | First frame id to start the detection in the video sequence. |
+| `--fra-end`        | int      | 200000      | No      | Last frame id to stop the detection in the video sequence. |
+| `--skip-fra`       | int      | 0           | No      | Number of frames to skip. |
+| `--light-min`      | int      | 55          | No      | Minimum light intensity hysteresis threshold (grayscale [0;255]). |
+| `--light-max`      | int      | 80          | No      | Maximum light intensity hysteresis threshold (grayscale [0;255]). |
+| `--surface-min`    | int      | 3           | No      | Minimum surface of the CCs in pixel. |
+| `--surface-max`    | int      | 1000        | No      | Maximum surface of the CCs in pixel. |
+| `-k`               | int      | 3           | No      | Number of neighbors in the k-nearest neighbor matching (KPPV algorithm). |
+| `--r-extrapol`     | int      | 5           | No      | Search radius for CC extrapolation (piece-wise tracking). |
+| `--angle-max`      | float    | 20.0        | No      | Tracking angle max between two consecutive meteor moving points (in degree). |
+| `--diff-dev`       | float    | 4.0         | No      | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
+| `--track-all`      | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`meteor`, `star` or `noise`). |
+| `--fra-star-min`   | int      | 15          | No      | Minimum number of frames required to track a star. |
+| `--fra-meteor-max` | int      | 100         | No      | Maximum number of frames required to track a meteor. |
 
 Output text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.
 
