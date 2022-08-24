@@ -26,7 +26,7 @@ int main(int argc, char** argv) {
     int def_surface_max = 1000;
     int def_k = 3;
     int def_r_extrapol = 5;
-    int def_d_line = 25;
+    float def_angle_max = 20;
     int def_fra_star_min = 3;
     float def_diff_dev = 4.f;
     char* def_in_video = NULL;
@@ -76,8 +76,8 @@ int main(int argc, char** argv) {
                 "  --r-extrapol      Search radius for the next CC in case of extrapolation                 [%d]\n",
                 def_r_extrapol);
         fprintf(stderr,
-                "  --d-line          Position tolerance of a point going through a line                     [%d]\n",
-                def_d_line);
+                "  --angle-max       Angle max between two consecutive meteor moving points (in degree)     [%f]\n",
+                def_angle_max);
         fprintf(stderr,
                 "  --fra-star-min    Minimum number of frames required to track a star                      [%d]\n",
                 def_fra_star_min);
@@ -103,7 +103,7 @@ int main(int argc, char** argv) {
     int surface_max = args_find_int(argc, argv, "--surface-max", def_surface_max);
     int k = args_find_int(argc, argv, "-k", def_k);
     int r_extrapol = args_find_int(argc, argv, "--r-extrapol", def_r_extrapol);
-    int d_line = args_find_int(argc, argv, "--d-line", def_d_line);
+    float angle_max = args_find_float(argc, argv, "--angle-max", def_angle_max);
     int fra_star_min = args_find_int(argc, argv, "--fra-star-min", def_fra_star_min);
     float diff_dev = args_find_float(argc, argv, "--diff-dev", def_diff_dev);
     char* in_video = args_find_char(argc, argv, "--in-video", def_in_video);
@@ -134,7 +134,7 @@ int main(int argc, char** argv) {
     printf("#  * surface-max  = %d\n", surface_max);
     printf("#  * k            = %d\n", k);
     printf("#  * r-extrapol   = %d\n", r_extrapol);
-    printf("#  * d-line       = %d\n", d_line);
+    printf("#  * angle-max    = %f\n", angle_max);
     printf("#  * fra-star-min = %d\n", fra_star_min);
     printf("#  * diff-dev     = %4.2f\n", diff_dev);
     printf("#  * track-all    = %d\n", track_all);
@@ -154,12 +154,10 @@ int main(int argc, char** argv) {
     int frame;
 
     // allocations on the heap
-    ROI_t* stats0 = (ROI_t*)malloc(MAX_ROI_SIZE * sizeof(ROI_t));
-    ROI_t* stats1 = (ROI_t*)malloc(MAX_ROI_SIZE * sizeof(ROI_t));
-    ROI_t* stats_shrink = (ROI_t*)malloc(MAX_ROI_SIZE * sizeof(ROI_t));
+    ROI_t* stats_tmp = (ROI_t*)malloc(MAX_ROI_SIZE * sizeof(ROI_t));
     track_t* tracks = (track_t*)malloc(MAX_TRACKS_SIZE * sizeof(track_t));
     BB_t** BB_array = (BB_t**)malloc(MAX_N_FRAMES * sizeof(BB_t*));
-    ROIx2_t* ROI_history = (ROIx2_t*)malloc(MAX_ROI_HISTORY_SIZE * sizeof(ROIx2_t));
+    ROI_buffer_t* ROI_buff = tracking_alloc_ROI_buffer(MAX(fra_star_min, 3));
 
     int offset = 0;
     int tracks_cnt = -1;
@@ -194,11 +192,12 @@ int main(int argc, char** argv) {
     tracking_init_global_data();
     ballon_init(ballon, i0, i1, j0, j1, b);
     KKPV_data_t* kppv_data = KPPV_init(0, MAX_KPPV_SIZE, 0, MAX_KPPV_SIZE);
-    features_init_ROI(stats0, MAX_ROI_SIZE);
-    features_init_ROI(stats1, MAX_ROI_SIZE);
+    features_init_ROI(stats_tmp, MAX_ROI_SIZE);
     tracking_init_tracks(tracks, MAX_TRACKS_SIZE);
     tracking_init_BB_array(BB_array);
     CCL_data_t* ccl_data = CCL_LSL_init(i0, i1, j0, j1);
+    for (int i = 0; i < ROI_buff->size; i++)
+        features_init_ROI(ROI_buff->data[i], MAX_ROI_SIZE);
 
     // ----------------//
     // -- TRAITEMENT --//
@@ -212,8 +211,8 @@ int main(int argc, char** argv) {
     unsigned n_frames = 0;
     unsigned n_tracks = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     while (video_get_next_frame(video, ballon->I1)) {
-        assert(frame < MAX_N_FRAMES);
         frame = video->frame_current - 2;
+        assert(frame < MAX_N_FRAMES);
         fprintf(stderr, "(II) Frame n°%4d", frame);
 
         PUTS("\t Step 1 : seuillage low/high");
@@ -226,21 +225,21 @@ int main(int argc, char** argv) {
 
         PUTS("\t Step 2 : ECC/ACC");
         n1 = CCL_LSL_apply(ccl_data, ballon->SM32, i0, i1, j0, j1);
-        features_extract(ballon->SM32, i0, i1, j0, j1, stats1, n1);
+        features_extract(ballon->SM32, i0, i1, j0, j1, stats_tmp, n1);
 
         PUTS("\t Step 3 : seuillage hysteresis && filter surface");
-        features_merge_HI_CCL_v2(ballon->SH32, ballon->SM32, i0, i1, j0, j1, stats1, n1, surface_min, surface_max);
-        int n_shrink = features_shrink_stats(stats1, stats_shrink, n1);
+        features_merge_HI_CCL_v2(ballon->SH32, ballon->SM32, i0, i1, j0, j1, stats_tmp, n1, surface_min, surface_max);
+        int n_shrink = features_shrink_stats(stats_tmp, ROI_buff->data[0], n1);
 
         PUTS("\t Step 4 : mise en correspondance");
-        KPPV_match(kppv_data, stats0, stats_shrink, n0, n_shrink, k);
+        KPPV_match(kppv_data, ROI_buff->data[1], ROI_buff->data[0], n0, n_shrink, k);
 
         PUTS("\t Step 5 : recalage");
-        features_motion(stats0, stats_shrink, n0, n_shrink, &theta, &tx, &ty);
+        features_motion(ROI_buff->data[1], ROI_buff->data[0], n0, n_shrink, &theta, &tx, &ty);
 
         PUTS("\t Step 6: tracking");
-        tracking_perform(stats0, stats_shrink, ROI_history, tracks, BB_array, n0, n_shrink, frame, &tracks_cnt, &offset,
-                         theta, tx, ty, r_extrapol, d_line, diff_dev, track_all, fra_star_min);
+        tracking_perform(ROI_buff, tracks, BB_array, n0, n_shrink, frame, &tracks_cnt, &offset, theta, tx, ty,
+                         r_extrapol, angle_max, diff_dev, track_all, fra_star_min);
 
         PUTS("\t [DEBUG] Saving frames");
         if (out_frames) {
@@ -251,15 +250,17 @@ int main(int argc, char** argv) {
         PUTS("\t [DEBUG] Saving stats");
         if (out_stats) {
             tools_create_folder(out_stats);
-            KPPV_save_asso_conflicts(out_stats, frame, kppv_data, n0, n_shrink, stats0, stats_shrink, tracks,
-                                     tracks_cnt + 1);
+            KPPV_save_asso_conflicts(out_stats, frame, kppv_data, n0, n_shrink, ROI_buff->data[1], ROI_buff->data[0],
+                                     tracks, tracks_cnt + 1);
             // tools_save_motion(path_motion, theta, tx, ty, frame-1);
-            // tools_save_motionExtraction(path_extraction, stats0, stats_shrink, n0, theta, tx, ty, frame-1);
-            // tools_save_error(path_error, stats0, n0);
+            // tools_save_motionExtraction(path_extraction, ROI_buff->data[1], ROI_buff->data[0], n0, theta, tx, ty,
+            //                             frame-1);
+            // tools_save_error(path_error, ROI_buff->data[1], n0);
         }
 
         SWAP_UI8(ballon->I0, ballon->I1);
-        SWAP_STATS(stats0, stats_shrink, n_shrink);
+        tracking_rotate_ROI_buffer(ROI_buff);
+        features_init_ROI(ROI_buff->data[0], MAX_ROI_SIZE);
         n0 = n_shrink;
         n_frames++;
 
@@ -288,12 +289,10 @@ int main(int argc, char** argv) {
     CCL_LSL_free(ccl_data);
     KPPV_free(kppv_data);
     tracking_free_BB_array(BB_array);
-    free(stats0);
-    free(stats1);
-    free(stats_shrink);
+    tracking_free_ROI_buffer(ROI_buff);
+    free(stats_tmp);
     free(tracks);
     free(BB_array);
-    free(ROI_history);
 
     printf("# End of the program, exiting.\n");
 

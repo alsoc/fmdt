@@ -75,7 +75,7 @@ The list of available arguments:
 | `--surface-max`  | int      | 1000        | No      | Maximum surface of the CCs in pixel. |
 | `-k`             | int      | 3           | No      | Number of neighbors in the k-nearest neighbor matching (KPPV algorithm). |
 | `--r-extrapol`   | int      | 5           | No      | Search radius for CC extrapolation (piece-wise tracking). |
-| `--d-line`       | int      | 25          | No      | Approximation factor of the rectilinear trajectory of meteors. |
+| `--angle-max`    | float    | 20.0        | No      | Angle max between two consecutive meteor moving points (in degree). |
 | `--diff-dev`     | float    | 4.0         | No      | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
 | `--track-all`    | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`meteor`, `star` or `noise`). |
 | `--fra-star-min` | int      | 3           | No      | Minimum number of frames required to track a star. |

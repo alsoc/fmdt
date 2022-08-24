@@ -44,13 +44,10 @@
 #define MAX(a, b) (((a) < (b)) ? (b) : (a))
 #endif
 #define CLAMP(x, a, b) MIN(MAX(x, a), b)
-#define SWAP_STATS(dest, src, n_src)                                                                                   \
-    for (int i = 1; i <= n_src; i++) {                                                                                 \
-        dest[i] = src[i];                                                                                              \
-    }
+
 #define SWAP_UI8(a, b)                                                                                                 \
     {                                                                                                                  \
-        uint8_t** tmp = a;                                                                                               \
+        uint8_t** tmp = a;                                                                                             \
         a = b;                                                                                                         \
         b = tmp;                                                                                                       \
     }

@@ -15,7 +15,7 @@ typedef struct {
     uint16_t ymin;
     uint16_t ymax;
     uint32_t S; // number of points
-    uint16_t ID; // ID
+    uint16_t id; // ID
     int32_t track_id;
     float x; // abscisse du centre d'inertie x = Sx / S
     float y; // ordonnee du centre d'inertie y = Sy / S

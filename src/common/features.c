@@ -30,7 +30,7 @@ void features_extract(uint32_t** img, int i0, int i1, int j0, int j1, ROI_t* sta
             uint32_t e = img[i][j];
             if (e > 0) {
                 stats[e].S += 1;
-                stats[e].ID = e;
+                stats[e].id = e;
                 stats[e].Sx += j;
                 stats[e].Sy += i;
                 stats[e].Sx2 += j * j;
@@ -62,7 +62,7 @@ void features_merge_HI_CCL_v2(uint32_t** HI, uint32_t** M, int i0, int i1, int j
     for (int i = 1; i <= n; i++) {
         cc = stats[i];
         if (cc.S) {
-            id = cc.ID;
+            id = cc.id;
             if (S_min > cc.S || cc.S > S_max) {
                 stats[i].S = 0;
                 /* JUSTE POUR DEBUG (Affichage frames)*/
@@ -109,7 +109,7 @@ void features_filter_surface(ROI_t* stats, int n, uint32_t** img, uint32_t thres
 
     for (int i = 1; i <= n; i++) {
         S = stats[i].S;
-        id = stats[i].ID;
+        id = stats[i].id;
 
         if (S == 0)
             continue; // DEBUG
@@ -140,7 +140,7 @@ int features_shrink_stats(ROI_t* stats_src, ROI_t* stats_dest, int n) {
         if (stats_src[i].S > 0) {
             cpt++;
             memcpy(stats_dest +cpt, stats_src +i, sizeof(ROI_t));
-            stats_dest[cpt].ID = cpt;
+            stats_dest[cpt].id = cpt;
         }
     }
     return cpt;
@@ -458,7 +458,7 @@ void features_print_stats(ROI_t* stats, int n)
         if (stats[i].S > 0)
             printf("%4d \t %4d \t %4d \t %4d \t %4d \t %3d \t %4d \t %4d \t %7.1f \t %7.1f \t %4d \t %4d \t %4d \t "
                    "%7.1lf \t %d\n",
-                   stats[i].ID, stats[i].xmin, stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx,
+                   stats[i].id, stats[i].xmin, stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx,
                    stats[i].Sy, stats[i].x, stats[i].y, stats[i].prev, stats[i].next, stats[i].time, stats[i].error,
                    stats[i].motion);
     }
@@ -484,7 +484,7 @@ void features_parse_stats(const char* filename, ROI_t* stats, int* n)
     while (fgets(lines, 200, file)) {
         sscanf(lines, "%d %d %d %d %d %d %d %d %lf %lf %f %f %f %d %d", &id, &xmin, &xmax, &ymin, &ymax, &s, &sx, &sy,
                &x, &y, &dx, &dy, &error, &prev, &next);
-        stats[id].ID = id;
+        stats[id].id = id;
         stats[id].xmin = xmin;
         stats[id].xmax = xmax;
         stats[id].ymin = ymin;
@@ -511,21 +511,21 @@ void features_save_stats_file(FILE* f, ROI_t* stats, int n, track_t* tracks) {
 
     fprintf(f, "# Regions of interest (ROI) [%d]: \n", cpt);
     if (cpt) {
-        fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------\n");
-        fprintf(f, "#   ROI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       \n");
-        fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------\n");
-        fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------\n");
-        fprintf(f, "#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y \n");
-        fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------\n");
+        fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------||-----------------\n");
+        fprintf(f, "#   ROI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       ||       Time      \n");
+        fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------||-----------------\n");
+        fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||--------|--------\n");
+        fprintf(f, "#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y ||    All | Motion \n");
+        fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||--------|--------\n");
     }
 
     for (int i = 1; i <= n; i++) {
         if (stats[i].S != 0) {
-            fprintf(f, "   %4d || %4d | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f  \n",
-                    stats[i].ID, stats[i].track_id,
+            fprintf(f, "   %4d || %4d | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f || %6d | %6d \n",
+                    stats[i].id, stats[i].track_id,
                     g_obj_to_string_with_spaces[tracks[stats[i].track_id - 1].obj_type], stats[i].xmin,
                     stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx, stats[i].Sy, stats[i].x,
-                    stats[i].y);
+                    stats[i].y, stats[i].time, stats[i].time_motion);
         }
     }
 }
@@ -603,7 +603,7 @@ void features_save_motion_extraction(char* filename, ROI_t* stats0, ROI_t* stats
             fprintf(f, "%d - %d\n", frame, frame + 1);
             fprintf(f,
                     "CC en mouvement: %2d \t dx:%.3f \t dy: %.3f \t xmin: %3d \t xmax: %3d \t ymin: %3d \t ymax: %3d\n",
-                    stats0[i].ID, stats0[i].dx, stats0[i].dy, stats0[i].xmin, stats0[i].xmax, stats0[i].ymin,
+                    stats0[i].id, stats0[i].dx, stats0[i].dy, stats0[i].xmin, stats0[i].xmax, stats0[i].ymin,
                     stats0[i].ymax);
             fprintf(f, "---------------------------------------------------------------\n");
         }
