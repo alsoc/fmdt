@@ -37,33 +37,33 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -funroll-loops -fstri
 **Tips**: on Apple Silicon M1 CPUs and with Apple Clang, use `-mcpu=apple-m1` instead of `-march=native`.
 
 The `CMake` file comes with several options:
- * `-DTAH_DETECT_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the detection chain executable.
- * `-DTAH_VISU_EXE`    [default=`ON` ] {possible:`ON`,`OFF`}: compile the visual tracking executable.
- * `-DTAH_CHECK_EXE`   [default=`ON` ] {possible:`ON`,`OFF`}: compile the check executable.
- * `-DTAH_MAXRED_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the max reduction executable.
- * `-DTAH_DEBUG`       [default=`OFF`] {possible:`ON`,`OFF`}: build the project using debugging prints: these additional prints will be output on `stderr` and prefixed by `(DBG)`.
- * `-DTAH_OPENCV_LINK` [default=`OFF`] {possible:`ON`,`OFF`}: link with OpenCV library (required to enable `--show-id` option in `meteor-visu` executable).
+ * `-DFMDT_DETECT_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the detection chain executable.
+ * `-DFMDT_VISU_EXE`    [default=`ON` ] {possible:`ON`,`OFF`}: compile the visual tracking executable.
+ * `-DFMDT_CHECK_EXE`   [default=`ON` ] {possible:`ON`,`OFF`}: compile the check executable.
+ * `-DFMDT_MAXRED_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the max reduction executable.
+ * `-DFMDT_DEBUG`       [default=`OFF`] {possible:`ON`,`OFF`}: build the project using debugging prints: these additional prints will be output on `stderr` and prefixed by `(DBG)`.
+ * `-DFMDT_OPENCV_LINK` [default=`OFF`] {possible:`ON`,`OFF`}: link with OpenCV library (required to enable `--show-id` option in `fmdt-visu` executable).
 
 ## User Documentation
 
 This project generates 4 different executables:
-  - `meteor-detect`: meteors detection chain.
-  - `meteor-visu`: visualization of the detected meteors.
-  - `meteor-check`: validation of the detected meteors with the field truth.
-  - `meteor-maxred`: max reduction of grayscale pixels on a video.
+  - `fmdt-detect`: meteors detection chain.
+  - `fmdt-visu`: visualization of the detected meteors.
+  - `fmdt-check`: validation of the detected meteors with the field truth.
+  - `fmdt-maxred`: max reduction of grayscale pixels on a video.
 
 The next sub-sections describe *how to use* the generated executables.
 
 ### Detection Executable
 
-The meteors detection chain is located here: `./exe/meteor-detect`.
+The meteors detection chain is located here: `./exe/fmdt-detect`.
 
 The list of available arguments:
 
 | **Argument**       | **Type** | **Default** | **Req** | **Description** |
 | :---               | :---     | :---        | :---    | :--- |
 | `--in-video`       | str      | None        | Yes     | Input video path where we want to detect meteors. |
-| `--out-bb`         | str      | None        | No      | Path to the bounding boxes file required by `meteor-visu` to draw detection rectangles. |
+| `--out-bb`         | str      | None        | No      | Path to the bounding boxes file required by `fmdt-visu` to draw detection rectangles. |
 | `--out-frames`     | str      | None        | No      | Path of the output frames for debug (PPM format). |
 | `--out-stats`      | str      | None        | No      | TODO. |
 | `--fra-start`      | int      | 0           | No      | First frame id to start the detection in the video sequence. |
@@ -86,56 +86,56 @@ Output text formats are detailed in the [Input and Output Text Formats](#input-a
 
 ### Visualization Executable
 
-The meteors visualization program is located here: `./exe/meteor-visu`.
+The meteors visualization program is located here: `./exe/fmdt-visu`.
 
 The list of available arguments:
 
 | **Argument**    | **Type** | **Default**    | **Req** | **Description** |
 | :---            | :---     | :---           | :---    | :--- |
 | `--in-video`    | str      | None           | Yes     | Input video path. |
-| `--in-tracks`   | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `meteor-detect`). |
-| `--in-bb`       | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `meteor-detect`). |
+| `--in-tracks`   | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `fmdt-detect`). |
+| `--in-bb`       | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-gt`       | str      | None           | No      | File containing the ground truth. |
 | `--out-video`   | str      | "out_visu.mp4" | No      | Path of the output video (MPEG-4 format) with meteor tracking colored rectangles. If `--in-gt` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--in-gt` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
 | `--out-frames`  | str      | None           | No      | Path of the output frames for debug (PPM format). |
-| `--show-id`     | bool     | -              | No      | Show the object ids on the output video and frames. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
+| `--show-id`     | bool     | -              | No      | Show the object ids on the output video and frames. Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
 | `--nat-num`     | bool     | -              | No      | Natural numbering of the object ids, work only if `--show-id` is set. |
 | `--only-meteor` | bool     | -              | No      | Show only meteors. |
 
-**Note**: to run `meteor-visu`, it is required to run `meteor-detect` before and on the same input video. This will generate the required `tracks.txt` and `bounding_box.txt` files.
+**Note**: to run `fmdt-visu`, it is required to run `fmdt-detect` before and on the same input video. This will generate the required `tracks.txt` and `bounding_box.txt` files.
 
 Input text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.
 
 ### Checking Executable
 
-The meteors checking program is located here: `./exe/meteor-check`.
+The meteors checking program is located here: `./exe/fmdt-check`.
 
 The list of available arguments:
 
 | **Argument**  | **Type** | **Default** | **Req** | **Description** |
 | :---          | :---     | :---        | :---    | :--- |
-| `--in-tracks` | str      | None        | Yes     | The track file corresponding to the input video (generated from `meteor-detect`). |
+| `--in-tracks` | str      | None        | Yes     | The track file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-gt`     | str      | None        | Yes     | File containing the ground truth. |
 
-**Note**: to run `meteor-check`, it is required to run `meteor-detect` before. This will generate the required `tracks.txt` file.
+**Note**: to run `fmdt-check`, it is required to run `fmdt-detect` before. This will generate the required `tracks.txt` file.
 
 Input/output text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.
 
 ### Max-reduction Executable
 
-The max-reduction generation program is located here: `./exe/meteor-maxred`.
+The max-reduction generation program is located here: `./exe/fmdt-maxred`.
 
 The list of available arguments:
 
 | **Argument**    | **Type** | **Default** | **Req** | **Description** |
 | :---            | :---     | :---        | :---    | :--- |
 | `--in-video`    | str      | None        | Yes     | Input video path. |
-| `--in-tracks`   | str      | None        | No      | The tracks file corresponding to the input video (generated from `meteor-detect`). |
+| `--in-tracks`   | str      | None        | No      | The tracks file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-gt`       | str      | None        | No      | File containing the ground truth. |
 | `--out-frame`   | str      | None        | Yes     | Path of the output frame (PGM format). |
 | `--fra-start`   | int      | 0           | No      | First frame id to start the max-reduction in the video sequence. |
 | `--fra-end`     | int      | 200000      | No      | Last frame id to stop the max-reduction in the video sequence. |
-| `--show-id`     | bool     | -           | No      | Show the object ids on the output video and frames, works only if `--in-tracks` is set. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
+| `--show-id`     | bool     | -           | No      | Show the object ids on the output video and frames, works only if `--in-tracks` is set. Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
 | `--nat-num`     | bool     | -           | No      | Natural numbering of the object ids, works only if `--show-id` is set. |
 | `--only-meteor` | bool     | -           | No      | Show only meteors. |
 
@@ -146,13 +146,13 @@ Download a video sequence containing meteors here: https://lip6.fr/adrien.cassag
 #### Step 1: Meteors detection
 
 ```shell
-./exe/meteor-detect --in-video ./2022_05_31_tauh_34_meteors.mp4
+./exe/fmdt-detect --in-video ./2022_05_31_tauh_34_meteors.mp4
 ```
 
-Write tracks and bounding boxes into text files for `meteor-visu` and `meteor-check`:
+Write tracks and bounding boxes into text files for `fmdt-visu` and `fmdt-check`:
 
 ```shell
-./exe/meteor-detect --in-video ./2022_05_31_tauh_34_meteors.mp4 --out-bb ./out_detect_bb.txt > ./out_detect_tracks.txt
+./exe/fmdt-detect --in-video ./2022_05_31_tauh_34_meteors.mp4 --out-bb ./out_detect_bb.txt > ./out_detect_tracks.txt
 ```
 
 #### Step 2: Visualization
@@ -160,31 +160,31 @@ Write tracks and bounding boxes into text files for `meteor-visu` and `meteor-ch
 Visualization **WITHOUT** ground truth:
 
 ```shell
-./exe/meteor-visu --in-video ./2022_05_31_tauh_34_meteors.mp4 --in-tracks ./out_detect_tracks.txt --in-bb ./out_detect_bb.txt
+./exe/fmdt-visu --in-video ./2022_05_31_tauh_34_meteors.mp4 --in-tracks ./out_detect_tracks.txt --in-bb ./out_detect_bb.txt
 ```
 
 Visualization **WITH** ground truth:
 
 ```shell
-./exe/meteor-visu --in-video ./2022_05_31_tauh_34_meteors.mp4 --in-tracks ./out_detect_tracks.txt --in-bb ./out_detect_bb.txt --in-gt ../validation/2022_05_31_tauh_34_meteors.txt
+./exe/fmdt-visu --in-video ./2022_05_31_tauh_34_meteors.mp4 --in-tracks ./out_detect_tracks.txt --in-bb ./out_detect_bb.txt --in-gt ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 
 **Note**: by default, the resulting video will be written in the `./out_visu.mp4` file (this behavior can be overloaded with the `--out-video` argument).
 
 #### Step 3: Offline checking
 
-Use `meteor-check` with the following arguments:
+Use `fmdt-check` with the following arguments:
 
 ```shell
-./exe/meteor-check --in-tracks ./out_detect_tracks.txt --in-gt ../validation/2022_05_31_tauh_34_meteors.txt
+./exe/fmdt-check --in-tracks ./out_detect_tracks.txt --in-gt ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 
 #### Step 4: Max reduction
 
-Use `meteor-maxred` with the following arguments:
+Use `fmdt-maxred` with the following arguments:
 
 ```shell
-./exe/meteor-maxred --in-video ./2022_05_31_tauh_34_meteors.mp4 --out-frame out_maxred.pgm
+./exe/fmdt-maxred --in-video ./2022_05_31_tauh_34_meteors.mp4 --out-frame out_maxred.pgm
 ```
 
 ### Input and Output Text Formats
@@ -192,7 +192,7 @@ Use `meteor-maxred` with the following arguments:
 This section details the various text formats used by the toolchain.
 For each text format, the `#` character can be used for comments (at the beginning of a new line).
 
-#### Tracks: `stdout` of `meteor-detect` / `--in-tracks` in `meteor-visu` and `meteor-check`
+#### Tracks: `stdout` of `fmdt-detect` / `--in-tracks` in `fmdt-visu` and `fmdt-check`
 
 The tracks represent the detected objects in the video sequence.
 
@@ -215,9 +215,9 @@ The tracks represent the detected objects in the video sequence.
 * `{yend}`: a positive real value of the y-axis coordinate (end of the track).
 * `{otype}`: a string of the object type, can be: `meteor`, `star` or `noise`.
 
-#### Bounding Boxes: `--out-bb` in `meteor-detect` / `--in-bb` in `meteor-visu`
+#### Bounding Boxes: `--out-bb` in `fmdt-detect` / `--in-bb` in `fmdt-visu`
 
-The bounding boxes can be output by `meteor-detect` (with the `--out-bb` argument) and are required by `meteor-visu`.
+The bounding boxes can be output by `fmdt-detect` (with the `--out-bb` argument) and are required by `fmdt-visu`.
 Each bounding box defines the area of an object, frame by frame.
 
 Here is the corresponding line format:
@@ -226,7 +226,7 @@ Here is the corresponding line format:
 ```
 Each line corresponds to a frame and to an object, each value is separated by a space character.
 
-#### Ground Truth: `--in-gt` in `meteor-visu`, `meteor-check` & `meteor-maxred`
+#### Ground Truth: `--in-gt` in `fmdt-visu`, `fmdt-check` & `fmdt-maxred`
 
 Ground truth file gives objects positions over time. Here is the expected text format of a line:
 
@@ -238,9 +238,9 @@ Ground truth file gives objects positions over time. Here is the expected text f
 `{begin_frame}`, `{begin_x}`, `{begin_y}`, `{end_frame}`, `{end_x}`, `{end_y}` are positive integers.
 Each line corresponds to an object and each value is separated by a space character.
 
-#### Check Report: `stdout` in `meteor-check`
+#### Check Report: `stdout` in `fmdt-check`
 
-The first part of `meteor-check` `stdout` is a table where each entry corresponds to an object of the ground truth (GT):
+The first part of `fmdt-check` `stdout` is a table where each entry corresponds to an object of the ground truth (GT):
 
 ```
 # ---------------||---------------||-----------------||--------
@@ -260,7 +260,7 @@ The first part of `meteor-check` `stdout` is a table where each entry correspond
 * `{stof}`: a positive integer value of the frame stop (from the ground truth, `--in-gt`).
 * `{nt}`: a positive integer value of the number of tracks that match the ground truth object.
 
-In a second part, `meteor-check` `stdout` gives some statistics in the following format (`{pi}` stands for *positive integer* and `{pf}` for *positive float*):
+In a second part, `fmdt-check` `stdout` gives some statistics in the following format (`{pi}` stands for *positive integer* and `{pf}` for *positive float*):
 
 ```
 Statistics:
@@ -274,7 +274,7 @@ Statistics:
 ```
 
 * `Number of GT objs`: the number of objects from the ground truth.
-* `Number of tracks`: the number of objects from the tracks (`meteor-detect` output).
+* `Number of tracks`: the number of objects from the tracks (`fmdt-detect` output).
 * `True positives`: number of detected objects that are in the ground truth (with the same type).
 * `False positives`: number of detected objects that are not in the ground truth (or that have a different type).
 * `True negative`: number of detected objects that are different from the current type of object. For instance, if we focus on `meteor` object type, the number of false negatives is the sum of all the objects in the tracks that are `star` or `noise`.

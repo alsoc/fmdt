@@ -1,26 +1,26 @@
 # 3.11 because of imported target "OpenMP::OpenMP_C"
 cmake_minimum_required(VERSION 3.11)
 
-project(tau-h)
+project(fmdt)
 
 # CMake options ---------------------------------------------------------------
 # -----------------------------------------------------------------------------
-option(TAH_DETECT_EXE "compile the detection chain executable." ON)
-option(TAH_VISU_EXE "compile the visualization executable." ON)
-option(TAH_CHECK_EXE "compile the checking executable." ON)
-option(TAH_MAXRED_EXE "compile the max reduction executable." ON)
-option(TAH_DEBUG "build the project using debugging code" OFF)
-option(TAH_OPENCV_LINK "link with OpenCV library." OFF)
+option(FMDT_DETECT_EXE "compile the detection chain executable." ON)
+option(FMDT_VISU_EXE "compile the visualization executable." ON)
+option(FMDT_CHECK_EXE "compile the checking executable." ON)
+option(FMDT_MAXRED_EXE "compile the max reduction executable." ON)
+option(FMDT_DEBUG "build the project using debugging code" OFF)
+option(FMDT_OPENCV_LINK "link with OpenCV library." OFF)
 
 # Print CMake options values --------------------------------------------------
 # -----------------------------------------------------------------------------
 message(STATUS "Tau-h options: ")
-message(STATUS "  * TAH_DETECT_EXE: '${TAH_DETECT_EXE}'")
-message(STATUS "  * TAH_VISU_EXE: '${TAH_VISU_EXE}'")
-message(STATUS "  * TAH_CHECK_EXE: '${TAH_CHECK_EXE}'")
-message(STATUS "  * TAH_MAXRED_EXE: '${TAH_MAXRED_EXE}'")
-message(STATUS "  * TAH_DEBUG: '${TAH_DEBUG}'")
-message(STATUS "  * TAH_OPENCV_LINK: '${TAH_OPENCV_LINK}'")
+message(STATUS "  * FMDT_DETECT_EXE: '${FMDT_DETECT_EXE}'")
+message(STATUS "  * FMDT_VISU_EXE: '${FMDT_VISU_EXE}'")
+message(STATUS "  * FMDT_CHECK_EXE: '${FMDT_CHECK_EXE}'")
+message(STATUS "  * FMDT_MAXRED_EXE: '${FMDT_MAXRED_EXE}'")
+message(STATUS "  * FMDT_DEBUG: '${FMDT_DEBUG}'")
+message(STATUS "  * FMDT_OPENCV_LINK: '${FMDT_OPENCV_LINK}'")
 message(STATUS "Tau-h info: ")
 message(STATUS "  * CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 
@@ -39,7 +39,7 @@ set(exe_dir exe)
 # enable C11
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-if (TAH_OPENCV_LINK)
+if (FMDT_OPENCV_LINK)
 	# enable C++11
 	set(CMAKE_CXX_STANDARD 11)
 	set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -58,61 +58,61 @@ set(src_common_files
     ${src_dir}/common/tracking.c
     ${src_dir}/common/validation.c
     ${src_dir}/common/video.c)
-list(APPEND tah_src_list ${src_common_files})
+list(APPEND fmdt_src_list ${src_common_files})
 
 # Create binaries -------------------------------------------------------------
 # -----------------------------------------------------------------------------
 # objects
-add_library(tah-common-obj OBJECT ${src_common_files})
-list(APPEND tah_targets_list tah-common-obj)
+add_library(fmdt-common-obj OBJECT ${src_common_files})
+list(APPEND fmdt_targets_list fmdt-common-obj)
 
 # executables
-if(TAH_DETECT_EXE)
+if(FMDT_DETECT_EXE)
 	set(src_detect_files
 	    ${src_dir}/detect/ballon.c
 	    ${src_dir}/detect/CCL.c
 	    ${src_dir}/detect/KPPV.c
 	    ${src_dir}/detect/threshold.c
 	    ${src_dir}/detect/main.c)
-	list(APPEND tah_src_list ${src_detect_files})
-	add_executable(tah-detect-exe $<TARGET_OBJECTS:tah-common-obj> ${src_detect_files})
-	list(APPEND tah_targets_list tah-detect-exe)
-	set_target_properties(tah-detect-exe PROPERTIES OUTPUT_NAME meteor-detect)
+	list(APPEND fmdt_src_list ${src_detect_files})
+	add_executable(fmdt-detect-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_detect_files})
+	list(APPEND fmdt_targets_list fmdt-detect-exe)
+	set_target_properties(fmdt-detect-exe PROPERTIES OUTPUT_NAME fmdt-detect)
 endif()
-if(TAH_VISU_EXE)
+if(FMDT_VISU_EXE)
 	set(src_visu_files
 	    ${src_dir}/visu/main.c)
-	list(APPEND tah_src_list ${src_visu_files})
-	add_executable(tah-visu-exe $<TARGET_OBJECTS:tah-common-obj> ${src_visu_files})
-	list(APPEND tah_targets_list tah-visu-exe)
-	set_target_properties(tah-visu-exe PROPERTIES OUTPUT_NAME meteor-visu)
+	list(APPEND fmdt_src_list ${src_visu_files})
+	add_executable(fmdt-visu-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_visu_files})
+	list(APPEND fmdt_targets_list fmdt-visu-exe)
+	set_target_properties(fmdt-visu-exe PROPERTIES OUTPUT_NAME fmdt-visu)
 endif()
-if(TAH_CHECK_EXE)
+if(FMDT_CHECK_EXE)
 	set(src_check_files
 	    ${src_dir}/check/main.c)
-	list(APPEND tah_src_list ${src_check_files})
-	add_executable(tah-check-exe $<TARGET_OBJECTS:tah-common-obj> ${src_check_files})
-	list(APPEND tah_targets_list tah-check-exe)
-	set_target_properties(tah-check-exe PROPERTIES OUTPUT_NAME meteor-check)
+	list(APPEND fmdt_src_list ${src_check_files})
+	add_executable(fmdt-check-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_check_files})
+	list(APPEND fmdt_targets_list fmdt-check-exe)
+	set_target_properties(fmdt-check-exe PROPERTIES OUTPUT_NAME fmdt-check)
 endif()
-if(TAH_MAXRED_EXE)
+if(FMDT_MAXRED_EXE)
 	set(src_maxred_files
 	    ${src_dir}/maxred/main.c)
-	list(APPEND tah_src_list ${src_maxred_files})
-	add_executable(tah-maxred-exe $<TARGET_OBJECTS:tah-common-obj> ${src_maxred_files})
-	list(APPEND tah_targets_list tah-maxred-exe)
-	set_target_properties(tah-maxred-exe PROPERTIES OUTPUT_NAME meteor-maxred)
+	list(APPEND fmdt_src_list ${src_maxred_files})
+	add_executable(fmdt-maxred-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_maxred_files})
+	list(APPEND fmdt_targets_list fmdt-maxred-exe)
+	set_target_properties(fmdt-maxred-exe PROPERTIES OUTPUT_NAME fmdt-maxred)
 endif()
 
-macro(tah_set_source_files_properties files key value)
+macro(fmdt_set_source_files_properties files key value)
 	foreach(_file IN ITEMS ${files})
 		set_source_files_properties(${_file} PROPERTIES ${key} ${value})
 	endforeach()
 endmacro()
 
 # force C++ language when linking with OpenCV
-if (TAH_OPENCV_LINK)
-	tah_set_source_files_properties("${tah_src_list}" LANGUAGE CXX)
+if (FMDT_OPENCV_LINK)
+	fmdt_set_source_files_properties("${fmdt_src_list}" LANGUAGE CXX)
 endif()
 
 # Add and compile sub-projects ------------------------------------------------
@@ -127,50 +127,50 @@ if (NOT TARGET nrc-slib)
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/nrc2/)
 endif()
 
-if (TAH_OPENCV_LINK)
+if (FMDT_OPENCV_LINK)
 	find_package(OpenCV REQUIRED)
 endif()
 
 # Add definitions -------------------------------------------------------------
 # -----------------------------------------------------------------------------
-macro(tah_target_compile_definitions targets privacy dir)
+macro(fmdt_target_compile_definitions targets privacy dir)
 	foreach(_target IN ITEMS ${targets})
 		target_compile_definitions(${_target} ${privacy} ${dir} )
 	endforeach()
 endmacro()
 
-if (TAH_DEBUG)
-	tah_target_compile_definitions("${tah_targets_list}" PUBLIC ENABLE_DEBUG)
+if (FMDT_DEBUG)
+	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC ENABLE_DEBUG)
 endif()
-if (TAH_OPENCV_LINK)
-	tah_target_compile_definitions("${tah_targets_list}" PUBLIC OPENCV_LINK)
+if (FMDT_OPENCV_LINK)
+	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC OPENCV_LINK)
 endif()
 
 # Set include directory -------------------------------------------------------
 # -----------------------------------------------------------------------------
-macro(tah_target_include_directories targets privacy dir)
+macro(fmdt_target_include_directories targets privacy dir)
 	foreach(_target IN ITEMS ${targets})
 		target_include_directories(${_target} ${privacy} ${dir})
 	endforeach()
 endmacro()
 
-tah_target_include_directories("${tah_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/common)
-tah_target_include_directories("${tah_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/detect)
-if (TAH_OPENCV_LINK)
+fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/common)
+fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/detect)
+if (FMDT_OPENCV_LINK)
 	include_directories(${OpenCV_INCLUDE_DIRS})
 endif()
 
 # Link with dependencies ------------------------------------------------------
 # -----------------------------------------------------------------------------
-macro(tah_target_link_libraries targets privacy lib)
+macro(fmdt_target_link_libraries targets privacy lib)
 	foreach(_target IN ITEMS ${targets})
 		target_link_libraries(${_target} ${privacy} ${lib})
 	endforeach()
 endmacro()
 
-tah_target_link_libraries("${tah_targets_list}" PUBLIC ffmpeg-io-slib)
-tah_target_link_libraries("${tah_targets_list}" PUBLIC m)
-tah_target_link_libraries("${tah_targets_list}" PUBLIC nrc-slib)
-if (TAH_OPENCV_LINK)
-	tah_target_link_libraries("${tah_targets_list}" PUBLIC "${OpenCV_LIBS}")
+fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC ffmpeg-io-slib)
+fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC m)
+fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC nrc-slib)
+if (FMDT_OPENCV_LINK)
+	fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC "${OpenCV_LIBS}")
 endif()
