@@ -62,10 +62,10 @@ int main(int argc, char** argv) {
     const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
     const char* p_in_gt = args_find_char(argc, argv, "--in-gt", def_p_in_gt);
 #ifdef OPENCV_LINK
-    const int show_id = args_find(argc, argv, "--show-id");
-    const int nat_num = args_find(argc, argv, "--nat-num");
+    const int p_show_id = args_find(argc, argv, "--show-id");
+    const int p_nat_num = args_find(argc, argv, "--nat-num");
 #endif
-    const int only_meteor = args_find(argc, argv, "--only-meteor");
+    const int p_only_meteor = args_find(argc, argv, "--only-meteor");
 
     // heading display
     printf("#  -----------------------\n");
@@ -83,10 +83,10 @@ int main(int argc, char** argv) {
     printf("#  * fra-start   = %d\n", p_fra_start);
     printf("#  * fra-end     = %d\n", p_fra_end);
 #ifdef OPENCV_LINK
-    printf("#  * show-id     = %d\n", show_id);
-    printf("#  * nat-num     = %d\n", nat_num);
+    printf("#  * show-id     = %d\n", p_show_id);
+    printf("#  * nat-num     = %d\n", p_nat_num);
 #endif
-    printf("#  * only-meteor = %d\n", only_meteor);
+    printf("#  * only-meteor = %d\n", p_only_meteor);
     printf("#\n");
 
     if (!p_in_video) {
@@ -106,9 +106,9 @@ int main(int argc, char** argv) {
         exit(1);
     }
 #ifdef OPENCV_LINK
-    if (show_id && !p_in_tracks)
+    if (p_show_id && !p_in_tracks)
         fprintf(stderr, "(WW) '--show-id' will not work because '--in-tracks' is not set.\n");
-    if (!show_id && nat_num)
+    if (!p_show_id && p_nat_num)
         fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set.\n");
 #endif
     if (p_in_gt && !p_in_tracks)
@@ -164,9 +164,9 @@ int main(int argc, char** argv) {
         BB_coord_t* listBB = (BB_coord_t*)malloc(sizeof(BB_coord_t) * n_tracks);
         int m = 0;
         for (int t = 0; t < n_tracks; t++) {
-            if (!only_meteor || tracks[t].obj_type == METEOR) {
+            if (!p_only_meteor || tracks[t].obj_type == METEOR) {
 #ifdef OPENCV_LINK
-                listBB[m].track_id = nat_num ? (m + 1) : tracks[t].id;
+                listBB[m].track_id = p_nat_num ? (m + 1) : tracks[t].id;
 #else
                 listBB[m].track_id = tracks[t].id;
 #endif
@@ -197,7 +197,7 @@ int main(int argc, char** argv) {
         int n_BB = m;
         tools_draw_BB(img_bb, listBB, n_BB, j1, i1);
 #ifdef OPENCV_LINK
-        tools_draw_text(img_bb, j1, i1, listBB, n_BB, p_in_gt ? 1 : 0, show_id);
+        tools_draw_text(img_bb, j1, i1, listBB, n_BB, p_in_gt ? 1 : 0, p_show_id);
 #endif
         tools_save_frame(p_out_frame, (const rgb8_t**)img_bb, j1, i1);
 

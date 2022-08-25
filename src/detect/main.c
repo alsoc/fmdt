@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
     const char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
-    const int track_all = args_find(argc, argv, "--track-all");
+    const int p_track_all = args_find(argc, argv, "--track-all");
 
     // heading display
     printf("#  -----------------------\n");
@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
     printf("#  * fra-meteor-min = %d\n", p_fra_meteor_min);
     printf("#  * fra-meteor-max = %d\n", p_fra_meteor_max);
     printf("#  * diff-dev       = %4.2f\n", p_diff_dev);
-    printf("#  * track-all      = %d\n", track_all);
+    printf("#  * track-all      = %d\n", p_track_all);
     printf("#\n");
 
     if (!p_in_video) {
@@ -271,7 +271,7 @@ int main(int argc, char** argv) {
 
         // Step 6: tracking
         tracking_perform(ROI_buff, tracks, BB_array, n0, n_shrink, frame, &tracks_cnt, &offset, theta, tx, ty,
-                         p_r_extrapol, p_angle_max, p_diff_dev, track_all, p_fra_star_min, p_fra_meteor_min,
+                         p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
                          p_fra_meteor_max);
 
         // Saving frames
@@ -307,7 +307,7 @@ int main(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (p_out_bb)
-        tracking_save_array_BB(p_out_bb, BB_array, tracks, MAX_N_FRAMES, track_all);
+        tracking_save_array_BB(p_out_bb, BB_array, tracks, MAX_N_FRAMES, p_track_all);
     tracking_print_tracks(stdout, tracks, tracks_cnt + 1);
 
     printf("# Statistics:\n");

@@ -66,10 +66,10 @@ int main(int argc, char** argv) {
     const char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
     const char* p_in_gt = args_find_char(argc, argv, "--in-gt", def_p_in_gt);
 #ifdef OPENCV_LINK
-    const int show_id = args_find(argc, argv, "--show-id");
-    const int nat_num = args_find(argc, argv, "--nat-num");
+    const int p_show_id = args_find(argc, argv, "--show-id");
+    const int p_nat_num = args_find(argc, argv, "--nat-num");
 #endif
-    const int only_meteor = args_find(argc, argv, "--only-meteor");
+    const int p_only_meteor = args_find(argc, argv, "--only-meteor");
 
     // heading display
     printf("#  ---------------------\n");
@@ -87,10 +87,10 @@ int main(int argc, char** argv) {
     printf("#  * out-video   = %s\n", p_out_video);
     printf("#  * out-frames  = %s\n", p_out_frames);
 #ifdef OPENCV_LINK
-    printf("#  * show-id     = %d\n", show_id);
-    printf("#  * nat-num     = %d\n", nat_num);
+    printf("#  * show-id     = %d\n", p_show_id);
+    printf("#  * nat-num     = %d\n", p_nat_num);
 #endif
-    printf("#  * only-meteor = %d\n", only_meteor);
+    printf("#  * only-meteor = %d\n", p_only_meteor);
     printf("#\n");
 
     int b = 1;
@@ -120,7 +120,7 @@ int main(int argc, char** argv) {
     if (!p_out_frames)
         fprintf(stderr, "(II) '--out-frames' is missing -> no frames will be saved\n");
 #ifdef OPENCV_LINK
-    if (!show_id && nat_num)
+    if (!p_show_id && p_nat_num)
         fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set.\n");
 #endif
 
@@ -143,7 +143,7 @@ int main(int argc, char** argv) {
     int j = 1;
     for (int i = 0; i < n_tracks; i++) {
         LUT_tracks_id[tracks[i].id] = i;
-        if (!only_meteor || tracks[i].obj_type == METEOR)
+        if (!p_only_meteor || tracks[i].obj_type == METEOR)
             LUT_tracks_nat_num[tracks[i].id] = j++;
 
     }
@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
 
         // affiche tous les BB de l'image
         while (frame_bb == frame) {
-            if (!only_meteor || tracks[LUT_tracks_id[track_id]].obj_type == METEOR) {
+            if (!p_only_meteor || tracks[LUT_tracks_id[track_id]].obj_type == METEOR) {
                 if (tracks[LUT_tracks_id[track_id]].obj_type != UNKNOWN)
                     color = g_obj_to_color[tracks[LUT_tracks_id[track_id]].obj_type];
                 else {
@@ -217,7 +217,7 @@ int main(int argc, char** argv) {
                     color = RED; // RED   = false positive 'meteor'
 
 #ifdef OPENCV_LINK
-                int display_track_id = nat_num ? LUT_tracks_nat_num[track_id] : track_id;
+                int display_track_id = p_nat_num ? LUT_tracks_nat_num[track_id] : track_id;
 #else
                 int display_track_id = track_id;
 #endif
@@ -237,7 +237,7 @@ int main(int argc, char** argv) {
         tools_convert_img_grayscale_to_rgb((const uint8_t**)I0, img_bb, i0, i1, j0, j1);
         tools_draw_BB(img_bb, BB_list, cpt, j1, i1);
 #ifdef OPENCV_LINK
-        tools_draw_text(img_bb, j1, i1, BB_list, cpt, p_in_gt ? 1 : 0, show_id);
+        tools_draw_text(img_bb, j1, i1, BB_list, cpt, p_in_gt ? 1 : 0, p_show_id);
 #endif
         if (!ffmpeg_write2d(&writer_video_out, (uint8_t**)img_bb)) {
             fprintf(stderr, "(EE) ffmpeg_write2d: %s, frame: %d\n", ffmpeg_error2str(writer_video_out.error), frame);
