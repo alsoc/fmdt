@@ -39,17 +39,18 @@ int main(int argc, char** argv) {
     char* def_validation = NULL;
 
     if (args_find(argc, argv, "-h")) {
-        fprintf(stderr, "  --in-video     Video source                             [%s]\n", def_in_video);
-        fprintf(stderr, "  --in-tracks    Path to the tracks files                 [%s]\n", def_in_tracks);
-        fprintf(stderr, "  --out-frame    Path to the frame output file            [%s]\n", def_out_frame);
-        fprintf(stderr, "  --fra-start    Starting frame in the video              [%d]\n", def_fra_start);
-        fprintf(stderr, "  --fra-end      Ending frame in the video                [%d]\n", def_fra_end);
+        fprintf(stderr, "  --in-video       Video source                             [%s]\n", def_in_video);
+        fprintf(stderr, "  --in-tracks      Path to the tracks files                 [%s]\n", def_in_tracks);
+        fprintf(stderr, "  --in-gt          File containing the ground truth         [%s]\n", def_validation);
+        fprintf(stderr, "  --out-frame      Path to the frame output file            [%s]\n", def_out_frame);
+        fprintf(stderr, "  --fra-start      Starting frame in the video              [%d]\n", def_fra_start);
+        fprintf(stderr, "  --fra-end        Ending frame in the video                [%d]\n", def_fra_end);
 #ifdef OPENCV_LINK
-        fprintf(stderr, "  --show-id      Show the object ids on the output frame      \n");
-        fprintf(stderr, "  --nat-num      Natural numbering of the object ids          \n");
+        fprintf(stderr, "  --show-id        Show the object ids on the output frame      \n");
+        fprintf(stderr, "  --nat-num        Natural numbering of the object ids          \n");
 #endif
-        fprintf(stderr, "  --in-gt        File containing the ground truth         [%s]\n", def_validation);
-        fprintf(stderr, "  -h             This help                                    \n");
+        fprintf(stderr, "  --only-meteor    Show only meteors                            \n");
+        fprintf(stderr, "  -h               This help                                    \n");
         exit(1);
     }
 
@@ -64,6 +65,7 @@ int main(int argc, char** argv) {
     int show_id = args_find(argc, argv, "--show-id");
     int nat_num = args_find(argc, argv, "--nat-num");
 #endif
+    int only_meteor = args_find(argc, argv, "--only-meteor");
 
     // heading display
     printf("#  -----------------------\n");
@@ -74,16 +76,17 @@ int main(int argc, char** argv) {
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
-    printf("#  * in-video  = %s\n", in_video);
-    printf("#  * in-tracks = %s\n", in_tracks);
-    printf("#  * out-frame = %s\n", out_frame);
-    printf("#  * fra-start = %d\n", fra_start);
-    printf("#  * fra-end   = %d\n", fra_end);
+    printf("#  * in-video    = %s\n", in_video);
+    printf("#  * in-tracks   = %s\n", in_tracks);
+    printf("#  * in-gt       = %s\n", in_gt);
+    printf("#  * out-frame   = %s\n", out_frame);
+    printf("#  * fra-start   = %d\n", fra_start);
+    printf("#  * fra-end     = %d\n", fra_end);
 #ifdef OPENCV_LINK
-    printf("#  * show-id   = %d\n", show_id);
-    printf("#  * nat-num   = %d\n", nat_num);
+    printf("#  * show-id     = %d\n", show_id);
+    printf("#  * nat-num     = %d\n", nat_num);
 #endif
-    printf("#  * in-gt     = %s\n", in_gt);
+    printf("#  * only-meteor = %d\n", only_meteor);
     printf("#\n");
 
     if (!in_video) {
@@ -151,35 +154,39 @@ int main(int argc, char** argv) {
         }
 
         BB_coord_t* listBB = (BB_coord_t*)malloc(sizeof(BB_coord_t) * n_tracks);
+        int m = 0;
         for (int t = 0; t < n_tracks; t++) {
+            if (!only_meteor || tracks[t].obj_type == METEOR) {
 #ifdef OPENCV_LINK
-            listBB[t].track_id = nat_num ? (t + 1) : tracks[t].id;
+                listBB[m].track_id = nat_num ? (m + 1) : tracks[t].id;
 #else
-            listBB[t].track_id = tracks[t].id;
+                listBB[m].track_id = tracks[t].id;
 #endif
-            int delta = 5;
-            listBB[t].xmin = (tracks[t].begin.x < tracks[t].end.x ? tracks[t].begin.x : tracks[t].end.x) - delta;
-            listBB[t].xmax = (tracks[t].begin.x < tracks[t].end.x ? tracks[t].end.x : tracks[t].begin.x) + delta;
-            listBB[t].ymin = (tracks[t].begin.y < tracks[t].end.y ? tracks[t].begin.y : tracks[t].end.y) - delta;
-            listBB[t].ymax = (tracks[t].begin.y < tracks[t].end.y ? tracks[t].end.y : tracks[t].begin.y) + delta;
+                int delta = 5;
+                listBB[m].xmin = (tracks[t].begin.x < tracks[t].end.x ? tracks[t].begin.x : tracks[t].end.x) - delta;
+                listBB[m].xmax = (tracks[t].begin.x < tracks[t].end.x ? tracks[t].end.x : tracks[t].begin.x) + delta;
+                listBB[m].ymin = (tracks[t].begin.y < tracks[t].end.y ? tracks[t].begin.y : tracks[t].end.y) - delta;
+                listBB[m].ymax = (tracks[t].begin.y < tracks[t].end.y ? tracks[t].end.y : tracks[t].begin.y) + delta;
 
-            if (tracks[t].obj_type != UNKNOWN)
-                listBB[t].color = g_obj_to_color[tracks[t].obj_type];
-            else {
-                fprintf(stderr, "(EE) This should never happen... ('t' = %d, 'tracks[t].obj_type' = %d)\n", t,
-                        tracks[t].obj_type);
-                exit(-1);
+                if (tracks[t].obj_type != UNKNOWN)
+                    listBB[m].color = g_obj_to_color[tracks[t].obj_type];
+                else {
+                    fprintf(stderr, "(EE) This should never happen... ('t' = %d, 'tracks[t].obj_type' = %d)\n", t,
+                            tracks[t].obj_type);
+                    exit(-1);
+                }
+
+                if (in_gt && tracks[t].is_valid == 1)
+                    listBB[m].color = GREEN; // GREEN = true positive 'meteor'
+                if (in_gt && tracks[t].is_valid == 2)
+                    listBB[m].color = RED; // RED = false positive 'meteor'
+                m++;
             }
-
-            if (in_gt && tracks[t].is_valid == 1)
-                listBB[t].color = GREEN; // GREEN = true positive 'meteor'
-            if (in_gt && tracks[t].is_valid == 2)
-                listBB[t].color = RED; // RED = false positive 'meteor'
         }
 
         rgb8_t** img_bb = (rgb8_t**)rgb8matrix(i0, i1, j0, j1);
         tools_convert_img_grayscale_to_rgb((const uint8_t**)Max, img_bb, i0, i1, j0, j1);
-        int n_BB = n_tracks;
+        int n_BB = m;
         tools_draw_BB(img_bb, listBB, n_BB, j1, i1);
 #ifdef OPENCV_LINK
         tools_draw_text(img_bb, j1, i1, listBB, n_BB, in_gt ? 1 : 0, show_id);

@@ -90,16 +90,17 @@ The meteors visualization program is located here: `./exe/meteor-visu`.
 
 The list of available arguments:
 
-| **Argument**   | **Type** | **Default**    | **Req** | **Description** |
-| :---           | :---     | :---           | :---    | :--- |
-| `--in-video`   | str      | None           | Yes     | Input video path. |
-| `--in-tracks`  | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `meteor-detect`). |
-| `--in-bb`      | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `meteor-detect`). |
-| `--in-gt`      | str      | None           | No      | File containing the ground truth. |
-| `--out-video`  | str      | "out_visu.mp4" | No      | Path of the output video (MPEG-4 format) with meteor tracking colored rectangles. If `--in-gt` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--in-gt` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
-| `--out-frames` | str      | None           | No      | Path of the output frames for debug (PPM format). |
-| `--show-id`    | bool     | -              | No      | Show the object ids on the output video and frames. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
-| `--nat-num`    | bool     | -              | No      | Natural numbering of the object ids, work only if `--show-id` is set. |
+| **Argument**    | **Type** | **Default**    | **Req** | **Description** |
+| :---            | :---     | :---           | :---    | :--- |
+| `--in-video`    | str      | None           | Yes     | Input video path. |
+| `--in-tracks`   | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `meteor-detect`). |
+| `--in-bb`       | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `meteor-detect`). |
+| `--in-gt`       | str      | None           | No      | File containing the ground truth. |
+| `--out-video`   | str      | "out_visu.mp4" | No      | Path of the output video (MPEG-4 format) with meteor tracking colored rectangles. If `--in-gt` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--in-gt` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
+| `--out-frames`  | str      | None           | No      | Path of the output frames for debug (PPM format). |
+| `--show-id`     | bool     | -              | No      | Show the object ids on the output video and frames. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
+| `--nat-num`     | bool     | -              | No      | Natural numbering of the object ids, work only if `--show-id` is set. |
+| `--only-meteor` | bool     | -              | No      | Show only meteors. |
 
 **Note**: to run `meteor-visu`, it is required to run `meteor-detect` before and on the same input video. This will generate the required `tracks.txt` and `bounding_box.txt` files.
 
@@ -126,16 +127,17 @@ The max-reduction generation program is located here: `./exe/meteor-maxred`.
 
 The list of available arguments:
 
-| **Argument**  | **Type** | **Default** | **Req** | **Description** |
-| :---          | :---     | :---        | :---    | :--- |
-| `--in-video`  | str      | None        | Yes     | Input video path. |
-| `--in-tracks` | str      | None        | No      | The tracks file corresponding to the input video (generated from `meteor-detect`). |
-| `--in-gt`     | str      | None        | No      | File containing the ground truth. |
-| `--out-frame` | str      | None        | Yes     | Path of the output frame (PGM format). |
-| `--fra-start` | int      | 0           | No      | First frame id to start the max-reduction in the video sequence. |
-| `--fra-end`   | int      | 200000      | No      | Last frame id to stop the max-reduction in the video sequence. |
-| `--show-id`   | bool     | -           | No      | Show the object ids on the output video and frames, works only if `--in-tracks` is set. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
-| `--nat-num`   | bool     | -           | No      | Natural numbering of the object ids, works only if `--show-id` is set. |
+| **Argument**    | **Type** | **Default** | **Req** | **Description** |
+| :---            | :---     | :---        | :---    | :--- |
+| `--in-video`    | str      | None        | Yes     | Input video path. |
+| `--in-tracks`   | str      | None        | No      | The tracks file corresponding to the input video (generated from `meteor-detect`). |
+| `--in-gt`       | str      | None        | No      | File containing the ground truth. |
+| `--out-frame`   | str      | None        | Yes     | Path of the output frame (PGM format). |
+| `--fra-start`   | int      | 0           | No      | First frame id to start the max-reduction in the video sequence. |
+| `--fra-end`     | int      | 200000      | No      | Last frame id to stop the max-reduction in the video sequence. |
+| `--show-id`     | bool     | -           | No      | Show the object ids on the output video and frames, works only if `--in-tracks` is set. Requires to link with OpenCV library (`-DTAH_OPENCV_LINK` CMake option). |
+| `--nat-num`     | bool     | -           | No      | Natural numbering of the object ids, works only if `--show-id` is set. |
+| `--only-meteor` | bool     | -           | No      | Show only meteors. |
 
 ### Examples of use
 
