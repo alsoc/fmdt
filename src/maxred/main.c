@@ -38,6 +38,7 @@ int main(int argc, char** argv) {
     int def_p_fra_end = MAX_N_FRAMES;
     char* def_p_in_gt = NULL;
 
+    // help
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr, "  --in-video       Video source                             [%s]\n", def_p_in_video);
         fprintf(stderr, "  --in-tracks      Path to the tracks files                 [%s]\n", def_p_in_tracks);
@@ -89,6 +90,7 @@ int main(int argc, char** argv) {
     printf("#  * only-meteor = %d\n", p_only_meteor);
     printf("#\n");
 
+    // arguments checking
     if (!p_in_video) {
         fprintf(stderr, "(EE) '--in-video' is missing\n");
         exit(1);

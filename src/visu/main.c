@@ -38,6 +38,7 @@ int main(int argc, char** argv) {
     char* def_p_out_frames = NULL;
     char* def_p_in_gt = NULL;
 
+    // help
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr, "  --in-tracks      Path to the tracks file                             [%s]\n",
                 def_p_in_tracks);
@@ -93,6 +94,30 @@ int main(int argc, char** argv) {
     printf("#  * only-meteor = %d\n", p_only_meteor);
     printf("#\n");
 
+    // arguments checking
+    if (!p_in_video) {
+        fprintf(stderr, "(EE) '--in-video' is missing\n");
+        exit(1);
+    }
+    if (!p_in_tracks) {
+        fprintf(stderr, "(EE) '--in-tracks' is missing\n");
+        exit(1);
+    }
+    if (!p_in_bb) {
+        fprintf(stderr, "(EE) '--in-bb' is missing\n");
+        exit(1);
+    }
+    if (!p_out_video) {
+        fprintf(stderr, "(EE) '--out-video' is missing\n");
+        exit(1);
+    }
+    if (!p_out_frames)
+        fprintf(stderr, "(II) '--out-frames' is missing -> no frames will be saved\n");
+#ifdef OPENCV_LINK
+    if (!p_show_id && p_nat_num)
+        fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set.\n");
+#endif
+
     int b = 1;
     int i0, i1, j0, j1;
     enum color_e color = MISC;
@@ -100,6 +125,7 @@ int main(int argc, char** argv) {
     int rx, ry, bb_x, bb_y, track_id;
     int start = 0;
     int end = 100000;
+
 
     if (!p_in_video) {
         fprintf(stderr, "(EE) '--in-video' is missing\n");

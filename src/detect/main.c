@@ -152,6 +152,7 @@ int main(int argc, char** argv) {
     printf("#  * track-all      = %d\n", p_track_all);
     printf("#\n");
 
+    // arguments checking
     if (!p_in_video) {
         fprintf(stderr, "(EE) '--in-video' is missing\n");
         exit(1);
@@ -176,7 +177,6 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
-
     if (!p_out_frames)
         fprintf(stderr, "(II) '--out-frames' is missing -> no frames will be saved\n");
     if (!p_out_stats)

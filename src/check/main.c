@@ -17,6 +17,7 @@ int main(int argc, char** argv) {
     char* def_p_in_tracks = NULL;
     char* def_p_in_gt = NULL;
 
+    // help
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr, "  --in-tracks    Path to tracks file        [%s]\n", def_p_in_tracks);
         fprintf(stderr, "  --in-gt        Path to ground truth file  [%s]\n", def_p_in_gt);
@@ -41,11 +42,11 @@ int main(int argc, char** argv) {
     printf("#  * in-gt     = %s\n", p_in_gt);
     printf("#\n");
 
+    // arguments checking
     if (!p_in_tracks) {
         fprintf(stderr, "(EE) '--in-tracks' is missing\n");
         exit(1);
     }
-
     if (!p_in_gt) {
         fprintf(stderr, "(EE) '--in-gt' is missing\n");
         exit(1);
