@@ -37,10 +37,10 @@ cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -funroll-loops -fstri
 **Tips**: on Apple Silicon M1 CPUs and with Apple Clang, use `-mcpu=apple-m1` instead of `-march=native`.
 
 The `CMake` file comes with several options:
- * `-DFMDT_DETECT_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the detection chain executable.
- * `-DFMDT_VISU_EXE`    [default=`ON` ] {possible:`ON`,`OFF`}: compile the visual tracking executable.
- * `-DFMDT_CHECK_EXE`   [default=`ON` ] {possible:`ON`,`OFF`}: compile the check executable.
- * `-DFMDT_MAXRED_EXE`  [default=`ON` ] {possible:`ON`,`OFF`}: compile the max reduction executable.
+ * `-DFMDT_DETECT_EXE`  [default=`ON`]  {possible:`ON`,`OFF`}: compile the detection chain executable.
+ * `-DFMDT_VISU_EXE`    [default=`ON`]  {possible:`ON`,`OFF`}: compile the visual tracking executable.
+ * `-DFMDT_CHECK_EXE`   [default=`ON`]  {possible:`ON`,`OFF`}: compile the check executable.
+ * `-DFMDT_MAXRED_EXE`  [default=`ON`]  {possible:`ON`,`OFF`}: compile the max reduction executable.
  * `-DFMDT_DEBUG`       [default=`OFF`] {possible:`ON`,`OFF`}: build the project using debugging prints: these additional prints will be output on `stderr` and prefixed by `(DBG)`.
  * `-DFMDT_OPENCV_LINK` [default=`OFF`] {possible:`ON`,`OFF`}: link with OpenCV library (required to enable `--show-id` option in `fmdt-visu` executable).
 

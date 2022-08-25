@@ -14,14 +14,14 @@ option(FMDT_OPENCV_LINK "link with OpenCV library." OFF)
 
 # Print CMake options values --------------------------------------------------
 # -----------------------------------------------------------------------------
-message(STATUS "Tau-h options: ")
+message(STATUS "FMDT options: ")
 message(STATUS "  * FMDT_DETECT_EXE: '${FMDT_DETECT_EXE}'")
 message(STATUS "  * FMDT_VISU_EXE: '${FMDT_VISU_EXE}'")
 message(STATUS "  * FMDT_CHECK_EXE: '${FMDT_CHECK_EXE}'")
 message(STATUS "  * FMDT_MAXRED_EXE: '${FMDT_MAXRED_EXE}'")
 message(STATUS "  * FMDT_DEBUG: '${FMDT_DEBUG}'")
 message(STATUS "  * FMDT_OPENCV_LINK: '${FMDT_OPENCV_LINK}'")
-message(STATUS "Tau-h info: ")
+message(STATUS "FMDT info: ")
 message(STATUS "  * CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 
 # Check CMake options ---------------------------------------------------------
@@ -69,7 +69,6 @@ list(APPEND fmdt_targets_list fmdt-common-obj)
 # executables
 if(FMDT_DETECT_EXE)
 	set(src_detect_files
-	    ${src_dir}/detect/ballon.c
 	    ${src_dir}/detect/CCL.c
 	    ${src_dir}/detect/KPPV.c
 	    ${src_dir}/detect/threshold.c
