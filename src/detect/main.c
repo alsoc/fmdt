@@ -206,8 +206,7 @@ int main(int argc, char** argv) {
     track_t* tracks = (track_t*)malloc(MAX_TRACKS_SIZE * sizeof(track_t));
     BB_t** BB_array = (BB_t**)malloc(MAX_N_FRAMES * sizeof(BB_t*));
     ROI_buffer_t* ROI_buff = tracking_alloc_ROI_buffer(MAX(p_fra_star_min, p_fra_meteor_min));
-    uint8_t **I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // frame t
-    uint8_t **I1 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // frame t + 1
+    uint8_t **I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // frame
     uint8_t **SM = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
     uint8_t **SH = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
     uint32_t **SM32 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
@@ -226,7 +225,6 @@ int main(int argc, char** argv) {
     for (int i = 0; i < ROI_buff->size; i++)
         features_init_ROI(ROI_buff->data[i], MAX_ROI_SIZE);
     zero_ui8matrix(I0, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(I1, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(SM, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(SH, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui32matrix(SM32, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -236,14 +234,11 @@ int main(int argc, char** argv) {
     // -- TRAITEMENT --//
     // ----------------//
 
-    if (!video_get_next_frame(video, I0))
-        exit(1);
-
     printf("# The program is running...\n");
     unsigned n_frames = 0;
     unsigned n_tracks = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
-    while (video_get_next_frame(video, I1)) {
-        frame = video->frame_current - 2;
+    while (video_get_next_frame(video, I0)) {
+        frame = video->frame_current - 1;
         assert(frame < MAX_N_FRAMES);
         fprintf(stderr, "(II) Frame n°%4d", frame);
 
@@ -293,7 +288,6 @@ int main(int argc, char** argv) {
             // tools_save_error(path_error, ROI_buff->data[1], n0);
         }
 
-        SWAP_UI8(I0, I1);
         tracking_rotate_ROI_buffer(ROI_buff);
         features_init_ROI(ROI_buff->data[0], MAX_ROI_SIZE);
         n0 = n_shrink;
@@ -318,8 +312,8 @@ int main(int argc, char** argv) {
     // ----------
     // -- free --
     // ----------
+
     free_ui8matrix(I0, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui8matrix(I1, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(SM, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(SH, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(SM32, i0 - b, i1 + b, j0 - b, j1 + b);

@@ -44,11 +44,3 @@
 #define MAX(a, b) (((a) < (b)) ? (b) : (a))
 #endif
 #define CLAMP(x, a, b) MIN(MAX(x, a), b)
-
-#define SWAP_UI8(a, b)                                                                                                 \
-    {                                                                                                                  \
-        uint8_t** tmp = a;                                                                                             \
-        a = b;                                                                                                         \
-        b = tmp;                                                                                                       \
-    }
-
