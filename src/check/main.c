@@ -14,19 +14,19 @@
 
 int main(int argc, char** argv) {
     // default values
-    char* def_in_tracks = NULL;
-    char* def_in_gt = NULL;
+    char* def_p_in_tracks = NULL;
+    char* def_p_in_gt = NULL;
 
     if (args_find(argc, argv, "-h")) {
-        fprintf(stderr, "  --in-tracks    Path to tracks file        [%s]\n", def_in_tracks);
-        fprintf(stderr, "  --in-gt        Path to ground truth file  [%s]\n", def_in_gt);
+        fprintf(stderr, "  --in-tracks    Path to tracks file        [%s]\n", def_p_in_tracks);
+        fprintf(stderr, "  --in-gt        Path to ground truth file  [%s]\n", def_p_in_gt);
         fprintf(stderr, "  -h             This help                      \n");
         exit(1);
     }
 
     // Parsing Arguments
-    char* in_tracks = args_find_char(argc, argv, "--in-tracks", def_in_tracks);
-    char* in_gt = args_find_char(argc, argv, "--in-gt", def_in_gt);
+    char* p_in_tracks = args_find_char(argc, argv, "--in-tracks", def_p_in_tracks);
+    char* p_in_gt = args_find_char(argc, argv, "--in-gt", def_p_in_gt);
 
     // heading display
     printf("#  ----------------------\n");
@@ -37,16 +37,16 @@ int main(int argc, char** argv) {
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
-    printf("#  * in-tracks = %s\n", in_tracks);
-    printf("#  * in-gt     = %s\n", in_gt);
+    printf("#  * in-tracks = %s\n", p_in_tracks);
+    printf("#  * in-gt     = %s\n", p_in_gt);
     printf("#\n");
 
-    if (!in_tracks) {
+    if (!p_in_tracks) {
         fprintf(stderr, "(EE) '--in-tracks' is missing\n");
         exit(1);
     }
 
-    if (!in_gt) {
+    if (!p_in_gt) {
         fprintf(stderr, "(EE) '--in-gt' is missing\n");
         exit(1);
     }
@@ -55,12 +55,12 @@ int main(int argc, char** argv) {
     int n_tracks = 0;
     tracking_init_global_data();
     tracking_init_tracks(tracks, MAX_TRACKS_SIZE);
-    tracking_parse_tracks(in_tracks, tracks, &n_tracks);
+    tracking_parse_tracks(p_in_tracks, tracks, &n_tracks);
 
     printf("# The program is running...\n");
 
     // validation pour établir si une track est vrai/faux positif
-    validation_init(in_gt);
+    validation_init(p_in_gt);
     validation_process(tracks, n_tracks);
     validation_print(tracks, n_tracks);
 

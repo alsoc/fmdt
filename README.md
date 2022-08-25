@@ -67,7 +67,7 @@ The list of available arguments:
 | `--out-frames`     | str      | None        | No      | Path of the output frames for debug (PPM format). |
 | `--out-stats`      | str      | None        | No      | TODO. |
 | `--fra-start`      | int      | 0           | No      | First frame id to start the detection in the video sequence. |
-| `--fra-end`        | int      | 200000      | No      | Last frame id to stop the detection in the video sequence. |
+| `--fra-end`        | int      | 10000       | No      | Last frame id to stop the detection in the video sequence. |
 | `--skip-fra`       | int      | 0           | No      | Number of frames to skip. |
 | `--light-min`      | int      | 55          | No      | Minimum light intensity hysteresis threshold (grayscale [0;255]). |
 | `--light-max`      | int      | 80          | No      | Maximum light intensity hysteresis threshold (grayscale [0;255]). |
@@ -134,7 +134,7 @@ The list of available arguments:
 | `--in-gt`       | str      | None        | No      | File containing the ground truth. |
 | `--out-frame`   | str      | None        | Yes     | Path of the output frame (PGM format). |
 | `--fra-start`   | int      | 0           | No      | First frame id to start the max-reduction in the video sequence. |
-| `--fra-end`     | int      | 200000      | No      | Last frame id to stop the max-reduction in the video sequence. |
+| `--fra-end`     | int      | 10000       | No      | Last frame id to stop the max-reduction in the video sequence. |
 | `--show-id`     | bool     | -           | No      | Show the object ids on the output video and frames, works only if `--in-tracks` is set. Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
 | `--nat-num`     | bool     | -           | No      | Natural numbering of the object ids, works only if `--show-id` is set. |
 | `--only-meteor` | bool     | -           | No      | Show only meteors. |
