@@ -10,7 +10,7 @@
 #include "defines.h"
 #include "CCL.h"
 
-CCL_data_t* CCL_LSL_init(int i0, int i1, int j0, int j1) {
+CCL_data_t* CCL_LSL_alloc_and_init(int i0, int i1, int j0, int j1) {
     CCL_data_t* data = (CCL_data_t*)malloc(sizeof(CCL_data_t));
     data->i0 = i0;
     data->i1 = i1;

@@ -20,27 +20,30 @@ enum color_e g_obj_to_color[N_OBJECTS];
 char g_obj_to_string[N_OBJECTS][64];
 char g_obj_to_string_with_spaces[N_OBJECTS][64];
 
-ROI_buffer_t* tracking_alloc_ROI_buffer(const unsigned size) {
-    ROI_buffer_t* ROI_buff = (ROI_buffer_t*) malloc(sizeof(ROI_buffer_t));
-    ROI_buff->size = size;
-    ROI_buff->data = (ROI_t**)malloc(size * sizeof(ROI_t*));
-    for (int i = 0; i < ROI_buff->size; i++)
-        ROI_buff->data[i] = (ROI_t*)malloc(MAX_ROI_SIZE * sizeof(ROI_t));
-    return ROI_buff;
+ROI_history_t* tracking_alloc_ROI_history(const size_t max_history_size, const size_t max_ROI_size) {
+    ROI_history_t* ROI_hist = (ROI_history_t*) malloc(sizeof(ROI_history_t));
+    ROI_hist->max_size = max_history_size;
+    ROI_hist->array = (ROI_array_t*)malloc(ROI_hist->max_size * sizeof(ROI_array_t));
+    for (int i = 0; i < ROI_hist->max_size; i++) {
+        ROI_hist->array[i].max_size = max_ROI_size;
+        ROI_hist->array[i].data = (ROI_t*)malloc(ROI_hist->array[i].max_size * sizeof(ROI_t));
+        ROI_hist->array[i].size = 0;
+    }
+    return ROI_hist;
 }
 
-void tracking_free_ROI_buffer(ROI_buffer_t* ROI_buff) {
-    for (int i = 0; i < ROI_buff->size; i++)
-        free(ROI_buff->data[i]);
-    free(ROI_buff->data);
-    free(ROI_buff);
+void tracking_free_ROI_history(ROI_history_t* ROI_hist) {
+    for (int i = 0; i < ROI_hist->max_size; i++)
+        free(ROI_hist->array[i].data);
+    free(ROI_hist->array);
+    free(ROI_hist);
 }
 
-void tracking_rotate_ROI_buffer(ROI_buffer_t* ROI_buff) {
-    ROI_t* last_ROI_tmp = ROI_buff->data[ROI_buff->size -1];
-    for (int i = ROI_buff->size -2; i >= 0; i--)
-        ROI_buff->data[i + 1] = ROI_buff->data[i];
-    ROI_buff->data[0] = last_ROI_tmp;
+void tracking_rotate_ROI_history(ROI_history_t* ROI_hist) {
+    ROI_array_t last_ROI_tmp = ROI_hist->array[ROI_hist->max_size -1];
+    for (int i = ROI_hist->max_size -2; i >= 0; i--)
+        ROI_hist->array[i + 1] = ROI_hist->array[i];
+    ROI_hist->array[0] = last_ROI_tmp;
 }
 
 void tracking_init_global_data() {
@@ -173,11 +176,12 @@ void update_bounding_box(BB_t** BB_array, track_t* track, ROI_t stats, int frame
     add_to_BB_array(BB_array, rx, ry, bb_x, bb_y, track->id, frame - 1);
 }
 
-void update_existing_tracks(ROI_buffer_t* ROI_buff, track_t* tracks, BB_t** BB_array, int nc1, int frame, int* offset,
+void update_existing_tracks(ROI_history_t* ROI_hist, track_t* tracks, BB_t** BB_array, int frame, int* offset,
                             int* tracks_cnt, int theta, int tx, int ty, int r_extrapol, float angle_max,
                             int track_all, int fra_meteor_max) {
-    ROI_t* stats0 = ROI_buff->data[1];
-    ROI_t* stats1 = ROI_buff->data[0];
+    ROI_t* stats0 = ROI_hist->array[1].data;
+    ROI_t* stats1 = ROI_hist->array[0].data;
+    int nc1 = ROI_hist->array[0].size;
 
     int i;
     for (i = *offset; i <= *tracks_cnt; i++) {
@@ -220,10 +224,10 @@ void update_existing_tracks(ROI_buffer_t* ROI_buff, track_t* tracks, BB_t** BB_a
                     if (tracks[i].obj_type == METEOR) {
                         if (stats0[tracks[i].end.id].prev) {
                             int k = stats0[tracks[i].end.id].prev;
-                            float u_x = stats0[tracks[i].end.id].x - ROI_buff->data[2][k].x;
-                            float u_y = stats0[tracks[i].end.id].y - ROI_buff->data[2][k].y;
-                            float v_x = stats1[next].x - ROI_buff->data[2][k].x;
-                            float v_y = stats1[next].y - ROI_buff->data[2][k].y;
+                            float u_x = stats0[tracks[i].end.id].x - ROI_hist->array[2].data[k].x;
+                            float u_y = stats0[tracks[i].end.id].y - ROI_hist->array[2].data[k].y;
+                            float v_x = stats1[next].x - ROI_hist->array[2].data[k].x;
+                            float v_y = stats1[next].y - ROI_hist->array[2].data[k].y;
                             float scalar_prod_uv = u_x * v_x + u_y * v_y;
                             float norm_u = sqrtf(u_x * u_x + u_y * u_y);
                             float norm_v = sqrtf(v_x * v_x + v_y * v_y);
@@ -291,22 +295,23 @@ void insert_new_track(ROI_t* ROI_list[256], unsigned n_ROI, track_t* tracks, int
     }
 }
 
-void fill_ROI_list(const ROI_t** ROI_data, ROI_t* ROI_list[256], const unsigned n_ROI, ROI_t* last_ROI,
+void fill_ROI_list(const ROI_history_t* ROI_hist, ROI_t* ROI_list[256], const unsigned n_ROI, ROI_t* last_ROI,
                    const unsigned frame) {
     assert(n_ROI < 256);
     ROI_list[0] = last_ROI;
     for (int i = 1; i < n_ROI; i++)
-        ROI_list[i] = (ROI_t*)&ROI_data[i+1][ROI_list[i - 1]->prev];
+        ROI_list[i] = (ROI_t*)&ROI_hist->array[i+1].data[ROI_list[i - 1]->prev];
 }
 
-void create_new_tracks(ROI_buffer_t* ROI_buff, track_t* tracks, BB_t** BB_array, int nc0, int frame, int* tracks_cnt,
+void create_new_tracks(ROI_history_t* ROI_hist, track_t* tracks, BB_t** BB_array, int frame, int* tracks_cnt,
                        int* offset, float diff_dev, int track_all, int fra_star_min, int fra_meteor_min) {
     ROI_t* ROI_list[256];
-    ROI_t* stats0 = ROI_buff->data[1];
-    ROI_t* stats1 = ROI_buff->data[0];
+    ROI_t* stats0 = ROI_hist->array[1].data;
+    ROI_t* stats1 = ROI_hist->array[0].data;
+    int nc0 = ROI_hist->array[1].size;
 
-    double errMoy = features_error_moy(stats0, nc0);
-    double eType = features_ecart_type(stats0, nc0, errMoy);
+    double errMoy = features_error_moy(&ROI_hist->array[1]);
+    double eType = features_ecart_type(&ROI_hist->array[1], errMoy);
 
     for (int i = 1; i <= nc0; i++) {
         float e = stats0[i].error;
@@ -344,7 +349,7 @@ void create_new_tracks(ROI_buffer_t* ROI_buff, track_t* tracks, BB_t** BB_array,
                         j++;
 
                     if (j == *tracks_cnt + 1 || *tracks_cnt == -1) {
-                        fill_ROI_list((const ROI_t**)ROI_buff->data, ROI_list, fra_min - 1, &stats0[i], frame);
+                        fill_ROI_list((const ROI_history_t*)ROI_hist, ROI_list, fra_min - 1, &stats0[i], frame);
                         insert_new_track(ROI_list, fra_min - 1, tracks, ++(*tracks_cnt), BB_array, frame,
                                          is_new_meteor ? METEOR : STAR);
                     }
@@ -354,13 +359,13 @@ void create_new_tracks(ROI_buffer_t* ROI_buff, track_t* tracks, BB_t** BB_array,
     }
 }
 
-void tracking_perform(ROI_buffer_t* ROI_buff, track_t* tracks, BB_t** BB_array, int nc0, int nc1, int frame,
-                      int* tracks_cnt, int* offset, int theta, int tx, int ty, int r_extrapol, float angle_max,
-                      float diff_dev, int track_all, int fra_star_min, int fra_meteor_min, int fra_meteor_max) {
-    create_new_tracks(ROI_buff, tracks, BB_array, nc0, frame, tracks_cnt, offset, diff_dev, track_all, fra_star_min,
+void tracking_perform(ROI_history_t* ROI_hist, track_t* tracks, BB_t** BB_array, int frame, int* tracks_cnt,
+                      int* offset, int theta, int tx, int ty, int r_extrapol, float angle_max, float diff_dev,
+                      int track_all, int fra_star_min, int fra_meteor_min, int fra_meteor_max) {
+    create_new_tracks(ROI_hist, tracks, BB_array, frame, tracks_cnt, offset, diff_dev, track_all, fra_star_min,
                       fra_meteor_min);
-    update_existing_tracks(ROI_buff,tracks, BB_array, nc1, frame, offset, tracks_cnt, theta, tx, ty, r_extrapol,
-                           angle_max, track_all, fra_meteor_max);
+    update_existing_tracks(ROI_hist,tracks, BB_array, frame, offset, tracks_cnt, theta, tx, ty, r_extrapol, angle_max,
+                           track_all, fra_meteor_max);
 }
 
 void tracking_print_array_BB(BB_t** BB_array, int n) {
@@ -374,7 +379,7 @@ void tracking_print_array_BB(BB_t** BB_array, int n) {
     }
 }
 
-void tracking_print_tracks(FILE* f, track_t* tracks, int n) {
+void tracking_print_tracks(FILE* f, const track_t* tracks, const int n) {
     fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
     fprintf(f, "#  Track ||           Begin           ||            End            ||  Object \n");
     fprintf(f, "# -------||---------------------------||---------------------------||---------\n");

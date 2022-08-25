@@ -15,7 +15,7 @@
 #define INF32 0xFFFFFFFF
 #define MAX_DIST 100
 
-KKPV_data_t* KPPV_init(int i0, int i1, int j0, int j1) {
+KKPV_data_t* KPPV_alloc_and_init(int i0, int i1, int j0, int j1) {
     KKPV_data_t* data = (KKPV_data_t*)malloc(sizeof(KKPV_data_t));
     data->i0 = i0;
     data->i1 = i1;
@@ -141,7 +141,11 @@ void KPPV_match2(uint32_t** nearest, float** distances, ROI_t* stats0, ROI_t* st
     }
 }
 
-void KPPV_match(KKPV_data_t* data, ROI_t* stats0, ROI_t* stats1, int nc0, int nc1, int k) {
+void KPPV_match(KKPV_data_t* data, ROI_array_t* ROI_array0, ROI_array_t* ROI_array1, const int k) {
+    ROI_t* stats0 = ROI_array0->data;
+    ROI_t* stats1 = ROI_array1->data;
+    int nc0 = ROI_array0->size;
+    int nc1 = ROI_array1->size;
     KPPV_match1(data->nearest, data->distances, data->conflicts, stats0, stats1, nc0, nc1, k);
     KPPV_match2(data->nearest, data->distances, stats0, stats1, nc0, nc1);
 }
@@ -234,9 +238,14 @@ void KPPV_save_conflicts(const char* filename, uint32_t* conflicts, uint32_t** n
     fclose(f);
 }
 
-void KPPV_save_asso_conflicts(const char* path, int frame, KKPV_data_t* data, int n_asso, int n_conflict, ROI_t* stats0,
-                              ROI_t* stats1, track_t* tracks, int n_tracks) {
+void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data_t* data, const ROI_array_t* ROI_array0,
+                              const ROI_array_t* ROI_array1, const track_t* tracks, const int n_tracks) {
     assert(frame >= 0);
+
+    int n_asso = ROI_array0->size;
+    //int n_conflict = ROI_array1->size;
+    const ROI_t* stats0 = ROI_array0->data;
+    //const ROI_t* stats1 = ROI_array1->data;
 
     char filename[1024];
 
@@ -250,9 +259,9 @@ void KPPV_save_asso_conflicts(const char* path, int frame, KKPV_data_t* data, in
 
     // stats
     fprintf(f, "# Frame n°%05d (cur)\n", frame);
-    features_save_stats_file(f, stats0, n_asso, tracks);
+    features_save_stats_file(f, ROI_array0, tracks);
     fprintf(f, "#\n# Frame n°%05d (next)\n", frame + 1);
-    features_save_stats_file(f, stats1, n_conflict, tracks);
+    features_save_stats_file(f, ROI_array1, tracks);
     fprintf(f, "#\n");
 
     // Asso
@@ -265,8 +274,8 @@ void KPPV_save_asso_conflicts(const char* path, int frame, KKPV_data_t* data, in
     int j;
 
     if (cpt) {
-        double errMoy = features_error_moy(stats0, n_asso);
-        double eType = features_ecart_type(stats0, n_asso, errMoy);
+        double errMoy = features_error_moy(ROI_array0);
+        double eType = features_ecart_type(ROI_array0, errMoy);
         fprintf(f, "# * mean error    = %.3f\n", errMoy);
         fprintf(f, "# * std deviation = %.3f\n", eType);
 

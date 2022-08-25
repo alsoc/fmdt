@@ -11,13 +11,36 @@
 #include "tools.h"
 #include "features.h"
 
+ROI_array_t* features_alloc_ROI_array(const size_t max_size) {
+    ROI_array_t* ROI_array = (ROI_array_t*)malloc(sizeof(ROI_array_t));
+    ROI_array->data = (ROI_t*)malloc(sizeof(ROI_t) * max_size);
+    ROI_array->max_size = max_size;
+    ROI_array->size = 0;
+    return ROI_array;
+}
+
+void features_init_ROI_array(ROI_array_t* ROI_array) {
+    ROI_array->size = 0;
+    features_init_ROI(ROI_array->data, ROI_array->max_size);
+}
+
+void features_free_ROI_array(ROI_array_t* ROI_array) {
+    free(ROI_array->data);
+    free(ROI_array);
+}
+
 void features_init_ROI(ROI_t* stats, int n) {
     for (int i = 0; i < n; i++)
         memset(stats + i, 0, sizeof(ROI_t));
 }
 
-void features_extract(uint32_t** img, int i0, int i1, int j0, int j1, ROI_t* stats, int n) {
-    for (int i = 1; i <= n; i++) {
+void features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1,
+                      const int n_ROI, ROI_array_t* ROI_array) {
+
+    ROI_t* stats = ROI_array->data;
+    ROI_array->size = n_ROI;
+
+    for (int i = 1; i <= n_ROI; i++) {
         memset(stats + i, 0, sizeof(ROI_t));
         stats[i].xmin = j1;
         stats[i].xmax = j0;
@@ -48,14 +71,17 @@ void features_extract(uint32_t** img, int i0, int i1, int j0, int j1, ROI_t* sta
         }
     }
 
-    for (int i = 1; i <= n; i++) {
+    for (int i = 1; i <= n_ROI; i++) {
         stats[i].x = (double)stats[i].Sx / (double)stats[i].S;
         stats[i].y = (double)stats[i].Sy / (double)stats[i].S;
     }
 }
 
-void features_merge_HI_CCL_v2(uint32_t** HI, uint32_t** M, int i0, int i1, int j0, int j1, ROI_t* stats, int n, int S_min,
-                              int S_max) {
+void features_merge_HI_CCL_v2(uint32_t** HI, const uint32_t** M, const int i0, const int i1, const int j0, const int j1,
+                              ROI_array_t* ROI_array, const int S_min, const int S_max) {
+    ROI_t* stats = ROI_array->data;
+    int n = ROI_array->size;
+
     int x0, x1, y0, y1, id;
     ROI_t cc;
 
@@ -134,7 +160,11 @@ void features_filter_surface(ROI_t* stats, int n, uint32_t** img, uint32_t thres
     }
 }
 
-int features_shrink_stats(ROI_t* stats_src, ROI_t* stats_dest, int n) {
+void features_shrink_stats(const ROI_array_t* ROI_array_src, ROI_array_t* ROI_array_dest) {
+    const ROI_t* stats_src = ROI_array_src->data;
+    ROI_t* stats_dest = ROI_array_dest->data;
+    int n = ROI_array_src->size;
+
     int cpt = 0;
     for (int i = 1; i <= n; i++) {
         if (stats_src[i].S > 0) {
@@ -143,10 +173,11 @@ int features_shrink_stats(ROI_t* stats_src, ROI_t* stats_dest, int n) {
             stats_dest[cpt].id = cpt;
         }
     }
-    return cpt;
+    ROI_array_dest->size = cpt;
 }
 
-void features_rigid_registration(ROI_t* stats0, ROI_t* stats1, int n0, int n1, double* theta, double* tx, double* ty) {
+void features_rigid_registration(const ROI_t* stats0, const ROI_t* stats1, int n0, int n1, double* theta, double* tx,
+                                 double* ty) {
     double Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
     ROI_t cc0, cc1;
     double x0, y0, x1, y1;
@@ -223,8 +254,8 @@ void features_rigid_registration(ROI_t* stats0, ROI_t* stats1, int n0, int n1, d
     *ty = ypg - sin(*theta) * xg - cos(*theta) * yg;
 }
 
-void features_rigid_registration_corrected(ROI_t* stats0, ROI_t* stats1, int n0, int n1, double* theta, double* tx,
-                                           double* ty, double errMoy, double eType) {
+void features_rigid_registration_corrected(ROI_t* stats0, const ROI_t* stats1, int n0, int n1, double* theta,
+                                           double* tx, double* ty, double errMoy, double eType) {
     double Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
     ROI_t cc0, cc1;
     double x0, y0, x1, y1;
@@ -313,7 +344,10 @@ void features_rigid_registration_corrected(ROI_t* stats0, ROI_t* stats1, int n0,
 }
 
 // TODO: Pour l'optimisation : faire une version errorMoy_corrected()
-double features_error_moy(ROI_t* stats, int n) {
+double features_error_moy(const ROI_array_t* ROI_array) {
+    const ROI_t* stats = ROI_array->data;
+    int n = ROI_array->size;
+
     double S = 0.0;
     int cpt = 0;
 
@@ -329,7 +363,10 @@ double features_error_moy(ROI_t* stats, int n) {
 }
 
 // TODO: Pour l'optimisation : faire une version ecartType_corrected()
-double features_ecart_type(ROI_t* stats, int n, double errMoy) {
+double features_ecart_type(const ROI_array_t* ROI_array, const double errMoy) {
+    const ROI_t* stats = ROI_array->data;
+    int n = ROI_array->size;
+
     double S = 0.0;
     int cpt = 0;
     float e;
@@ -346,7 +383,7 @@ double features_ecart_type(ROI_t* stats, int n, double errMoy) {
     return sqrt(S / cpt);
 }
 
-void features_motion_extraction(ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx, double ty) {
+void features_motion_extraction(ROI_t* stats0, const ROI_t* stats1, int nc0, double theta, double tx, double ty) {
     int cc1;
     double x, y, xp, yp;
     float dx, dy;
@@ -374,17 +411,22 @@ void features_motion_extraction(ROI_t* stats0, ROI_t* stats1, int nc0, double th
     }
 }
 
-void features_motion(ROI_t* stats0, ROI_t* stats1, int n0, int n1, double* theta, double* tx, double* ty) {
-    features_rigid_registration(stats0, stats1, n0, n1, theta, tx, ty);
-    features_motion_extraction(stats0, stats1, n0, *theta, *tx, *ty);
+void features_motion(ROI_array_t* ROI_array0, ROI_array_t* ROI_array1, double* theta, double* tx, double* ty) {
+    ROI_t* stats0 = ROI_array0->data;
+    ROI_t* stats1 = ROI_array1->data;
+    int n0 = ROI_array0->size;
+    int n1 = ROI_array1->size;
 
-    double errMoy = features_error_moy(stats0, n0);
-    double eType = features_ecart_type(stats0, n0, errMoy);
+    features_rigid_registration((const ROI_t*)stats0, (const ROI_t*)stats1, n0, n1, theta, tx, ty);
+    features_motion_extraction(stats0, (const ROI_t*)stats1, n0, *theta, *tx, *ty);
+
+    double errMoy = features_error_moy((const ROI_array_t*)ROI_array0);
+    double eType = features_ecart_type((const ROI_array_t*)ROI_array0, errMoy);
 
     // saveErrorMoy("first_error.txt", errMoy, eType);
 
-    features_rigid_registration_corrected(stats0, stats1, n0, n1, theta, tx, ty, errMoy, eType);
-    features_motion_extraction(stats0, stats1, n0, *theta, *tx, *ty);
+    features_rigid_registration_corrected(stats0, (const ROI_t*)stats1, n0, n1, theta, tx, ty, errMoy, eType);
+    features_motion_extraction(stats0, (const ROI_t*)stats1, n0, *theta, *tx, *ty);
 }
 
 int features_analyse_ellipse(ROI_t* stats, int n, float e_threshold) {
@@ -503,7 +545,9 @@ void features_parse_stats(const char* filename, ROI_t* stats, int* n)
     fclose(file);
 }
 
-void features_save_stats_file(FILE* f, ROI_t* stats, int n, track_t* tracks) {
+void features_save_stats_file(FILE* f, const ROI_array_t* ROI_array, const track_t* tracks) {
+    ROI_t* stats = ROI_array->data;
+    int n = ROI_array->size;
     int cpt = 0;
     for (int i = 1; i <= n; i++)
         if (stats[i].S != 0)
@@ -530,13 +574,13 @@ void features_save_stats_file(FILE* f, ROI_t* stats, int n, track_t* tracks) {
     }
 }
 
-void features_save_stats(const char* filename, ROI_t* stats, int n, track_t* tracks) {
+void features_save_stats(const char* filename, const ROI_array_t* ROI_array, const track_t* tracks) {
     FILE* f = fopen(filename, "w");
     if (f == NULL) {
         fprintf(stderr, "(EE) error ouverture %s \n", filename);
         exit(1);
     }
-    features_save_stats_file(f, stats, n, tracks);
+    features_save_stats_file(f, ROI_array, tracks);
     fclose(f);
 }
 
@@ -584,8 +628,11 @@ void features_save_error_moy(const char* filename, double errMoy, double eType) 
     fclose(f);
 }
 
-void features_save_motion_extraction(char* filename, ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx,
-                                     double ty, int frame) {
+void features_save_motion_extraction(const char* filename, const ROI_array_t* ROI_array, const double theta,
+                                     const double tx, const double ty, const int frame) {
+    const ROI_t* stats0 = ROI_array->data;
+    int nc0 =  ROI_array->size;
+
     // Version DEBUG : il faut implémenter une version pour le main
     FILE* f = fopen(filename, "a");
     if (f == NULL) {
@@ -593,8 +640,8 @@ void features_save_motion_extraction(char* filename, ROI_t* stats0, ROI_t* stats
         return;
     }
 
-    double errMoy = features_error_moy(stats0, nc0);
-    double eType = features_ecart_type(stats0, nc0, errMoy);
+    double errMoy = features_error_moy(ROI_array);
+    double eType = features_ecart_type(ROI_array, errMoy);
 
     for (int i = 1; i <= nc0; i++) {
         float e = stats0[i].error;

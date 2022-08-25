@@ -21,6 +21,6 @@ typedef struct {
     uint32_t* ner;  // Number of relative labels
 } CCL_data_t;
 
-CCL_data_t* CCL_LSL_init(int i0, int i1, int j0, int j1);
+CCL_data_t* CCL_LSL_alloc_and_init(int i0, int i1, int j0, int j1);
 uint32_t CCL_LSL_apply(CCL_data_t *data, uint32_t** img, int i0, int i1, int j0, int j1);
 void CCL_LSL_free(CCL_data_t* data);
