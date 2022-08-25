@@ -25,8 +25,8 @@ int main(int argc, char** argv) {
     }
 
     // Parsing Arguments
-    char* p_in_tracks = args_find_char(argc, argv, "--in-tracks", def_p_in_tracks);
-    char* p_in_gt = args_find_char(argc, argv, "--in-gt", def_p_in_gt);
+    const char* p_in_tracks = args_find_char(argc, argv, "--in-tracks", def_p_in_tracks);
+    const char* p_in_gt = args_find_char(argc, argv, "--in-gt", def_p_in_gt);
 
     // heading display
     printf("#  ----------------------\n");

@@ -56,7 +56,7 @@ typedef struct validation_obj {
     enum obj_e obj_type;
 } validation_obj_t;
 
-int validation_init(char* val_objects_file);
+int validation_init(const char* val_objects_file);
 void validation_print(const track_t* tracks, const int n_tracks);
 void validation_process(track_t* tracks, int n_tracks);
 void validation_free(void);

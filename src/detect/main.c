@@ -102,25 +102,25 @@ int main(int argc, char** argv) {
     }
 
     // Parsing Arguments
-    int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
-    int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
-    int p_skip_fra = args_find_int(argc, argv, "--skip-fra", def_p_skip_fra);
-    int p_light_min = args_find_int(argc, argv, "--light-min", def_p_light_min);
-    int p_light_max = args_find_int(argc, argv, "--light-max", def_p_light_max);
-    int p_surface_min = args_find_int(argc, argv, "--surface-min", def_p_surface_min);
-    int p_surface_max = args_find_int(argc, argv, "--surface-max", def_p_surface_max);
-    int p_k = args_find_int(argc, argv, "-k", def_p_k);
-    int p_r_extrapol = args_find_int(argc, argv, "--r-extrapol", def_p_r_extrapol);
-    float p_angle_max = args_find_float(argc, argv, "--angle-max", def_p_angle_max);
-    int p_fra_star_min = args_find_int(argc, argv, "--fra-star-min", def_p_fra_star_min);
-    int p_fra_meteor_min = args_find_int(argc, argv, "--fra-meteor-min", def_p_fra_meteor_min);
-    int p_fra_meteor_max = args_find_int(argc, argv, "--fra-meteor-max", def_p_fra_meteor_max);
-    float p_diff_dev = args_find_float(argc, argv, "--diff-dev", def_p_diff_dev);
-    char* p_in_video = args_find_char(argc, argv, "--in-video", def_p_in_video);
-    char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
-    char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
-    char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
-    int track_all = args_find(argc, argv, "--track-all");
+    const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
+    const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
+    const int p_skip_fra = args_find_int(argc, argv, "--skip-fra", def_p_skip_fra);
+    const int p_light_min = args_find_int(argc, argv, "--light-min", def_p_light_min);
+    const int p_light_max = args_find_int(argc, argv, "--light-max", def_p_light_max);
+    const int p_surface_min = args_find_int(argc, argv, "--surface-min", def_p_surface_min);
+    const int p_surface_max = args_find_int(argc, argv, "--surface-max", def_p_surface_max);
+    const int p_k = args_find_int(argc, argv, "-k", def_p_k);
+    const int p_r_extrapol = args_find_int(argc, argv, "--r-extrapol", def_p_r_extrapol);
+    const float p_angle_max = args_find_float(argc, argv, "--angle-max", def_p_angle_max);
+    const int p_fra_star_min = args_find_int(argc, argv, "--fra-star-min", def_p_fra_star_min);
+    const int p_fra_meteor_min = args_find_int(argc, argv, "--fra-meteor-min", def_p_fra_meteor_min);
+    const int p_fra_meteor_max = args_find_int(argc, argv, "--fra-meteor-max", def_p_fra_meteor_max);
+    const float p_diff_dev = args_find_float(argc, argv, "--diff-dev", def_p_diff_dev);
+    const char* p_in_video = args_find_char(argc, argv, "--in-video", def_p_in_video);
+    const char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
+    const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
+    const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
+    const int track_all = args_find(argc, argv, "--track-all");
 
     // heading display
     printf("#  -----------------------\n");
@@ -196,14 +196,12 @@ int main(int argc, char** argv) {
     // -- INITIALISATION VIDEO-- //
     // ------------------------- //
 
-    PUTS("INIT VIDEO");
     video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_skip_fra, &i0, &i1, &j0, &j1);
 
     // ---------------- //
     // -- ALLOCATION -- //
     // ---------------- //
 
-    PUTS("ALLOC");
     ROI_t* stats_tmp = (ROI_t*)malloc(MAX_ROI_SIZE * sizeof(ROI_t));
     track_t* tracks = (track_t*)malloc(MAX_TRACKS_SIZE * sizeof(track_t));
     BB_t** BB_array = (BB_t**)malloc(MAX_N_FRAMES * sizeof(BB_t*));
@@ -238,7 +236,6 @@ int main(int argc, char** argv) {
     // -- TRAITEMENT --//
     // ----------------//
 
-    PUTS("LOOP");
     if (!video_get_next_frame(video, I0))
         exit(1);
 
@@ -250,7 +247,7 @@ int main(int argc, char** argv) {
         assert(frame < MAX_N_FRAMES);
         fprintf(stderr, "(II) Frame n°%4d", frame);
 
-        PUTS("\t Step 1 : seuillage low/high");
+        // Step 1 : seuillage low/high
         tools_copy_ui8matrix_ui8matrix(I0, i0, i1, j0, j1, SH);
         tools_copy_ui8matrix_ui8matrix(I0, i0, i1, j0, j1, SM);
         threshold_high(SM, i0, i1, j0, j1, p_light_min);
@@ -258,26 +255,26 @@ int main(int argc, char** argv) {
         tools_convert_ui8matrix_ui32matrix(SM, i0, i1, j0, j1, SM32);
         tools_convert_ui8matrix_ui32matrix(SH, i0, i1, j0, j1, SH32);
 
-        PUTS("\t Step 2 : ECC/ACC");
+        // Step 2 : ECC/ACC
         n1 = CCL_LSL_apply(ccl_data, SM32, i0, i1, j0, j1);
         features_extract(SM32, i0, i1, j0, j1, stats_tmp, n1);
 
-        PUTS("\t Step 3 : seuillage hysteresis && filter surface");
+        // Step 3 : seuillage hysteresis && filter surface
         features_merge_HI_CCL_v2(SH32, SM32, i0, i1, j0, j1, stats_tmp, n1, p_surface_min, p_surface_max);
         int n_shrink = features_shrink_stats(stats_tmp, ROI_buff->data[0], n1);
 
-        PUTS("\t Step 4 : mise en correspondance");
+        // Step 4 : mise en correspondance
         KPPV_match(kppv_data, ROI_buff->data[1], ROI_buff->data[0], n0, n_shrink, p_k);
 
-        PUTS("\t Step 5 : recalage");
+        // Step 5 : recalage
         features_motion(ROI_buff->data[1], ROI_buff->data[0], n0, n_shrink, &theta, &tx, &ty);
 
-        PUTS("\t Step 6: tracking");
+        // Step 6: tracking
         tracking_perform(ROI_buff, tracks, BB_array, n0, n_shrink, frame, &tracks_cnt, &offset, theta, tx, ty,
                          p_r_extrapol, p_angle_max, p_diff_dev, track_all, p_fra_star_min, p_fra_meteor_min,
                          p_fra_meteor_max);
 
-        PUTS("\t [DEBUG] Saving frames");
+        // Saving frames
         if (p_out_frames) {
             tools_create_folder(p_out_frames);
             char filename[1024];
@@ -285,7 +282,7 @@ int main(int argc, char** argv) {
             tools_save_frame_ui32matrix(filename, SH32, i0, i1, j0, j1);
         }
 
-        PUTS("\t [DEBUG] Saving stats");
+        // Saving stats
         if (p_out_stats) {
             tools_create_folder(p_out_stats);
             KPPV_save_asso_conflicts(p_out_stats, frame, kppv_data, n0, n_shrink, ROI_buff->data[1], ROI_buff->data[0],

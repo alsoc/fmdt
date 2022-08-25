@@ -824,7 +824,7 @@ void tools_save_max(const char* filename, uint8** I, int i0, int i1, int j0, int
     fclose(f);
 }
 
-void tools_create_folder(char* folder_path) {
+void tools_create_folder(const char* folder_path) {
     struct stat status = {0};
     if (stat(folder_path, &status) == -1)
         mkdir(folder_path, 0700);

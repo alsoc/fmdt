@@ -16,7 +16,7 @@ static int g_false_positive[N_OBJECTS] = {0};
 static int g_true_negative[N_OBJECTS] = {0};
 static int g_false_negative[N_OBJECTS] = {0};
 
-int validation_init(char* val_objects_file) {
+int validation_init(const char* val_objects_file) {
     assert(val_objects_file != NULL);
 
     FILE* file = fopen(val_objects_file, "r");

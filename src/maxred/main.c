@@ -55,17 +55,17 @@ int main(int argc, char** argv) {
     }
 
     // Parsing Arguments
-    char* p_in_video = args_find_char(argc, argv, "--in-video", def_p_in_video);
-    char* p_in_tracks = args_find_char(argc, argv, "--in-tracks", def_p_in_tracks);
-    char* p_out_frame = args_find_char(argc, argv, "--out-frame", def_p_out_frame);
-    int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
-    int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
-    char* p_in_gt = args_find_char(argc, argv, "--in-gt", def_p_in_gt);
+    const char* p_in_video = args_find_char(argc, argv, "--in-video", def_p_in_video);
+    const char* p_in_tracks = args_find_char(argc, argv, "--in-tracks", def_p_in_tracks);
+    const char* p_out_frame = args_find_char(argc, argv, "--out-frame", def_p_out_frame);
+    const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
+    const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
+    const char* p_in_gt = args_find_char(argc, argv, "--in-gt", def_p_in_gt);
 #ifdef OPENCV_LINK
-    int show_id = args_find(argc, argv, "--show-id");
-    int nat_num = args_find(argc, argv, "--nat-num");
+    const int show_id = args_find(argc, argv, "--show-id");
+    const int nat_num = args_find(argc, argv, "--nat-num");
 #endif
-    int only_meteor = args_find(argc, argv, "--only-meteor");
+    const int only_meteor = args_find(argc, argv, "--only-meteor");
 
     // heading display
     printf("#  -----------------------\n");
@@ -204,7 +204,7 @@ int main(int argc, char** argv) {
         free(listBB);
         free(img_bb);
     } else {
-        SavePGM_ui8matrix(Max, i0, i1, j0, j1, p_out_frame);
+        SavePGM_ui8matrix(Max, i0, i1, j0, j1, (char*)p_out_frame);
     }
 
     // ----------

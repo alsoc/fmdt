@@ -59,17 +59,17 @@ int main(int argc, char** argv) {
     }
 
     // Parsing Arguments
-    char* p_in_tracks = args_find_char(argc, argv, "--in-tracks", def_p_in_tracks);
-    char* p_in_bb = args_find_char(argc, argv, "--in-bb", def_p_in_bb);
-    char* p_in_video = args_find_char(argc, argv, "--in-video", def_p_in_video);
-    char* p_out_video = args_find_char(argc, argv, "--out-video", def_p_out_video);
-    char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
-    char* p_in_gt = args_find_char(argc, argv, "--in-gt", def_p_in_gt);
+    const char* p_in_tracks = args_find_char(argc, argv, "--in-tracks", def_p_in_tracks);
+    const char* p_in_bb = args_find_char(argc, argv, "--in-bb", def_p_in_bb);
+    const char* p_in_video = args_find_char(argc, argv, "--in-video", def_p_in_video);
+    const char* p_out_video = args_find_char(argc, argv, "--out-video", def_p_out_video);
+    const char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
+    const char* p_in_gt = args_find_char(argc, argv, "--in-gt", def_p_in_gt);
 #ifdef OPENCV_LINK
-    int show_id = args_find(argc, argv, "--show-id");
-    int nat_num = args_find(argc, argv, "--nat-num");
+    const int show_id = args_find(argc, argv, "--show-id");
+    const int nat_num = args_find(argc, argv, "--nat-num");
 #endif
-    int only_meteor = args_find(argc, argv, "--only-meteor");
+    const int only_meteor = args_find(argc, argv, "--only-meteor");
 
     // heading display
     printf("#  ---------------------\n");

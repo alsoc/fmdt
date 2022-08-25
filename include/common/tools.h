@@ -54,7 +54,7 @@ void tools_save_frame_ui32matrix(const char* filename, uint32_t** I, int i0, int
 // void tools_save_frame_tracking(const char* filename, uint8_t** I, track_t* tracks, int tracks_nb, int i0, int i1,
 //                                int j0, int j1);
 
-void tools_create_folder(char* folder_path);
+void tools_create_folder(const char* folder_path);
 
 void tools_copy_ui8matrix_ui8matrix(uint8_t** X, int i0, int i1, int j0, int j1, uint8_t** Y);
 // void tools_convert_ui8vector_ui32vector(uint8_t* X, long nl, long nh, uint32_t* Y);
