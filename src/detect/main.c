@@ -268,7 +268,9 @@ int main(int argc, char** argv) {
         PUTS("\t [DEBUG] Saving frames");
         if (out_frames) {
             tools_create_folder(out_frames);
-            tools_save_frame_ui32matrix(out_frames, ballon->SH32, i0, i1, j0, j1);
+            char filename[1024];
+            sprintf(filename, "%s/%05d.pgm", out_frames, frame);
+            tools_save_frame_ui32matrix(filename, ballon->SH32, i0, i1, j0, j1);
         }
 
         PUTS("\t [DEBUG] Saving stats");
