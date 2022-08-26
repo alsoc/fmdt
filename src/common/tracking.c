@@ -20,32 +20,6 @@ enum color_e g_obj_to_color[N_OBJECTS];
 char g_obj_to_string[N_OBJECTS][64];
 char g_obj_to_string_with_spaces[N_OBJECTS][64];
 
-ROI_history_t* tracking_alloc_ROI_history(const size_t max_history_size, const size_t max_ROI_size) {
-    ROI_history_t* ROI_hist = (ROI_history_t*) malloc(sizeof(ROI_history_t));
-    ROI_hist->max_size = max_history_size;
-    ROI_hist->array = (ROI_array_t*)malloc(ROI_hist->max_size * sizeof(ROI_array_t));
-    for (int i = 0; i < ROI_hist->max_size; i++) {
-        ROI_hist->array[i].max_size = max_ROI_size;
-        ROI_hist->array[i].data = (ROI_t*)malloc(ROI_hist->array[i].max_size * sizeof(ROI_t));
-        ROI_hist->array[i].size = 0;
-    }
-    return ROI_hist;
-}
-
-void tracking_free_ROI_history(ROI_history_t* ROI_hist) {
-    for (int i = 0; i < ROI_hist->max_size; i++)
-        free(ROI_hist->array[i].data);
-    free(ROI_hist->array);
-    free(ROI_hist);
-}
-
-void tracking_rotate_ROI_history(ROI_history_t* ROI_hist) {
-    ROI_array_t last_ROI_tmp = ROI_hist->array[ROI_hist->max_size -1];
-    for (int i = ROI_hist->max_size -2; i >= 0; i--)
-        ROI_hist->array[i + 1] = ROI_hist->array[i];
-    ROI_hist->array[0] = last_ROI_tmp;
-}
-
 void tracking_init_global_data() {
     g_obj_to_color[UNKNOWN] = UNKNOWN_COLOR;
     g_obj_to_color[STAR] = STAR_COLOR;
@@ -86,8 +60,10 @@ enum obj_e tracking_string_to_obj_type(const char* string) {
     return obj;
 }
 
-unsigned tracking_count_objects(const track_t* tracks, const int n_tracks, unsigned* n_stars, unsigned* n_meteors,
-                                unsigned* n_noise) {
+size_t tracking_count_objects(const track_array_t* track_array, unsigned* n_stars, unsigned* n_meteors,
+                              unsigned* n_noise) {
+    const track_t* tracks = track_array->data;
+    const int n_tracks = track_array->size;
     (*n_stars) = (*n_meteors) = (*n_noise) = 0;
     for (int i = 0; i < n_tracks; i++)
         if (tracks[i].time)
@@ -107,6 +83,24 @@ unsigned tracking_count_objects(const track_t* tracks, const int n_tracks, unsig
                 exit(1);
             }
     return (*n_stars) + (*n_meteors) + (*n_noise);
+}
+
+track_array_t* tracking_alloc_track_array(const size_t max_size) {
+    track_array_t* track_array = (track_array_t*)malloc(sizeof(track_array_t));
+    track_array->max_size = max_size;
+    track_array->data = (track_t*)malloc(sizeof(track_t) * track_array->max_size);
+    return track_array;
+}
+
+void tracking_init_track_array(track_array_t* track_array) {
+    tracking_init_tracks(track_array->data, track_array->max_size);
+    track_array->size = 0;
+    track_array->offset = 0;
+}
+
+void tracking_free_track_array(track_array_t* track_array) {
+    free(track_array->data);
+    free(track_array);
 }
 
 void tracking_init_BB_array(BB_t** BB_array) {
@@ -176,22 +170,24 @@ void update_bounding_box(BB_t** BB_array, track_t* track, ROI_t stats, int frame
     add_to_BB_array(BB_array, rx, ry, bb_x, bb_y, track->id, frame - 1);
 }
 
-void update_existing_tracks(ROI_history_t* ROI_hist, track_t* tracks, BB_t** BB_array, int frame, int* offset,
-                            int* tracks_cnt, int theta, int tx, int ty, int r_extrapol, float angle_max,
-                            int track_all, int fra_meteor_max) {
+void update_existing_tracks(ROI_history_t* ROI_hist, track_array_t* track_array, BB_t** BB_array, int frame, int theta,
+                            int tx, int ty, int r_extrapol, float angle_max, int track_all, int fra_meteor_max) {
     ROI_t* stats0 = ROI_hist->array[1].data;
     ROI_t* stats1 = ROI_hist->array[0].data;
     int nc1 = ROI_hist->array[0].size;
+    track_t* tracks = track_array->data;
+    size_t* tracks_cnt = &track_array->size;
+    size_t* offset = &track_array->offset;
 
     int i;
-    for (i = *offset; i <= *tracks_cnt; i++) {
+    for (i = *offset; i < *tracks_cnt; i++) {
         int next = tracks[i].end.next;
         if (!next) {
             *offset = i;
             break;
         }
     }
-    for (i = *offset; i <= *tracks_cnt; i++) {
+    for (i = *offset; i < *tracks_cnt; i++) {
         if (tracks[i].time && tracks[i].state != TRACK_FINISHED) {
             if (tracks[i].state == TRACK_EXTRAPOLATED) {
                 for (int j = 1; j <= nc1; j++) {
@@ -271,28 +267,31 @@ void update_existing_tracks(ROI_history_t* ROI_hist, track_t* tracks, BB_t** BB_
     }
 }
 
-void insert_new_track(ROI_t* ROI_list[256], unsigned n_ROI, track_t* tracks, int tracks_cnt, BB_t** BB_array, int frame,
+void insert_new_track(ROI_t* ROI_list[256], unsigned n_ROI, track_array_t* track_array, BB_t** BB_array, int frame,
                       enum obj_e type) {
-    assert(tracks_cnt < MAX_TRACKS_SIZE);
+    assert(track_array->size < track_array->max_size);
     assert(n_ROI >= 1);
 
     ROI_t* first_ROI = ROI_list[n_ROI - 1];
     ROI_t* last_ROI = ROI_list[0];
 
-    tracks[tracks_cnt].id = tracks_cnt + 1;
-    tracks[tracks_cnt].begin = *first_ROI;
-    tracks[tracks_cnt].end = *last_ROI;
-    tracks[tracks_cnt].bb_x = (uint16_t)ceil((double)((first_ROI->xmin + first_ROI->xmax)) / 2);
-    tracks[tracks_cnt].bb_y = (uint16_t)ceil((double)((first_ROI->ymin + first_ROI->ymax)) / 2);
-    tracks[tracks_cnt].time = n_ROI;
-    tracks[tracks_cnt].timestamp = frame - (n_ROI);
-    tracks[tracks_cnt].state = TRACK_NEW;
-    tracks[tracks_cnt].obj_type = type;
+    size_t cur_track = track_array->size;
+    track_array->data[cur_track].id = cur_track + 1;
+    track_array->data[cur_track].begin = *first_ROI;
+    track_array->data[cur_track].end = *last_ROI;
+    track_array->data[cur_track].bb_x = (uint16_t)ceil((double)((first_ROI->xmin + first_ROI->xmax)) / 2);
+    track_array->data[cur_track].bb_y = (uint16_t)ceil((double)((first_ROI->ymin + first_ROI->ymax)) / 2);
+    track_array->data[cur_track].time = n_ROI;
+    track_array->data[cur_track].timestamp = frame - (n_ROI);
+    track_array->data[cur_track].state = TRACK_NEW;
+    track_array->data[cur_track].obj_type = type;
 
     for (unsigned n = 0; n < n_ROI; n++) {
-        ROI_list[n]->track_id = tracks[tracks_cnt].id;
-        update_bounding_box(BB_array, &tracks[tracks_cnt], *ROI_list[n], frame - n);
+        ROI_list[n]->track_id = track_array->data[cur_track].id;
+        update_bounding_box(BB_array, &track_array->data[cur_track], *ROI_list[n], frame - n);
     }
+
+    track_array->size++;
 }
 
 void fill_ROI_list(const ROI_history_t* ROI_hist, ROI_t* ROI_list[256], const unsigned n_ROI, ROI_t* last_ROI,
@@ -303,12 +302,15 @@ void fill_ROI_list(const ROI_history_t* ROI_hist, ROI_t* ROI_list[256], const un
         ROI_list[i] = (ROI_t*)&ROI_hist->array[i+1].data[ROI_list[i - 1]->prev];
 }
 
-void create_new_tracks(ROI_history_t* ROI_hist, track_t* tracks, BB_t** BB_array, int frame, int* tracks_cnt,
-                       int* offset, float diff_dev, int track_all, int fra_star_min, int fra_meteor_min) {
+void create_new_tracks(ROI_history_t* ROI_hist, track_array_t* track_array, BB_t** BB_array, int frame, float diff_dev,
+                       int track_all, int fra_star_min, int fra_meteor_min) {
     ROI_t* ROI_list[256];
     ROI_t* stats0 = ROI_hist->array[1].data;
     ROI_t* stats1 = ROI_hist->array[0].data;
     int nc0 = ROI_hist->array[1].size;
+    track_t* tracks = track_array->data;
+    size_t* tracks_cnt = &track_array->size;
+    size_t* offset = &track_array->offset;
 
     double errMoy = features_error_moy(&ROI_hist->array[1]);
     double eType = features_ecart_type(&ROI_hist->array[1], errMoy);
@@ -344,13 +346,13 @@ void create_new_tracks(ROI_history_t* ROI_hist, track_t* tracks, BB_t** BB_array
                 if (time == fra_min - 1) {
                     // this loop prevent adding duplicated tracks
                     int j = *offset;
-                    while (j <= *tracks_cnt && (tracks[j].end.id != stats0[i].id ||
+                    while (j < *tracks_cnt && (tracks[j].end.id != stats0[i].id ||
                            tracks[j].end.x != stats0[i].x || tracks[j].end.y != stats0[i].y))
                         j++;
 
-                    if (j == *tracks_cnt + 1 || *tracks_cnt == -1) {
+                    if (j == *tracks_cnt || *tracks_cnt == 0) {
                         fill_ROI_list((const ROI_history_t*)ROI_hist, ROI_list, fra_min - 1, &stats0[i], frame);
-                        insert_new_track(ROI_list, fra_min - 1, tracks, ++(*tracks_cnt), BB_array, frame,
+                        insert_new_track(ROI_list, fra_min - 1, track_array, BB_array, frame,
                                          is_new_meteor ? METEOR : STAR);
                     }
                 }
@@ -359,13 +361,12 @@ void create_new_tracks(ROI_history_t* ROI_hist, track_t* tracks, BB_t** BB_array
     }
 }
 
-void tracking_perform(ROI_history_t* ROI_hist, track_t* tracks, BB_t** BB_array, int frame, int* tracks_cnt,
-                      int* offset, int theta, int tx, int ty, int r_extrapol, float angle_max, float diff_dev,
-                      int track_all, int fra_star_min, int fra_meteor_min, int fra_meteor_max) {
-    create_new_tracks(ROI_hist, tracks, BB_array, frame, tracks_cnt, offset, diff_dev, track_all, fra_star_min,
-                      fra_meteor_min);
-    update_existing_tracks(ROI_hist,tracks, BB_array, frame, offset, tracks_cnt, theta, tx, ty, r_extrapol, angle_max,
-                           track_all, fra_meteor_max);
+void tracking_perform(ROI_history_t* ROI_hist, track_array_t* track_array, BB_t** BB_array, int frame, int theta,
+                      int tx, int ty, int r_extrapol, float angle_max, float diff_dev, int track_all, int fra_star_min,
+                      int fra_meteor_min, int fra_meteor_max) {
+    create_new_tracks(ROI_hist, track_array, BB_array, frame, diff_dev, track_all, fra_star_min, fra_meteor_min);
+    update_existing_tracks(ROI_hist, track_array, BB_array, frame, theta, tx, ty, r_extrapol, angle_max, track_all,
+                           fra_meteor_max);
 }
 
 void tracking_print_array_BB(BB_t** BB_array, int n) {
@@ -397,7 +398,7 @@ void tracking_print_tracks(FILE* f, const track_t* tracks, const int n) {
         }
 }
 
-void tracking_parse_tracks(const char* filename, track_t* tracks, int* n) {
+void tracking_parse_tracks(const char* filename, track_t* tracks, size_t* n) {
     FILE* fp;
     char* line = NULL;
     size_t len = 0;

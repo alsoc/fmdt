@@ -69,11 +69,11 @@ int main(int argc, char** argv) {
     const int p_only_meteor = args_find(argc, argv, "--only-meteor");
 
     // heading display
-    printf("#  -----------------------\n");
-    printf("# |         ----*         |\n");
-    printf("# | --* METEOR-MAXRED --* |\n");
-    printf("# |   -------*            |\n");
-    printf("#  -----------------------\n");
+    printf("#  ---------------------\n");
+    printf("# |         ----*       |\n");
+    printf("# | --* FMDT-MAXRED --* |\n");
+    printf("# |   -------*          |\n");
+    printf("#  ---------------------\n");
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
@@ -153,42 +153,42 @@ int main(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (p_in_tracks) {
-        track_t tracks[MAX_TRACKS_SIZE];
-        int n_tracks = 0;
-        tracking_init_tracks(tracks, MAX_TRACKS_SIZE);
-        tracking_parse_tracks(p_in_tracks, tracks, &n_tracks);
+        track_array_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
+        tracking_init_track_array(track_array);
+        tracking_parse_tracks(p_in_tracks, track_array->data, &track_array->size);
 
         if (p_in_gt) {
             validation_init(p_in_gt);
-            validation_process(tracks, n_tracks);
+            validation_process(track_array);
         }
 
-        BB_coord_t* listBB = (BB_coord_t*)malloc(sizeof(BB_coord_t) * n_tracks);
+        BB_coord_t* listBB = (BB_coord_t*)malloc(sizeof(BB_coord_t) * track_array->size);
         int m = 0;
-        for (int t = 0; t < n_tracks; t++) {
-            if (!p_only_meteor || tracks[t].obj_type == METEOR) {
+        for (int t = 0; t < track_array->size; t++) {
+            if (!p_only_meteor || track_array->data[t].obj_type == METEOR) {
+                track_t* track = &track_array->data[t];
 #ifdef OPENCV_LINK
-                listBB[m].track_id = p_nat_num ? (m + 1) : tracks[t].id;
+                listBB[m].track_id = p_nat_num ? (m + 1) : track_array->data[t].id;
 #else
-                listBB[m].track_id = tracks[t].id;
+                listBB[m].track_id = track_array->data[t].id;
 #endif
                 int delta = 5;
-                listBB[m].xmin = (tracks[t].begin.x < tracks[t].end.x ? tracks[t].begin.x : tracks[t].end.x) - delta;
-                listBB[m].xmax = (tracks[t].begin.x < tracks[t].end.x ? tracks[t].end.x : tracks[t].begin.x) + delta;
-                listBB[m].ymin = (tracks[t].begin.y < tracks[t].end.y ? tracks[t].begin.y : tracks[t].end.y) - delta;
-                listBB[m].ymax = (tracks[t].begin.y < tracks[t].end.y ? tracks[t].end.y : tracks[t].begin.y) + delta;
+                listBB[m].xmin = (track->begin.x < track->end.x ? track->begin.x : track->end.x) - delta;
+                listBB[m].xmax = (track->begin.x < track->end.x ? track->end.x : track->begin.x) + delta;
+                listBB[m].ymin = (track->begin.y < track->end.y ? track->begin.y : track->end.y) - delta;
+                listBB[m].ymax = (track->begin.y < track->end.y ? track->end.y : track->begin.y) + delta;
 
-                if (tracks[t].obj_type != UNKNOWN)
-                    listBB[m].color = g_obj_to_color[tracks[t].obj_type];
+                if (track->obj_type != UNKNOWN)
+                    listBB[m].color = g_obj_to_color[track->obj_type];
                 else {
-                    fprintf(stderr, "(EE) This should never happen... ('t' = %d, 'tracks[t].obj_type' = %d)\n", t,
-                            tracks[t].obj_type);
+                    fprintf(stderr, "(EE) This should never happen... ('t' = %d, 'track->obj_type' = %d)\n", t,
+                            track->obj_type);
                     exit(-1);
                 }
 
-                if (p_in_gt && tracks[t].is_valid == 1)
+                if (p_in_gt && track->is_valid == 1)
                     listBB[m].color = GREEN; // GREEN = true positive 'meteor'
-                if (p_in_gt && tracks[t].is_valid == 2)
+                if (p_in_gt && track->is_valid == 2)
                     listBB[m].color = RED; // RED = false positive 'meteor'
                 m++;
             }
@@ -205,6 +205,7 @@ int main(int argc, char** argv) {
 
         free(listBB);
         free(img_bb);
+        tracking_free_track_array(track_array);
     } else {
         SavePGM_ui8matrix(Max, i0, i1, j0, j1, (char*)p_out_frame);
     }

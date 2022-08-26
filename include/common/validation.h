@@ -57,8 +57,8 @@ typedef struct validation_obj {
 } validation_obj_t;
 
 int validation_init(const char* val_objects_file);
-void validation_print(const track_t* tracks, const int n_tracks);
-void validation_process(track_t* tracks, int n_tracks);
+void validation_print(const track_array_t* track_array);
+void validation_process(track_array_t* track_array);
 void validation_free(void);
 unsigned validation_count_objects(const validation_obj_t* val_objects, const unsigned n_val_objects, unsigned* n_stars,
                                   unsigned* n_meteors, unsigned* n_noise);

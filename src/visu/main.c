@@ -73,11 +73,11 @@ int main(int argc, char** argv) {
     const int p_only_meteor = args_find(argc, argv, "--only-meteor");
 
     // heading display
-    printf("#  ---------------------\n");
-    printf("# |        ----*        |\n");
-    printf("# | --* METEOR-VISU --* |\n");
-    printf("# |  -------*           |\n");
-    printf("#  ---------------------\n");
+    printf("#  -------------------\n");
+    printf("# |        ----*      |\n");
+    printf("# | --* FMDT-VISU --* |\n");
+    printf("# |  -------*         |\n");
+    printf("#  -------------------\n");
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
@@ -150,37 +150,33 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set.\n");
 #endif
 
-    track_t* tracks = (track_t*)malloc(MAX_TRACKS_SIZE * sizeof(track_t));
+    track_array_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
     BB_coord_t* BB_list = (BB_coord_t*)malloc(MAX_BB_LIST_SIZE * sizeof(BB_coord_t*));
 
-    int n_tracks = 0;
     tracking_init_global_data();
-    tracking_init_tracks(tracks, MAX_TRACKS_SIZE);
-    tracking_parse_tracks(p_in_tracks, tracks, &n_tracks);
+    tracking_init_track_array(track_array);
+    tracking_parse_tracks(p_in_tracks, track_array->data, &track_array->size);
 
     int max_LUT = 0;
-    for (int i = 0; i < n_tracks; i++)
-        if (tracks[i].id > max_LUT)
-            max_LUT = tracks[i].id;
+    for (int i = 0; i < track_array->size; i++)
+        if (track_array->data[i].id > max_LUT)
+            max_LUT = track_array->data[i].id;
     int* LUT_tracks_id = (int*)malloc(sizeof(int) * (max_LUT + 1));
     int* LUT_tracks_nat_num = (int*)malloc(sizeof(int) * (max_LUT + 1));
     memset(LUT_tracks_id, -1, max_LUT + 1);
     memset(LUT_tracks_nat_num, -1, max_LUT + 1);
     int j = 1;
-    for (int i = 0; i < n_tracks; i++) {
-        LUT_tracks_id[tracks[i].id] = i;
-        if (!p_only_meteor || tracks[i].obj_type == METEOR)
-            LUT_tracks_nat_num[tracks[i].id] = j++;
+    for (int i = 0; i < track_array->size; i++) {
+        LUT_tracks_id[track_array->data[i].id] = i;
+        if (!p_only_meteor || track_array->data[i].obj_type == METEOR)
+            LUT_tracks_nat_num[track_array->data[i].id] = j++;
 
     }
 
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
-    if (tracking_count_objects(tracks, n_tracks, &n_stars, &n_meteors, &n_noise) != n_tracks) {
-        fprintf(stderr, "(EE) 'tracking_count_objects' returned different number of tracks...\n");
-        exit(-1);
-    }
-    printf("# Tracks read from file = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3d]\n", n_meteors, n_stars,
-           n_noise, n_tracks);
+    tracking_count_objects(track_array, &n_stars, &n_meteors, &n_noise);
+    printf("# Tracks read from file = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
+           n_noise, track_array->size);
 
     // init
     video_t* video = video_init_from_file(p_in_video, start, end, 0, &i0, &i1, &j0, &j1);
@@ -189,7 +185,7 @@ int main(int argc, char** argv) {
     // validation pour établir si une track est vrai/faux positif
     if (p_in_gt) {
         validation_init(p_in_gt);
-        validation_process(tracks, n_tracks);
+        validation_process(track_array);
     } else {
         PUTS("NO VALIDATION");
     }
@@ -227,19 +223,19 @@ int main(int argc, char** argv) {
 
         // affiche tous les BB de l'image
         while (frame_bb == frame) {
-            if (!p_only_meteor || tracks[LUT_tracks_id[track_id]].obj_type == METEOR) {
-                if (tracks[LUT_tracks_id[track_id]].obj_type != UNKNOWN)
-                    color = g_obj_to_color[tracks[LUT_tracks_id[track_id]].obj_type];
+            if (!p_only_meteor || track_array->data[LUT_tracks_id[track_id]].obj_type == METEOR) {
+                if (track_array->data[LUT_tracks_id[track_id]].obj_type != UNKNOWN)
+                    color = g_obj_to_color[track_array->data[LUT_tracks_id[track_id]].obj_type];
                 else {
                     fprintf(stderr,
                             "(EE) This should never happen... ('cpt' = %d, 'track_id' = %d, 'LUT_tracks_id[track_id]' "
-                            "= %d, 'tracks[LUT_tracks_id[track_id]].obj_type' = %d)\n",
-                            cpt, track_id, LUT_tracks_id[track_id], tracks[LUT_tracks_id[track_id]].obj_type);
+                            "= %d, 'track_array->data[LUT_tracks_id[track_id]].obj_type' = %d)\n",
+                            cpt, track_id, LUT_tracks_id[track_id], track_array->data[LUT_tracks_id[track_id]].obj_type);
                     exit(-1);
                 }
-                if (p_in_gt && tracks[LUT_tracks_id[track_id]].is_valid == 1)
+                if (p_in_gt && track_array->data[LUT_tracks_id[track_id]].is_valid == 1)
                     color = GREEN; // GREEN = true  positive 'meteor'
-                if (p_in_gt && tracks[LUT_tracks_id[track_id]].is_valid == 2)
+                if (p_in_gt && track_array->data[LUT_tracks_id[track_id]].is_valid == 2)
                     color = RED; // RED   = false positive 'meteor'
 
 #ifdef OPENCV_LINK
@@ -279,9 +275,9 @@ int main(int argc, char** argv) {
     free_rgb8matrix((rgb8**)img_bb, 0, i1, 0, j1);
     ffmpeg_stop_writer(&writer_video_out);
     free_ui8matrix(I0, i0 - b, i1 + b, j0 - b, j1 + b);
+    tracking_free_track_array(track_array);
     free(LUT_tracks_id);
     free(LUT_tracks_nat_num);
-    free(tracks);
     free(BB_list);
 
     printf("# The video has been written.\n");

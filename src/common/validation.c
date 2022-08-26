@@ -124,7 +124,8 @@ int validation_init(const char* val_objects_file) {
     return g_n_val_objects;
 }
 
-void validation_print(const track_t* tracks, const int tracks_nb) {
+void validation_print(const track_array_t* track_array) {
+    const int n_tracks = track_array->size;
     float tracking_rate[N_OBJECTS + 1];
     unsigned total_tracked_frames[N_OBJECTS + 1] = {0};
     unsigned total_gt_frames[N_OBJECTS + 1] = {0};
@@ -173,8 +174,8 @@ void validation_print(const track_t* tracks, const int tracks_nb) {
         allNegativeTrue += g_true_negative[i];
     }
 
-    unsigned n_tracks = 0, n_track_stars = 0, n_track_meteors = 0, n_track_noise = 0;
-    n_tracks = tracking_count_objects(tracks, tracks_nb, &n_track_stars, &n_track_meteors, &n_track_noise);
+    unsigned n_track_stars = 0, n_track_meteors = 0, n_track_noise = 0;
+    tracking_count_objects(track_array, &n_track_stars, &n_track_meteors, &n_track_noise);
     unsigned n_val_objects = 0, n_val_stars = 0, n_val_meteors = 0, n_gt_noise = 0;
     n_val_objects = validation_count_objects(g_val_objects, g_n_val_objects, &n_val_stars, &n_val_meteors, &n_gt_noise);
 
@@ -200,7 +201,10 @@ void validation_print(const track_t* tracks, const int tracks_nb) {
 
 void validation_free(void) {}
 
-void validation_process(track_t* tracks, int tracks_nb) {
+void validation_process(track_array_t* track_array) {
+    track_t* tracks = track_array->data;
+    size_t tracks_nb = track_array->size;
+
     track_t* track;
     for (int t = 0; t < tracks_nb; t++) {
         track = &tracks[t];

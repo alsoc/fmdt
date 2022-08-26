@@ -41,11 +41,20 @@ typedef struct {
     size_t max_size; // maximum amount of data that can be contained in the 'ROI_array_t.data' field
 } ROI_array_t;
 
+typedef struct {
+    ROI_array_t* array;
+    size_t size; // current size/utilization of the 'ROI_history_t.array' field
+    size_t max_size; // maximum amount of data that can be contained in the 'ROI_history_t.array' field
+} ROI_history_t;
+
 typedef struct track track_t; // defined in "tracking.h"
 
 ROI_array_t* features_alloc_ROI_array(const size_t max_size);
 void features_init_ROI_array(ROI_array_t* ROI_array);
 void features_free_ROI_array(ROI_array_t* ROI_array);
+ROI_history_t* features_alloc_ROI_history(const size_t max_history_size, const size_t max_ROI_size);
+void features_free_ROI_history(ROI_history_t* ROI_hist);
+void features_rotate_ROI_history(ROI_history_t* ROI_hist);
 
 void features_init_ROI(ROI_t* stats, int n);
 void features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1,

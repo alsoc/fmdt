@@ -30,11 +30,11 @@ int main(int argc, char** argv) {
     const char* p_in_gt = args_find_char(argc, argv, "--in-gt", def_p_in_gt);
 
     // heading display
-    printf("#  ----------------------\n");
-    printf("# |         ----*        |\n");
-    printf("# | --* METEOR-CHECK --* |\n");
-    printf("# |   -------*           |\n");
-    printf("#  ----------------------\n");
+    printf("#  --------------------\n");
+    printf("# |         ----*      |\n");
+    printf("# | --* FMDT-CHECK --* |\n");
+    printf("# |   -------*         |\n");
+    printf("#  --------------------\n");
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
@@ -52,18 +52,20 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
-    track_t tracks[MAX_TRACKS_SIZE];
-    int n_tracks = 0;
+    track_array_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
+    tracking_init_track_array(track_array);
     tracking_init_global_data();
-    tracking_init_tracks(tracks, MAX_TRACKS_SIZE);
-    tracking_parse_tracks(p_in_tracks, tracks, &n_tracks);
+    tracking_init_track_array(track_array);
+    tracking_parse_tracks(p_in_tracks, track_array->data, &track_array->size);
 
     printf("# The program is running...\n");
 
     // validation pour établir si une track est vrai/faux positif
     validation_init(p_in_gt);
-    validation_process(tracks, n_tracks);
-    validation_print(tracks, n_tracks);
+    validation_process(track_array);
+    validation_print(track_array);
+
+    tracking_free_track_array(track_array);
 
     printf("# End of the program, exiting.\n");
 

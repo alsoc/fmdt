@@ -29,6 +29,32 @@ void features_free_ROI_array(ROI_array_t* ROI_array) {
     free(ROI_array);
 }
 
+ROI_history_t* features_alloc_ROI_history(const size_t max_history_size, const size_t max_ROI_size) {
+    ROI_history_t* ROI_hist = (ROI_history_t*) malloc(sizeof(ROI_history_t));
+    ROI_hist->max_size = max_history_size;
+    ROI_hist->array = (ROI_array_t*)malloc(ROI_hist->max_size * sizeof(ROI_array_t));
+    for (int i = 0; i < ROI_hist->max_size; i++) {
+        ROI_hist->array[i].max_size = max_ROI_size;
+        ROI_hist->array[i].data = (ROI_t*)malloc(ROI_hist->array[i].max_size * sizeof(ROI_t));
+        ROI_hist->array[i].size = 0;
+    }
+    return ROI_hist;
+}
+
+void features_free_ROI_history(ROI_history_t* ROI_hist) {
+    for (int i = 0; i < ROI_hist->max_size; i++)
+        free(ROI_hist->array[i].data);
+    free(ROI_hist->array);
+    free(ROI_hist);
+}
+
+void features_rotate_ROI_history(ROI_history_t* ROI_hist) {
+    ROI_array_t last_ROI_tmp = ROI_hist->array[ROI_hist->max_size -1];
+    for (int i = ROI_hist->max_size -2; i >= 0; i--)
+        ROI_hist->array[i + 1] = ROI_hist->array[i];
+    ROI_hist->array[0] = last_ROI_tmp;
+}
+
 void features_init_ROI(ROI_t* stats, int n) {
     for (int i = 0; i < n; i++)
         memset(stats + i, 0, sizeof(ROI_t));
