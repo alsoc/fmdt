@@ -240,12 +240,13 @@ void tools_convert_img_grayscale_to_rgb(const uint8** I, rgb8_t** I_bb, int i0, 
 }
 
 void tools_draw_BB(rgb8_t** I_bb, const BB_coord_t* listBB, int n_BB, int w, int h) {
+    int border = 2;
     for (int i = 0; i < n_BB; i++) {
-        int ymin = CLAMP(listBB[i].ymin, 0, h - 1);
-        int ymax = CLAMP(listBB[i].ymax, 0, h - 1);
-        int xmin = CLAMP(listBB[i].xmin, 0, w - 1);
-        int xmax = CLAMP(listBB[i].xmax, 0, w - 1);
-        tools_plot_bounding_box(I_bb, ymin, ymax, xmin, xmax, 2, tools_get_color(listBB[i].color));
+        int ymin = CLAMP(listBB[i].ymin, border + 1, h - (border + 2));
+        int ymax = CLAMP(listBB[i].ymax, border + 1, h - (border + 2));
+        int xmin = CLAMP(listBB[i].xmin, border + 1, w - (border + 2));
+        int xmax = CLAMP(listBB[i].xmax, border + 1, w - (border + 2));
+        tools_plot_bounding_box(I_bb, ymin, ymax, xmin, xmax, border, tools_get_color(listBB[i].color));
     }
 }
 
