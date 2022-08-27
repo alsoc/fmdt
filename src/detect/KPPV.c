@@ -15,7 +15,7 @@
 #define INF32 0xFFFFFFFF
 #define MAX_DIST 100
 
-KKPV_data_t* KPPV_alloc_and_init(int i0, int i1, int j0, int j1) {
+KKPV_data_t* KPPV_alloc_and_init_data(int i0, int i1, int j0, int j1) {
     KKPV_data_t* data = (KKPV_data_t*)malloc(sizeof(KKPV_data_t));
     data->i0 = i0;
     data->i1 = i1;
@@ -30,14 +30,14 @@ KKPV_data_t* KPPV_alloc_and_init(int i0, int i1, int j0, int j1) {
     return data;
 }
 
-void KPPV_free(KKPV_data_t* data) {
+void KPPV_free_data(KKPV_data_t* data) {
     free_ui32matrix(data->nearest, data->i0, data->i1, data->j0, data->j1);
     free_f32matrix(data->distances, data->i0, data->i1, data->j0, data->j1);
     free_ui32vector(data->conflicts, data->j0, data->j1);
     free(data);
 }
 
-void distance_calc(float** distances, ROI_t* stats0, ROI_t* stats1, int nc0, int nc1) {
+void distance_calc(float** distances, const ROI_t* stats0, const ROI_t* stats1, const int nc0, const int nc1) {
     float d, x0, x1, y0, y1;
 
     // parcours des stats 0
@@ -63,8 +63,8 @@ void distance_calc(float** distances, ROI_t* stats0, ROI_t* stats1, int nc0, int
     }
 }
 
-void KPPV_match1(uint32_t** nearest, float** distances, uint32_t* conflicts, ROI_t* stats0, ROI_t* stats1, int nc0,
-                 int nc1, int k) {
+void KPPV_match1(uint32_t** nearest, float** distances, uint32_t* conflicts, const ROI_t* stats0, const ROI_t* stats1,
+                 const int nc0, const int nc1, const int k) {
     int k_index, val, cpt;
     cpt = 0;
 
@@ -74,7 +74,7 @@ void KPPV_match1(uint32_t** nearest, float** distances, uint32_t* conflicts, ROI
     zero_ui32matrix(nearest, 0, nc0, 0, nc1);
 
     // calculs de toutes les distances euclidiennes au carré entre nc0 et nc1
-    distance_calc(distances, stats0, stats1, nc0, nc1);
+    distance_calc(distances, (const ROI_t*)stats0, (const ROI_t*)stats1, nc0, nc1);
 
     // les k plus proches voisins dans l'ordre croissant
     for (k_index = 1; k_index <= k; k_index++) {
@@ -106,8 +106,7 @@ void KPPV_match1(uint32_t** nearest, float** distances, uint32_t* conflicts, ROI
     }
 }
 
-void KPPV_match2(uint32_t** nearest, float** distances, ROI_t* stats0, ROI_t* stats1, int nc0,
-                 int nc1) {
+void KPPV_match2(const uint32_t** nearest, const float** distances, ROI_t* stats0, ROI_t* stats1, int nc0, int nc1) {
     float d;
     int rang = 1;
 
@@ -146,8 +145,9 @@ void KPPV_match(KKPV_data_t* data, ROI_array_t* ROI_array0, ROI_array_t* ROI_arr
     ROI_t* stats1 = ROI_array1->data;
     int nc0 = ROI_array0->size;
     int nc1 = ROI_array1->size;
-    KPPV_match1(data->nearest, data->distances, data->conflicts, stats0, stats1, nc0, nc1, k);
-    KPPV_match2(data->nearest, data->distances, stats0, stats1, nc0, nc1);
+    KPPV_match1(data->nearest, data->distances, data->conflicts, (const ROI_t*)stats0, (const ROI_t*)stats1, nc0, nc1,
+                k);
+    KPPV_match2((const uint32_t**)data->nearest, (const float**)data->distances, stats0, stats1, nc0, nc1);
 }
 
 void KPPV_save_asso(const char* filename, uint32_t** nearest, float** distances, int nc0, ROI_t* stats) {
@@ -274,10 +274,10 @@ void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data
     int j;
 
     if (cpt) {
-        double errMoy = features_error_moy(ROI_array0);
-        double eType = features_ecart_type(ROI_array0, errMoy);
-        fprintf(f, "# * mean error    = %.3f\n", errMoy);
-        fprintf(f, "# * std deviation = %.3f\n", eType);
+        double mean_error = features_compute_mean_error(ROI_array0);
+        double std_deviation = features_compute_std_deviation(ROI_array0, mean_error);
+        fprintf(f, "# * mean error    = %.3f\n", mean_error);
+        fprintf(f, "# * std deviation = %.3f\n", std_deviation);
 
         fprintf(f, "# ------------||---------------||------------------------\n");
         fprintf(f, "#    ROI ID   ||    Distance   ||          Error         \n");

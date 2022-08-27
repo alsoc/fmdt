@@ -56,7 +56,9 @@ void tools_save_frame_ui32matrix(const char* filename, uint32_t** I, int i0, int
 
 void tools_create_folder(const char* folder_path);
 
-void tools_copy_ui8matrix_ui8matrix(uint8_t** X, int i0, int i1, int j0, int j1, uint8_t** Y);
-// void tools_convert_ui8vector_ui32vector(uint8_t* X, long nl, long nh, uint32_t* Y);
-void tools_convert_ui8matrix_ui32matrix(uint8_t** X, int nrl, int nrh, int ncl, int nch, uint32_t** Y);
-void tools_write_PNM_row(uint8_t* line, int width, FILE* file);
+void tools_copy_ui8matrix_ui8matrix(const uint8_t** X, const int i0, const int i1, const int j0, const int j1,
+                                    uint8_t** Y);
+// void tools_convert_ui8vector_ui32vector(const uint8_t* X, const long nl, const long nh, uint32_t* Y);
+void tools_convert_ui8matrix_ui32matrix(const uint8_t** X, const int nrl, const int nrh, const int ncl, const int nch,
+                                        uint32_t** Y);
+void tools_write_PNM_row(const uint8_t* line, const int width, FILE* file);

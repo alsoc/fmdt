@@ -830,23 +830,25 @@ void tools_create_folder(const char* folder_path) {
         mkdir(folder_path, 0700);
 }
 
-void tools_copy_ui8matrix_ui8matrix(uint8** X, int i0, int i1, int j0, int j1, uint8** Y) {
+void tools_copy_ui8matrix_ui8matrix(const uint8** X, const int i0, const int i1, const int j0, const int j1,
+                                    uint8** Y) {
     for (int i = i0; i <= i1; i++)
         for (int j = j0; j <= j1; j++)
             Y[i][j] = X[i][j];
 }
 
-void tools_convert_ui8vector_ui32vector(uint8* X, long nl, long nh, uint32* Y) {
+void tools_convert_ui8vector_ui32vector(const uint8* X, const long nl, const long nh, uint32* Y) {
     for (long i = nl; i <= nh; i++)
         Y[i] = (uint32)X[i];
 }
 
-void tools_convert_ui8matrix_ui32matrix(uint8** X, int nrl, int nrh, int ncl, int nch, uint32** Y) {
+void tools_convert_ui8matrix_ui32matrix(const uint8** X, const int nrl, const int nrh, const int ncl, const int nch,
+                                        uint32** Y) {
     for (long i = nrl; i <= nrh; i++)
         tools_convert_ui8vector_ui32vector(X[i], ncl, nch, Y[i]);
 }
 
-void tools_write_PNM_row(uint8* line, int width, FILE* file) {
+void tools_write_PNM_row(const uint8* line, const int width, FILE* file) {
     /* Le fichier est deja ouvert et ne sera pas ferme a la fin */
     fwrite(&(line[0]), sizeof(byte), 3 * sizeof(byte) * width, file);
 }

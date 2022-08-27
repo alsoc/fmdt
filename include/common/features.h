@@ -60,12 +60,13 @@ void features_init_ROI(ROI_t* stats, int n);
 void features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1,
                       const int n_ROI, ROI_array_t* ROI_array);
 // void features_filter_surface(ROI_t* stats, int n, uint32_t** img, uint32_t threshold_min, uint32_t threshold_max);
-void features_merge_HI_CCL_v2(uint32_t** HI, const uint32_t** M, const int i0, const int i1, const int j0,
-                              const int j1, ROI_array_t* ROI_array, const int S_min, const int S_max);
+void features_merge_HI_CCL_v2(const uint32_t** M, uint32_t** HI, const int i0, const int i1, const int j0, const int j1,
+                              ROI_array_t* ROI_array, const int S_min, const int S_max);
 void features_shrink_stats(const ROI_array_t* ROI_array_src, ROI_array_t* ROI_array_dest);
-double features_error_moy(const ROI_array_t* stats);
-double features_ecart_type(const ROI_array_t* stats, const double errMoy);
-void features_motion(ROI_array_t* ROI_array0, ROI_array_t* ROI_array1, double* theta, double* tx, double* ty);
+double features_compute_mean_error(const ROI_array_t* stats);
+double features_compute_std_deviation(const ROI_array_t* stats, const double mean_error);
+void features_compute_motion(const ROI_array_t* ROI_array1, ROI_array_t* ROI_array0, double* theta, double* tx,
+                             double* ty);
 // void features_motion_extraction(ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx, double ty);
 // int features_analyse_ellipse(ROI_t* stats, int n, float e_threshold);
 
@@ -77,6 +78,6 @@ void features_save_stats_file(FILE* f, const ROI_array_t* ROI_array, const track
 
 // void features_save_motion(const char* filename, double theta, double tx, double ty, int frame);
 // void features_save_error(const char* filename, ROI_t* stats, int n);
-// void features_save_error_moy(const char* filename, double errMoy, double eType);
+// void features_save_error_moy(const char* filename, double mean_error, double std_deviation);
 // void features_save_motion_extraction(const char* filename, const ROI_array_t* ROI_array, const double theta,
 //                                      const double tx, const double ty, const int frame);

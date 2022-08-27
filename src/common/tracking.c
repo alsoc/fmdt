@@ -312,8 +312,8 @@ void create_new_tracks(ROI_history_t* ROI_hist, track_array_t* track_array, BB_t
     size_t* tracks_cnt = &track_array->size;
     size_t* offset = &track_array->offset;
 
-    double errMoy = features_error_moy(&ROI_hist->array[1]);
-    double eType = features_ecart_type(&ROI_hist->array[1], errMoy);
+    double mean_error = features_compute_mean_error(&ROI_hist->array[1]);
+    double std_deviation = features_compute_std_deviation(&ROI_hist->array[1], mean_error);
 
     for (int i = 1; i <= nc0; i++) {
         float e = stats0[i].error;
@@ -321,7 +321,7 @@ void create_new_tracks(ROI_history_t* ROI_hist, track_array_t* track_array, BB_t
         if (asso) {
             int is_new_meteor = 0;
             // if motion detected
-            if (fabs(e - errMoy) > diff_dev * eType) {
+            if (fabs(e - mean_error) > diff_dev * std_deviation) {
                 if (stats0[i].state)
                     continue; // Extrapolated
                 is_new_meteor = 1;
@@ -330,17 +330,15 @@ void create_new_tracks(ROI_history_t* ROI_hist, track_array_t* track_array, BB_t
             int fra_min;
             int time;
             if (is_new_meteor) {
-                stats0[i].motion = 1; // debug
-                stats0[i].time_motion++;
-                stats1[stats0[i].next].time_motion = stats0[i].time_motion;
+                //stats0[i].motion = 1; // debug
+                time = stats0[i].time_motion + 1;
+                stats1[stats0[i].next].time_motion = time;
                 fra_min = fra_meteor_min;
-                time = stats0[i].time_motion;
             }
             else if (track_all) {
-                stats0[i].time++;
-                stats1[stats0[i].next].time = stats0[i].time;
+                time = stats0[i].time + 1;
+                stats1[stats0[i].next].time = time;
                 fra_min = fra_star_min;
-                time = stats0[i].time;
             }
             if (is_new_meteor || track_all) {
                 if (time == fra_min - 1) {

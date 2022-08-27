@@ -209,11 +209,11 @@ int main(int argc, char** argv) {
     // -------------------------- //
 
     tracking_init_global_data();
-    KKPV_data_t* kppv_data = KPPV_alloc_and_init(0, MAX_KPPV_SIZE, 0, MAX_KPPV_SIZE);
+    KKPV_data_t* kppv_data = KPPV_alloc_and_init_data(0, MAX_KPPV_SIZE, 0, MAX_KPPV_SIZE);
     features_init_ROI(ROI_array_tmp->data, ROI_array_tmp->max_size);
     tracking_init_track_array(track_array);
     tracking_init_BB_array(BB_array);
-    CCL_data_t* ccl_data = CCL_LSL_alloc_and_init(i0, i1, j0, j1);
+    CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
     for (int i = 0; i < ROI_hist->max_size; i++)
         features_init_ROI(ROI_hist->array[i].data, ROI_hist->array[i].max_size);
     zero_ui8matrix(I0, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -235,19 +235,19 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(II) Frame n°%4lu", frame);
 
         // Step 1 : seuillage low/high
-        tools_copy_ui8matrix_ui8matrix(I0, i0, i1, j0, j1, SH);
-        tools_copy_ui8matrix_ui8matrix(I0, i0, i1, j0, j1, SM);
+        tools_copy_ui8matrix_ui8matrix((const uint8_t**)I0, i0, i1, j0, j1, SH);
+        tools_copy_ui8matrix_ui8matrix((const uint8_t**)I0, i0, i1, j0, j1, SM);
         threshold_high(SM, i0, i1, j0, j1, p_light_min);
         threshold_high(SH, i0, i1, j0, j1, p_light_max);
-        tools_convert_ui8matrix_ui32matrix(SM, i0, i1, j0, j1, SM32);
-        tools_convert_ui8matrix_ui32matrix(SH, i0, i1, j0, j1, SH32);
+        tools_convert_ui8matrix_ui32matrix((const uint8_t**)SM, i0, i1, j0, j1, SM32);
+        tools_convert_ui8matrix_ui32matrix((const uint8_t**)SH, i0, i1, j0, j1, SH32);
 
         // Step 2 : ECC/ACC
         const int n_ROI = CCL_LSL_apply(ccl_data, SM32, i0, i1, j0, j1);
         features_extract((const uint32_t**)SM32, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
 
         // Step 3 : seuillage hysteresis && filter surface
-        features_merge_HI_CCL_v2(SH32, (const uint32_t**)SM32, i0, i1, j0, j1, ROI_array_tmp, p_surface_min,
+        features_merge_HI_CCL_v2((const uint32_t**)SM32, SH32, i0, i1, j0, j1, ROI_array_tmp, p_surface_min,
                                  p_surface_max);
         features_shrink_stats((const ROI_array_t*)ROI_array_tmp, &ROI_hist->array[0]);
 
@@ -256,7 +256,7 @@ int main(int argc, char** argv) {
 
         // Step 5 : recalage
         double theta, tx, ty;
-        features_motion(&ROI_hist->array[1], &ROI_hist->array[0], &theta, &tx, &ty);
+        features_compute_motion((const ROI_array_t*)&ROI_hist->array[0], &ROI_hist->array[1], &theta, &tx, &ty);
 
         // Step 6: tracking
         tracking_perform(ROI_hist, track_array, BB_array, frame, theta, tx, ty, p_r_extrapol, p_angle_max, p_diff_dev,
@@ -313,8 +313,8 @@ int main(int argc, char** argv) {
     features_free_ROI_array(ROI_array_tmp);
     features_free_ROI_history(ROI_hist);
     video_free(video);
-    CCL_LSL_free(ccl_data);
-    KPPV_free(kppv_data);
+    CCL_LSL_free_data(ccl_data);
+    KPPV_free_data(kppv_data);
     tracking_free_BB_array(BB_array);
     tracking_free_track_array(track_array);
     free(BB_array);
