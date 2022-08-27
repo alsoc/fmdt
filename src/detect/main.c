@@ -198,10 +198,13 @@ int main(int argc, char** argv) {
     BB_t** BB_array = (BB_t**)malloc(MAX_N_FRAMES * sizeof(BB_t*));
     ROI_history_t* ROI_hist = features_alloc_ROI_history(MAX(p_fra_star_min, p_fra_meteor_min), MAX_ROI_SIZE);
     int b = 1; // image border
-    uint8_t **I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // frame
-    uint8_t **SM = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
-    uint8_t **SH = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
-    uint32_t **SM32 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
+    uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // frame
+    uint8_t **SM_0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
+    uint8_t **SM_1 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
+    uint8_t **SH_0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
+    uint8_t **SH_1 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
+    uint32_t **SM32_0 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
+    uint32_t **SM32_1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
     uint32_t **SH32 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
 
     // -------------------------- //
@@ -216,10 +219,13 @@ int main(int argc, char** argv) {
     CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
     for (int i = 0; i < ROI_hist->max_size; i++)
         features_init_ROI(ROI_hist->array[i].data, ROI_hist->array[i].max_size);
-    zero_ui8matrix(I0, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(SM, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(SH, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui32matrix(SM32, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(SM_0, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(SM_1, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(SH_0, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(SH_1, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui32matrix(SM32_0, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui32matrix(SM32_1, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui32matrix(SH32, i0 - b, i1 + b, j0 - b, j1 + b);
 
     // ----------------//
@@ -229,27 +235,27 @@ int main(int argc, char** argv) {
     printf("# The program is running...\n");
     size_t real_n_tracks;
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
-    while (video_get_next_frame(video, I0)) {
+    while (video_get_next_frame(video, I)) {
         size_t frame = video->frame_current - 1;
         assert(frame < MAX_N_FRAMES);
         fprintf(stderr, "(II) Frame n°%4lu", frame);
 
         // Step 1 : seuillage low/high
-        tools_copy_ui8matrix_ui8matrix((const uint8_t**)I0, i0, i1, j0, j1, SH);
-        tools_copy_ui8matrix_ui8matrix((const uint8_t**)I0, i0, i1, j0, j1, SM);
-        threshold_high(SM, i0, i1, j0, j1, p_light_min);
-        threshold_high(SH, i0, i1, j0, j1, p_light_max);
-        tools_convert_ui8matrix_ui32matrix((const uint8_t**)SM, i0, i1, j0, j1, SM32);
-        tools_convert_ui8matrix_ui32matrix((const uint8_t**)SH, i0, i1, j0, j1, SH32);
+        tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0, i1, j0, j1, SH_0);
+        tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0, i1, j0, j1, SM_0);
+        threshold_high((const uint8_t**)SM_0, SM_1, i0, i1, j0, j1, p_light_min);
+        threshold_high((const uint8_t**)SH_0, SH_1, i0, i1, j0, j1, p_light_max);
+        tools_convert_ui8matrix_ui32matrix((const uint8_t**)SM_1, i0, i1, j0, j1, SM32_0);
+        tools_convert_ui8matrix_ui32matrix((const uint8_t**)SH_1, i0, i1, j0, j1, SH32);
 
         // Step 2 : ECC/ACC
-        const int n_ROI = CCL_LSL_apply(ccl_data, SM32, i0, i1, j0, j1);
-        features_extract((const uint32_t**)SM32, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
+        const int n_ROI = CCL_LSL_apply(ccl_data, (const uint32_t**)SM32_0, SM32_1, i0, i1, j0, j1);
+        features_extract((const uint32_t**)SM32_1, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
         for (size_t r = 0; r < ROI_array_tmp->size; r++)
             ROI_array_tmp->data[r].frame = frame;
 
         // Step 3 : seuillage hysteresis && filter surface
-        features_merge_HI_CCL_v2((const uint32_t**)SM32, SH32, i0, i1, j0, j1, ROI_array_tmp, p_surface_min,
+        features_merge_HI_CCL_v2((const uint32_t**)SM32_1, SH32, i0, i1, j0, j1, ROI_array_tmp, p_surface_min,
                                  p_surface_max);
         features_shrink_stats((const ROI_array_t*)ROI_array_tmp, &ROI_hist->array[0]);
 
@@ -273,9 +279,9 @@ int main(int argc, char** argv) {
         }
 
         // Saving stats
-        if (p_out_stats) {
+        if (p_out_stats && n_frames) {
             tools_create_folder(p_out_stats);
-            KPPV_save_asso_conflicts(p_out_stats, frame, kppv_data, &ROI_hist->array[1], &ROI_hist->array[0],
+            KPPV_save_asso_conflicts(p_out_stats, frame - 1, kppv_data, &ROI_hist->array[1], &ROI_hist->array[0],
                                      track_array);
             // tools_save_motion(path_motion, theta, tx, ty, frame-1);
             // tools_save_motionExtraction(path_extraction, ROI_hist->array[1].data, ROI_hist->array[0].data,
@@ -307,10 +313,13 @@ int main(int argc, char** argv) {
     // -- FREE --
     // ----------
 
-    free_ui8matrix(I0, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui8matrix(SM, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui8matrix(SH, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui32matrix(SM32, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui8matrix(SM_0, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui8matrix(SM_1, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui8matrix(SH_0, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui8matrix(SH_1, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui32matrix(SM32_0, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui32matrix(SM32_1, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(SH32, i0 - b, i1 + b, j0 - b, j1 + b);
     features_free_ROI_array(ROI_array_tmp);
     features_free_ROI_history(ROI_hist);

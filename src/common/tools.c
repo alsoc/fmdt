@@ -706,8 +706,7 @@ void tools_create_folder(const char* folder_path) {
 void tools_copy_ui8matrix_ui8matrix(const uint8** X, const int i0, const int i1, const int j0, const int j1,
                                     uint8** Y) {
     for (int i = i0; i <= i1; i++)
-        for (int j = j0; j <= j1; j++)
-            Y[i][j] = X[i][j];
+        memcpy(Y[i] + j0, X[i] + j0, sizeof(uint8_t) * ((j1 - j0) + 1));
 }
 
 void tools_convert_ui8vector_ui32vector(const uint8* X, const long nl, const long nh, uint32* Y) {

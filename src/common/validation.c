@@ -182,7 +182,7 @@ void validation_print(const track_array_t* track_array) {
     unsigned total_gt_frames[N_OBJECTS + 1] = {0};
     if (g_val_objects) {
         printf("# ---------------||--------------||---------------||--------\n");
-        printf("#    GT Object   ||     Hits     ||   GT Frames   || track_ts \n");
+        printf("#    GT Object   ||     Hits     ||   GT Frames   || Tracks \n");
         printf("# ---------------||--------------||---------------||--------\n");
         printf("# -----|---------||--------|-----||-------|-------||--------\n");
         printf("#   Id |    Type || Detect |  GT || Start |  Stop ||      # \n");
@@ -196,11 +196,11 @@ void validation_print(const track_array_t* track_array) {
             VERBOSE(fprintf(stderr,
                             "(DBG) [Validation] Input %-2d : hits = %d/%d \t nb_tracks = %3d \t %4d \t %4d \t %4d \t "
                             "%4d \t %6.1f \t %6.1f \t %6.1f \t %6.1f\n",
-                            i, g_val_objects[i].hits, expected_hits, g_val_objects[i].nb_tracks, g_val_objects[i].t0,
-                            g_val_objects[i].t1, g_val_objects[i].track_t0, g_val_objects[i].track_t1,
-                            g_val_objects[i].track_x0, g_val_objects[i].track_y0, g_val_objects[i].track_x1,
-                            g_val_objects[i].track_y1););
-            printf("   %3d | %s ||    %3d | %3d || %5d | %5d ||  %5d  \n", i,
+                            i + 1, g_val_objects[i].hits, expected_hits, g_val_objects[i].nb_tracks,
+                            g_val_objects[i].t0, g_val_objects[i].t1, g_val_objects[i].track_t0,
+                            g_val_objects[i].track_t1, g_val_objects[i].track_x0, g_val_objects[i].track_y0,
+                            g_val_objects[i].track_x1, g_val_objects[i].track_y1););
+            printf("   %3d | %s ||    %3d | %3d || %5d | %5d ||  %5d  \n", i + 1,
                    g_obj_to_string_with_spaces[g_val_objects[i].obj_type], g_val_objects[i].hits, expected_hits,
                    g_val_objects[i].t0, g_val_objects[i].t1, g_val_objects[i].nb_tracks);
 

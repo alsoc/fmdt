@@ -5,6 +5,7 @@
 
 #include <assert.h>
 #include <stdlib.h>
+#include <string.h>
 #include <nrc2.h>
 
 #include "defines.h"
@@ -37,7 +38,8 @@ void CCL_LSL_free_data(CCL_data_t* data) {
     free(data);
 }
 
-void LSL_segment_detection(uint32_t* line_er, uint32_t* line_rlc, uint32_t* line_ner, uint32_t* line, int j0, int j1) {
+void LSL_segment_detection(uint32_t* line_er, uint32_t* line_rlc, uint32_t* line_ner, const uint32_t* line,
+                           const int j0, const int j1) {
     uint32_t j_curr;
     uint32_t j_prev = 0;
     uint32_t f = 0; // Front detection
@@ -60,8 +62,9 @@ void LSL_segment_detection(uint32_t* line_er, uint32_t* line_rlc, uint32_t* line
     *line_ner = er;
 }
 
-void LSL_equivalence_construction(CCL_data_t* data, uint32_t* line_rlc, uint32_t* line_era, uint32_t* prevline_er,
-                                  uint32_t* prevline_era, int n, int x0, int x1, uint32_t* nea) {
+void LSL_equivalence_construction(CCL_data_t* data, const uint32_t* line_rlc, uint32_t* line_era,
+                                  const uint32_t* prevline_er, const uint32_t* prevline_era, const int n, const int x0,
+                                  const int x1, uint32_t* nea) {
     int k, er, j0, j1, er0, er1, ea, a, erk, eak, ak;
     for (k = 0; k < n; k += 2) {
         er = k + 1;
@@ -111,10 +114,15 @@ void LSL_equivalence_construction(CCL_data_t* data, uint32_t* line_rlc, uint32_t
     }
 }
 
-uint32_t CCL_LSL_apply(CCL_data_t* data, uint32_t** img, int i0, int i1, int j0, int j1) {
+uint32_t CCL_LSL_apply(CCL_data_t* data, const uint32_t** img_in, uint32_t** img_out, const int i0, const int i1,
+                       const int j0, const int j1) {
+    if ((void*)img_in != (void*)img_out)
+        for (int i = i0; i <= i1; i++)
+            memcpy(img_out[i] + j0, img_in[i] + j0, sizeof(uint32_t) * ((j1 - j0) + 1));
+
     // Step #1 - Segment detection
     for (int i = i0; i <= i1; i++) {
-        LSL_segment_detection(data->er[i], data->rlc[i], &data->ner[i], img[i], j0, j1);
+        LSL_segment_detection(data->er[i], data->rlc[i], &data->ner[i], img_in[i], j0, j1);
     }
 
     // Step #2 - Equivalence construction
@@ -153,7 +161,7 @@ uint32_t CCL_LSL_apply(CCL_data_t* data, uint32_t** img, int i0, int i1, int j0,
             val = data->eq[val] + 1;
 
             for (int j = a; j <= b; j++)
-                img[i][j] = val;
+                img_out[i][j] = val;
         }
     }
 
