@@ -239,7 +239,7 @@ void KPPV_save_conflicts(const char* filename, uint32_t* conflicts, uint32_t** n
 }
 
 void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data_t* data, const ROI_array_t* ROI_array0,
-                              const ROI_array_t* ROI_array1, const track_t* tracks, const int n_tracks) {
+                              const ROI_array_t* ROI_array1, const track_array_t* track_array) {
     assert(frame >= 0);
 
     int n_asso = ROI_array0->size;
@@ -259,9 +259,9 @@ void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data
 
     // stats
     fprintf(f, "# Frame n°%05d (cur)\n", frame);
-    features_save_stats_file(f, ROI_array0, tracks);
+    features_save_stats_file(f, ROI_array0, track_array, 1);
     fprintf(f, "#\n# Frame n°%05d (next)\n", frame + 1);
-    features_save_stats_file(f, ROI_array1, tracks);
+    features_save_stats_file(f, ROI_array1, track_array, 0);
     fprintf(f, "#\n");
 
     // Asso
@@ -301,9 +301,9 @@ void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data
     }
 
     fprintf(f, "#\n");
-    fprintf(f, "# tracks [%d]:\n", n_tracks);
-    if (n_tracks)
-        tracking_print_tracks(f, tracks, n_tracks);
+    fprintf(f, "# tracks [%lu]:\n", track_array->size);
+    if (track_array->size)
+        tracking_print_tracks(f, track_array->data, track_array->size);
 
     // // Conflicts
     // cpt = 0;

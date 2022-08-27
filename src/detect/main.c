@@ -274,7 +274,7 @@ int main(int argc, char** argv) {
         if (p_out_stats) {
             tools_create_folder(p_out_stats);
             KPPV_save_asso_conflicts(p_out_stats, frame, kppv_data, &ROI_hist->array[1], &ROI_hist->array[0],
-                                     track_array->data, track_array->size);
+                                     track_array);
             // tools_save_motion(path_motion, theta, tx, ty, frame-1);
             // tools_save_motionExtraction(path_extraction, ROI_hist->array[1].data, ROI_hist->array[0].data,
             //                             ROI_hist->array[1].size, theta, tx, ty, frame-1);

@@ -25,5 +25,5 @@ void KPPV_free_data(KKPV_data_t* data);
 // void KPPV_save_conflicts(const char* filename, uint32_t* conflicts, uint32_t** nearest, float** distances,
 //                          int n_asso, int n_conflict);
 void KPPV_save_asso_conflicts(const char* filename, const int frame, const KKPV_data_t* data,
-                              const ROI_array_t* ROI_array0, const ROI_array_t* ROI_array1, const track_t* tracks,
-                              const int n_tracks);
+                              const ROI_array_t* ROI_array0, const ROI_array_t* ROI_array1,
+                              const track_array_t* tracks);

@@ -50,7 +50,7 @@ typedef struct track {
     uint8_t is_valid;
 } track_t;
 
-typedef struct {
+typedef struct track_array {
     track_t* data;
     size_t size; // current size/utilization of the 'track_array_t.data' field
     size_t max_size; // maximum amount of data that can be contained in the 'track_array_t.data' field

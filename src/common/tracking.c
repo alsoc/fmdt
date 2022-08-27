@@ -135,11 +135,11 @@ void add_to_BB_array(BB_t** BB_array, uint16_t rx, uint16_t ry, uint16_t bb_x, u
     BB_array[frame] = newE;
 }
 
-void clear_index_tracks(track_t* tracks, int i) { memset(&tracks[i], 0, sizeof(track_t)); }
+void clear_index_tracks(track_t* track) { memset(track, 0, sizeof(track_t)); }
 
 void tracking_init_tracks(track_t* tracks, int n) {
     for (int i = 0; i < n; i++)
-        clear_index_tracks(tracks, i);
+        clear_index_tracks(tracks + i);
 }
 
 void track_extrapolate(track_t* t, int theta, int tx, int ty) {
@@ -172,56 +172,53 @@ void update_bounding_box(BB_t** BB_array, track_t* track, ROI_t stats, int frame
 
 void update_existing_tracks(ROI_history_t* ROI_hist, track_array_t* track_array, BB_t** BB_array, int frame, int theta,
                             int tx, int ty, int r_extrapol, float angle_max, int track_all, int fra_meteor_max) {
-    ROI_t* stats0 = ROI_hist->array[1].data;
+    const ROI_t* stats0 = (const ROI_t*)ROI_hist->array[1].data;
     ROI_t* stats1 = ROI_hist->array[0].data;
     int nc1 = ROI_hist->array[0].size;
-    track_t* tracks = track_array->data;
-    size_t* tracks_cnt = &track_array->size;
-    size_t* offset = &track_array->offset;
 
     int i;
-    for (i = *offset; i < *tracks_cnt; i++) {
-        int next = tracks[i].end.next;
+    for (i = track_array->offset; i < track_array->size; i++) {
+        int next = track_array->data[i].end.next;
         if (!next) {
-            *offset = i;
+            track_array->offset = i;
             break;
         }
     }
-    for (i = *offset; i < *tracks_cnt; i++) {
-        if (tracks[i].time && tracks[i].state != TRACK_FINISHED) {
-            if (tracks[i].state == TRACK_EXTRAPOLATED) {
+    for (i = track_array->offset; i < track_array->size; i++) {
+        track_t* track = track_array->data + i;
+        if (track_array->data[i].time && track_array->data[i].state != TRACK_FINISHED) {
+            if (track_array->data[i].state == TRACK_EXTRAPOLATED) {
                 for (int j = 1; j <= nc1; j++) {
-                    if ((stats0[j].x > tracks[i].x - r_extrapol) && (stats0[j].x < tracks[i].x + r_extrapol) &&
-                        (stats0[j].y < tracks[i].y + r_extrapol) && (stats0[j].y > tracks[i].y - r_extrapol)) {
-                        tracks[i].end = stats0[j];
-                        stats0[j].track_id = tracks[i].id;
-                        tracks[i].state = TRACK_UPDATED;
-                        update_bounding_box(BB_array, tracks + i, stats0[j], frame - 1);
+                    if ((stats0[j].x > track->x - r_extrapol) && (stats0[j].x < track->x + r_extrapol) &&
+                        (stats0[j].y < track->y + r_extrapol) && (stats0[j].y > track->y - r_extrapol)) {
+                        track->end = stats0[j];
+                        track->state = TRACK_UPDATED;
+                        update_bounding_box(BB_array, track, stats0[j], frame - 1);
                     }
                 }
             }
-            if (tracks[i].state == TRACK_LOST) {
+            if (track->state == TRACK_LOST) {
                 for (int j = 1; j <= nc1; j++) {
                     if (!stats1[j].prev) {
-                        if ((stats1[j].x > tracks[i].x - r_extrapol) && (stats1[j].x < tracks[i].x + r_extrapol) &&
-                            (stats1[j].y < tracks[i].y + r_extrapol) && (stats1[j].y > tracks[i].y - r_extrapol)) {
-                            tracks[i].state = TRACK_EXTRAPOLATED;
-                            tracks[i].time += 2;
+                        if ((stats1[j].x > track->x - r_extrapol) && (stats1[j].x < track->x + r_extrapol) &&
+                            (stats1[j].y < track->y + r_extrapol) && (stats1[j].y > track->y - r_extrapol)) {
+                            track->state = TRACK_EXTRAPOLATED;
+                            track->time += 2;
                             stats1[j].state = 1;
                         }
                     }
                 }
-                if (tracks[i].state != TRACK_EXTRAPOLATED)
-                    tracks[i].state = TRACK_FINISHED;
+                if (track->state != TRACK_EXTRAPOLATED)
+                    track->state = TRACK_FINISHED;
             }
-            if (tracks[i].state == TRACK_UPDATED || tracks[i].state == TRACK_NEW) {
-                int next = stats0[tracks[i].end.id].next;
+            if (track->state == TRACK_UPDATED || track->state == TRACK_NEW) {
+                int next = stats0[track->end.id].next;
                 if (next) {
-                    if (tracks[i].obj_type == METEOR) {
-                        if (stats0[tracks[i].end.id].prev) {
-                            int k = stats0[tracks[i].end.id].prev;
-                            float u_x = stats0[tracks[i].end.id].x - ROI_hist->array[2].data[k].x;
-                            float u_y = stats0[tracks[i].end.id].y - ROI_hist->array[2].data[k].y;
+                    if (track->obj_type == METEOR) {
+                        if (stats0[track->end.id].prev) {
+                            int k = stats0[track->end.id].prev;
+                            float u_x = stats0[track->end.id].x - ROI_hist->array[2].data[k].x;
+                            float u_y = stats0[track->end.id].y - ROI_hist->array[2].data[k].y;
                             float v_x = stats1[next].x - ROI_hist->array[2].data[k].x;
                             float v_y = stats1[next].y - ROI_hist->array[2].data[k].y;
                             float scalar_prod_uv = u_x * v_x + u_y * v_y;
@@ -232,34 +229,33 @@ void update_existing_tracks(ROI_history_t* ROI_hist, track_array_t* track_array,
                             float angle_degree = angle_rad * (180.f / (float)M_PI);
                             // angle_degree = fmodf(angle_degree, 360.f);
                             if (angle_degree >= angle_max || norm_u > norm_v) {
-                                tracks[i].obj_type = NOISE;
+                                track->obj_type = NOISE;
                                 if (!track_all) {
-                                    clear_index_tracks(tracks, i);
+                                    clear_index_tracks(track);
                                     continue;
                                 }
                             }
                         }
                     }
-                    tracks[i].x = tracks[i].end.x;
-                    tracks[i].y = tracks[i].end.y;
-                    tracks[i].end = stats1[next];
-                    if (tracks[i].state != TRACK_NEW) // because the right time has been set in 'insert_new_track'
-                        tracks[i].time++;
+                    track->x = track->end.x;
+                    track->y = track->end.y;
+                    track->end = stats1[next];
+                    if (track->state != TRACK_NEW) // because the right time has been set in 'insert_new_track'
+                        track->time++;
                     else
-                        tracks[i].state = TRACK_UPDATED;
-                    stats1[next].track_id = tracks[i].id;
-                    update_bounding_box(BB_array, tracks + i, stats1[next], frame + 1);
+                        track->state = TRACK_UPDATED;
+                    update_bounding_box(BB_array, track, stats1[next], frame + 1);
                 } else {
                     // on extrapole si pas finished
-                    track_extrapolate(&tracks[i], theta, tx, ty);
-                    tracks[i].state = TRACK_LOST;
+                    track_extrapolate(track, theta, tx, ty);
+                    track->state = TRACK_LOST;
                 }
             }
-            if (tracks[i].time >= fra_meteor_max) {
-                if (tracks[i].obj_type == METEOR)
-                    tracks[i].obj_type = NOISE;
+            if (track->time >= fra_meteor_max) {
+                if (track->obj_type == METEOR)
+                    track->obj_type = NOISE;
                 if (!track_all) {
-                    clear_index_tracks(tracks, i);
+                    clear_index_tracks(track);
                     continue;
                 }
             }
@@ -267,13 +263,13 @@ void update_existing_tracks(ROI_history_t* ROI_hist, track_array_t* track_array,
     }
 }
 
-void insert_new_track(ROI_t* ROI_list[256], unsigned n_ROI, track_array_t* track_array, BB_t** BB_array, int frame,
-                      enum obj_e type) {
+void insert_new_track(const ROI_t* ROI_list[256], unsigned n_ROI, track_array_t* track_array, BB_t** BB_array,
+                      int frame, enum obj_e type) {
     assert(track_array->size < track_array->max_size);
     assert(n_ROI >= 1);
 
-    ROI_t* first_ROI = ROI_list[n_ROI - 1];
-    ROI_t* last_ROI = ROI_list[0];
+    const ROI_t* first_ROI = ROI_list[n_ROI - 1];
+    const ROI_t* last_ROI = ROI_list[0];
 
     size_t cur_track = track_array->size;
     track_array->data[cur_track].id = cur_track + 1;
@@ -286,16 +282,14 @@ void insert_new_track(ROI_t* ROI_list[256], unsigned n_ROI, track_array_t* track
     track_array->data[cur_track].state = TRACK_NEW;
     track_array->data[cur_track].obj_type = type;
 
-    for (unsigned n = 0; n < n_ROI; n++) {
-        ROI_list[n]->track_id = track_array->data[cur_track].id;
+    for (unsigned n = 0; n < n_ROI; n++)
         update_bounding_box(BB_array, &track_array->data[cur_track], *ROI_list[n], frame - n);
-    }
 
     track_array->size++;
 }
 
-void fill_ROI_list(const ROI_history_t* ROI_hist, ROI_t* ROI_list[256], const unsigned n_ROI, ROI_t* last_ROI,
-                   const unsigned frame) {
+void fill_ROI_list(const ROI_history_t* ROI_hist, const ROI_t* ROI_list[256], const unsigned n_ROI,
+                   const ROI_t* last_ROI) {
     assert(n_ROI < 256);
     ROI_list[0] = last_ROI;
     for (int i = 1; i < n_ROI; i++)
@@ -304,13 +298,10 @@ void fill_ROI_list(const ROI_history_t* ROI_hist, ROI_t* ROI_list[256], const un
 
 void create_new_tracks(ROI_history_t* ROI_hist, track_array_t* track_array, BB_t** BB_array, int frame, float diff_dev,
                        int track_all, int fra_star_min, int fra_meteor_min) {
-    ROI_t* ROI_list[256];
-    ROI_t* stats0 = ROI_hist->array[1].data;
+    const ROI_t* ROI_list[256];
+    const ROI_t* stats0 = (const ROI_t*)ROI_hist->array[1].data;
     ROI_t* stats1 = ROI_hist->array[0].data;
     int nc0 = ROI_hist->array[1].size;
-    track_t* tracks = track_array->data;
-    size_t* tracks_cnt = &track_array->size;
-    size_t* offset = &track_array->offset;
 
     double mean_error = features_compute_mean_error(&ROI_hist->array[1]);
     double std_deviation = features_compute_std_deviation(&ROI_hist->array[1], mean_error);
@@ -330,7 +321,6 @@ void create_new_tracks(ROI_history_t* ROI_hist, track_array_t* track_array, BB_t
             int fra_min;
             int time;
             if (is_new_meteor) {
-                //stats0[i].motion = 1; // debug
                 time = stats0[i].time_motion + 1;
                 stats1[stats0[i].next].time_motion = time;
                 fra_min = fra_meteor_min;
@@ -343,13 +333,13 @@ void create_new_tracks(ROI_history_t* ROI_hist, track_array_t* track_array, BB_t
             if (is_new_meteor || track_all) {
                 if (time == fra_min - 1) {
                     // this loop prevent adding duplicated tracks
-                    int j = *offset;
-                    while (j < *tracks_cnt && (tracks[j].end.id != stats0[i].id ||
-                           tracks[j].end.x != stats0[i].x || tracks[j].end.y != stats0[i].y))
+                    int j = track_array->offset;
+                    while (j < track_array->size && (track_array->data[j].end.id != stats0[i].id ||
+                           track_array->data[j].end.x != stats0[i].x || track_array->data[j].end.y != stats0[i].y))
                         j++;
 
-                    if (j == *tracks_cnt || *tracks_cnt == 0) {
-                        fill_ROI_list((const ROI_history_t*)ROI_hist, ROI_list, fra_min - 1, &stats0[i], frame);
+                    if (j == track_array->size || track_array->size == 0) {
+                        fill_ROI_list((const ROI_history_t*)ROI_hist, ROI_list, fra_min - 1, &stats0[i]);
                         insert_new_track(ROI_list, fra_min - 1, track_array, BB_array, frame,
                                          is_new_meteor ? METEOR : STAR);
                     }

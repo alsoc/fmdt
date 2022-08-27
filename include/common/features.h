@@ -16,7 +16,6 @@ typedef struct {
     uint16_t ymax;
     uint32_t S; // number of points
     uint16_t id; // ID
-    int32_t track_id;
     float x; // abscisse du centre d'inertie x = Sx / S
     float y; // ordonnee du centre d'inertie y = Sy / S
     uint32_t Sx; // sum of x properties
@@ -47,7 +46,9 @@ typedef struct {
     size_t max_size; // maximum amount of data that can be contained in the 'ROI_history_t.array' field
 } ROI_history_t;
 
-typedef struct track track_t; // defined in "tracking.h"
+// defined in "tracking.h"
+typedef struct track track_t;
+typedef struct track_array track_array_t;
 
 ROI_array_t* features_alloc_ROI_array(const size_t max_size);
 void features_init_ROI_array(ROI_array_t* ROI_array);
@@ -72,8 +73,10 @@ void features_compute_motion(const ROI_array_t* ROI_array1, ROI_array_t* ROI_arr
 
 // void features_print_stats(ROI_t* stats, int n);
 // void features_parse_stats(const char* filename, ROI_t* stats, int* n);
-// void features_save_stats(const char* filename, const ROI_array_t* ROI_array, const track_t* tracks);
-void features_save_stats_file(FILE* f, const ROI_array_t* ROI_array, const track_t* tracks);
+// void features_save_stats(const char* filename, const ROI_array_t* ROI_array, const track_array_t* track_array,
+//                          const unsigned age);
+void features_save_stats_file(FILE* f, const ROI_array_t* ROI_array, const track_array_t* track_array,
+                              const unsigned age);
 // void features_save_stats(const char* filename, ROI_t* stats, int n, track_t* tracks);
 
 // void features_save_motion(const char* filename, double theta, double tx, double ty, int frame);

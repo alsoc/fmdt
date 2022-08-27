@@ -6,6 +6,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <assert.h>
 #include <math.h>
 
 #include "tools.h"
@@ -573,12 +574,23 @@ void features_parse_stats(const char* filename, ROI_t* stats, int* n)
     fclose(file);
 }
 
-void features_save_stats_file(FILE* f, const ROI_array_t* ROI_array, const track_t* tracks) {
-    ROI_t* stats = ROI_array->data;
-    int n = ROI_array->size;
+int find_corresponding_track(const track_array_t* track_array, const ROI_array_t* ROI_array, const ROI_t *ROI,
+                             const unsigned age) {
+    assert(age == 0 || age == 1);
+    for (size_t t = track_array->offset; t < track_array->size; t++) {
+        int cur_ROI_id = age == 0 ? track_array->data[t].end.id : ROI_array->data[track_array->data[t].end.prev].id;
+        if (cur_ROI_id <= 0)
+            continue;
+        if (ROI->id == cur_ROI_id)
+            return t;
+    }
+    return -1;
+}
+
+void features_save_stats_file(FILE* f, const ROI_array_t* ROI_array, const track_array_t* track_array, const unsigned age) {
     int cpt = 0;
-    for (int i = 1; i <= n; i++)
-        if (stats[i].S != 0)
+    for (int i = 1; i <= ROI_array->size; i++)
+        if (ROI_array->data[i].S != 0)
             cpt++;
 
     fprintf(f, "# Regions of interest (ROI) [%d]: \n", cpt);
@@ -591,24 +603,35 @@ void features_save_stats_file(FILE* f, const ROI_array_t* ROI_array, const track
         fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||--------|--------\n");
     }
 
-    for (int i = 1; i <= n; i++) {
-        if (stats[i].S != 0) {
-            fprintf(f, "   %4d || %4d | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f || %6d | %6d \n",
-                    stats[i].id, stats[i].track_id,
-                    g_obj_to_string_with_spaces[tracks[stats[i].track_id - 1].obj_type], stats[i].xmin,
-                    stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx, stats[i].Sy, stats[i].x,
-                    stats[i].y, stats[i].time, stats[i].time_motion);
+    for (int i = 1; i <= ROI_array->size; i++) {
+        const ROI_t *ROI = &ROI_array->data[i];
+        if (ROI->S != 0) {
+            int t = find_corresponding_track(track_array, ROI_array, ROI, age);
+            char task_id_str[5];
+            if (t == -1)
+                strcpy(task_id_str, "   -");
+            else
+                sprintf(task_id_str, "%4d", track_array->data[t].id);
+            char task_obj_type[64];
+            if (t == -1)
+                strcpy(task_obj_type, "      -");
+            else
+                sprintf(task_obj_type, "%s", g_obj_to_string_with_spaces[track_array->data[t].obj_type]);
+            fprintf(f, "   %4d || %s | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f || %6d | %6d \n",
+                    ROI->id, task_id_str, task_obj_type, ROI->xmin, ROI->xmax, ROI->ymin, ROI->ymax, ROI->S, ROI->Sx,
+                    ROI->Sy, ROI->x, ROI->y, ROI->time, ROI->time_motion);
         }
     }
 }
 
-void features_save_stats(const char* filename, const ROI_array_t* ROI_array, const track_t* tracks) {
+void features_save_stats(const char* filename, const ROI_array_t* ROI_array, const track_array_t* track_array,
+                         const unsigned age) {
     FILE* f = fopen(filename, "w");
     if (f == NULL) {
         fprintf(stderr, "(EE) error ouverture %s \n", filename);
         exit(1);
     }
-    features_save_stats_file(f, ROI_array, tracks);
+    features_save_stats_file(f, ROI_array, track_array, age);
     fclose(f);
 }
 
