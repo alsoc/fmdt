@@ -9,6 +9,7 @@
 
 #include <stdint.h>
 
+#include "defines.h"
 #include "tracking.h"
 
 typedef struct validation_obj {
@@ -55,6 +56,8 @@ typedef struct validation_obj {
     uint16_t is_valid_last;
     enum obj_e obj_type;
 } validation_obj_t;
+
+extern uint8_t g_is_valid_track[MAX_TRACKS_SIZE];
 
 int validation_init(const char* val_objects_file);
 void validation_print(const track_array_t* track_array);

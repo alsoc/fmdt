@@ -83,9 +83,6 @@ void features_extract(const uint32_t** img, const int i0, const int i1, const in
                 stats[e].id = e;
                 stats[e].Sx += j;
                 stats[e].Sy += i;
-                stats[e].Sx2 += j * j;
-                stats[e].Sy2 += i * i;
-                stats[e].Sxy += j * i;
                 if (j < stats[e].xmin)
                     stats[e].xmin = j;
                 if (j > stats[e].xmax)
@@ -307,7 +304,7 @@ void features_rigid_registration_corrected(ROI_t* stats0, const ROI_t* stats1, i
         cc0 = stats0[i];
 
         if (fabs(stats0[i].error - mean_error) > std_deviation) {
-            stats0[i].motion = 1;
+            stats0[i].is_moving = 1;
             cpt1++;
             continue;
         }
@@ -380,7 +377,7 @@ double features_compute_mean_error(const ROI_array_t* ROI_array) {
 
     for (int i = 1; i <= n; i++) {
 
-        if (stats[i].motion || !stats[i].next)
+        if (stats[i].is_moving || !stats[i].next)
             continue;
 
         S += stats[i].error;
@@ -400,7 +397,7 @@ double features_compute_std_deviation(const ROI_array_t* ROI_array, const double
 
     for (int i = 1; i <= n; i++) {
 
-        if (stats[i].motion || !stats[i].next)
+        if (stats[i].is_moving || !stats[i].next)
             continue;
 
         e = stats[i].error;
@@ -458,60 +455,6 @@ void features_compute_motion(const ROI_array_t* ROI_array1, ROI_array_t* ROI_arr
     features_motion_extraction(stats0, (const ROI_t*)stats1, n0, *theta, *tx, *ty);
 }
 
-int features_analyse_ellipse(ROI_t* stats, int n, float e_threshold) {
-    float S, Sx, Sy, Sx2, Sy2, Sxy;
-    float x_avg, y_avg, m20, m02, m11;
-    float a2, b2, a, b, e;
-
-    int true_n = 0;
-
-    for (int i = 1; i <= n; i++) {
-        S = stats[i].S;
-        Sx = stats[i].Sx;
-        Sy = stats[i].Sy;
-        Sx2 = stats[i].Sx2;
-        Sy2 = stats[i].Sy2;
-        Sxy = stats[i].Sxy;
-
-        if (S == 0)
-            continue;
-
-        x_avg = Sx / S;
-        y_avg = Sy / S;
-
-        // Moments centrés
-        m20 = Sx2 / S - x_avg * x_avg; // var(x)
-        m02 = Sy2 / S - y_avg * y_avg; // var(y)
-        m11 = Sxy / S - x_avg * y_avg; // cov(x,y) ?
-
-        a2 = (m20 + m02 + sqrt((m20 - m02) * (m20 - m02) + 4.0 * m11 * m11)) / (2.0 * S);
-        b2 = (m20 + m02 - sqrt((m20 - m02) * (m20 - m02) + 4.0 * m11 * m11)) / (2.0 * S);
-
-        a = sqrt(a2);
-        b = sqrt(b2);
-
-        e = a / b; // garder cette ligne une fois que tout sera corrige LL 2022
-        // e = b / a; // FAUX car a grand rayon et b petit rayon par construction LL 2022
-        // e = sqrt(a2 - b2) / a;
-        // e = a / b;
-
-        // float abs_diff = fabs(theta - stats[i].angle_UV);
-        // float angle_diff = min(min(abs_diff, 360-abs_diff), fabs(180-abs_diff));
-
-        // test inverse de ce qui est naturel de faire (coherent avec e = b/a, mais INVERSE !) LL 2020
-        if (e > e_threshold /*&&  angle_diff > 10*/) {
-            stats[i].S = 0;
-            continue;
-        }
-        true_n++;
-        /*#ifndef REAL_TIME_TEST
-        printf("i = %2d | m20 = %8.1f | m02 = %8.1f | m11 = %8.1f | theta = %4.1f | a = %6.1f | b = %6.1f | e = %6.1f |
-        |uv| = %6.1f | arg(uv) = %4.1f\n", i, m20, m02, m11, theta, a, b, e, stats[i].norm_UV, stats[i].angle_UV);
-        #endif*/
-    }
-    return true_n;
-}
-
 void features_print_stats(ROI_t* stats, int n)
 {
     int cpt = 0;
@@ -531,7 +474,7 @@ void features_print_stats(ROI_t* stats, int n)
                    "%7.1lf \t %d\n",
                    stats[i].id, stats[i].xmin, stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx,
                    stats[i].Sy, stats[i].x, stats[i].y, stats[i].prev, stats[i].next, stats[i].time, stats[i].error,
-                   stats[i].motion);
+                   stats[i].is_moving);
     }
     printf("\n");
 }

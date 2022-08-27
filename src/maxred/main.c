@@ -186,9 +186,9 @@ int main(int argc, char** argv) {
                     exit(-1);
                 }
 
-                if (p_in_gt && track->is_valid == 1)
+                if (p_in_gt && g_is_valid_track[t] == 1)
                     listBB[m].color = GREEN; // GREEN = true positive 'meteor'
-                if (p_in_gt && track->is_valid == 2)
+                if (p_in_gt && g_is_valid_track[t] == 2)
                     listBB[m].color = RED; // RED = false positive 'meteor'
                 m++;
             }

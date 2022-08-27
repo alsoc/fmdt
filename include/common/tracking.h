@@ -17,6 +17,8 @@
 enum obj_e { UNKNOWN = 0, METEOR, STAR, NOISE, N_OBJECTS };
 enum color_e { MISC = 0, GRAY, GREEN, RED, PURPLE, ORANGE, BLUE, YELLOW, N_COLORS };
 enum state_e { TRACK_NEW = 1, TRACK_UPDATED, TRACK_EXTRAPOLATED, TRACK_LOST, TRACK_FINISHED };
+// to remember why a 'meteor' object became a 'noise' object
+enum change_state_reason_e { REASON_TOO_BIG_ANGLE = 1, REASON_WRONG_DIRECTION, REASON_TOO_LONG_DURATION };
 
 #define METEOR_COLOR GREEN
 #define STAR_COLOR PURPLE
@@ -29,25 +31,14 @@ enum state_e { TRACK_NEW = 1, TRACK_UPDATED, TRACK_EXTRAPOLATED, TRACK_LOST, TRA
 #define UNKNOWN_STR "unknown"
 
 typedef struct track {
-    unsigned timestamp;
     uint16_t id;
     ROI_t begin;
     ROI_t end;
-    float x;
-    float y;
-    uint32_t time;
-    uint16_t bb_x;
-    uint16_t bb_y;
-    uint16_t rx;
-    uint16_t ry;
-    float xmin;
-    float xmax;
-    float ymin;
-    float ymax;
+    float extrapol_x;
+    float extrapol_y;
     enum state_e state;
     enum obj_e obj_type;
-    // resultat validation (bad design)
-    uint8_t is_valid;
+    enum change_state_reason_e change_state_reason;
 } track_t;
 
 typedef struct track_array {
@@ -81,14 +72,13 @@ void tracking_free_BB_array(BB_t** BB_array);
 void tracking_perform(ROI_history_t* ROI_hist, track_array_t* track_array, BB_t** BB_array, int frame, int theta,
                       int tx, int ty, int r_extrapol, float angle_max, float diff_dev, int track_all, int fra_star_min,
                       int fra_meteor_min, int fra_meteor_max);
-
 // return the real number of tracks
 size_t tracking_count_objects(const track_array_t* track_array, unsigned* n_stars, unsigned* n_meteors,
                               unsigned* n_noise);
-
 // void tracking_print_array_BB(BB_t** tabBB, int n);
 void tracking_print_tracks(FILE* f, const track_t* tracks, const int n);
 // void tracking_print_buffer(ROIx2_t* buffer, int n);
 void tracking_parse_tracks(const char* filename, track_t* tracks, size_t* n);
 // void tracking_save_tracks(const char* filename, track_t* tracks, int n);
 void tracking_save_array_BB(const char* filename, BB_t** BB_array, track_t* tracks, int n, int track_all);
+size_t tracking_get_track_time(track_t* track);

@@ -10,19 +10,17 @@
 #include "tracking.h"
 
 typedef struct {
+    uint16_t id;
+    size_t frame;
     uint16_t xmin;
     uint16_t xmax;
     uint16_t ymin;
     uint16_t ymax;
     uint32_t S; // number of points
-    uint16_t id; // ID
-    float x; // abscisse du centre d'inertie x = Sx / S
-    float y; // ordonnee du centre d'inertie y = Sy / S
     uint32_t Sx; // sum of x properties
     uint32_t Sy; // sum of y properties
-    uint64_t Sx2;
-    uint64_t Sxy;
-    uint64_t Sy2;
+    float x; // abscisse du centre d'inertie x = Sx / S
+    float y; // ordonnee du centre d'inertie y = Sy / S
     float dx; // erreur par rapport a l`image recalee
     float dy; // erreur par rapport a l`image recalee
     float error;
@@ -30,8 +28,8 @@ typedef struct {
     int32_t time_motion;
     int32_t prev; // associated CC from t-1 -> t -> t+1
     int32_t next; // associated CC from t-1 -> t -> t+1
-    uint8_t motion; // debug
-    uint8_t state;
+    uint8_t is_moving;
+    uint8_t is_extrapolated;
 } ROI_t;
 
 typedef struct {
@@ -56,7 +54,6 @@ void features_free_ROI_array(ROI_array_t* ROI_array);
 ROI_history_t* features_alloc_ROI_history(const size_t max_history_size, const size_t max_ROI_size);
 void features_free_ROI_history(ROI_history_t* ROI_hist);
 void features_rotate_ROI_history(ROI_history_t* ROI_hist);
-
 void features_init_ROI(ROI_t* stats, int n);
 void features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1,
                       const int n_ROI, ROI_array_t* ROI_array);
@@ -69,8 +66,6 @@ double features_compute_std_deviation(const ROI_array_t* stats, const double mea
 void features_compute_motion(const ROI_array_t* ROI_array1, ROI_array_t* ROI_array0, double* theta, double* tx,
                              double* ty);
 // void features_motion_extraction(ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx, double ty);
-// int features_analyse_ellipse(ROI_t* stats, int n, float e_threshold);
-
 // void features_print_stats(ROI_t* stats, int n);
 // void features_parse_stats(const char* filename, ROI_t* stats, int* n);
 // void features_save_stats(const char* filename, const ROI_array_t* ROI_array, const track_array_t* track_array,
@@ -78,7 +73,6 @@ void features_compute_motion(const ROI_array_t* ROI_array1, ROI_array_t* ROI_arr
 void features_save_stats_file(FILE* f, const ROI_array_t* ROI_array, const track_array_t* track_array,
                               const unsigned age);
 // void features_save_stats(const char* filename, ROI_t* stats, int n, track_t* tracks);
-
 // void features_save_motion(const char* filename, double theta, double tx, double ty, int frame);
 // void features_save_error(const char* filename, ROI_t* stats, int n);
 // void features_save_error_moy(const char* filename, double mean_error, double std_deviation);

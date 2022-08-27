@@ -233,9 +233,9 @@ int main(int argc, char** argv) {
                             cpt, track_id, LUT_tracks_id[track_id], track_array->data[LUT_tracks_id[track_id]].obj_type);
                     exit(-1);
                 }
-                if (p_in_gt && track_array->data[LUT_tracks_id[track_id]].is_valid == 1)
+                if (p_in_gt && g_is_valid_track[LUT_tracks_id[track_id]] == 1)
                     color = GREEN; // GREEN = true  positive 'meteor'
-                if (p_in_gt && track_array->data[LUT_tracks_id[track_id]].is_valid == 2)
+                if (p_in_gt && g_is_valid_track[LUT_tracks_id[track_id]] == 2)
                     color = RED; // RED   = false positive 'meteor'
 
 #ifdef OPENCV_LINK

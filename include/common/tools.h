@@ -49,10 +49,6 @@ void tools_save_frame_ui32matrix(const char* filename, uint32_t** I, int i0, int
 // void tools_save_max(const char* filename, uint8_t** I, int i0, int i1, int j0, int j1);
 // void tools_save_frame_quad_hysteresis(const char* filename, uint8_t** I0, uint32_t** SH, uint32_t** SB, uint32_t** Y,
 //                                       int i0, int i1, int j0, int j1);
-// void tools_save_video_frame_tracking(const char* filename, uint8_t** I, track_t* tracks, int tracks_nb, int i0, int i1,
-//                                      int j0, int j1);
-// void tools_save_frame_tracking(const char* filename, uint8_t** I, track_t* tracks, int tracks_nb, int i0, int i1,
-//                                int j0, int j1);
 
 void tools_create_folder(const char* folder_path);
 
