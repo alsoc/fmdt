@@ -69,9 +69,10 @@ void tracking_free_track_array(track_array_t* track_array);
 void tracking_init_tracks(track_t* tracks, int n);
 void tracking_init_BB_array(BB_t** BB_array);
 void tracking_free_BB_array(BB_t** BB_array);
-void tracking_perform(ROI_history_t* ROI_hist, track_array_t* track_array, BB_t** BB_array, int frame, int theta,
-                      int tx, int ty, int r_extrapol, float angle_max, float diff_dev, int track_all, int fra_star_min,
-                      int fra_meteor_min, int fra_meteor_max);
+void tracking_perform(const ROI_array_t* ROI_array0, ROI_array_t* ROI_array1, const ROI_array_t** ROI_hist,
+                      track_array_t* track_array, BB_t** BB_array, int frame, int theta, int tx, int ty, int r_extrapol,
+                      float angle_max, float diff_dev, int track_all, int fra_star_min, int fra_meteor_min,
+                      int fra_meteor_max);
 // return the real number of tracks
 size_t tracking_count_objects(const track_array_t* track_array, unsigned* n_stars, unsigned* n_meteors,
                               unsigned* n_noise);

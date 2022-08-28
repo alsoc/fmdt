@@ -205,7 +205,8 @@ int main(int argc, char** argv) {
     uint8_t **SH_1 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
     uint32_t **SM32_0 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
     uint32_t **SM32_1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
-    uint32_t **SH32 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
+    uint32_t **SH32_0 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
+    uint32_t **SH32_1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
 
     // -------------------------- //
     // -- INITIALISATION MATRIX-- //
@@ -218,7 +219,7 @@ int main(int argc, char** argv) {
     tracking_init_BB_array(BB_array);
     CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
     for (int i = 0; i < ROI_hist->max_size; i++)
-        features_init_ROI(ROI_hist->array[i].data, ROI_hist->array[i].max_size);
+        features_init_ROI(ROI_hist->array[i]->data, ROI_hist->array[i]->max_size);
     zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(SM_0, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(SM_1, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -226,7 +227,8 @@ int main(int argc, char** argv) {
     zero_ui8matrix(SH_1, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui32matrix(SM32_0, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui32matrix(SM32_1, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui32matrix(SH32, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui32matrix(SH32_0, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui32matrix(SH32_1, i0 - b, i1 + b, j0 - b, j1 + b);
 
     // ----------------//
     // -- TRAITEMENT --//
@@ -246,7 +248,7 @@ int main(int argc, char** argv) {
         threshold_high((const uint8_t**)SM_0, SM_1, i0, i1, j0, j1, p_light_min);
         threshold_high((const uint8_t**)SH_0, SH_1, i0, i1, j0, j1, p_light_max);
         tools_convert_ui8matrix_ui32matrix((const uint8_t**)SM_1, i0, i1, j0, j1, SM32_0);
-        tools_convert_ui8matrix_ui32matrix((const uint8_t**)SH_1, i0, i1, j0, j1, SH32);
+        tools_convert_ui8matrix_ui32matrix((const uint8_t**)SH_1, i0, i1, j0, j1, SH32_0);
 
         // Step 2 : ECC/ACC
         const int n_ROI = CCL_LSL_apply(ccl_data, (const uint32_t**)SM32_0, SM32_1, i0, i1, j0, j1);
@@ -255,33 +257,35 @@ int main(int argc, char** argv) {
             ROI_array_tmp->data[r].frame = frame;
 
         // Step 3 : seuillage hysteresis && filter surface
-        features_merge_HI_CCL_v2((const uint32_t**)SM32_1, SH32, i0, i1, j0, j1, ROI_array_tmp, p_surface_min,
-                                 p_surface_max);
-        features_shrink_stats((const ROI_array_t*)ROI_array_tmp, &ROI_hist->array[0]);
+        features_merge_HI_CCL_v2((const uint32_t**)SM32_1, (const uint32_t**)SH32_0, SH32_1, i0, i1, j0, j1,
+                                 ROI_array_tmp, p_surface_min, p_surface_max);
+        features_shrink_stats((const ROI_array_t*)ROI_array_tmp, ROI_hist->array[0]);
 
         // Step 4 : mise en correspondance
-        KPPV_match(kppv_data, &ROI_hist->array[1], &ROI_hist->array[0], p_k);
+        KPPV_match(kppv_data, ROI_hist->array[1], ROI_hist->array[0], p_k);
 
         // Step 5 : recalage
         double theta, tx, ty;
-        features_compute_motion((const ROI_array_t*)&ROI_hist->array[0], &ROI_hist->array[1], &theta, &tx, &ty);
+        features_compute_motion((const ROI_array_t*)ROI_hist->array[0], ROI_hist->array[1], &theta, &tx, &ty);
 
         // Step 6: tracking
-        tracking_perform(ROI_hist, track_array, BB_array, frame, theta, tx, ty, p_r_extrapol, p_angle_max, p_diff_dev,
-                         p_track_all, p_fra_star_min, p_fra_meteor_min, p_fra_meteor_max);
+        tracking_perform((const ROI_array_t*)ROI_hist->array[1], ROI_hist->array[0],
+                         (const ROI_array_t**)&ROI_hist->array[2], track_array, BB_array, frame, theta, tx, ty,
+                         p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
+                         p_fra_meteor_max);
 
         // Saving frames
         if (p_out_frames) {
             tools_create_folder(p_out_frames);
             char filename[1024];
             sprintf(filename, "%s/%05lu.pgm", p_out_frames, frame);
-            tools_save_frame_ui32matrix(filename, SH32, i0, i1, j0, j1);
+            tools_save_frame_ui32matrix(filename, SH32_1, i0, i1, j0, j1);
         }
 
         // Saving stats
         if (p_out_stats && n_frames) {
             tools_create_folder(p_out_stats);
-            KPPV_save_asso_conflicts(p_out_stats, frame - 1, kppv_data, &ROI_hist->array[1], &ROI_hist->array[0],
+            KPPV_save_asso_conflicts(p_out_stats, frame - 1, kppv_data, ROI_hist->array[1], ROI_hist->array[0],
                                      track_array);
             // tools_save_motion(path_motion, theta, tx, ty, frame-1);
             // tools_save_motionExtraction(path_extraction, ROI_hist->array[1].data, ROI_hist->array[0].data,
@@ -290,7 +294,7 @@ int main(int argc, char** argv) {
         }
 
         features_rotate_ROI_history(ROI_hist);
-        features_init_ROI_array(&ROI_hist->array[0]);
+        features_init_ROI_array(ROI_hist->array[0]);
 
         n_frames++;
         real_n_tracks = tracking_count_objects(track_array, &n_stars, &n_meteors, &n_noise);
@@ -320,7 +324,8 @@ int main(int argc, char** argv) {
     free_ui8matrix(SH_1, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(SM32_0, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(SM32_1, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui32matrix(SH32, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui32matrix(SH32_0, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui32matrix(SH32_1, i0 - b, i1 + b, j0 - b, j1 + b);
     features_free_ROI_array(ROI_array_tmp);
     features_free_ROI_history(ROI_hist);
     video_free(video);

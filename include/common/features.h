@@ -39,7 +39,7 @@ typedef struct {
 } ROI_array_t;
 
 typedef struct {
-    ROI_array_t* array;
+    ROI_array_t** array;
     size_t size; // current size/utilization of the 'ROI_history_t.array' field
     size_t max_size; // maximum amount of data that can be contained in the 'ROI_history_t.array' field
 } ROI_history_t;
@@ -58,8 +58,8 @@ void features_init_ROI(ROI_t* stats, int n);
 void features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1,
                       const int n_ROI, ROI_array_t* ROI_array);
 // void features_filter_surface(ROI_t* stats, int n, uint32_t** img, uint32_t threshold_min, uint32_t threshold_max);
-void features_merge_HI_CCL_v2(const uint32_t** M, uint32_t** HI, const int i0, const int i1, const int j0, const int j1,
-                              ROI_array_t* ROI_array, const int S_min, const int S_max);
+void features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint32_t** HI_out, const int i0, const int i1,
+                              const int j0, const int j1, ROI_array_t* ROI_array, const int S_min, const int S_max);
 void features_shrink_stats(const ROI_array_t* ROI_array_src, ROI_array_t* ROI_array_dest);
 double features_compute_mean_error(const ROI_array_t* stats);
 double features_compute_std_deviation(const ROI_array_t* stats, const double mean_error);

@@ -33,24 +33,21 @@ void features_free_ROI_array(ROI_array_t* ROI_array) {
 ROI_history_t* features_alloc_ROI_history(const size_t max_history_size, const size_t max_ROI_size) {
     ROI_history_t* ROI_hist = (ROI_history_t*) malloc(sizeof(ROI_history_t));
     ROI_hist->max_size = max_history_size;
-    ROI_hist->array = (ROI_array_t*)malloc(ROI_hist->max_size * sizeof(ROI_array_t));
-    for (int i = 0; i < ROI_hist->max_size; i++) {
-        ROI_hist->array[i].max_size = max_ROI_size;
-        ROI_hist->array[i].data = (ROI_t*)malloc(ROI_hist->array[i].max_size * sizeof(ROI_t));
-        ROI_hist->array[i].size = 0;
-    }
+    ROI_hist->array = (ROI_array_t**)malloc(ROI_hist->max_size * sizeof(ROI_array_t*));
+    for (int i = 0; i < ROI_hist->max_size; i++)
+        ROI_hist->array[i] = features_alloc_ROI_array(max_ROI_size);
     return ROI_hist;
 }
 
 void features_free_ROI_history(ROI_history_t* ROI_hist) {
     for (int i = 0; i < ROI_hist->max_size; i++)
-        free(ROI_hist->array[i].data);
+        features_free_ROI_array(ROI_hist->array[i]);
     free(ROI_hist->array);
     free(ROI_hist);
 }
 
 void features_rotate_ROI_history(ROI_history_t* ROI_hist) {
-    ROI_array_t last_ROI_tmp = ROI_hist->array[ROI_hist->max_size -1];
+    ROI_array_t* last_ROI_tmp = ROI_hist->array[ROI_hist->max_size -1];
     for (int i = ROI_hist->max_size -2; i >= 0; i--)
         ROI_hist->array[i + 1] = ROI_hist->array[i];
     ROI_hist->array[0] = last_ROI_tmp;
@@ -61,8 +58,8 @@ void features_init_ROI(ROI_t* stats, int n) {
         memset(stats + i, 0, sizeof(ROI_t));
 }
 
-void features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1,
-                      const int n_ROI, ROI_array_t* ROI_array) {
+void features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1, const int n_ROI,
+                      ROI_array_t* ROI_array) {
     ROI_array->size = n_ROI;
 
     for (int i = 1; i <= ROI_array->size; i++) {
@@ -99,8 +96,12 @@ void features_extract(const uint32_t** img, const int i0, const int i1, const in
     }
 }
 
-void features_merge_HI_CCL_v2(const uint32_t** M, uint32_t** HI, const int i0, const int i1, const int j0, const int j1,
-                              ROI_array_t* ROI_array, const int S_min, const int S_max) {
+void features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint32_t** HI_out, const int i0, const int i1,
+                              const int j0, const int j1, ROI_array_t* ROI_array, const int S_min, const int S_max) {
+    if ((void*)HI_in != (void*)HI_out)
+        for (int i = i0; i <= i1; i++)
+            memcpy(HI_out[i] + j0, HI_in[i] + j0, sizeof(uint32_t) * ((j1 - j0) + 1));
+
     int x0, x1, y0, y1, id;
     for (int i = 1; i <= ROI_array->size; i++) {
         ROI_t cc = ROI_array->data[i];
@@ -116,18 +117,18 @@ void features_merge_HI_CCL_v2(const uint32_t** M, uint32_t** HI, const int i0, c
                 for (int k = x0; k <= x1; k++) {
                     for (int l = y0; l <= y1; l++) {
                         if (M[k][l] == id)
-                            HI[k][l] = 0;
+                            HI_out[k][l] = 0;
                     }
                 }
                 continue;
             }
             for (int k = x0; k <= x1; k++) {
                 for (int l = y0; l <= y1; l++) {
-                    if (HI[k][l]) {
+                    if (HI_out[k][l]) {
                         for (k = x0; k <= x1; k++) {
                             for (l = y0; l <= y1; l++) {
                                 if (M[k][l] == id)
-                                    HI[k][l] = i;
+                                    HI_out[k][l] = i;
                             }
                         }
                         goto next;
