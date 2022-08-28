@@ -174,8 +174,8 @@ void update_existing_tracks(const ROI_array_t* ROI_array0, ROI_array_t* ROI_arra
                             int r_extrapol, float angle_max, int track_all, int fra_meteor_max) {
     int i;
     for (i = track_array->offset; i < track_array->size; i++) {
-        int next = track_array->data[i].end.next;
-        if (!next) {
+        int next_id = track_array->data[i].end.next_id;
+        if (!next_id) {
             track_array->offset = i;
             break;
         }
@@ -184,7 +184,7 @@ void update_existing_tracks(const ROI_array_t* ROI_array0, ROI_array_t* ROI_arra
         track_t* track = track_array->data + i;
         if (track_array->data[i].id && track_array->data[i].state != TRACK_FINISHED) {
             if (track_array->data[i].state == TRACK_EXTRAPOLATED) {
-                for (int j = 1; j <= ROI_array1->size; j++) {
+                for (int j = 0; j < ROI_array1->size; j++) {
                     if ((ROI_array0->data[j].x > track->extrapol_x - r_extrapol) &&
                         (ROI_array0->data[j].x < track->extrapol_x + r_extrapol) &&
                         (ROI_array0->data[j].y < track->extrapol_y + r_extrapol) &&
@@ -196,8 +196,8 @@ void update_existing_tracks(const ROI_array_t* ROI_array0, ROI_array_t* ROI_arra
                 }
             }
             if (track->state == TRACK_LOST) {
-                for (int j = 1; j <= ROI_array1->size; j++) {
-                    if (!ROI_array1->data[j].prev) {
+                for (int j = 0; j < ROI_array1->size; j++) {
+                    if (!ROI_array1->data[j].prev_id) {
                         if ((ROI_array1->data[j].x > track->extrapol_x - r_extrapol) &&
                             (ROI_array1->data[j].x < track->extrapol_x + r_extrapol) &&
                             (ROI_array1->data[j].y < track->extrapol_y + r_extrapol) &&
@@ -211,15 +211,15 @@ void update_existing_tracks(const ROI_array_t* ROI_array0, ROI_array_t* ROI_arra
                     track->state = TRACK_FINISHED;
             }
             if (track->state == TRACK_UPDATED || track->state == TRACK_NEW) {
-                int next = ROI_array0->data[track->end.id].next;
-                if (next) {
+                int next_id = ROI_array0->data[track->end.id - 1].next_id;
+                if (next_id) {
                     if (track->obj_type == METEOR) {
-                        if (ROI_array0->data[track->end.id].prev) {
-                            int k = ROI_array0->data[track->end.id].prev;
-                            float u_x = ROI_array0->data[track->end.id].x - ROI_hist[0]->data[k].x;
-                            float u_y = ROI_array0->data[track->end.id].y - ROI_hist[0]->data[k].y;
-                            float v_x = ROI_array1->data[next].x - ROI_hist[0]->data[k].x;
-                            float v_y = ROI_array1->data[next].y - ROI_hist[0]->data[k].y;
+                        if (ROI_array0->data[track->end.id - 1].prev_id) {
+                            int k = ROI_array0->data[track->end.id - 1].prev_id - 1;
+                            float u_x = ROI_array0->data[track->end.id - 1].x - ROI_hist[0]->data[k].x;
+                            float u_y = ROI_array0->data[track->end.id - 1].y - ROI_hist[0]->data[k].y;
+                            float v_x = ROI_array1->data[next_id - 1].x - ROI_hist[0]->data[k].x;
+                            float v_y = ROI_array1->data[next_id - 1].y - ROI_hist[0]->data[k].y;
                             float scalar_prod_uv = u_x * v_x + u_y * v_y;
                             float norm_u = sqrtf(u_x * u_x + u_y * u_y);
                             float norm_v = sqrtf(v_x * v_x + v_y * v_y);
@@ -240,10 +240,10 @@ void update_existing_tracks(const ROI_array_t* ROI_array0, ROI_array_t* ROI_arra
                     }
                     track->extrapol_x = track->end.x;
                     track->extrapol_y = track->end.y;
-                    track->end = ROI_array1->data[next];
+                    track->end = ROI_array1->data[next_id - 1];
                     if (track->state == TRACK_NEW) // because the right time has been set in 'insert_new_track'
                         track->state = TRACK_UPDATED;
-                    update_bounding_box(BB_array, track, ROI_array1->data[next], frame + 1);
+                    update_bounding_box(BB_array, track, ROI_array1->data[next_id - 1], frame + 1);
                 } else {
                     // on extrapole si pas finished
                     track_extrapolate(track, theta, tx, ty);
@@ -288,7 +288,7 @@ void fill_ROI_list(const ROI_array_t** ROI_hist, const ROI_t* ROI_list[256], con
     assert(n_ROI < 256);
     ROI_list[0] = last_ROI;
     for (int i = 1; i < n_ROI; i++)
-        ROI_list[i] = (ROI_t*)&ROI_hist[i - 1]->data[ROI_list[i - 1]->prev];
+        ROI_list[i] = (ROI_t*)&ROI_hist[i - 1]->data[ROI_list[i - 1]->prev_id - 1];
 }
 
 void create_new_tracks(const ROI_array_t* ROI_array0, ROI_array_t* ROI_array1, const ROI_array_t** ROI_hist,
@@ -299,9 +299,9 @@ void create_new_tracks(const ROI_array_t* ROI_array0, ROI_array_t* ROI_array1, c
     double mean_error = features_compute_mean_error(ROI_array0);
     double std_deviation = features_compute_std_deviation(ROI_array0, mean_error);
 
-    for (int i = 1; i <= ROI_array0->size; i++) {
+    for (int i = 0; i < ROI_array0->size; i++) {
         float e = ROI_array0->data[i].error;
-        int asso = ROI_array0->data[i].next;
+        int asso = ROI_array0->data[i].next_id;
         if (asso) {
             int is_new_meteor = 0;
             // if motion detected
@@ -315,12 +315,12 @@ void create_new_tracks(const ROI_array_t* ROI_array0, ROI_array_t* ROI_array1, c
             int time;
             if (is_new_meteor) {
                 time = ROI_array0->data[i].time_motion + 1;
-                ROI_array1->data[ROI_array0->data[i].next].time_motion = time;
+                ROI_array1->data[asso - 1].time_motion = time;
                 fra_min = fra_meteor_min;
             }
             else if (track_all) {
                 time = ROI_array0->data[i].time + 1;
-                ROI_array1->data[ROI_array0->data[i].next].time = time;
+                ROI_array1->data[asso - 1].time = time;
                 fra_min = fra_star_min;
             }
             if (is_new_meteor || track_all) {

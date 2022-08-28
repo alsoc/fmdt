@@ -26,8 +26,8 @@ typedef struct {
     float error;
     int32_t time;
     int32_t time_motion;
-    int32_t prev; // associated CC from t-1 -> t -> t+1
-    int32_t next; // associated CC from t-1 -> t -> t+1
+    int32_t prev_id; // associated CC from t-1 -> t -> t+1
+    int32_t next_id; // associated CC from t-1 -> t -> t+1
     uint8_t is_moving;
     uint8_t is_extrapolated;
 } ROI_t;

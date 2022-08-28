@@ -62,7 +62,7 @@ void features_extract(const uint32_t** img, const int i0, const int i1, const in
                       ROI_array_t* ROI_array) {
     ROI_array->size = n_ROI;
 
-    for (int i = 1; i <= ROI_array->size; i++) {
+    for (int i = 0; i < ROI_array->size; i++) {
         memset(ROI_array->data + i, 0, sizeof(ROI_t));
         ROI_array->data[i].xmin = j1;
         ROI_array->data[i].xmax = j0;
@@ -74,23 +74,24 @@ void features_extract(const uint32_t** img, const int i0, const int i1, const in
         for (int j = j0; j <= j1; j++) {
             uint32_t e = img[i][j];
             if (e > 0) {
-                ROI_array->data[e].S += 1;
-                ROI_array->data[e].id = e;
-                ROI_array->data[e].Sx += j;
-                ROI_array->data[e].Sy += i;
-                if (j < ROI_array->data[e].xmin)
-                    ROI_array->data[e].xmin = j;
-                if (j > ROI_array->data[e].xmax)
-                    ROI_array->data[e].xmax = j;
-                if (i < ROI_array->data[e].ymin)
-                    ROI_array->data[e].ymin = i;
-                if (i > ROI_array->data[e].ymax)
-                    ROI_array->data[e].ymax = i;
+                uint32_t r = e - 1;
+                ROI_array->data[r].S += 1;
+                ROI_array->data[r].id = e;
+                ROI_array->data[r].Sx += j;
+                ROI_array->data[r].Sy += i;
+                if (j < ROI_array->data[r].xmin)
+                    ROI_array->data[r].xmin = j;
+                if (j > ROI_array->data[r].xmax)
+                    ROI_array->data[r].xmax = j;
+                if (i < ROI_array->data[r].ymin)
+                    ROI_array->data[r].ymin = i;
+                if (i > ROI_array->data[r].ymax)
+                    ROI_array->data[r].ymax = i;
             }
         }
     }
 
-    for (int i = 1; i <= ROI_array->size; i++) {
+    for (int i = 0; i < ROI_array->size; i++) {
         ROI_array->data[i].x = (double)ROI_array->data[i].Sx / (double)ROI_array->data[i].S;
         ROI_array->data[i].y = (double)ROI_array->data[i].Sy / (double)ROI_array->data[i].S;
     }
@@ -103,16 +104,16 @@ void features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint32
             memcpy(HI_out[i] + j0, HI_in[i] + j0, sizeof(uint32_t) * ((j1 - j0) + 1));
 
     int x0, x1, y0, y1, id;
-    for (int i = 1; i <= ROI_array->size; i++) {
-        ROI_t cc = ROI_array->data[i];
-        if (cc.S) {
-            id = cc.id;
-            x0 = cc.ymin;
-            x1 = cc.ymax;
-            y0 = cc.xmin;
-            y1 = cc.xmax;
-            if (S_min > cc.S || cc.S > S_max) {
-                ROI_array->data[i].S = 0;
+    for (int i = 0; i < ROI_array->size; i++) {
+        ROI_t* cur_ROI = &ROI_array->data[i];
+        if (cur_ROI->S) {
+            id = cur_ROI->id;
+            x0 = cur_ROI->ymin;
+            x1 = cur_ROI->ymax;
+            y0 = cur_ROI->xmin;
+            y1 = cur_ROI->xmax;
+            if (S_min > cur_ROI->S || cur_ROI->S > S_max) {
+                cur_ROI->S = 0;
                 // JUSTE POUR DEBUG (Affichage frames)
                 for (int k = x0; k <= x1; k++) {
                     for (int l = y0; l <= y1; l++) {
@@ -128,14 +129,14 @@ void features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint32
                         for (k = x0; k <= x1; k++) {
                             for (l = y0; l <= y1; l++) {
                                 if (M[k][l] == id)
-                                    HI_out[k][l] = i;
+                                    HI_out[k][l] = i + 1;
                             }
                         }
                         goto next;
                     }
                 }
             }
-            ROI_array->data[i].S = 0;
+            cur_ROI->S = 0;
         next:;
         }
     }
@@ -176,11 +177,11 @@ void features_filter_surface(ROI_t* stats, int n, uint32_t** img, uint32_t thres
 
 void features_shrink_stats(const ROI_array_t* ROI_array_src, ROI_array_t* ROI_array_dest) {
     int cpt = 0;
-    for (int i = 1; i <= ROI_array_src->size; i++) {
+    for (int i = 0; i < ROI_array_src->size; i++) {
         if (ROI_array_src->data[i].S > 0) {
-            cpt++;
             memcpy(ROI_array_dest->data + cpt, ROI_array_src->data + i, sizeof(ROI_t));
-            ROI_array_dest->data[cpt].id = cpt;
+            ROI_array_dest->data[cpt].id = cpt + 1;
+            cpt++;
         }
     }
     ROI_array_dest->size = cpt;
@@ -207,13 +208,13 @@ void features_rigid_registration(const ROI_array_t* ROI_array0, const ROI_array_
     cpt = 0;
 
     // parcours tab assos
-    for (int i = 1; i <= ROI_array0->size; i++) {
+    for (int i = 0; i < ROI_array0->size; i++) {
         cc0 = ROI_array0->data[i];
-        asso = ROI_array0->data[i].next; // assos[i];
+        asso = ROI_array0->data[i].next_id;
 
         if (cc0.S > 0 && asso) {
             cpt++;
-            cc1 = ROI_array1->data[ROI_array0->data[i].next];
+            cc1 = ROI_array1->data[asso - 1];
 
             Sx += cc0.x;
             Sy += cc0.y;
@@ -233,13 +234,13 @@ void features_rigid_registration(const ROI_array_t* ROI_array0, const ROI_array_
     Syp = 0;
 
     // parcours tab assos
-    for (int i = 1; i <= ROI_array0->size; i++) {
+    for (int i = 0; i < ROI_array0->size; i++) {
         cc0 = ROI_array0->data[i];
-        asso = ROI_array0->data[i].next;
+        asso = ROI_array0->data[i].next_id;
 
         if (cc0.S > 0 && asso) {
             // cpt++;
-            cc1 = ROI_array1->data[ROI_array0->data[i].next];
+            cc1 = ROI_array1->data[asso - 1];
 
             x0 = cc0.x - xg;
             y0 = cc0.y - yg;
@@ -267,7 +268,6 @@ void features_rigid_registration(const ROI_array_t* ROI_array0, const ROI_array_
 void features_rigid_registration_corrected(ROI_array_t* ROI_array0, const ROI_array_t* ROI_array1, double* theta,
                                            double* tx, double* ty, double mean_error, double std_deviation) {
     double Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
-    ROI_t cc0, cc1;
     double x0, y0, x1, y1;
     double a, b;
     double xg, yg, xpg, ypg;
@@ -286,24 +286,22 @@ void features_rigid_registration_corrected(ROI_array_t* ROI_array0, const ROI_ar
 
     int cpt1 = 0;
     // parcours tab assos
-    for (int i = 1; i <= ROI_array0->size; i++) {
-        cc0 = ROI_array0->data[i];
-
+    for (int i = 0; i < ROI_array0->size; i++) {
+        ROI_t* cc0 = &ROI_array0->data[i];
         if (fabs(ROI_array0->data[i].error - mean_error) > std_deviation) {
             ROI_array0->data[i].is_moving = 1;
             cpt1++;
             continue;
         }
-        asso = ROI_array0->data[i].next; // assos[i];
+        asso = ROI_array0->data[i].next_id; // assos[i];
+        if (cc0->S > 0 && asso) {
+            ROI_t* cc1 = &ROI_array1->data[asso - 1];
+            Sx += cc0->x;
+            Sy += cc0->y;
+            Sxp += cc1->x;
+            Syp += cc1->y;
 
-        if (cc0.S > 0 && asso) {
             cpt++;
-            cc1 = ROI_array1->data[ROI_array0->data[i].next];
-
-            Sx += cc0.x;
-            Sy += cc0.y;
-            Sxp += cc1.x;
-            Syp += cc1.y;
         }
     }
 
@@ -318,22 +316,22 @@ void features_rigid_registration_corrected(ROI_array_t* ROI_array0, const ROI_ar
     Syp = 0;
 
     // parcours tab assos
-    for (int i = 1; i <= ROI_array0->size; i++) {
-        cc0 = ROI_array0->data[i];
+    for (int i = 0; i < ROI_array0->size; i++) {
+        ROI_t* cc0 = &ROI_array0->data[i];
 
         if (fabs(ROI_array0->data[i].error - mean_error) > std_deviation)
             continue;
 
-        asso = ROI_array0->data[i].next;
+        asso = ROI_array0->data[i].next_id;
 
-        if (cc0.S > 0 && asso) {
+        if (cc0->S > 0 && asso) {
             // cpt++;
-            cc1 = ROI_array1->data[ROI_array0->data[i].next];
+            ROI_t* cc1 = &ROI_array1->data[asso - 1];
 
-            x0 = cc0.x - xg;
-            y0 = cc0.y - yg;
-            x1 = cc1.x - xpg;
-            y1 = cc1.y - ypg;
+            x0 = cc0->x - xg;
+            y0 = cc0->y - yg;
+            x1 = cc1->x - xpg;
+            y1 = cc1->y - ypg;
 
             Sx += x0;
             Sy += y0;
@@ -355,18 +353,12 @@ void features_rigid_registration_corrected(ROI_array_t* ROI_array0, const ROI_ar
 
 // TODO: Pour l'optimisation : faire une version errorMoy_corrected()
 double features_compute_mean_error(const ROI_array_t* ROI_array) {
-    const ROI_t* stats = ROI_array->data;
-    int n = ROI_array->size;
-
     double S = 0.0;
     int cpt = 0;
-
-    for (int i = 1; i <= n; i++) {
-
-        if (stats[i].is_moving || !stats[i].next)
+    for (int i = 0; i < ROI_array->size; i++) {
+        if (ROI_array->data[i].is_moving || !ROI_array->data[i].next_id)
             continue;
-
-        S += stats[i].error;
+        S += ROI_array->data[i].error;
         cpt++;
     }
     return S / cpt;
@@ -374,19 +366,12 @@ double features_compute_mean_error(const ROI_array_t* ROI_array) {
 
 // TODO: Pour l'optimisation : faire une version ecartType_corrected()
 double features_compute_std_deviation(const ROI_array_t* ROI_array, const double mean_error) {
-    const ROI_t* stats = ROI_array->data;
-    int n = ROI_array->size;
-
     double S = 0.0;
     int cpt = 0;
-    float e;
-
-    for (int i = 1; i <= n; i++) {
-
-        if (stats[i].is_moving || !stats[i].next)
+    for (int i = 0; i < ROI_array->size; i++) {
+        if (ROI_array->data[i].is_moving || !ROI_array->data[i].next_id)
             continue;
-
-        e = stats[i].error;
+        float e = ROI_array->data[i].error;
         S += ((e - mean_error) * (e - mean_error));
         cpt++;
     }
@@ -400,12 +385,12 @@ void features_motion_extraction(ROI_array_t* ROI_array0, const ROI_array_t* ROI_
     float dx, dy;
     float e;
 
-    for (int i = 1; i <= ROI_array0->size; i++) {
-        cc1 = ROI_array0->data[i].next; // assos[i];
+    for (int i = 0; i < ROI_array0->size; i++) {
+        cc1 = ROI_array0->data[i].next_id;
         if (cc1) {
             // coordonees du point dans l'image I+1
-            xp = ROI_array1->data[cc1].x;
-            yp = ROI_array1->data[cc1].y;
+            xp = ROI_array1->data[cc1 - 1].x;
+            yp = ROI_array1->data[cc1 - 1].y;
             // calcul de (x,y) pour l'image I
             x = cos(theta) * (xp - tx) + sin(theta) * (yp - ty);
             y = cos(theta) * (yp - ty) - sin(theta) * (xp - tx);
@@ -455,8 +440,8 @@ void features_print_stats(ROI_t* stats, int n)
             printf("%4d \t %4d \t %4d \t %4d \t %4d \t %3d \t %4d \t %4d \t %7.1f \t %7.1f \t %4d \t %4d \t %4d \t "
                    "%7.1lf \t %d\n",
                    stats[i].id, stats[i].xmin, stats[i].xmax, stats[i].ymin, stats[i].ymax, stats[i].S, stats[i].Sx,
-                   stats[i].Sy, stats[i].x, stats[i].y, stats[i].prev, stats[i].next, stats[i].time, stats[i].error,
-                   stats[i].is_moving);
+                   stats[i].Sy, stats[i].x, stats[i].y, stats[i].prev_id, stats[i].next_id, stats[i].time,
+                   stats[i].error, stats[i].is_moving);
     }
     printf("\n");
 }
@@ -464,7 +449,7 @@ void features_print_stats(ROI_t* stats, int n)
 void features_parse_stats(const char* filename, ROI_t* stats, int* n)
 {
     char lines[200];
-    int id, xmin, xmax, ymin, ymax, s, sx, sy, prev, next;
+    int id, xmin, xmax, ymin, ymax, s, sx, sy, prev_id, next_id;
     double x, y;
     float dx, dy, error;
     FILE* file = fopen(filename, "r");
@@ -479,7 +464,7 @@ void features_parse_stats(const char* filename, ROI_t* stats, int* n)
 
     while (fgets(lines, 200, file)) {
         sscanf(lines, "%d %d %d %d %d %d %d %d %lf %lf %f %f %f %d %d", &id, &xmin, &xmax, &ymin, &ymax, &s, &sx, &sy,
-               &x, &y, &dx, &dy, &error, &prev, &next);
+               &x, &y, &dx, &dy, &error, &prev_id, &next_id);
         stats[id].id = id;
         stats[id].xmin = xmin;
         stats[id].xmax = xmax;
@@ -493,8 +478,8 @@ void features_parse_stats(const char* filename, ROI_t* stats, int* n)
         stats[id].dx = dx;
         stats[id].dy = dy;
         stats[id].error = error;
-        stats[id].prev = prev;
-        stats[id].next = next;
+        stats[id].prev_id = prev_id;
+        stats[id].next_id = next_id;
     }
     fclose(file);
 }
@@ -503,7 +488,7 @@ int find_corresponding_track(const track_array_t* track_array, const ROI_array_t
                              const unsigned age) {
     assert(age == 0 || age == 1);
     for (size_t t = track_array->offset; t < track_array->size; t++) {
-        int cur_ROI_id = age == 0 ? track_array->data[t].end.id : ROI_array->data[track_array->data[t].end.prev].id;
+        int cur_ROI_id = age == 0 ? track_array->data[t].end.id : ROI_array->data[track_array->data[t].end.prev_id].id;
         if (cur_ROI_id <= 0)
             continue;
         if (ROI->id == cur_ROI_id)
@@ -514,7 +499,7 @@ int find_corresponding_track(const track_array_t* track_array, const ROI_array_t
 
 void features_save_stats_file(FILE* f, const ROI_array_t* ROI_array, const track_array_t* track_array, const unsigned age) {
     int cpt = 0;
-    for (int i = 1; i <= ROI_array->size; i++)
+    for (int i = 0; i < ROI_array->size; i++)
         if (ROI_array->data[i].S != 0)
             cpt++;
 
@@ -528,7 +513,7 @@ void features_save_stats_file(FILE* f, const ROI_array_t* ROI_array, const track
         fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||--------|--------\n");
     }
 
-    for (int i = 1; i <= ROI_array->size; i++) {
+    for (int i = 0; i < ROI_array->size; i++) {
         const ROI_t *ROI = &ROI_array->data[i];
         if (ROI->S != 0) {
             int t = find_corresponding_track(track_array, ROI_array, ROI, age);
@@ -616,7 +601,7 @@ void features_save_motion_extraction(const char* filename, const ROI_array_t* RO
     double mean_error = features_compute_mean_error(ROI_array);
     double std_deviation = features_compute_std_deviation(ROI_array, mean_error);
 
-    for (int i = 1; i <= ROI_array->size; i++) {
+    for (int i = 0; i < ROI_array->size; i++) {
         float e = ROI_array->data[i].error;
         // si mouvement detecté
         if (fabs(e - mean_error) > 1.5 * std_deviation) {
