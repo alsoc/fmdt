@@ -253,7 +253,7 @@ int main(int argc, char** argv) {
         // Step 2 : ECC/ACC
         const int n_ROI = CCL_LSL_apply(ccl_data, (const uint32_t**)SM32_0, SM32_1, i0, i1, j0, j1);
         features_extract((const uint32_t**)SM32_1, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
-        for (size_t r = 0; r < ROI_array_tmp->size; r++)
+        for (size_t r = 1; r <= ROI_array_tmp->size; r++) // TODO: start arrays at '0' and end them at 'size - 1'
             ROI_array_tmp->data[r].frame = frame;
 
         // Step 3 : seuillage hysteresis && filter surface

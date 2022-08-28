@@ -250,10 +250,9 @@ void update_existing_tracks(const ROI_array_t* ROI_array0, ROI_array_t* ROI_arra
                     track->state = TRACK_LOST;
                 }
             }
-            if (tracking_get_track_time(track) >= fra_meteor_max) {
-                if (track->obj_type == METEOR)
-                    track->obj_type = NOISE;
-                    track->change_state_reason = REASON_TOO_LONG_DURATION;
+            if (track->obj_type == METEOR && tracking_get_track_time(track) >= fra_meteor_max) {
+                track->obj_type = NOISE;
+                track->change_state_reason = REASON_TOO_LONG_DURATION;
                 if (!track_all) {
                     clear_index_tracks(track);
                     continue;
