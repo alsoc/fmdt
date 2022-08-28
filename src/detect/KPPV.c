@@ -37,18 +37,18 @@ void KPPV_free_data(KKPV_data_t* data) {
     free(data);
 }
 
-void compute_distance(float** distances, const ROI_array_t* ROI_array0, const ROI_array_t* ROI_array1) {
+void compute_distance(float** distances, const ROI_t* ROI_array0, const ROI_t* ROI_array1) {
     // parcours des stats 0
-    for (int i = 0; i < ROI_array0->size; i++) {
-        if (ROI_array0->data[i].S > 0) {
-            float x0 = ROI_array0->data[i].x;
-            float y0 = ROI_array0->data[i].y;
+    for (int i = 0; i < ROI_array0->_size; i++) {
+        if (ROI_array0->S[i] > 0) {
+            float x0 = ROI_array0->x[i];
+            float y0 = ROI_array0->y[i];
 
             // parcours des stats 1
-            for (int j = 0; j < ROI_array1->size; j++) {
-                if (ROI_array1->data[j].S > 0) {
-                    float x1 = ROI_array1->data[j].x;
-                    float y1 = ROI_array1->data[j].y;
+            for (int j = 0; j < ROI_array1->_size; j++) {
+                if (ROI_array1->S[j] > 0) {
+                    float x1 = ROI_array1->x[j];
+                    float y1 = ROI_array1->y[j];
 
                     // distances au carré
                     float d = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0);
@@ -61,14 +61,14 @@ void compute_distance(float** distances, const ROI_array_t* ROI_array0, const RO
     }
 }
 
-void KPPV_match1(uint32_t** nearest, float** distances, uint32_t* conflicts, const ROI_array_t* ROI_array0,
-                 const ROI_array_t* ROI_array1, const int k) {
+void KPPV_match1(uint32_t** nearest, float** distances, uint32_t* conflicts, const ROI_t* ROI_array0,
+                 const ROI_t* ROI_array1, const int k) {
     int k_index, val, cpt = 0;
 
     // vecteur de conflits pour debug
     // zero_ui32vector(conflicts, 0, ROI_array1->size);
 
-    zero_ui32matrix(nearest, 0, ROI_array0->size, 0, ROI_array1->size);
+    zero_ui32matrix(nearest, 0, ROI_array0->_size, 0, ROI_array1->_size);
 
     // calculs de toutes les distances euclidiennes au carré entre nc0 et nc1
     compute_distance(distances, ROI_array0, ROI_array1);
@@ -76,14 +76,14 @@ void KPPV_match1(uint32_t** nearest, float** distances, uint32_t* conflicts, con
     // les k plus proches voisins dans l'ordre croissant
     for (k_index = 1; k_index <= k; k_index++) {
         // parcours des distances
-        for (int i = 0; i < ROI_array0->size; i++) {
-            for (int j = 0; j < ROI_array1->size; j++) {
+        for (int i = 0; i < ROI_array0->_size; i++) {
+            for (int j = 0; j < ROI_array1->_size; j++) {
                 // if une distance est calculée et ne fait pas pas déjà parti du tab nearest
                 if ((distances[i][j] != INF32) && (nearest[i][j] == 0) && (distances[i][j] < MAX_DIST)) {
                     val = distances[i][j];
                     cpt = 0;
                     // // compte le nombre de distances < val
-                    for (int l = 0; l < ROI_array1->size; l++) {
+                    for (int l = 0; l < ROI_array1->_size; l++) {
                         if ((distances[i][l] < val) && (distances[i][l] != INF32)) {
                             cpt++;
                         }
@@ -103,26 +103,26 @@ void KPPV_match1(uint32_t** nearest, float** distances, uint32_t* conflicts, con
     }
 }
 
-void KPPV_match2(const uint32_t** nearest, const float** distances, ROI_array_t* ROI_array0, ROI_array_t* ROI_array1) {
+void KPPV_match2(const uint32_t** nearest, const float** distances, ROI_t* ROI_array0, ROI_t* ROI_array1) {
     int rang = 1;
-    for (int i = 0; i < ROI_array0->size; i++) {
+    for (int i = 0; i < ROI_array0->_size; i++) {
     change:
-        for (int j = 0; j < ROI_array1->size; j++) {
+        for (int j = 0; j < ROI_array1->_size; j++) {
             // si pas encore associé
-            if (!ROI_array1->data[j].prev_id) {
+            if (!ROI_array1->prev_id[j]) {
                 // si ROI_array1->data[j] est dans les voisins de ROI_array0->data[i]
                 if (nearest[i][j] == rang) {
                     float d = distances[i][j];
                     // test s'il existe une autre CC de ROI_array0->data de mm rang et plus proche
-                    for (int k = i + 1; k < ROI_array0->size; k++) {
+                    for (int k = i + 1; k < ROI_array0->_size; k++) {
                         if (nearest[k][j] == rang && distances[k][j] < d) {
                             rang++;
                             goto change;
                         }
                     }
                     // association
-                    ROI_array0->data[i].next_id = ROI_array1->data[j].id;
-                    ROI_array1->data[j].prev_id = ROI_array0->data[i].id;
+                    ROI_array0->next_id[i] = ROI_array1->id[j];
+                    ROI_array1->prev_id[j] = ROI_array0->id[i];
                     break;
                 }
             }
@@ -131,13 +131,12 @@ void KPPV_match2(const uint32_t** nearest, const float** distances, ROI_array_t*
     }
 }
 
-void KPPV_match(KKPV_data_t* data, ROI_array_t* ROI_array0, ROI_array_t* ROI_array1, const int k) {
-    KPPV_match1(data->nearest, data->distances, data->conflicts, (const ROI_array_t*)ROI_array0,
-                (const ROI_array_t*)ROI_array1, k);
+void KPPV_match(KKPV_data_t* data, ROI_t* ROI_array0, ROI_t* ROI_array1, const int k) {
+    KPPV_match1(data->nearest, data->distances, data->conflicts, (const ROI_t*)ROI_array0, (const ROI_t*)ROI_array1, k);
     KPPV_match2((const uint32_t**)data->nearest, (const float**)data->distances, ROI_array0, ROI_array1);
 }
 
-void KPPV_save_asso(const char* filename, const uint32_t** nearest, const float** distances, ROI_array_t* ROI_array) {
+void KPPV_save_asso(const char* filename, const uint32_t** nearest, const float** distances, ROI_t* ROI_array) {
     FILE* f = fopen(filename, "w");
     if (f == NULL) {
         fprintf(stderr, "(EE) error ouverture %s \n", filename);
@@ -146,8 +145,8 @@ void KPPV_save_asso(const char* filename, const uint32_t** nearest, const float*
 
     // tmp (le temps de mettre à jour n)
     int cpt = 0;
-    for (int i = 1; i <= ROI_array->size; i++) {
-        if (ROI_array->data[i].S != 0 && ROI_array->data[i].next_id)
+    for (int i = 1; i <= ROI_array->_size; i++) {
+        if (ROI_array->S[i] != 0 && ROI_array->next_id[i])
             cpt++;
     }
     if (cpt != 0) {
@@ -155,12 +154,12 @@ void KPPV_save_asso(const char* filename, const uint32_t** nearest, const float*
         fprintf(f, "%d\n", cpt);
 
         int j;
-        for (int i = 1; i <= ROI_array->size; i++) {
-            if (!ROI_array->data[i].next_id) {
-                if (ROI_array->data[i].S > 0)
+        for (int i = 1; i <= ROI_array->_size; i++) {
+            if (!ROI_array->next_id[i]) {
+                if (ROI_array->S[i] > 0)
                     fprintf(f, "%4d \t ->   pas d'association\n", i);
             } else {
-                j = ROI_array->data[i].next_id - 1;
+                j = ROI_array->next_id[i] - 1;
                 fprintf(f, "%4d \t -> %4d \t  : distance = %10.2f \t ; %4d-voisin\n", i, j, distances[i][j],
                         nearest[i][j]);
             }
@@ -169,7 +168,7 @@ void KPPV_save_asso(const char* filename, const uint32_t** nearest, const float*
     fclose(f);
 }
 
-void KPPV_save_asso_VT(const char* filename, int nc0, ROI_t* stats, int frame) {
+void KPPV_save_asso_VT(const char* filename, int nc0, ROI_t* ROI_array, int frame) {
     FILE* f = fopen(filename, "a");
     if (f == NULL) {
         fprintf(stderr, "(EE) error ouverture %s \n", filename);
@@ -178,12 +177,12 @@ void KPPV_save_asso_VT(const char* filename, int nc0, ROI_t* stats, int frame) {
     fprintf(f, "%05d_%05d\n", frame, frame + 1);
 
     int j;
-    for (int i = 1; i <= nc0; i++) {
-        if (!stats[i].next_id) {
-            if (stats[i].S > 0)
+    for (int i = 0; i <= ROI_array->_size; i++) {
+        if (!ROI_array->next_id[i]) {
+            if (ROI_array->S[i] > 0)
                 fprintf(f, "%4d \t ->   pas d'association\n", i);
         } else {
-            j = stats[i].next_id - 1;
+            j = ROI_array->next_id[i] - 1;
             fprintf(f, "%4d \t -> %4d \n", i, j);
         }
     }
@@ -225,8 +224,8 @@ void KPPV_save_conflicts(const char* filename, uint32_t* conflicts, uint32_t** n
     fclose(f);
 }
 
-void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data_t* data, const ROI_array_t* ROI_array0,
-                              const ROI_array_t* ROI_array1, const track_array_t* track_array) {
+void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data_t* data, const ROI_t* ROI_array0,
+                              const ROI_t* ROI_array1, const track_t* track_array) {
     assert(frame >= 0);
     char filename[1024];
 
@@ -247,8 +246,8 @@ void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data
 
     // Asso
     int cpt = 0;
-    for (int i = 0; i < ROI_array0->size; i++) {
-        if (ROI_array0->data[i].next_id != 0)
+    for (int i = 0; i < ROI_array0->_size; i++) {
+        if (ROI_array0->next_id[i] != 0)
             cpt++;
     }
     fprintf(f, "# Associations [%d]:\n", cpt);
@@ -268,22 +267,22 @@ void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data
         fprintf(f, "# -----|------||--------|------||-------|-------|--------\n");
     }
 
-    for (int i = 0; i < ROI_array0->size; i++) {
-        if (ROI_array0->data[i].S == 0)
+    for (int i = 0; i < ROI_array0->_size; i++) {
+        if (ROI_array0->S[i] == 0)
             continue;
-        if (ROI_array0->data[i].next_id) {
-            j = ROI_array0->data[i].next_id - 1;
-            float dx = ROI_array0->data[i].dx;
-            float dy = ROI_array0->data[i].dy;
+        if (ROI_array0->next_id[i]) {
+            j = ROI_array0->next_id[i] - 1;
+            float dx = ROI_array0->dx[i];
+            float dy = ROI_array0->dy[i];
             fprintf(f, "  %4d | %4d || %6.2f | %4d || %5.1f | %5.1f | %6.3f \n", i, j, data->distances[i][j],
-                    data->nearest[i][j], dx, dy, ROI_array0->data[i].error);
+                    data->nearest[i][j], dx, dy, ROI_array0->error[i]);
         }
     }
 
     fprintf(f, "#\n");
-    fprintf(f, "# tracks [%lu]:\n", track_array->size);
-    if (track_array->size)
-        tracking_print_tracks(f, track_array->data, track_array->size);
+    fprintf(f, "# tracks [%lu]:\n", track_array->_size);
+    if (track_array->_size)
+        tracking_print_track_array(f, track_array);
 
     // // Conflicts
     // cpt = 0;
@@ -297,7 +296,7 @@ void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data
     // for(int j = 1; j <= n_conflict; j++){
     //     if (conflicts[j] != 1 && conflicts[j] != 0){
     //         fprintf(f, "conflit CC = %4d : ", j);
-    //         for(int i = 1 ; i <= ROI_array0->size; i++){
+    //         for(int i = 1 ; i <= ROI_array0->_size; i++){
     //             if (nearest[i][j] == 1 ){
     //                 fprintf(f, "%4d\t", i);
     //             }

@@ -153,36 +153,39 @@ int main(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (p_in_tracks) {
-        track_array_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
+        track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
         tracking_init_track_array(track_array);
-        tracking_parse_tracks(p_in_tracks, track_array->data, &track_array->size);
+        tracking_parse_tracks(p_in_tracks, track_array);
 
         if (p_in_gt) {
             validation_init(p_in_gt);
             validation_process(track_array);
         }
 
-        BB_coord_t* listBB = (BB_coord_t*)malloc(sizeof(BB_coord_t) * track_array->size);
+        BB_coord_t* listBB = (BB_coord_t*)malloc(sizeof(BB_coord_t) * track_array->_size);
         int m = 0;
-        for (int t = 0; t < track_array->size; t++) {
-            if (!p_only_meteor || track_array->data[t].obj_type == METEOR) {
-                track_t* track = &track_array->data[t];
+        for (int t = 0; t < track_array->_size; t++) {
+            if (!p_only_meteor || track_array->obj_type[t] == METEOR) {
 #ifdef OPENCV_LINK
-                listBB[m].track_id = p_nat_num ? (m + 1) : track_array->data[t].id;
+                listBB[m].track_id = p_nat_num ? (m + 1) : track_array->id[t];
 #else
-                listBB[m].track_id = track_array->data[t].id;
+                listBB[m].track_id = track_array->id[t];
 #endif
                 int delta = 5;
-                listBB[m].xmin = (track->begin.x < track->end.x ? track->begin.x : track->end.x) - delta;
-                listBB[m].xmax = (track->begin.x < track->end.x ? track->end.x : track->begin.x) + delta;
-                listBB[m].ymin = (track->begin.y < track->end.y ? track->begin.y : track->end.y) - delta;
-                listBB[m].ymax = (track->begin.y < track->end.y ? track->end.y : track->begin.y) + delta;
+                listBB[m].xmin = (track_array->begin->x[t] < track_array->end->x[t] ?
+                    track_array->begin->x[t] : track_array->end->x[t]) - delta;
+                listBB[m].xmax = (track_array->begin->x[t] < track_array->end->x[t] ?
+                    track_array->end->x[t] : track_array->begin->x[t]) + delta;
+                listBB[m].ymin = (track_array->begin->y[t] < track_array->end->y[t] ?
+                    track_array->begin->y[t] : track_array->end->y[t]) - delta;
+                listBB[m].ymax = (track_array->begin->y[t] < track_array->end->y[t] ?
+                    track_array->end->y[t] : track_array->begin->y[t]) + delta;
 
-                if (track->obj_type != UNKNOWN)
-                    listBB[m].color = g_obj_to_color[track->obj_type];
+                if (track_array->obj_type[t] != UNKNOWN)
+                    listBB[m].color = g_obj_to_color[track_array->obj_type[t]];
                 else {
-                    fprintf(stderr, "(EE) This should never happen... ('t' = %d, 'track->obj_type' = %d)\n", t,
-                            track->obj_type);
+                    fprintf(stderr, "(EE) This should never happen... ('t' = %d, 'track_array->obj_type[t]' = %d)\n", t,
+                            track_array->obj_type[t]);
                     exit(-1);
                 }
 

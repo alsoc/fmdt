@@ -123,27 +123,22 @@ int validation_init(const char* val_objects_file) {
     return g_n_val_objects;
 }
 
-void validation_process(track_array_t* track_array) {
-    track_t* tracks = track_array->data;
-    size_t tracks_nb = track_array->size;
-
-    track_t* track;
-    for (int t = 0; t < tracks_nb; t++) {
-        track = &tracks[t];
+void validation_process(const track_t* track_array) {
+    for (int t = 0; t < track_array->_size; t++) {
         validation_obj_t* val_obj = NULL;
         for (int i = 0; i < g_n_val_objects; i++) {
-            if (g_val_objects[i].t0_min <= track->begin.frame &&
-                track->begin.frame + tracking_get_track_time(track) <= g_val_objects[i].t1_max &&
-                g_val_objects[i].bb_x0 <= track->begin.x && track->end.x <= g_val_objects[i].bb_x1 &&
-                g_val_objects[i].bb_y0 <= track->begin.y && track->end.y <= g_val_objects[i].bb_y1 &&
-                track->obj_type == g_val_objects[i].obj_type) {
+            if (g_val_objects[i].t0_min <= track_array->begin->frame[t] &&
+                track_array->begin->frame[t] + tracking_get_track_time(track_array, t) <= g_val_objects[i].t1_max &&
+                g_val_objects[i].bb_x0 <= track_array->begin->x[t] && track_array->end->x[t] <= g_val_objects[i].bb_x1 &&
+                g_val_objects[i].bb_y0 <= track_array->begin->y[t] && track_array->end->y[t] <= g_val_objects[i].bb_y1 &&
+                track_array->obj_type[t] == g_val_objects[i].obj_type) {
 #ifdef ENABLE_DEBUG
-                g_val_objects[i].track_t0 = track->begin.frame;
-                g_val_objects[i].track_t1 = track->end.frame;
-                g_val_objects[i].track_x0 = track->begin.x;
-                g_val_objects[i].track_y0 = track->begin.y;
-                g_val_objects[i].track_x1 = track->end.x;
-                g_val_objects[i].track_y1 = track->end.y;
+                g_val_objects[i].track_array_t0 = track_array->begin->frame[t];
+                g_val_objects[i].track_array_t1 = track_array->end->frame[t];
+                g_val_objects[i].track_array_x0 = track_array->begin->x[t];
+                g_val_objects[i].track_array_y0 = track_array->begin->y[t];
+                g_val_objects[i].track_array_x1 = track_array->end->x[t];
+                g_val_objects[i].track_array_y1 = track_array->end->y[t];
 #endif
                 val_obj = &g_val_objects[i];
                 if (g_val_objects[i].nb_tracks == 0)
@@ -154,13 +149,13 @@ void validation_process(track_array_t* track_array) {
         // Piste matche avec un input
         if (val_obj) {
             val_obj->nb_tracks++;
-            val_obj->hits = tracking_get_track_time(track) + val_obj->hits + 1;
-            g_true_positive[track->obj_type]++;
-            if (track->obj_type == METEOR)
+            val_obj->hits = tracking_get_track_time(track_array, t) + val_obj->hits + 1;
+            g_true_positive[track_array->obj_type[t]]++;
+            if (track_array->obj_type[t] == METEOR)
                 g_is_valid_track[t] = 1;
         } else { // Piste ne matche pas avec input
-            g_false_positive[track->obj_type]++;
-            if (track->obj_type == METEOR)
+            g_false_positive[track_array->obj_type[t]]++;
+            if (track_array->obj_type[t] == METEOR)
                 g_is_valid_track[t] = 2;
         }
     }
@@ -169,15 +164,15 @@ void validation_process(track_array_t* track_array) {
         if (!g_val_objects[i].nb_tracks)
             g_false_negative[g_val_objects[i].obj_type]++;
 
-    for (int t = 0; t < tracks_nb; t++)
+    for (int t = 0; t < track_array->_size; t++)
         for (int ot = 1; ot < N_OBJECTS; ot++)
-            if (ot != tracks[t].obj_type)
+            if (ot != track_array->obj_type[t])
                 g_true_negative[ot]++;
 }
 
-void validation_print(const track_array_t* track_array) {
-    const int n_tracks = track_array->size;
+void validation_print(const track_t* track_array) {
     float tracking_rate[N_OBJECTS + 1];
+
     unsigned total_tracked_frames[N_OBJECTS + 1] = {0};
     unsigned total_gt_frames[N_OBJECTS + 1] = {0};
     if (g_val_objects) {
@@ -236,8 +231,8 @@ void validation_print(const track_array_t* track_array) {
     printf("Statistics: \n");
     printf("  - Number of GT objs = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", n_val_meteors,
            n_val_stars, n_gt_noise, n_val_objects);
-    printf("  - Number of tracks  = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", n_track_meteors,
-           n_track_stars, n_track_noise, n_tracks);
+    printf("  - Number of tracks  = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4lu]\n", n_track_meteors,
+           n_track_stars, n_track_noise, track_array->_size);
     printf("  - True positives    = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", g_true_positive[METEOR],
            g_true_positive[STAR], g_true_positive[NOISE], allPositiveTrue);
     printf("  - False positives   = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", g_false_positive[METEOR],

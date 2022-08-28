@@ -31,22 +31,19 @@ enum change_state_reason_e { REASON_TOO_BIG_ANGLE = 1, REASON_WRONG_DIRECTION, R
 #define UNKNOWN_STR "unknown"
 
 typedef struct track {
-    uint16_t id;
-    ROI_t begin;
-    ROI_t end;
-    float extrapol_x;
-    float extrapol_y;
-    enum state_e state;
-    enum obj_e obj_type;
-    enum change_state_reason_e change_state_reason;
-} track_t;
+    uint16_t* id;
+    ROI_t* begin;
+    ROI_t* end;
+    float* extrapol_x;
+    float* extrapol_y;
+    enum state_e* state;
+    enum obj_e* obj_type;
+    enum change_state_reason_e* change_state_reason;
 
-typedef struct track_array {
-    track_t* data;
-    size_t size; // current size/utilization of the 'track_array_t.data' field
-    size_t max_size; // maximum amount of data that can be contained in the 'track_array_t.data' field
-    size_t offset;
-} track_array_t;
+    size_t _size; // current size/utilization of the fields
+    size_t _max_size; // maximum amount of data that can be contained in the fields
+    size_t _offset;
+} track_t;
 
 typedef struct BB_t {
     uint16_t bb_x;
@@ -63,23 +60,22 @@ extern char g_obj_to_string_with_spaces[N_OBJECTS][64];
 
 void tracking_init_global_data();
 enum obj_e tracking_string_to_obj_type(const char* string);
-track_array_t* tracking_alloc_track_array(const size_t max_size);
-void tracking_init_track_array(track_array_t* track_array);
-void tracking_free_track_array(track_array_t* track_array);
-void tracking_init_tracks(track_t* tracks, int n);
+track_t* tracking_alloc_track_array(const size_t max_size);
+void tracking_init_track_array(track_t* track_array);
+void tracking_free_track_array(track_t* track_array);
+void tracking_clear_index_track_array(track_t* track_array, const size_t t);
+// void tracking_init_tracks(track_t* tracks, int n);
 void tracking_init_BB_array(BB_t** BB_array);
 void tracking_free_BB_array(BB_t** BB_array);
-void tracking_perform(const ROI_array_t* ROI_array0, ROI_array_t* ROI_array1, const ROI_array_t** ROI_hist,
-                      track_array_t* track_array, BB_t** BB_array, int frame, int theta, int tx, int ty, int r_extrapol,
-                      float angle_max, float diff_dev, int track_all, int fra_star_min, int fra_meteor_min,
-                      int fra_meteor_max);
+void tracking_perform(const ROI_t* ROI_array0, ROI_t* ROI_array1, const ROI_t** ROI_hist, track_t* track_array,
+                      BB_t** BB_array, int frame, int theta, int tx, int ty, int r_extrapol, float angle_max,
+                      float diff_dev, int track_all, int fra_star_min, int fra_meteor_min, int fra_meteor_max);
 // return the real number of tracks
-size_t tracking_count_objects(const track_array_t* track_array, unsigned* n_stars, unsigned* n_meteors,
-                              unsigned* n_noise);
+size_t tracking_count_objects(const track_t* track_array, unsigned* n_stars, unsigned* n_meteors, unsigned* n_noise);
 // void tracking_print_array_BB(BB_t** tabBB, int n);
-void tracking_print_tracks(FILE* f, const track_t* tracks, const int n);
+void tracking_print_track_array(FILE* f, const track_t* track_array);
 // void tracking_print_buffer(ROIx2_t* buffer, int n);
-void tracking_parse_tracks(const char* filename, track_t* tracks, size_t* n);
+void tracking_parse_tracks(const char* filename, track_t* track_array);
 // void tracking_save_tracks(const char* filename, track_t* tracks, int n);
-void tracking_save_array_BB(const char* filename, BB_t** BB_array, track_t* tracks, int n, int track_all);
-size_t tracking_get_track_time(track_t* track);
+void tracking_save_array_BB(const char* filename, BB_t** BB_array, track_t* track_array, int N, int track_all);
+size_t tracking_get_track_time(const track_t* track_array, const size_t t);

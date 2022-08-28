@@ -60,8 +60,8 @@ typedef struct validation_obj {
 extern uint8_t g_is_valid_track[MAX_TRACKS_SIZE];
 
 int validation_init(const char* val_objects_file);
-void validation_print(const track_array_t* track_array);
-void validation_process(track_array_t* track_array);
+void validation_print(const track_t* track_array);
+void validation_process(const track_t* track_array);
 void validation_free(void);
 unsigned validation_count_objects(const validation_obj_t* val_objects, const unsigned n_val_objects, unsigned* n_stars,
                                   unsigned* n_meteors, unsigned* n_noise);

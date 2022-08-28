@@ -193,8 +193,8 @@ int main(int argc, char** argv) {
     // -- ALLOCATION -- //
     // ---------------- //
 
-    ROI_array_t* ROI_array_tmp = features_alloc_ROI_array(MAX_ROI_SIZE);
-    track_array_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
+    ROI_t* ROI_array_tmp = features_alloc_ROI_array(MAX_ROI_SIZE);
+    track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
     BB_t** BB_array = (BB_t**)malloc(MAX_N_FRAMES * sizeof(BB_t*));
     ROI_history_t* ROI_hist = features_alloc_ROI_history(MAX(p_fra_star_min, p_fra_meteor_min), MAX_ROI_SIZE);
     int b = 1; // image border
@@ -214,12 +214,12 @@ int main(int argc, char** argv) {
 
     tracking_init_global_data();
     KKPV_data_t* kppv_data = KPPV_alloc_and_init_data(0, MAX_KPPV_SIZE, 0, MAX_KPPV_SIZE);
-    features_init_ROI(ROI_array_tmp->data, ROI_array_tmp->max_size);
+    features_init_ROI_array(ROI_array_tmp);
     tracking_init_track_array(track_array);
     tracking_init_BB_array(BB_array);
     CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
-    for (int i = 0; i < ROI_hist->max_size; i++)
-        features_init_ROI(ROI_hist->array[i]->data, ROI_hist->array[i]->max_size);
+    for (int i = 0; i < ROI_hist->_max_size; i++)
+        features_init_ROI_array(ROI_hist->array[i]);
     zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(SM_0, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(SM_1, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -253,26 +253,25 @@ int main(int argc, char** argv) {
         // Step 2 : ECC/ACC
         const int n_ROI = CCL_LSL_apply(ccl_data, (const uint32_t**)SM32_0, SM32_1, i0, i1, j0, j1);
         features_extract((const uint32_t**)SM32_1, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
-        for (size_t r = 0; r < ROI_array_tmp->size; r++)
-            ROI_array_tmp->data[r].frame = frame;
+        for (size_t r = 0; r < ROI_array_tmp->_size; r++)
+            ROI_array_tmp->frame[r] = frame;
 
         // Step 3 : seuillage hysteresis && filter surface
         features_merge_HI_CCL_v2((const uint32_t**)SM32_1, (const uint32_t**)SH32_0, SH32_1, i0, i1, j0, j1,
                                  ROI_array_tmp, p_surface_min, p_surface_max);
-        features_shrink_stats((const ROI_array_t*)ROI_array_tmp, ROI_hist->array[0]);
+        features_shrink_stats((const ROI_t*)ROI_array_tmp, ROI_hist->array[0]);
 
         // Step 4 : mise en correspondance
         KPPV_match(kppv_data, ROI_hist->array[1], ROI_hist->array[0], p_k);
 
         // Step 5 : recalage
         double theta, tx, ty;
-        features_compute_motion((const ROI_array_t*)ROI_hist->array[0], ROI_hist->array[1], &theta, &tx, &ty);
+        features_compute_motion((const ROI_t*)ROI_hist->array[0], ROI_hist->array[1], &theta, &tx, &ty);
 
         // Step 6: tracking
-        tracking_perform((const ROI_array_t*)ROI_hist->array[1], ROI_hist->array[0],
-                         (const ROI_array_t**)&ROI_hist->array[2], track_array, BB_array, frame, theta, tx, ty,
-                         p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
-                         p_fra_meteor_max);
+        tracking_perform((const ROI_t*)ROI_hist->array[1], ROI_hist->array[0], (const ROI_t**)&ROI_hist->array[2],
+                         track_array, BB_array, frame, theta, tx, ty, p_r_extrapol, p_angle_max, p_diff_dev,
+                         p_track_all, p_fra_star_min, p_fra_meteor_min, p_fra_meteor_max);
 
         // Saving frames
         if (p_out_frames) {
@@ -305,8 +304,8 @@ int main(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (p_out_bb)
-        tracking_save_array_BB(p_out_bb, BB_array, track_array->data, MAX_N_FRAMES, p_track_all);
-    tracking_print_tracks(stdout, track_array->data, track_array->size);
+        tracking_save_array_BB(p_out_bb, BB_array, track_array, MAX_N_FRAMES, p_track_all);
+    tracking_print_track_array(stdout, track_array);
 
     printf("# Statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
