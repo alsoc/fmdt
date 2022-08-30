@@ -35,35 +35,26 @@ typedef struct {
     size_t _max_size; // maximum amount of data that can be contained in the fields
 } ROI_t;
 
-typedef struct {
-    ROI_t** array;
-    size_t _size; // current size/utilization of the 'ROI_history_t.array' field
-    size_t _max_size; // maximum amount of data that can be contained in the 'ROI_history_t.array' field
-} ROI_history_t;
-
 // defined in "tracking.h"
 typedef struct track track_t;
-// typedef struct track_array track_array_t;
 
 ROI_t* features_alloc_ROI_array(const size_t max_size);
 void features_init_ROI_array(ROI_t* ROI_array);
 void features_free_ROI_array(ROI_t* ROI_array);
 void features_clear_index_ROI_array(ROI_t* ROI_array, const size_t r);
-void features_copy_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest, const int i_src, const int i_dest);
-ROI_history_t* features_alloc_ROI_history(const size_t max_history_size, const size_t max_ROI_size);
-void features_free_ROI_history(ROI_history_t* ROI_hist);
-void features_rotate_ROI_history(ROI_history_t* ROI_hist);
+void features_copy_elmt_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest, const int i_src, const int i_dest);
+void features_copy_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest);
 void features_init_ROI(ROI_t* stats, int n);
 void features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1,
                       const int n_ROI, ROI_t* ROI_array);
 // void features_filter_surface(ROI_t* ROI_array, uint32_t** img, uint32_t threshold_min, uint32_t threshold_max);
 void features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint32_t** HI_out, const int i0, const int i1,
                               const int j0, const int j1, ROI_t* ROI_array, const int S_min, const int S_max);
-void features_shrink_stats(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest);
+void features_shrink_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest);
 double features_compute_mean_error(const ROI_t* stats);
 double features_compute_std_deviation(const ROI_t* stats, const double mean_error);
 void features_compute_motion(const ROI_t* ROI_array1, ROI_t* ROI_array0, double* theta, double* tx,
-                             double* ty);
+                             double* ty, double* mean_error, double* std_deviation);
 // void features_motion_extraction(ROI_t* stats0, ROI_t* stats1, int nc0, double theta, double tx, double ty);
 // void features_print_stats(ROI_t* stats, int n);
 // void features_parse_stats(const char* filename, ROI_t* stats, int* n);

@@ -194,9 +194,11 @@ int main(int argc, char** argv) {
     // ---------------- //
 
     ROI_t* ROI_array_tmp = features_alloc_ROI_array(MAX_ROI_SIZE);
+    ROI_t* ROI_array0 = features_alloc_ROI_array(MAX_ROI_SIZE);
+    ROI_t* ROI_array1 = features_alloc_ROI_array(MAX_ROI_SIZE);
     track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
     BB_t** BB_array = (BB_t**)malloc(MAX_N_FRAMES * sizeof(BB_t*));
-    ROI_history_t* ROI_hist = features_alloc_ROI_history(MAX(p_fra_star_min, p_fra_meteor_min), MAX_ROI_SIZE);
+    tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_fra_star_min, p_fra_meteor_min), MAX_ROI_SIZE);
     int b = 1; // image border
     uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // frame
     uint8_t **SM_0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
@@ -215,11 +217,12 @@ int main(int argc, char** argv) {
     tracking_init_global_data();
     KKPV_data_t* kppv_data = KPPV_alloc_and_init_data(0, MAX_KPPV_SIZE, 0, MAX_KPPV_SIZE);
     features_init_ROI_array(ROI_array_tmp);
+    features_init_ROI_array(ROI_array0);
+    features_init_ROI_array(ROI_array1);
     tracking_init_track_array(track_array);
     tracking_init_BB_array(BB_array);
+    tracking_init_data(tracking_data);
     CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
-    for (int i = 0; i < ROI_hist->_max_size; i++)
-        features_init_ROI_array(ROI_hist->array[i]);
     zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(SM_0, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(SM_1, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -259,19 +262,20 @@ int main(int argc, char** argv) {
         // Step 3 : seuillage hysteresis && filter surface
         features_merge_HI_CCL_v2((const uint32_t**)SM32_1, (const uint32_t**)SH32_0, SH32_1, i0, i1, j0, j1,
                                  ROI_array_tmp, p_surface_min, p_surface_max);
-        features_shrink_stats((const ROI_t*)ROI_array_tmp, ROI_hist->array[0]);
+        features_init_ROI_array(ROI_array1); // TODO: this is overkill, need to understand why we need to do that
+        features_shrink_ROI_array((const ROI_t*)ROI_array_tmp, ROI_array1);
 
         // Step 4 : mise en correspondance
-        KPPV_match(kppv_data, ROI_hist->array[1], ROI_hist->array[0], p_k);
+        KPPV_match(kppv_data, ROI_array0, ROI_array1, p_k);
 
         // Step 5 : recalage
-        double theta, tx, ty;
-        features_compute_motion((const ROI_t*)ROI_hist->array[0], ROI_hist->array[1], &theta, &tx, &ty);
+        double theta, tx, ty, mean_error, std_deviation;
+        features_compute_motion((const ROI_t*)ROI_array1, ROI_array0, &theta, &tx, &ty, &mean_error, &std_deviation);
 
         // Step 6: tracking
-        tracking_perform((const ROI_t*)ROI_hist->array[1], ROI_hist->array[0], (const ROI_t**)&ROI_hist->array[2],
-                         track_array, BB_array, frame, theta, tx, ty, p_r_extrapol, p_angle_max, p_diff_dev,
-                         p_track_all, p_fra_star_min, p_fra_meteor_min, p_fra_meteor_max);
+        tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, track_array, BB_array, frame, theta, tx,
+                         ty, mean_error, std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all,
+                         p_fra_star_min, p_fra_meteor_min, p_fra_meteor_max);
 
         // Saving frames
         if (p_out_frames) {
@@ -284,22 +288,22 @@ int main(int argc, char** argv) {
         // Saving stats
         if (p_out_stats && n_frames) {
             tools_create_folder(p_out_stats);
-            KPPV_save_asso_conflicts(p_out_stats, frame - 1, kppv_data, ROI_hist->array[1], ROI_hist->array[0],
-                                     track_array);
+            KPPV_save_asso_conflicts(p_out_stats, frame - 1, kppv_data, ROI_array0, ROI_array1, track_array);
             // tools_save_motion(path_motion, theta, tx, ty, frame-1);
-            // tools_save_motionExtraction(path_extraction, ROI_hist->array[1].data, ROI_hist->array[0].data,
-            //                             ROI_hist->array[1].size, theta, tx, ty, frame-1);
-            // tools_save_error(path_error, ROI_hist->array[1].data, ROI_hist->array[1].size);
+            // tools_save_motionExtraction(path_extraction, ROI_array0.data, ROI_array1.data, ROI_array0.size, theta,
+            //                             tx, ty, frame-1);
+            // tools_save_error(path_error, ROI_array0.data, ROI_array0.size);
         }
-
-        features_rotate_ROI_history(ROI_hist);
-        features_init_ROI_array(ROI_hist->array[0]);
 
         n_frames++;
         real_n_tracks = tracking_count_objects(track_array, &n_stars, &n_meteors, &n_noise);
         fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors, n_stars,
                 n_noise, real_n_tracks);
         fflush(stderr);
+
+        ROI_t* tmp = ROI_array0;
+        ROI_array0 = ROI_array1;
+        ROI_array1 = tmp;
     }
     fprintf(stderr, "\n");
 
@@ -326,12 +330,14 @@ int main(int argc, char** argv) {
     free_ui32matrix(SH32_0, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(SH32_1, i0 - b, i1 + b, j0 - b, j1 + b);
     features_free_ROI_array(ROI_array_tmp);
-    features_free_ROI_history(ROI_hist);
+    features_free_ROI_array(ROI_array0);
+    features_free_ROI_array(ROI_array1);
     video_free(video);
     CCL_LSL_free_data(ccl_data);
     KPPV_free_data(kppv_data);
     tracking_free_BB_array(BB_array);
     tracking_free_track_array(track_array);
+    tracking_free_data(tracking_data);
     free(BB_array);
 
     printf("# End of the program, exiting.\n");

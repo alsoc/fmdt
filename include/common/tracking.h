@@ -54,9 +54,24 @@ typedef struct BB_t {
     struct BB_t* next;
 } BB_t;
 
+typedef struct {
+    ROI_t** array;
+    size_t _size; // current size/utilization of the 'ROI_history_t.array' field
+    size_t _max_size; // maximum amount of data that can be contained in the 'ROI_history_t.array' field
+} ROI_history_t;
+
+typedef struct {
+    ROI_history_t* ROI_history;
+    ROI_t* ROI_list;
+} tracking_data_t;
+
 extern enum color_e g_obj_to_color[N_OBJECTS];
 extern char g_obj_to_string[N_OBJECTS][64];
 extern char g_obj_to_string_with_spaces[N_OBJECTS][64];
+
+tracking_data_t* tracking_alloc_data(const size_t max_history_size, const size_t max_ROI_size);
+void tracking_init_data(tracking_data_t* tracking_data);
+void tracking_free_data(tracking_data_t* tracking_data);
 
 void tracking_init_global_data();
 enum obj_e tracking_string_to_obj_type(const char* string);
@@ -67,9 +82,10 @@ void tracking_clear_index_track_array(track_t* track_array, const size_t t);
 // void tracking_init_tracks(track_t* tracks, int n);
 void tracking_init_BB_array(BB_t** BB_array);
 void tracking_free_BB_array(BB_t** BB_array);
-void tracking_perform(const ROI_t* ROI_array0, ROI_t* ROI_array1, const ROI_t** ROI_hist, track_t* track_array,
-                      BB_t** BB_array, int frame, int theta, int tx, int ty, int r_extrapol, float angle_max,
-                      float diff_dev, int track_all, int fra_star_min, int fra_meteor_min, int fra_meteor_max);
+void tracking_perform(tracking_data_t* tracking_data, const ROI_t* ROI_array0, ROI_t* ROI_array1, track_t* track_array,
+                      BB_t** BB_array, int frame, double theta, double tx, double ty, double mean_error,
+                      double std_deviation, int r_extrapol, float angle_max, float diff_dev, int track_all,
+                      int fra_star_min, int fra_meteor_min, int fra_meteor_max);
 // return the real number of tracks
 size_t tracking_count_objects(const track_t* track_array, unsigned* n_stars, unsigned* n_meteors, unsigned* n_noise);
 // void tracking_print_array_BB(BB_t** tabBB, int n);
