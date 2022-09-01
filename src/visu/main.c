@@ -283,6 +283,11 @@ int main(int argc, char** argv) {
     free(LUT_tracks_id);
     free(LUT_tracks_nat_num);
     free(BB_list);
+    if (p_in_gt)
+        validation_free();
+    video_free(video);
+    if (file_bb)
+        fclose(file_bb);
 
     printf("# The video has been written.\n");
     printf("# End of the program, exiting.\n");
