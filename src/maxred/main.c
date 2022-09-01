@@ -144,6 +144,7 @@ int main(int argc, char** argv) {
     PUTS("ALLOC");
     uint8_t** img = (uint8_t**)ui8matrix(i0, i1, j0, j1);
     uint8_t** Max = (uint8_t**)ui8matrix(i0, i1, j0, j1);
+    zero_ui8matrix(Max, i0, i1, j0, j1);
 
     // ----------------//
     // -- TRAITEMENT --//
@@ -167,6 +168,7 @@ int main(int argc, char** argv) {
         }
 
         BB_coord_t* listBB = (BB_coord_t*)malloc(sizeof(BB_coord_t) * track_array->_size);
+        rgb8_t** img_bb = (rgb8_t**)rgb8matrix(i0, i1, j0, j1);
         size_t m = 0;
         for (size_t t = 0; t < track_array->_size; t++) {
             if (!p_only_meteor || track_array->obj_type[t] == METEOR) {
@@ -201,7 +203,6 @@ int main(int argc, char** argv) {
             }
         }
 
-        rgb8_t** img_bb = (rgb8_t**)rgb8matrix(i0, i1, j0, j1);
         tools_convert_img_grayscale_to_rgb((const uint8_t**)Max, img_bb, i0, i1, j0, j1);
         int n_BB = m;
         tools_draw_BB(img_bb, listBB, n_BB, j1, i1);
@@ -209,10 +210,13 @@ int main(int argc, char** argv) {
         tools_draw_text(img_bb, j1, i1, listBB, n_BB, p_in_gt ? 1 : 0, p_show_id);
 #endif
         tools_save_frame(p_out_frame, (const rgb8_t**)img_bb, j1, i1);
-
-        free(listBB);
-        free(img_bb);
         tracking_free_track_array(track_array);
+
+        free_rgb8matrix((rgb8**)img_bb, i0, i1, j0, j1);
+        free(listBB);
+
+        if (p_in_gt)
+            validation_free();
     } else {
         SavePGM_ui8matrix(Max, i0, i1, j0, j1, (char*)p_out_frame);
     }
