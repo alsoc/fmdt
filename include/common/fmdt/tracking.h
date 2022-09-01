@@ -6,7 +6,7 @@
 
 #include <stdint.h>
 
-#include "features.h"
+#include "fmdt/features.h"
 
 /*
  * Maxime Millet
@@ -83,9 +83,9 @@ void tracking_clear_index_track_array(track_t* track_array, const size_t t);
 void tracking_init_BB_array(BB_t** BB_array);
 void tracking_free_BB_array(BB_t** BB_array);
 void tracking_perform(tracking_data_t* tracking_data, const ROI_t* ROI_array0, ROI_t* ROI_array1, track_t* track_array,
-                      BB_t** BB_array, int frame, double theta, double tx, double ty, double mean_error,
-                      double std_deviation, int r_extrapol, float angle_max, float diff_dev, int track_all,
-                      int fra_star_min, int fra_meteor_min, int fra_meteor_max);
+                      BB_t** BB_array, size_t frame, double theta, double tx, double ty, double mean_error,
+                      double std_deviation, size_t r_extrapol, float angle_max, float diff_dev, int track_all,
+                      size_t fra_star_min, size_t fra_meteor_min, size_t fra_meteor_max);
 // return the real number of tracks
 size_t tracking_count_objects(const track_t* track_array, unsigned* n_stars, unsigned* n_meteors, unsigned* n_noise);
 // void tracking_print_array_BB(BB_t** tabBB, int n);

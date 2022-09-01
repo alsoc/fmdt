@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-#include "features.h"
+#include "fmdt/features.h"
 
 typedef struct {
     int i0, i1, j0, j1;

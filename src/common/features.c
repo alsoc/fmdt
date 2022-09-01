@@ -164,7 +164,7 @@ void features_init_ROI(ROI_t* stats, int n) {
 void _features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1, uint16_t* ROI_xmin,
                        uint16_t* ROI_xmax, uint16_t* ROI_ymin, uint16_t* ROI_ymax, uint32_t* ROI_S, uint16_t* ROI_id,
                        uint32_t* ROI_Sx, uint32_t* ROI_Sy, float* ROI_x, float* ROI_y, const size_t n_ROI) {
-    for (int i = 0; i < n_ROI; i++) {
+    for (size_t i = 0; i < n_ROI; i++) {
         ROI_xmin[i] = j1;
         ROI_xmax[i] = j0;
         ROI_ymin[i] = i1;
@@ -192,13 +192,13 @@ void _features_extract(const uint32_t** img, const int i0, const int i1, const i
         }
     }
 
-    for (int i = 0; i < n_ROI; i++) {
+    for (size_t i = 0; i < n_ROI; i++) {
         ROI_x[i] = (double)ROI_Sx[i] / (double)ROI_S[i];
         ROI_y[i] = (double)ROI_Sy[i] / (double)ROI_S[i];
     }
 }
 
-void features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1, const int n_ROI,
+void features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1, const size_t n_ROI,
                       ROI_t* ROI_array) {
     features_init_ROI_array(ROI_array);
     ROI_array->_size = n_ROI;
@@ -210,13 +210,13 @@ void features_extract(const uint32_t** img, const int i0, const int i1, const in
 void _features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint32_t** HI_out, const int i0, const int i1,
                                const int j0, const int j1, const uint16_t* ROI_id, const uint16_t* ROI_ymin,
                                const uint16_t* ROI_ymax, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
-                               uint32_t* ROI_S, const size_t n_ROI, const int S_min, const int S_max) {
+                               uint32_t* ROI_S, const size_t n_ROI, const uint32_t S_min, const uint32_t S_max) {
     if ((void*)HI_in != (void*)HI_out)
         for (int i = i0; i <= i1; i++)
             memcpy(HI_out[i] + j0, HI_in[i] + j0, sizeof(uint32_t) * ((j1 - j0) + 1));
 
     int x0, x1, y0, y1, id;
-    for (int i = 0; i < n_ROI; i++) {
+    for (size_t i = 0; i < n_ROI; i++) {
         if (ROI_S[i]) {
             id = ROI_id[i];
             x0 = ROI_ymin[i];
@@ -228,7 +228,7 @@ void _features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint3
                 // JUSTE POUR DEBUG (Affichage frames)
                 for (int k = x0; k <= x1; k++) {
                     for (int l = y0; l <= y1; l++) {
-                        if (M[k][l] == id)
+                        if (M[k][l] == (uint32_t)id)
                             HI_out[k][l] = 0;
                     }
                 }
@@ -239,7 +239,7 @@ void _features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint3
                     if (HI_out[k][l]) {
                         for (k = x0; k <= x1; k++) {
                             for (l = y0; l <= y1; l++) {
-                                if (M[k][l] == id)
+                                if (M[k][l] == (uint32_t)id)
                                     HI_out[k][l] = i + 1;
                             }
                         }
@@ -254,7 +254,8 @@ void _features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint3
 }
 
 void features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint32_t** HI_out, const int i0, const int i1,
-                              const int j0, const int j1, ROI_t* ROI_array, const int S_min, const int S_max) {
+                              const int j0, const int j1, ROI_t* ROI_array, const uint32_t S_min, const uint32_t S_max)
+{
     _features_merge_HI_CCL_v2(M, HI_in, HI_out, i0,i1, j0, j1, ROI_array->id, ROI_array->ymin, ROI_array->ymax,
                               ROI_array->xmin, ROI_array->xmax, ROI_array->S,  ROI_array->_size, S_min, S_max);
 }
@@ -265,7 +266,7 @@ void features_filter_surface(ROI_t* ROI_array, uint32_t** img, uint32_t threshol
     int i0, i1, j0, j1;
     uint16_t id;
 
-    for (int i = 0; i < ROI_array->_size; i++) {
+    for (size_t i = 0; i < ROI_array->_size; i++) {
         S = ROI_array->S[i];
         id = ROI_array->id[i];
 
@@ -301,7 +302,7 @@ size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const size_t* ROI_
                                   uint32_t* ROI_dest_S, uint32_t* ROI_dest_Sx, uint32_t* ROI_dest_Sy, float* ROI_dest_x,
                                   float* ROI_dest_y, const size_t n_ROI_src) {
     size_t cpt = 0;
-    for (int i = 0; i < n_ROI_src; i++) {
+    for (size_t i = 0; i < n_ROI_src; i++) {
         if (ROI_src_S[i] > 0) {
             ROI_dest_id[cpt] = cpt + 1;
             ROI_dest_frame[cpt] = ROI_src_frame[i];
@@ -352,7 +353,7 @@ void _features_rigid_registration(const int32_t* ROI0_next_id, const uint32_t* R
     cpt = 0;
 
     // parcours tab assos
-    for (int i = 0; i < n_ROI0; i++) {
+    for (size_t i = 0; i < n_ROI0; i++) {
         asso = ROI0_next_id[i];
 
         if (ROI0_S[i] > 0 && asso) {
@@ -375,7 +376,7 @@ void _features_rigid_registration(const int32_t* ROI0_next_id, const uint32_t* R
     Syp = 0;
 
     // parcours tab assos
-    for (int i = 0; i < n_ROI0; i++) {
+    for (size_t i = 0; i < n_ROI0; i++) {
         asso = ROI0_next_id[i];
 
         if (ROI0_S[i] > 0 && asso) {
@@ -433,7 +434,7 @@ void _features_rigid_registration_corrected(const int32_t* ROI0_next_id, const u
 
     int cpt1 = 0;
     // parcours tab assos
-    for (int i = 0; i < n_ROI0; i++) {
+    for (size_t i = 0; i < n_ROI0; i++) {
         if (fabs(ROI0_error[i] - mean_error) > std_deviation) {
             ROI0_is_moving[i] = 1;
             cpt1++;
@@ -460,7 +461,7 @@ void _features_rigid_registration_corrected(const int32_t* ROI0_next_id, const u
     Syp = 0;
 
     // parcours tab assos
-    for (int i = 0; i < n_ROI0; i++) {
+    for (size_t i = 0; i < n_ROI0; i++) {
         if (fabs(ROI0_error[i] - mean_error) > std_deviation)
             continue;
         asso = ROI0_next_id[i];
@@ -502,7 +503,7 @@ double _features_compute_mean_error(const int32_t* ROI_next_id, const float* ROI
                                     const size_t n_ROI) {
     double S = 0.0;
     int cpt = 0;
-    for (int i = 0; i < n_ROI; i++) {
+    for (size_t i = 0; i < n_ROI; i++) {
         if (ROI_is_moving[i] || !ROI_next_id[i])
             continue;
         S += ROI_error[i];
@@ -520,7 +521,7 @@ double _features_compute_std_deviation(const int32_t* ROI_next_id, const float* 
                                        const size_t n_ROI, const double mean_error) {
     double S = 0.0;
     int cpt = 0;
-    for (int i = 0; i < n_ROI; i++) {
+    for (size_t i = 0; i < n_ROI; i++) {
         if (ROI_is_moving[i] || !ROI_next_id[i])
             continue;
         float e = ROI_error[i];
@@ -543,7 +544,7 @@ void _features_motion_extraction(const int32_t* ROI0_next_id, const float* ROI0_
     float dx, dy;
     float e;
 
-    for (int i = 0; i < n_ROI0; i++) {
+    for (size_t i = 0; i < n_ROI0; i++) {
         cc1 = ROI0_next_id[i];
         if (cc1) {
             // coordonees du point dans l'image I+1
@@ -626,11 +627,14 @@ void features_parse_stats(const char* filename, ROI_t* stats, int* n) {
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
         fprintf(stderr, "(EE) cannot open file '%s'\n", filename);
-        return;
+        exit(-1);
     }
 
     // pour l'instant, n représente l'id max des stas mais c'est à changer
-    fgets(lines, 100, file);
+    if (fgets(lines, 100, file) == NULL) {
+        fprintf(stderr, "(EE) something went wrong when reading '%s'\n", filename);
+        exit(-1);
+    }
     sscanf(lines, "%d", n);
 
     while (fgets(lines, 200, file)) {
@@ -670,7 +674,7 @@ int find_corresponding_track(const track_t* track_array, const ROI_t* ROI_array,
 
 void features_save_stats_file(FILE* f, const ROI_t* ROI_array, const track_t* track_array, const unsigned age) {
     int cpt = 0;
-    for (int i = 0; i < ROI_array->_size; i++)
+    for (size_t i = 0; i < ROI_array->_size; i++)
         if (ROI_array->S[i] != 0)
             cpt++;
 
@@ -684,10 +688,10 @@ void features_save_stats_file(FILE* f, const ROI_t* ROI_array, const track_t* tr
         fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||--------|--------\n");
     }
 
-    for (int i = 0; i < ROI_array->_size; i++) {
+    for (size_t i = 0; i < ROI_array->_size; i++) {
         if (ROI_array->S[i] != 0) {
             int t = find_corresponding_track(track_array, ROI_array, ROI_array->id[i], age);
-            char task_id_str[5];
+            char task_id_str[16];
             if (t == -1)
                 strcpy(task_id_str, "   -");
             else
@@ -737,7 +741,7 @@ void features_save_error(const char* filename, const ROI_t* ROI_array) {
         exit(1);
     }
 
-    for (int i = 0; i < ROI_array->_size; i++) {
+    for (size_t i = 0; i < ROI_array->_size; i++) {
         if (ROI_array->S[i] > 0) {
             S += ROI_array->error[i];
             cpt++;
@@ -771,7 +775,7 @@ void features_save_motion_extraction(const char* filename, const ROI_t* ROI_arra
     double mean_error = features_compute_mean_error(ROI_array);
     double std_deviation = features_compute_std_deviation(ROI_array, mean_error);
 
-    for (int i = 0; i < ROI_array->_size; i++) {
+    for (size_t i = 0; i < ROI_array->_size; i++) {
         float e = ROI_array->error[i];
         // si mouvement detecté
         if (fabs(e - mean_error) > 1.5 * std_deviation) {

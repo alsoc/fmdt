@@ -65,7 +65,7 @@ void LSL_segment_detection(uint32_t* line_er, uint32_t* line_rlc, uint32_t* line
 void LSL_equivalence_construction(CCL_data_t* data, const uint32_t* line_rlc, uint32_t* line_era,
                                   const uint32_t* prevline_er, const uint32_t* prevline_era, const int n, const int x0,
                                   const int x1, uint32_t* nea) {
-    int k, er, j0, j1, er0, er1, ea, a, erk, eak, ak;
+    int k, er, j0, j1, er0, er1, ea, erk, eak;
     for (k = 0; k < n; k += 2) {
         er = k + 1;
 
@@ -88,10 +88,10 @@ void LSL_equivalence_construction(CCL_data_t* data, const uint32_t* line_rlc, ui
 
         if (er1 >= er0) { // Adjacency -> connect components
             ea = prevline_era[er0];
-            a = data->eq[ea];
+            uint32_t a = data->eq[ea];
             for (erk = er0 + 2; erk <= er1; erk += 2) {
                 eak = prevline_era[erk];
-                ak = data->eq[eak];
+                uint32_t ak = data->eq[eak];
                 while (ak != data->eq[ak]) {
                     ak = data->eq[ak];
                 }
@@ -128,7 +128,7 @@ uint32_t CCL_LSL_apply(CCL_data_t* data, const uint32_t** img_in, uint32_t** img
     // Step #2 - Equivalence construction
     uint32_t nea = i0;
     uint32_t n = data->ner[i0];
-    for (int k = 0; k < n; k += 2) {
+    for (uint32_t k = 0; k < n; k += 2) {
         data->eq[nea] = nea;
         data->era[i0][k + 1] = nea++;
     }
@@ -141,7 +141,7 @@ uint32_t CCL_LSL_apply(CCL_data_t* data, const uint32_t** img_in, uint32_t** img
 
     // Step #4 - Resolution of equivalence classes
     uint32_t trueN = 0;
-    for (int i = 0; i < nea; i++) {
+    for (uint32_t i = 0; i < nea; i++) {
         if (i != data->eq[i]) {
             data->eq[i] = data->eq[data->eq[i]];
         } else {
@@ -152,7 +152,7 @@ uint32_t CCL_LSL_apply(CCL_data_t* data, const uint32_t** img_in, uint32_t** img
     // Step #5 - Final image labeling
     for (int i = i0; i <= i1; i++) {
         n = data->ner[i];
-        for (int k = 0; k < n; k += 2) {
+        for (uint32_t k = 0; k < n; k += 2) {
             int a = data->rlc[i][k];
             int b = data->rlc[i][k + 1];
 

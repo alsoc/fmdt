@@ -40,10 +40,14 @@ int main(int argc, char** argv) {
 
     // help
     if (args_find(argc, argv, "-h")) {
-        fprintf(stderr, "  --in-video       Video source                             [%s]\n", def_p_in_video);
-        fprintf(stderr, "  --in-tracks      Path to the tracks files                 [%s]\n", def_p_in_tracks);
-        fprintf(stderr, "  --in-gt          File containing the ground truth         [%s]\n", def_p_in_gt);
-        fprintf(stderr, "  --out-frame      Path to the frame output file            [%s]\n", def_p_out_frame);
+        fprintf(stderr, "  --in-video       Video source                             [%s]\n",
+                def_p_in_video ? def_p_in_video : "NULL");
+        fprintf(stderr, "  --in-tracks      Path to the tracks files                 [%s]\n",
+                def_p_in_tracks ? def_p_in_tracks : "NULL");
+        fprintf(stderr, "  --in-gt          File containing the ground truth         [%s]\n",
+                def_p_in_gt ? def_p_in_gt : "NULL");
+        fprintf(stderr, "  --out-frame      Path to the frame output file            [%s]\n",
+                def_p_out_frame ? def_p_out_frame : "NULL");
         fprintf(stderr, "  --fra-start      Starting frame in the video              [%d]\n", def_p_fra_start);
         fprintf(stderr, "  --fra-end        Ending frame in the video                [%d]\n", def_p_fra_end);
 #ifdef OPENCV_LINK
@@ -163,8 +167,8 @@ int main(int argc, char** argv) {
         }
 
         BB_coord_t* listBB = (BB_coord_t*)malloc(sizeof(BB_coord_t) * track_array->_size);
-        int m = 0;
-        for (int t = 0; t < track_array->_size; t++) {
+        size_t m = 0;
+        for (size_t t = 0; t < track_array->_size; t++) {
             if (!p_only_meteor || track_array->obj_type[t] == METEOR) {
 #ifdef OPENCV_LINK
                 listBB[m].track_id = p_nat_num ? (m + 1) : track_array->id[t];
@@ -184,8 +188,8 @@ int main(int argc, char** argv) {
                 if (track_array->obj_type[t] != UNKNOWN)
                     listBB[m].color = g_obj_to_color[track_array->obj_type[t]];
                 else {
-                    fprintf(stderr, "(EE) This should never happen... ('t' = %d, 'track_array->obj_type[t]' = %d)\n", t,
-                            track_array->obj_type[t]);
+                    fprintf(stderr, "(EE) This should never happen... ('t' = %lu, 'track_array->obj_type[t]' = %d)\n",
+                            t, track_array->obj_type[t]);
                     exit(-1);
                 }
 

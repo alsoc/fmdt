@@ -40,16 +40,16 @@ int main(int argc, char** argv) {
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr,
                 "  --in-video          Path to video file                                                     [%s]\n",
-                def_p_in_video);
+                def_p_in_video ? def_p_in_video : "NULL");
         fprintf(stderr,
                 "  --out-frames        Path to frames output folder                                           [%s]\n",
-                def_p_out_frames);
+                def_p_out_frames ? def_p_out_frames : "NULL");
         fprintf(stderr,
                 "  --out-bb            Path to the file containing the bounding boxes (frame by frame)        [%s]\n",
-                def_p_out_bb);
+                def_p_out_bb ? def_p_out_bb : "NULL");
         fprintf(stderr,
                 "  --out-stats         TODO! Path to folder                                                   [%s]\n",
-                def_p_out_stats);
+                def_p_out_stats ? def_p_out_stats : "NULL");
         fprintf(stderr,
                 "  --fra-start         Starting point of the video                                            [%d]\n",
                 def_p_fra_start);

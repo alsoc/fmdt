@@ -10,7 +10,7 @@
 
 #include <stdint.h>
 
-#include "tracking.h"
+#include "fmdt/tracking.h"
 
 // rgb8 is defined in NRC2 (nrtype.h), but adding "#include <nrtype.h>" here is overkill
 typedef struct { uint8_t r; uint8_t g; uint8_t b; } rgb8_t;

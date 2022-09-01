@@ -50,7 +50,7 @@ int validation_init(const char* val_objects_file) {
 
     g_val_objects = (validation_obj_t*)malloc(g_n_val_objects * sizeof(validation_obj_t));
 
-    int i = 0;
+    unsigned i = 0;
     while (i < g_n_val_objects && !feof(file)) {
         if (fscanf(file, "%s %hu \t %f \t %f \t %hu \t %f \t %f \n", tmp_obj_type, &g_val_objects[i].t0,
                    &g_val_objects[i].x0, &g_val_objects[i].y0, &g_val_objects[i].t1, &g_val_objects[i].x1,
@@ -124,13 +124,16 @@ int validation_init(const char* val_objects_file) {
 }
 
 void validation_process(const track_t* track_array) {
-    for (int t = 0; t < track_array->_size; t++) {
+    for (size_t t = 0; t < track_array->_size; t++) {
         validation_obj_t* val_obj = NULL;
-        for (int i = 0; i < g_n_val_objects; i++) {
-            if (g_val_objects[i].t0_min <= track_array->begin->frame[t] &&
-                track_array->begin->frame[t] + tracking_get_track_time(track_array, t) <= g_val_objects[i].t1_max &&
-                g_val_objects[i].bb_x0 <= track_array->begin->x[t] && track_array->end->x[t] <= g_val_objects[i].bb_x1 &&
-                g_val_objects[i].bb_y0 <= track_array->begin->y[t] && track_array->end->y[t] <= g_val_objects[i].bb_y1 &&
+        for (unsigned i = 0; i < g_n_val_objects; i++) {
+            if ((size_t)g_val_objects[i].t0_min <= track_array->begin->frame[t] &&
+                track_array->begin->frame[t] + tracking_get_track_time(track_array, t) <=
+                (size_t)g_val_objects[i].t1_max &&
+                g_val_objects[i].bb_x0 <= track_array->begin->x[t] &&
+                track_array->end->x[t] <= g_val_objects[i].bb_x1 &&
+                g_val_objects[i].bb_y0 <= track_array->begin->y[t] &&
+                track_array->end->y[t] <= g_val_objects[i].bb_y1 &&
                 track_array->obj_type[t] == g_val_objects[i].obj_type) {
 #ifdef ENABLE_DEBUG
                 g_val_objects[i].track_array_t0 = track_array->begin->frame[t];
@@ -160,11 +163,11 @@ void validation_process(const track_t* track_array) {
         }
     }
 
-    for (int i = 0; i < g_n_val_objects; i++)
+    for (unsigned i = 0; i < g_n_val_objects; i++)
         if (!g_val_objects[i].nb_tracks)
             g_false_negative[g_val_objects[i].obj_type]++;
 
-    for (int t = 0; t < track_array->_size; t++)
+    for (size_t t = 0; t < track_array->_size; t++)
         for (int ot = 1; ot < N_OBJECTS; ot++)
             if (ot != track_array->obj_type[t])
                 g_true_negative[ot]++;
@@ -182,7 +185,7 @@ void validation_print(const track_t* track_array) {
         printf("# -----|---------||--------|-----||-------|-------||--------\n");
         printf("#   Id |    Type || Detect |  GT || Start |  Stop ||      # \n");
         printf("# -----|---------||--------|-----||-------|-------||--------\n");
-        for (int i = 0; i < g_n_val_objects; i++) {
+        for (unsigned i = 0; i < g_n_val_objects; i++) {
             int expected_hits = g_val_objects[i].t1 - g_val_objects[i].t0 + 1;
 
             // tmp
@@ -250,7 +253,7 @@ void validation_free(void) {}
 unsigned validation_count_objects(const validation_obj_t* val_objects, const unsigned n_val_objects, unsigned* n_stars,
                                   unsigned* n_meteors, unsigned* n_noise) {
     (*n_stars) = (*n_meteors) = (*n_noise) = 0;
-    for (int i = 0; i < n_val_objects; i++)
+    for (unsigned i = 0; i < n_val_objects; i++)
         switch (val_objects[i].obj_type) {
         case STAR:
             (*n_stars)++;

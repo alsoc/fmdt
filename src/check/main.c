@@ -19,8 +19,10 @@ int main(int argc, char** argv) {
 
     // help
     if (args_find(argc, argv, "-h")) {
-        fprintf(stderr, "  --in-tracks    Path to tracks file        [%s]\n", def_p_in_tracks);
-        fprintf(stderr, "  --in-gt        Path to ground truth file  [%s]\n", def_p_in_gt);
+        fprintf(stderr, "  --in-tracks    Path to tracks file        [%s]\n",
+                def_p_in_tracks ? def_p_in_tracks : "NULL");
+        fprintf(stderr, "  --in-gt        Path to ground truth file  [%s]\n",
+                def_p_in_gt ? def_p_in_gt : "NULL");
         fprintf(stderr, "  -h             This help                      \n");
         exit(1);
     }

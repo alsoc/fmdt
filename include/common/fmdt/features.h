@@ -7,7 +7,7 @@
 
 #include <stdint.h>
 
-#include "tracking.h"
+#include "fmdt/tracking.h"
 
 typedef struct {
     uint16_t* id;
@@ -46,10 +46,10 @@ void features_copy_elmt_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_d
 void features_copy_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest);
 void features_init_ROI(ROI_t* stats, int n);
 void features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1,
-                      const int n_ROI, ROI_t* ROI_array);
+                      const size_t n_ROI, ROI_t* ROI_array);
 // void features_filter_surface(ROI_t* ROI_array, uint32_t** img, uint32_t threshold_min, uint32_t threshold_max);
 void features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint32_t** HI_out, const int i0, const int i1,
-                              const int j0, const int j1, ROI_t* ROI_array, const int S_min, const int S_max);
+                              const int j0, const int j1, ROI_t* ROI_array, const uint32_t S_min, const uint32_t S_max);
 void features_shrink_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest);
 double features_compute_mean_error(const ROI_t* stats);
 double features_compute_std_deviation(const ROI_t* stats, const double mean_error);

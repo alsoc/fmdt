@@ -41,15 +41,17 @@ int main(int argc, char** argv) {
     // help
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr, "  --in-tracks      Path to the tracks file                             [%s]\n",
-                def_p_in_tracks);
-        fprintf(stderr, "  --in-bb          Path the bounding boxes file                        [%s]\n", def_p_in_bb);
+                def_p_in_tracks ? def_p_in_tracks : "NULL");
+        fprintf(stderr, "  --in-bb          Path the bounding boxes file                        [%s]\n",
+                def_p_in_bb ? def_p_in_bb : "NULL");
         fprintf(stderr, "  --in-video       Path to the inpute video file                       [%s]\n",
-                def_p_in_video);
-        fprintf(stderr, "  --in-gt          Path to ground truth file                           [%s]\n", def_p_in_gt);
+                def_p_in_video ? def_p_in_video : "NULL");
+        fprintf(stderr, "  --in-gt          Path to ground truth file                           [%s]\n",
+                def_p_in_gt ? def_p_in_gt : "NULL");
         fprintf(stderr, "  --out-video      Path to the output video file (MPEG-4 format)       [%s]\n",
-                def_p_out_video);
+                def_p_out_video ? def_p_out_video : "NULL");
         fprintf(stderr, "  --out-frames     Path to the frames output folder                    [%s]\n",
-                def_p_out_frames);
+                def_p_out_frames ? def_p_out_frames : "NULL");
 #ifdef OPENCV_LINK
         fprintf(stderr, "  --show-id        Show the object ids on the output video and frames      \n");
         fprintf(stderr, "  --nat-num        Natural numbering of the object ids                     \n");
@@ -157,16 +159,16 @@ int main(int argc, char** argv) {
     tracking_init_track_array(track_array);
     tracking_parse_tracks(p_in_tracks, track_array);
 
-    int max_LUT = 0;
-    for (int i = 0; i < track_array->_size; i++)
+    size_t max_LUT = 0;
+    for (size_t i = 0; i < track_array->_size; i++)
         if (track_array->id[i] > max_LUT)
-            max_LUT = track_array->id[i];
+            max_LUT = (size_t)track_array->id[i];
     int* LUT_tracks_id = (int*)malloc(sizeof(int) * (max_LUT + 1));
     int* LUT_tracks_nat_num = (int*)malloc(sizeof(int) * (max_LUT + 1));
     memset(LUT_tracks_id, -1, max_LUT + 1);
     memset(LUT_tracks_nat_num, -1, max_LUT + 1);
     int j = 1;
-    for (int i = 0; i < track_array->_size; i++) {
+    for (size_t i = 0; i < track_array->_size; i++) {
         LUT_tracks_id[track_array->id[i]] = i;
         if (!p_only_meteor || track_array->obj_type[i] == METEOR)
             LUT_tracks_nat_num[track_array->id[i]] = j++;
@@ -199,7 +201,9 @@ int main(int argc, char** argv) {
 
     // parcours des BB à afficher
     char lines[1000];
-    fgets(lines, 100, file_bb);
+    if (fgets(lines, 100, file_bb) == NULL) {
+        fprintf(stderr, "(EE) something went wrong when reading '%s'\n", p_in_bb);
+    }
     sscanf(lines, "%d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id);
     printf("# The program is running...\n");
 
