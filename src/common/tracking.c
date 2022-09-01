@@ -205,6 +205,7 @@ void tracking_init_data(tracking_data_t* tracking_data) {
     features_init_ROI_array(tracking_data->ROI_list);
     for (size_t i = 0; i < tracking_data->ROI_history->_max_size; i++)
         features_init_ROI_array(tracking_data->ROI_history->array[i]);
+    tracking_data->ROI_history->_size = 0;
 }
 
 void tracking_free_data(tracking_data_t* tracking_data) {
