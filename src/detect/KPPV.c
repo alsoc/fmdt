@@ -48,7 +48,7 @@ void _compute_distance(const float* ROI0_x, const float* ROI0_y, const uint32_t*
 
             // parcours des stats 1
             for (size_t j = 0; j < n_ROI1; j++) {
-                if (ROI1_S[j] > 0) {
+                if (ROI1_S[j] > 0) { // TODO: S guard seems to be useless here after the shrink...
                     float x1 = ROI1_x[j];
                     float y1 = ROI1_y[j];
 
