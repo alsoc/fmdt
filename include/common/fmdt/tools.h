@@ -42,7 +42,7 @@ void tools_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xma
 // void tools_save_frame_quad(const char* filename, uint8_t** I0, uint8_t** I1, uint32_t** I2, uint32_t** I3,
 //                            int nbLabel, ROI_t* stats, int i0, int i1, int j0, int j1);
 void tools_save_frame_ui32matrix(const char* filename, uint32_t** I, int i0, int i1, int j0, int j1);
-// void tools_save_frame_ui8matrix(const char* filename, uint8_t** I, int i0, int i1, int j0, int j1);
+void tools_save_frame_ui8matrix(const char* filename, uint8_t** I, int i0, int i1, int j0, int j1);
 // void tools_save_max(const char* filename, uint8_t** I, int i0, int i1, int j0, int j1);
 // void tools_save_frame_quad_hysteresis(const char* filename, uint8_t** I0, uint32_t** SH, uint32_t** SB, uint32_t** Y,
 //                                       int i0, int i1, int j0, int j1);

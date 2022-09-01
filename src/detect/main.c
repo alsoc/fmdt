@@ -203,12 +203,10 @@ int main(int argc, char** argv) {
     uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // frame
     uint8_t **SM_0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
     uint8_t **SM_1 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
+    uint32_t **SM_2 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
     uint8_t **SH_0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
     uint8_t **SH_1 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
-    uint32_t **SM32_0 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
-    uint32_t **SM32_1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
-    uint32_t **SH32_0 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
-    uint32_t **SH32_1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
+    uint8_t **SH_2 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
 
     // -------------------------- //
     // -- INITIALISATION MATRIX-- //
@@ -226,12 +224,10 @@ int main(int argc, char** argv) {
     zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(SM_0, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(SM_1, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui32matrix(SM_2, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(SH_0, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(SH_1, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui32matrix(SM32_0, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui32matrix(SM32_1, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui32matrix(SH32_0, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui32matrix(SH32_1, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(SH_2, i0 - b, i1 + b, j0 - b, j1 + b);
 
     // ----------------//
     // -- TRAITEMENT --//
@@ -250,18 +246,16 @@ int main(int argc, char** argv) {
         tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0, i1, j0, j1, SM_0);
         threshold_high((const uint8_t**)SM_0, SM_1, i0, i1, j0, j1, p_light_min);
         threshold_high((const uint8_t**)SH_0, SH_1, i0, i1, j0, j1, p_light_max);
-        tools_convert_ui8matrix_ui32matrix((const uint8_t**)SM_1, i0, i1, j0, j1, SM32_0);
-        tools_convert_ui8matrix_ui32matrix((const uint8_t**)SH_1, i0, i1, j0, j1, SH32_0);
 
         // Step 2 : ECC/ACC
-        const int n_ROI = CCL_LSL_apply(ccl_data, (const uint32_t**)SM32_0, SM32_1, i0, i1, j0, j1);
-        features_extract((const uint32_t**)SM32_1, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
+        const int n_ROI = CCL_LSL_apply(ccl_data, (const uint8_t**)SM_1, SM_2, i0, i1, j0, j1);
+        features_extract((const uint32_t**)SM_2, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
         for (size_t r = 0; r < ROI_array_tmp->_size; r++)
             ROI_array_tmp->frame[r] = frame;
 
         // Step 3 : seuillage hysteresis && filter surface
-        features_merge_HI_CCL_v2((const uint32_t**)SM32_1, (const uint32_t**)SH32_0, SH32_1, i0, i1, j0, j1,
-                                 ROI_array_tmp, p_surface_min, p_surface_max);
+        features_merge_HI_CCL_v2((const uint32_t**)SM_2, (const uint8_t**)SH_1, SH_2, i0, i1, j0, j1, ROI_array_tmp,
+                                 p_surface_min, p_surface_max);
         features_init_ROI_array(ROI_array1); // TODO: this is overkill, need to understand why we need to do that
         features_shrink_ROI_array((const ROI_t*)ROI_array_tmp, ROI_array1);
 
@@ -282,7 +276,7 @@ int main(int argc, char** argv) {
             tools_create_folder(p_out_frames);
             char filename[1024];
             sprintf(filename, "%s/%05lu.pgm", p_out_frames, frame);
-            tools_save_frame_ui32matrix(filename, SH32_1, i0, i1, j0, j1);
+            tools_save_frame_ui8matrix(filename, SH_2, i0, i1, j0, j1);
         }
 
         // Saving stats
@@ -323,12 +317,10 @@ int main(int argc, char** argv) {
     free_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(SM_0, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(SM_1, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui32matrix(SM_2, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(SH_0, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(SH_1, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui32matrix(SM32_0, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui32matrix(SM32_1, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui32matrix(SH32_0, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui32matrix(SH32_1, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui8matrix(SH_2, i0 - b, i1 + b, j0 - b, j1 + b);
     features_free_ROI_array(ROI_array_tmp);
     features_free_ROI_array(ROI_array0);
     features_free_ROI_array(ROI_array1);

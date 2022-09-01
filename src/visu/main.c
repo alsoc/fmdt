@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "  --in-gt          Path to ground truth file                           [%s]\n",
                 def_p_in_gt ? def_p_in_gt : "NULL");
         fprintf(stderr, "  --out-video      Path to the output video file (MPEG-4 format)       [%s]\n",
-                def_p_out_video ? def_p_out_video : "NULL");
+                def_p_out_video);
         fprintf(stderr, "  --out-frames     Path to the frames output folder                    [%s]\n",
                 def_p_out_frames ? def_p_out_frames : "NULL");
 #ifdef OPENCV_LINK

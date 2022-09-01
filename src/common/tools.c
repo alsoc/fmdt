@@ -715,10 +715,17 @@ void tools_convert_ui8vector_ui32vector(const uint8* X, const long nl, const lon
         Y[i] = (uint32)X[i];
 }
 
+// void tools_convert_ui8matrix_ui32matrix(const uint8** X, const int nrl, const int nrh, const int ncl, const int nch,
+//                                         uint32** Y) {
+//     for (long i = nrl; i <= nrh; i++)
+//         tools_convert_ui8vector_ui32vector(X[i], ncl, nch, Y[i]);
+// }
+
 void tools_convert_ui8matrix_ui32matrix(const uint8** X, const int nrl, const int nrh, const int ncl, const int nch,
                                         uint32** Y) {
     for (long i = nrl; i <= nrh; i++)
-        tools_convert_ui8vector_ui32vector(X[i], ncl, nch, Y[i]);
+        for (long j = ncl; j <= nch; j++)
+            Y[i][j] = (uint32)X[i][j];
 }
 
 void tools_write_PNM_row(const uint8* line, const int width, FILE* file) {

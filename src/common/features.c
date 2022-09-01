@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <math.h>
 
+#include "fmdt/macros.h"
 #include "fmdt/tools.h"
 #include "fmdt/features.h"
 
@@ -173,7 +174,7 @@ void _features_extract(const uint32_t** img, const int i0, const int i1, const i
 
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
-            uint32_t e = img[i][j];
+            uint32_t e = (uint32_t)img[i][j];
             if (e > 0) {
                 uint32_t r = e - 1;
                 ROI_S[r] += 1;
@@ -207,13 +208,13 @@ void features_extract(const uint32_t** img, const int i0, const int i1, const in
                       ROI_array->_size);
 }
 
-void _features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint32_t** HI_out, const int i0, const int i1,
+void _features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_t** HI_out, const int i0, const int i1,
                                const int j0, const int j1, const uint16_t* ROI_id, const uint16_t* ROI_ymin,
                                const uint16_t* ROI_ymax, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
                                uint32_t* ROI_S, const size_t n_ROI, const uint32_t S_min, const uint32_t S_max) {
     if ((void*)HI_in != (void*)HI_out)
         for (int i = i0; i <= i1; i++)
-            memcpy(HI_out[i] + j0, HI_in[i] + j0, sizeof(uint32_t) * ((j1 - j0) + 1));
+            memcpy(HI_out[i] + j0, HI_in[i] + j0, sizeof(uint8_t) * ((j1 - j0) + 1));
 
     int x0, x1, y0, y1, id;
     for (size_t i = 0; i < n_ROI; i++) {
@@ -228,8 +229,8 @@ void _features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint3
                 // JUSTE POUR DEBUG (Affichage frames)
                 for (int k = x0; k <= x1; k++) {
                     for (int l = y0; l <= y1; l++) {
-                        if (M[k][l] == (uint32_t)id)
-                            HI_out[k][l] = 0;
+                        if ((uint32_t)M[k][l] == (uint32_t)id)
+                            HI_out[k][l] = (uint8_t)0;
                     }
                 }
                 continue;
@@ -239,8 +240,9 @@ void _features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint3
                     if (HI_out[k][l]) {
                         for (k = x0; k <= x1; k++) {
                             for (l = y0; l <= y1; l++) {
-                                if (M[k][l] == (uint32_t)id)
-                                    HI_out[k][l] = i + 1;
+                                if ((uint32_t)M[k][l] == (uint32_t)id) {
+                                    HI_out[k][l] = (uint8_t)MIN(i + 1, 255);
+                                }
                             }
                         }
                         goto next;
@@ -253,7 +255,7 @@ void _features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint3
     }
 }
 
-void features_merge_HI_CCL_v2(const uint32_t** M, const uint32_t** HI_in, uint32_t** HI_out, const int i0, const int i1,
+void features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_t** HI_out, const int i0, const int i1,
                               const int j0, const int j1, ROI_t* ROI_array, const uint32_t S_min, const uint32_t S_max)
 {
     _features_merge_HI_CCL_v2(M, HI_in, HI_out, i0,i1, j0, j1, ROI_array->id, ROI_array->ymin, ROI_array->ymax,
