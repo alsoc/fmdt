@@ -9,8 +9,8 @@
 #include <assert.h>
 #include <math.h>
 
-#include "tools.h"
-#include "features.h"
+#include "fmdt/tools.h"
+#include "fmdt/features.h"
 
 ROI_array_t* features_alloc_ROI_array(const size_t max_size) {
     ROI_array_t* ROI_array = (ROI_array_t*)malloc(sizeof(ROI_array_t));

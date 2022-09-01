@@ -23,8 +23,8 @@
 #include <ffmpeg-io/writer.h>
 #include <nrc2.h>
 
-#include "macros.h"
-#include "tools.h"
+#include "fmdt/macros.h"
+#include "fmdt/tools.h"
 
 rgb8_t tools_get_color(enum color_e color) {
     rgb8_t gray;

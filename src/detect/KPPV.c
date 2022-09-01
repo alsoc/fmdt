@@ -9,8 +9,8 @@
 #include <assert.h>
 #include <nrc2.h>
 
-#include "tools.h"
-#include "KPPV.h"
+#include "fmdt/tools.h"
+#include "fmdt/KPPV.h"
 
 #define INF32 0xFFFFFFFF
 #define MAX_DIST 100

@@ -9,13 +9,13 @@
 #include <stdint.h>
 #include <nrc2.h>
 
-#include "macros.h"
-#include "args.h"
-#include "defines.h"
-#include "tools.h"
-#include "tracking.h"
-#include "validation.h"
-#include "video.h"
+#include "fmdt/macros.h"
+#include "fmdt/args.h"
+#include "fmdt/defines.h"
+#include "fmdt/tools.h"
+#include "fmdt/tracking.h"
+#include "fmdt/validation.h"
+#include "fmdt/video.h"
 
 void max_reduce(uint8_t** M, int i0, int i1, int j0, int j1, uint8_t** I) {
     for (int i = i0; i <= i1; i++) {

@@ -4,16 +4,16 @@
 #include <stdint.h>
 #include <nrc2.h>
 
-#include "args.h"
-#include "defines.h"
-#include "CCL.h"
-#include "tools.h"
-#include "features.h"
-#include "KPPV.h"
-#include "threshold.h"
-#include "tracking.h"
-#include "video.h"
-#include "macros.h"
+#include "fmdt/args.h"
+#include "fmdt/defines.h"
+#include "fmdt/CCL.h"
+#include "fmdt/tools.h"
+#include "fmdt/features.h"
+#include "fmdt/KPPV.h"
+#include "fmdt/threshold.h"
+#include "fmdt/tracking.h"
+#include "fmdt/video.h"
+#include "fmdt/macros.h"
 
 int main(int argc, char** argv) {
     // default values
