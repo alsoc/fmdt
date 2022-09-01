@@ -210,7 +210,6 @@ void validation_print(const track_t* track_array) {
             total_gt_frames[N_OBJECTS] += expected_hits;
             total_tracked_frames[N_OBJECTS] += tmp;
         }
-        free(g_val_objects);
     } else {
         fprintf(stderr, "(WW) no objects\n");
     }
@@ -248,7 +247,10 @@ void validation_print(const track_t* track_array) {
            tracking_rate[METEOR], tracking_rate[STAR], tracking_rate[NOISE], tracking_rate[N_OBJECTS]);
 }
 
-void validation_free(void) {}
+void validation_free(void) {
+    if (g_val_objects)
+        free(g_val_objects);
+}
 
 unsigned validation_count_objects(const validation_obj_t* val_objects, const unsigned n_val_objects, unsigned* n_stars,
                                   unsigned* n_meteors, unsigned* n_noise) {

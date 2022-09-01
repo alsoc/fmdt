@@ -66,7 +66,7 @@ int main(int argc, char** argv) {
     validation_init(p_in_gt);
     validation_process(track_array);
     validation_print(track_array);
-
+    validation_free();
     tracking_free_track_array(track_array);
 
     printf("# End of the program, exiting.\n");
