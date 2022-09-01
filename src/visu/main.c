@@ -10,13 +10,13 @@
 #include <nrc2.h>
 #include <ffmpeg-io/writer.h>
 
-#include "macros.h"
-#include "args.h"
-#include "defines.h"
-#include "tools.h"
-#include "tracking.h"
-#include "validation.h"
-#include "video.h"
+#include "fmdt/macros.h"
+#include "fmdt/args.h"
+#include "fmdt/defines.h"
+#include "fmdt/tools.h"
+#include "fmdt/tracking.h"
+#include "fmdt/validation.h"
+#include "fmdt/video.h"
 
 #define DELTA_BB 5 // extra pixel size for bounding boxes
 

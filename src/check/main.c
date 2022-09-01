@@ -7,10 +7,10 @@
 #include <string.h>
 #include <stdlib.h>
 
-#include "args.h"
-#include "defines.h"
-#include "tracking.h"
-#include "validation.h"
+#include "fmdt/args.h"
+#include "fmdt/defines.h"
+#include "fmdt/tracking.h"
+#include "fmdt/validation.h"
 
 int main(int argc, char** argv) {
     // default values

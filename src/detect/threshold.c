@@ -3,7 +3,7 @@
  * LIP6, UPMC, CNRS
  */
 
-#include "threshold.h"
+#include "fmdt/threshold.h"
 
 #define GRAY_LEVEL 256
 
