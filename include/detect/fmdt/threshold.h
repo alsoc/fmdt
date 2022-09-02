@@ -1,9 +1,3 @@
-/**
- * Copyright (c) 2017-2018, Arthur Hennequin  LIP6, UPMC, CNRS
- * Copyright (c) 2020-2021, Clara Ciocan/ Mathuran Kandeepan LIP6, Sorbonne Universite
- *
- */
-
 #pragma once
 
 #include <stdint.h>

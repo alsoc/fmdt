@@ -1,8 +1,3 @@
-/*
- * Copyright (c) 2017-2018, Arthur Hennequin, LIP6, UPMC, CNRS
- * Copyright (c) 2020-2020, Lionel Lacassagne, all rights reserved, LIP6 Sorbonne University, CNRS
- */
-
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>

@@ -11,6 +11,7 @@
 [3.4. Max-reduction Executable](#max-reduction-executable)  
 [3.5. Examples of use](#examples-of-use)  
 [3.6. Input and Output Text Formats](#input-and-output-text-formats)  
+[4. List of Contributors](#list-of-contributors)
 
 ## Dependencies
 
@@ -283,3 +284,16 @@ Statistics:
 
 For each line, the `meteor`, `star` and `noise` object types are considered.
 `all` stands for all types, sometime `all` can be mean-less.
+
+## List of Contributors
+
+This toolbox is developed by the [LIP6](https://www.lip6.fr/) laboratory ([ALSOC](https://www.lip6.fr/recherche/team.php?acronyme=ALSOC) team) of [Sorbonne University](https://www.sorbonne-universite.fr/) in Paris.
+Any external contributions are more than welcome.
+
+Here is the list of contributors:
+ * Clara CIOCAN, *Master student*
+ * Mathuran KANDEEPAN, *Master student*
+ * Maxime MILLET, *PhD student*
+ * Arthur HENNEQUIN, *PhD*
+ * Adrien CASSAGNE, *Associate professor*
+ * Lionel LACASSAGNE, *Full professor*

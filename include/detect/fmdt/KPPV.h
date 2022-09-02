@@ -1,8 +1,3 @@
-/**
- * Copyright (c) 2022, Clara Ciocan/ Mathuran Kandeepan
- * LIP6, SU, CNRS
- */
-
 #pragma once
 
 #include <stdint.h>

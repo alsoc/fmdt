@@ -1,8 +1,3 @@
-/**
- * Copyright (c) 2021-2022, Clara CIOCAN, LIP6 Sorbonne University
- * Copyright (c) 2021-2022, Mathuran KANDEEPAN, LIP6 Sorbonne University
- */
-
 #include <assert.h>
 #include <math.h>
 #include <stdio.h>

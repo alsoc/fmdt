@@ -1,12 +1,3 @@
-/**
- * Copyright (c) 2017-2018, Arthur Hennequin
- * LIP6, UPMC, CNRS
- */
-
-/*********************************
- * Connected Components Labeling *
- *********************************/
-
 #pragma once
 
 #include <stdint.h>

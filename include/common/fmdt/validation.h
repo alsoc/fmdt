@@ -1,10 +1,3 @@
-// --------------------
-// --- Validation.h ---
-// --------------------
-/*
- * Maxime MILLET
- */
-
 #pragma once
 
 #include <stdint.h>

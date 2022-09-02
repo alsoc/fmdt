@@ -1,8 +1,3 @@
-/**
- * Copyright (c) 2017-2018, Arthur Hennequin
- * LIP6, UPMC, CNRS
- */
-
 #include <string.h>
 
 #include "fmdt/threshold.h"
