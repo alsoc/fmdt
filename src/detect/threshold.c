@@ -3,16 +3,30 @@
  * LIP6, UPMC, CNRS
  */
 
+#include <string.h>
+
 #include "fmdt/threshold.h"
 
 #define GRAY_LEVEL 256
 
+// void threshold(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
+//                const uint8_t threshold) {
+//     int i, j;
+//     for (i = i0; i <= i1; i++)
+//         for (j = j0; j <= j1; j++)
+//             m_out[i][j] = (m_in[i][j] < threshold) ? 0 : 255;
+// }
+
+// TODO: these implementation with a 'if' in the loop, seems to be more efficient (there are less stores...)
 void threshold(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
                const uint8_t threshold) {
     int i, j;
-    for (i = i0; i <= i1; i++)
+    for (i = i0; i <= i1; i++) {
+        memset(m_out[i], 0, ((j1 - j0) + 1) * sizeof(uint8_t));
         for (j = j0; j <= j1; j++)
-            m_out[i][j] = (m_in[i][j] < threshold) ? 0 : 255;
+            if (m_in[i][j] >= threshold)
+                m_out[i][j] = 255;
+    }
 }
 
 void threshold_high(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
