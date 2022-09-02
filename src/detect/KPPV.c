@@ -37,40 +37,35 @@ void KPPV_free_data(KKPV_data_t* data) {
     free(data);
 }
 
-void _compute_distance(const float* ROI0_x, const float* ROI0_y, const uint32_t* ROI0_S, const size_t n_ROI0,
-                       const float* ROI1_x, const float* ROI1_y, const uint32_t* ROI1_S, const size_t n_ROI1,
-                       float** distances) {
+void _compute_distance(const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, const float* ROI1_x,
+                       const float* ROI1_y, const size_t n_ROI1, float** distances) {
     // parcours des stats 0
     for (size_t i = 0; i < n_ROI0; i++) {
-        if (ROI0_S[i] > 0) {
-            float x0 = ROI0_x[i];
-            float y0 = ROI0_y[i];
+        float x0 = ROI0_x[i];
+        float y0 = ROI0_y[i];
 
-            // parcours des stats 1
-            for (size_t j = 0; j < n_ROI1; j++) {
-                if (ROI1_S[j] > 0) { // TODO: S guard seems to be useless here after the shrink...
-                    float x1 = ROI1_x[j];
-                    float y1 = ROI1_y[j];
+        // parcours des stats 1
+        for (size_t j = 0; j < n_ROI1; j++) {
+            float x1 = ROI1_x[j];
+            float y1 = ROI1_y[j];
 
-                    // distances au carré
-                    float d = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0);
+            // distances au carré
+            float d = (x1 - x0) * (x1 - x0) + (y1 - y0) * (y1 - y0);
 
-                    // if d > MAX_DIST, on peut economiser l'accès mémoire (a implementer)
-                    distances[i][j] = d;
-                }
-            }
+            // if d > MAX_DIST, on peut economiser l'accès mémoire (a implementer)
+            distances[i][j] = d;
         }
     }
 }
 
 void compute_distance(float** distances, const ROI_t* ROI_array0, const ROI_t* ROI_array1) {
-    _compute_distance(ROI_array0->x, ROI_array0->y, ROI_array0->S, ROI_array0->_size, ROI_array1->x, ROI_array1->y,
-                      ROI_array1->S, ROI_array1->_size, distances);
+    _compute_distance(ROI_array0->x, ROI_array0->y, ROI_array0->_size, ROI_array1->x, ROI_array1->y, ROI_array1->_size,
+                      distances);
 }
 
-void KPPV_match1(const float* ROI0_x, const float* ROI0_y, const uint32_t* ROI0_S, const size_t n_ROI0,
-                 const float* ROI1_x, const float* ROI1_y, const uint32_t* ROI1_S, const size_t n_ROI1,
-                 uint32_t** nearest, float** distances, uint32_t* conflicts, const int k) {
+void KPPV_match1(const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, const float* ROI1_x,
+                 const float* ROI1_y, const size_t n_ROI1, uint32_t** nearest, float** distances, uint32_t* conflicts,
+                 const int k) {
     int k_index, val, cpt = 0;
 
     // vecteur de conflits pour debug
@@ -79,7 +74,7 @@ void KPPV_match1(const float* ROI0_x, const float* ROI0_y, const uint32_t* ROI0_
     zero_ui32matrix(nearest, 0, n_ROI0, 0, n_ROI1);
 
     // calculs de toutes les distances euclidiennes au carré entre nc0 et nc1
-    _compute_distance(ROI0_x, ROI0_y, ROI0_S, n_ROI0, ROI1_x, ROI1_y, ROI1_S, n_ROI1, distances);
+    _compute_distance(ROI0_x, ROI0_y, n_ROI0, ROI1_x, ROI1_y, n_ROI1, distances);
 
     // les k plus proches voisins dans l'ordre croissant
     for (k_index = 1; k_index <= k; k_index++) {
@@ -141,19 +136,17 @@ void KPPV_match2(const uint32_t** nearest, const float** distances, const uint16
 }
 
 void _KPPV_match(KKPV_data_t* data, const uint16_t* ROI0_id, const float* ROI0_x, const float* ROI0_y,
-                 const uint32_t* ROI0_S, int32_t* ROI0_next_id, const size_t n_ROI0, const uint16_t* ROI1_id,
-                 const float* ROI1_x, const float* ROI1_y, const uint32_t* ROI1_S, int32_t* ROI1_prev_id,
-                 const size_t n_ROI1, const int k) {
-    KPPV_match1(ROI0_x, ROI0_y, ROI0_S, n_ROI0, ROI1_x, ROI1_y, ROI1_S, n_ROI1, data->nearest, data->distances,
+                 int32_t* ROI0_next_id, const size_t n_ROI0, const uint16_t* ROI1_id, const float* ROI1_x,
+                 const float* ROI1_y, int32_t* ROI1_prev_id, const size_t n_ROI1, const int k) {
+    KPPV_match1(ROI0_x, ROI0_y, n_ROI0, ROI1_x, ROI1_y, n_ROI1, data->nearest, data->distances,
                 data->conflicts, k);
     KPPV_match2((const uint32_t**)data->nearest, (const float**)data->distances, ROI0_id, ROI0_next_id, n_ROI0, ROI1_id,
                 ROI1_prev_id, n_ROI1);
 }
 
 void KPPV_match(KKPV_data_t* data, ROI_t* ROI_array0, ROI_t* ROI_array1, const int k) {
-    _KPPV_match(data, ROI_array0->id, ROI_array0->x, ROI_array0->y, ROI_array0->S, ROI_array0->next_id,
-                ROI_array0->_size, ROI_array1->id, ROI_array1->x, ROI_array1->y, ROI_array1->S, ROI_array1->prev_id,
-                ROI_array1->_size, k);
+    _KPPV_match(data, ROI_array0->id, ROI_array0->x, ROI_array0->y, ROI_array0->next_id, ROI_array0->_size,
+                ROI_array1->id, ROI_array1->x, ROI_array1->y, ROI_array1->prev_id, ROI_array1->_size, k);
 }
 
 void KPPV_save_asso(const char* filename, const uint32_t** nearest, const float** distances, ROI_t* ROI_array) {
