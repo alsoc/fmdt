@@ -11,6 +11,13 @@ option(FMDT_CHECK_EXE "compile the checking executable." ON)
 option(FMDT_MAXRED_EXE "compile the max reduction executable." ON)
 option(FMDT_DEBUG "build the project using debugging code" OFF)
 option(FMDT_OPENCV_LINK "link with OpenCV library." OFF)
+option(FMDT_AFF3CT_RUNTIME "link with AFF3CT for execution runtime." OFF)
+
+if (FMDT_OPENCV_LINK OR FMDT_AFF3CT_RUNTIME)
+	set(FMDT_CPP ON)
+else()
+	set(FMDT_CPP OFF)
+endif()
 
 # Print CMake options values --------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -21,7 +28,9 @@ message(STATUS "  * FMDT_CHECK_EXE: '${FMDT_CHECK_EXE}'")
 message(STATUS "  * FMDT_MAXRED_EXE: '${FMDT_MAXRED_EXE}'")
 message(STATUS "  * FMDT_DEBUG: '${FMDT_DEBUG}'")
 message(STATUS "  * FMDT_OPENCV_LINK: '${FMDT_OPENCV_LINK}'")
+message(STATUS "  * FMDT_AFF3CT_RUNTIME: '${FMDT_AFF3CT_RUNTIME}'")
 message(STATUS "FMDT info: ")
+message(STATUS "  * FMDT_CPP: '${FMDT_CPP}'")
 message(STATUS "  * CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 
 # Check CMake options ---------------------------------------------------------
@@ -39,7 +48,7 @@ set(exe_dir exe)
 # enable C11
 set(CMAKE_C_STANDARD 11)
 set(CMAKE_C_STANDARD_REQUIRED ON)
-if (FMDT_OPENCV_LINK)
+if (FMDT_CPP)
 	# enable C++11
 	set(CMAKE_CXX_STANDARD 11)
 	set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -77,6 +86,17 @@ if(FMDT_DETECT_EXE)
 	add_executable(fmdt-detect-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_detect_files})
 	list(APPEND fmdt_targets_list fmdt-detect-exe)
 	set_target_properties(fmdt-detect-exe PROPERTIES OUTPUT_NAME fmdt-detect)
+	if (FMDT_AFF3CT_RUNTIME)
+		set(src_detectrt_files
+		    ${src_dir}/detect/CCL.c
+		    ${src_dir}/detect/KPPV.c
+		    ${src_dir}/detect/threshold.c
+		    ${src_dir}/detect/main_rt.c)
+		list(APPEND fmdt_src_list ${src_detectrt_files})
+		add_executable(fmdt-detect-rt-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_detectrt_files})
+		list(APPEND fmdt_targets_list fmdt-detect-rt-exe)
+		set_target_properties(fmdt-detect-rt-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt)
+	endif()
 endif()
 if(FMDT_VISU_EXE)
 	set(src_visu_files
@@ -110,7 +130,7 @@ macro(fmdt_set_source_files_properties files key value)
 endmacro()
 
 # force C++ language when linking with OpenCV
-if (FMDT_OPENCV_LINK)
+if (FMDT_CPP)
 	fmdt_set_source_files_properties("${fmdt_src_list}" LANGUAGE CXX)
 endif()
 
@@ -124,6 +144,16 @@ endif()
 
 if (NOT TARGET nrc-slib)
 	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/nrc2/)
+endif()
+
+if (FMDT_AFF3CT_RUNTIME)
+	option(AFF3CT_COMPILE_EXE "" OFF)
+	option(AFF3CT_COMPILE_STATIC_LIB "" ON)
+	option(AFF3CT_COMPILE_SHARED_LIB "" OFF)
+	option(AFF3CT_LINK_GSL "" OFF)
+	option(AFF3CT_LINK_MKL "" OFF)
+	set(AFF3CT_PREC  "MULTI" CACHE STRING "")
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct/)
 endif()
 
 if (FMDT_OPENCV_LINK)
@@ -143,6 +173,9 @@ if (FMDT_DEBUG)
 endif()
 if (FMDT_OPENCV_LINK)
 	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC OPENCV_LINK)
+endif()
+if (FMDT_AFF3CT_RUNTIME)
+	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC AFF3CT_LINK)
 endif()
 
 # Set include directory -------------------------------------------------------
@@ -172,4 +205,7 @@ fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC m)
 fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC nrc-slib)
 if (FMDT_OPENCV_LINK)
 	fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC "${OpenCV_LIBS}")
+endif()
+if (FMDT_AFF3CT_RUNTIME)
+	fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC aff3ct-static-lib)
 endif()

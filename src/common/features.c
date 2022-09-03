@@ -157,15 +157,16 @@ void features_init_ROI(ROI_t* stats, int n) {
         memset(stats + i, 0, sizeof(ROI_t));
 }
 
-void _features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1, uint16_t* ROI_xmin,
-                       uint16_t* ROI_xmax, uint16_t* ROI_ymin, uint16_t* ROI_ymax, uint32_t* ROI_S, uint16_t* ROI_id,
+void _features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1, uint16_t* ROI_id,
+                       uint16_t* ROI_xmin, uint16_t* ROI_xmax, uint16_t* ROI_ymin, uint16_t* ROI_ymax, uint32_t* ROI_S,
                        uint32_t* ROI_Sx, uint32_t* ROI_Sy, float* ROI_x, float* ROI_y, const size_t n_ROI) {
-    for (size_t i = 0; i < n_ROI; i++) {
-        ROI_xmin[i] = j1;
-        ROI_xmax[i] = j0;
-        ROI_ymin[i] = i1;
-        ROI_ymax[i] = i0;
-    }
+    memset(ROI_xmin, j1, n_ROI * sizeof(uint16_t));
+    memset(ROI_xmax, j0, n_ROI * sizeof(uint16_t));
+    memset(ROI_ymin, i1, n_ROI * sizeof(uint16_t));
+    memset(ROI_ymax, i0, n_ROI * sizeof(uint16_t));
+    memset(ROI_S, 0, n_ROI * sizeof(uint32_t));
+    memset(ROI_Sx, 0, n_ROI * sizeof(uint32_t));
+    memset(ROI_Sy, 0, n_ROI * sizeof(uint32_t));
 
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
@@ -198,8 +199,8 @@ void features_extract(const uint32_t** img, const int i0, const int i1, const in
                       ROI_t* ROI_array) {
     features_init_ROI_array(ROI_array);
     ROI_array->_size = n_ROI;
-    _features_extract(img, i0, i1, j0, j1, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin, ROI_array->ymax,
-                      ROI_array->S, ROI_array->id, ROI_array->Sx, ROI_array->Sy, ROI_array->x, ROI_array->y,
+    _features_extract(img, i0, i1, j0, j1, ROI_array->id, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin,
+                      ROI_array->ymax, ROI_array->S, ROI_array->Sx, ROI_array->Sy, ROI_array->x, ROI_array->y,
                       ROI_array->_size);
 }
 
