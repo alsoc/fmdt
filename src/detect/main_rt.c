@@ -242,8 +242,8 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(II) Frame n°%4lu", frame);
 
         // Step 1 : seuillage low/high
-        threshold_min[thr::sck::apply::in_img] = I[0];
-        threshold_max[thr::sck::apply::in_img] = I[0];
+        threshold_min[thr::sck::apply::in_img] = &I[i0 - b][j0 - b];
+        threshold_max[thr::sck::apply::in_img] = &I[i0 - b][j0 - b];
         threshold_min[thr::tsk::apply].exec();
         threshold_max[thr::tsk::apply].exec();
 

@@ -41,6 +41,8 @@ public:
         this->data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
         this->in_img = (const uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint8_t*)));
         this->out_img = (uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint32_t*)));
+        this->in_img -= i0 - b;
+        this->out_img -= i0 - b;
 
         auto socket_size = ((i1 - i0) + 1 + 2 * b) * ((j1 - j0) + 1 + 2 * b);
 
@@ -54,10 +56,13 @@ public:
             auto &lsl = static_cast<LSL&>(m);
             const uint8_t* m_in_img = static_cast<const uint8_t*>(t[ps_in_img].get_dataptr());
             uint32_t* m_out_img = static_cast<uint32_t*>(t[ps_out_img].get_dataptr());
-            for (auto i = lsl.i0 - lsl.b; i <= lsl.i1 + lsl.b; i++) {
-                lsl.in_img[i] = m_in_img + i * ((lsl.j1 - lsl.j0) + 1 + 2 * lsl.b);
-                lsl.out_img[i] = m_out_img + i * ((lsl.j1 - lsl.j0) + 1 + 2 * lsl.b);
+            lsl.in_img[lsl.i0 - lsl.b] = m_in_img;
+            lsl.out_img[lsl.i0 - lsl.b] = m_out_img;
+            for (int i = lsl.i0 - lsl.b + 1; i <= lsl.i1 + lsl.b; i++) {
+                lsl.out_img[i] = lsl.out_img[i - 1] + ((lsl.j1 - lsl.j0) + 1 + 2 * lsl.b);
+                lsl.in_img[i] = lsl.in_img[i - 1] + ((lsl.j1 - lsl.j0) + 1 + 2 * lsl.b);
             }
+
             uint32_t* m_out_n_ROI = static_cast<uint32_t*>(t[ps_out_n_ROI].get_dataptr());
             *m_out_n_ROI = CCL_LSL_apply(lsl.data, lsl.in_img, lsl.out_img, lsl.i0, lsl.i1, lsl.j0, lsl.j1);
             return aff3ct::module::status_t::SUCCESS;
@@ -65,8 +70,8 @@ public:
     }
 
     virtual ~LSL() {
-        free(this->in_img);
-        free(this->out_img);
+        free(this->in_img + (i0 - b));
+        free(this->out_img + (i0 - b));
         CCL_LSL_free_data(this->data);
     }
 

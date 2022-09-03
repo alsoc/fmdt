@@ -88,6 +88,7 @@ public:
     Extractor(const int i0, const int i1, const int j0, const int j1, const int b, const size_t max_ROI_size)
     : i0(i0), i1(i1), j0(j0), j1(j1), b(b), max_ROI_size(max_ROI_size), in_img(nullptr) {
         this->in_img = (const uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint32_t*)));
+        this->in_img -= i0 - b;
 
         auto socket_img_size = ((i1 - i0) + 1 + 2 * b) * ((j1 - j0) + 1 + 2 * b);
 
@@ -111,8 +112,9 @@ public:
                                                              const size_t frame_id) -> int {
             auto &ext = static_cast<Extractor&>(m);
             const uint32_t* m_in_img = static_cast<const uint32_t*>(t[ps_in_img].get_dataptr());
-            for (auto i = ext.i0 - ext.b; i <= ext.i1 + ext.b; i++)
-                ext.in_img[i] = m_in_img + i * ((ext.j1 - ext.j0) + 1 + 2 * ext.b);
+            ext.in_img[ext.i0 - ext.b] = m_in_img;
+            for (int i = ext.i0 - ext.b + 1; i <= ext.i1 + ext.b; i++)
+                ext.in_img[i] = ext.in_img[i - 1] + ((ext.j1 - ext.j0) + 1 + 2 * ext.b);
 
             uint32_t n_ROI = *static_cast<uint32_t*>(t[ps_in_n_ROI].get_dataptr());
 
@@ -134,7 +136,7 @@ public:
     }
 
     virtual ~Extractor() {
-        free(this->in_img);
+        free(this->in_img + (this->i0 - this->b));
     }
 
     inline aff3ct::module::Task& operator[](const ftr::tsk t) {
