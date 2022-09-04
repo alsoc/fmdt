@@ -11,7 +11,7 @@
 ROI_t* features_alloc_ROI_array(const size_t max_size) {
     ROI_t* ROI_array = (ROI_t*)malloc(sizeof(ROI_t));
     ROI_array->id = (uint16_t*)malloc(max_size * sizeof(uint16_t));
-    ROI_array->frame = (size_t*)malloc(max_size * sizeof(size_t));
+    ROI_array->frame = (uint32_t*)malloc(max_size * sizeof(uint32_t));
     ROI_array->xmin = (uint16_t*)malloc(max_size * sizeof(uint16_t));
     ROI_array->xmax = (uint16_t*)malloc(max_size * sizeof(uint16_t));
     ROI_array->ymin = (uint16_t*)malloc(max_size * sizeof(uint16_t));
@@ -205,8 +205,8 @@ void features_extract(const uint32_t** img, const int i0, const int i1, const in
 }
 
 void _features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_t** HI_out, const int i0, const int i1,
-                               const int j0, const int j1, const uint16_t* ROI_id, const uint16_t* ROI_ymin,
-                               const uint16_t* ROI_ymax, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
+                               const int j0, const int j1, const uint16_t* ROI_id, const uint16_t* ROI_xmin,
+                               const uint16_t* ROI_xmax, const uint16_t* ROI_ymin, const uint16_t* ROI_ymax,
                                uint32_t* ROI_S, const size_t n_ROI, const uint32_t S_min, const uint32_t S_max) {
     if ((void*)HI_in != (void*)HI_out)
         for (int i = i0; i <= i1; i++)
@@ -254,8 +254,8 @@ void _features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_
 void features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_t** HI_out, const int i0, const int i1,
                               const int j0, const int j1, ROI_t* ROI_array, const uint32_t S_min, const uint32_t S_max)
 {
-    _features_merge_HI_CCL_v2(M, HI_in, HI_out, i0,i1, j0, j1, ROI_array->id, ROI_array->ymin, ROI_array->ymax,
-                              ROI_array->xmin, ROI_array->xmax, ROI_array->S,  ROI_array->_size, S_min, S_max);
+    _features_merge_HI_CCL_v2(M, HI_in, HI_out, i0,i1, j0, j1, ROI_array->id, ROI_array->xmin, ROI_array->xmax,
+                              ROI_array->ymin, ROI_array->ymax, ROI_array->S,  ROI_array->_size, S_min, S_max);
 }
 
 void features_filter_surface(ROI_t* ROI_array, uint32_t** img, uint32_t threshold_min, uint32_t threshold_max) {
@@ -291,26 +291,21 @@ void features_filter_surface(ROI_t* ROI_array, uint32_t** img, uint32_t threshol
     }
 }
 
-size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const size_t* ROI_src_frame, const uint16_t* ROI_src_xmin,
+size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* ROI_src_xmin,
                                   const uint16_t* ROI_src_xmax, const uint16_t* ROI_src_ymin,
-                                  const uint16_t* ROI_src_ymax, const uint32_t* ROI_src_S, const uint32_t* ROI_src_Sx,
-                                  const uint32_t* ROI_src_Sy, const float* ROI_src_x, const float* ROI_src_y,
-                                  uint16_t* ROI_dest_id, size_t* ROI_dest_frame, uint16_t* ROI_dest_xmin,
-                                  uint16_t* ROI_dest_xmax, uint16_t* ROI_dest_ymin,  uint16_t* ROI_dest_ymax,
-                                  uint32_t* ROI_dest_S, uint32_t* ROI_dest_Sx, uint32_t* ROI_dest_Sy, float* ROI_dest_x,
-                                  float* ROI_dest_y, const size_t n_ROI_src) {
+                                  const uint16_t* ROI_src_ymax, const uint32_t* ROI_src_S, const float* ROI_src_x,
+                                  const float* ROI_src_y, const size_t n_ROI_src, uint16_t* ROI_dest_id,
+                                  uint16_t* ROI_dest_xmin, uint16_t* ROI_dest_xmax, uint16_t* ROI_dest_ymin,
+                                  uint16_t* ROI_dest_ymax, uint32_t* ROI_dest_S, float* ROI_dest_x, float* ROI_dest_y) {
     size_t cpt = 0;
     for (size_t i = 0; i < n_ROI_src; i++) {
         if (ROI_src_S[i] > 0) {
             ROI_dest_id[cpt] = cpt + 1;
-            ROI_dest_frame[cpt] = ROI_src_frame[i];
             ROI_dest_xmin[cpt] = ROI_src_xmin[i];
             ROI_dest_xmax[cpt] = ROI_src_xmax[i];
             ROI_dest_ymin[cpt] = ROI_src_ymin[i];
             ROI_dest_ymax[cpt] = ROI_src_ymax[i];
             ROI_dest_S[cpt] = ROI_src_S[i];
-            ROI_dest_Sx[cpt] = ROI_src_Sx[i];
-            ROI_dest_Sy[cpt] = ROI_src_Sy[i];
             ROI_dest_x[cpt] = ROI_src_x[i];
             ROI_dest_y[cpt] = ROI_src_y[i];
             cpt++;
@@ -320,14 +315,12 @@ size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const size_t* ROI_
 }
 
 void features_shrink_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest) {
-    ROI_array_dest->_size = _features_shrink_ROI_array(ROI_array_src->id, ROI_array_src->frame, ROI_array_src->xmin,
-                                                       ROI_array_src->xmax, ROI_array_src->ymin, ROI_array_src->ymax,
-                                                       ROI_array_src->S, ROI_array_src->Sx, ROI_array_src->Sy,
-                                                       ROI_array_src->x, ROI_array_src->y, ROI_array_dest->id,
-                                                       ROI_array_dest->frame, ROI_array_dest->xmin,
-                                                       ROI_array_dest->xmax, ROI_array_dest->ymin, ROI_array_dest->ymax,
-                                                       ROI_array_dest->S, ROI_array_dest->Sx, ROI_array_dest->Sy,
-                                                       ROI_array_dest->x, ROI_array_dest->y, ROI_array_src->_size);
+    ROI_array_dest->_size = _features_shrink_ROI_array(ROI_array_src->id, ROI_array_src->xmin, ROI_array_src->xmax,
+                                                       ROI_array_src->ymin, ROI_array_src->ymax, ROI_array_src->S,
+                                                       ROI_array_src->x, ROI_array_src->y, ROI_array_src->_size,
+                                                       ROI_array_dest->id, ROI_array_dest->xmin, ROI_array_dest->xmax,
+                                                       ROI_array_dest->ymin, ROI_array_dest->ymax, ROI_array_dest->S,
+                                                       ROI_array_dest->x, ROI_array_dest->y);
 }
 
 void _features_rigid_registration(const int32_t* ROI0_next_id, const float* ROI0_x, const float* ROI0_y,

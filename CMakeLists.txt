@@ -191,6 +191,9 @@ fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SO
 if (FMDT_OPENCV_LINK)
 	include_directories(${OpenCV_INCLUDE_DIRS})
 endif()
+if (FMDT_AFF3CT_RUNTIME)
+	fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/runtime)
+endif()
 
 # Link with dependencies ------------------------------------------------------
 # -----------------------------------------------------------------------------

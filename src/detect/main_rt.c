@@ -17,6 +17,16 @@
 #include "fmdt/video.h"
 #include "fmdt/macros.h"
 
+#include "fmdt/CCL_LSL/CCL_LSL.hpp"
+#include "fmdt/Delayer/Delayer.hpp"
+#include "fmdt/Features_extractor/Features_extractor.hpp"
+#include "fmdt/Features_merger/Features_merger.hpp"
+#include "fmdt/Features_motion/Features_motion.hpp"
+#include "fmdt/KNN_matcher/KNN_matcher.hpp"
+#include "fmdt/Threshold/Threshold.hpp"
+#include "fmdt/Tracking/Tracking.hpp"
+#include "fmdt/Video/Video.hpp"
+
 int main(int argc, char** argv) {
     // default values
     int def_p_fra_start = 0;
@@ -184,120 +194,206 @@ int main(int argc, char** argv) {
     if (!p_out_stats)
         fprintf(stderr, "(II) '--out-stats' is missing -> no stats will be saved\n");
 
-    // -------------------------- //
-    // -- INITIALISATION VIDEO -- //
-    // -------------------------- //
+    // -------------------------------- //
+    // -- INITIALISATION GLOBAL DATA -- //
+    // -------------------------------- //
 
-    int i0, i1, j0, j1; // image dimension (y_min, y_max, x_min, x_max)
-    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_skip_fra, &i0, &i1, &j0, &j1);
+    tracking_init_global_data();
 
     // ---------------- //
     // -- ALLOCATION -- //
     // ---------------- //
 
-    ROI_t* ROI_array_tmp = features_alloc_ROI_array(MAX_ROI_SIZE);
-    ROI_t* ROI_array0 = features_alloc_ROI_array(MAX_ROI_SIZE);
-    ROI_t* ROI_array1 = features_alloc_ROI_array(MAX_ROI_SIZE);
-    track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
-    BB_t** BB_array = (BB_t**)malloc(MAX_N_FRAMES * sizeof(BB_t*));
-    tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_fra_star_min, p_fra_meteor_min), MAX_ROI_SIZE);
+    // objects allocation
     int b = 1; // image border
-    uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // frame
-    uint32_t **SM_2 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
-    uint8_t **SH_2 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
+    Video video(p_in_video, p_fra_start, p_fra_end, p_skip_fra, b);
+    const int i0 = video.get_i0();
+    const int i1 = video.get_i1();
+    const int j0 = video.get_j0();
+    const int j1 = video.get_j1();
 
-    // -------------------------- //
-    // -- INITIALISATION MATRIX-- //
-    // -------------------------- //
-
-    tracking_init_global_data();
-    KKPV_data_t* kppv_data = KPPV_alloc_and_init_data(0, MAX_KPPV_SIZE, 0, MAX_KPPV_SIZE);
-    features_init_ROI_array(ROI_array_tmp);
-    features_init_ROI_array(ROI_array0);
-    features_init_ROI_array(ROI_array1);
-    tracking_init_track_array(track_array);
-    tracking_init_BB_array(BB_array);
-    tracking_init_data(tracking_data);
-    CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
-    zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui32matrix(SM_2, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(SH_2, i0 - b, i1 + b, j0 - b, j1 + b);
+    Threshold threshold_min(i0 - b, i1 + b, j0 - b, j1 + b, p_light_min);
+    Threshold threshold_max(i0 - b, i1 + b, j0 - b, j1 + b, p_light_max);
+    CCL_LSL lsl(i0, i1, j0, j1, b);
+    Features_extractor extractor(i0, i1, j0, j1, b, MAX_ROI_SIZE);
+    Features_merger merger(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE);
+    KNN_matcher matcher(i0, i1, j0, j1, p_k, MAX_ROI_SIZE);
+    Features_motion motion(MAX_ROI_SIZE);
+    Tracking tracking(p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
+                      p_fra_meteor_max, MAX_ROI_SIZE, MAX_TRACKS_SIZE, MAX_N_FRAMES);
+    Delayer<uint16_t> delayer_ROI_id(MAX_ROI_SIZE, 0);
+    Delayer<uint16_t> delayer_ROI_xmin(MAX_ROI_SIZE, 0);
+    Delayer<uint16_t> delayer_ROI_xmax(MAX_ROI_SIZE, 0);
+    Delayer<uint16_t> delayer_ROI_ymin(MAX_ROI_SIZE, 0);
+    Delayer<uint16_t> delayer_ROI_ymax(MAX_ROI_SIZE, 0);
+    Delayer<uint32_t> delayer_ROI_S(MAX_ROI_SIZE, 0);
+    Delayer<float> delayer_ROI_x(MAX_ROI_SIZE, 0.f);
+    Delayer<float> delayer_ROI_y(MAX_ROI_SIZE, 0.f);
+    Delayer<int32_t> delayer_ROI_prev_id(MAX_ROI_SIZE, 0);
+    Delayer<uint32_t> delayer_ROI_frame(MAX_ROI_SIZE, 0);
+    Delayer<int32_t> delayer_ROI_time(MAX_ROI_SIZE, 0);
+    Delayer<int32_t> delayer_ROI_time_motion(MAX_ROI_SIZE, 0);
+    Delayer<uint8_t> delayer_ROI_is_extrapolated(MAX_ROI_SIZE, 0);
+    Delayer<uint32_t> delayer_n_ROI(1, 0);
 
     // ----------------//
     // -- TRAITEMENT --//
     // ----------------//
 
-    thr::Threshold threshold_min(i0 - b, i1 + b, j0 - b, j1 + b, p_light_min);
-    thr::Threshold threshold_max(i0 - b, i1 + b, j0 - b, j1 + b, p_light_max);
-
-    ccl::LSL lsl(i0, i1, j0, j1, b);
-    ftr::Extractor extractor(i0, i1, j0, j1, b, MAX_ROI_SIZE);
-
     printf("# The program is running...\n");
     size_t real_n_tracks;
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
-    while (video_get_next_frame(video, I)) {
-        size_t frame = video->frame_current - 1;
+    video[vid::tsk::generate].exec();
+    while (video[vid::tsk::generate].get_status()[0] == aff3ct::module::status_t::SUCCESS) {
+        const uint32_t frame = *(const uint32_t*)video[vid::sck::generate::out_frame].get_dataptr();
         assert(frame < MAX_N_FRAMES);
-        fprintf(stderr, "(II) Frame n°%4lu", frame);
+        fprintf(stderr, "(II) Frame n°%4u", frame);
+
+        delayer_ROI_id[dly::tsk::produce].exec();
+        delayer_ROI_xmin[dly::tsk::produce].exec();
+        delayer_ROI_xmax[dly::tsk::produce].exec();
+        delayer_ROI_ymin[dly::tsk::produce].exec();
+        delayer_ROI_ymax[dly::tsk::produce].exec();
+        delayer_ROI_S[dly::tsk::produce].exec();
+        delayer_ROI_x[dly::tsk::produce].exec();
+        delayer_ROI_y[dly::tsk::produce].exec();
+        delayer_ROI_prev_id[dly::tsk::produce].exec();
+        delayer_ROI_frame[dly::tsk::produce].exec();
+        delayer_ROI_time[dly::tsk::produce].exec();
+        delayer_ROI_time_motion[dly::tsk::produce].exec();
+        delayer_ROI_is_extrapolated[dly::tsk::produce].exec();
+        delayer_n_ROI[dly::tsk::produce].exec();
 
         // Step 1 : seuillage low/high
-        threshold_min[thr::sck::apply::in_img] = &I[i0 - b][j0 - b];
-        threshold_max[thr::sck::apply::in_img] = &I[i0 - b][j0 - b];
+        threshold_min[thr::sck::apply::in_img] = video[vid::sck::generate::out_img];
+        threshold_max[thr::sck::apply::in_img] = video[vid::sck::generate::out_img];
         threshold_min[thr::tsk::apply].exec();
         threshold_max[thr::tsk::apply].exec();
 
         // Step 2 : ECC/ACC
         lsl[ccl::sck::apply::in_img] = threshold_min[thr::sck::apply::out_img];
         lsl[ccl::tsk::apply].exec();
-        uint32_t n_ROI = *(uint32_t*)lsl[ccl::sck::apply::out_n_ROI].get_dataptr();
 
-        extractor[ftr::sck::extract::in_img] = lsl[ccl::sck::apply::out_img];
-        extractor[ftr::sck::extract::in_n_ROI] = lsl[ccl::sck::apply::out_n_ROI];
-        extractor[ftr::tsk::extract].exec();
-
-        std::copy_n((uint16_t*)(extractor[ftr::sck::extract::out_ROI_id].get_dataptr()), n_ROI, ROI_array_tmp->id);
-        std::copy_n((uint16_t*)(extractor[ftr::sck::extract::out_ROI_xmin].get_dataptr()), n_ROI, ROI_array_tmp->xmin);
-        std::copy_n((uint16_t*)(extractor[ftr::sck::extract::out_ROI_xmax].get_dataptr()), n_ROI, ROI_array_tmp->xmax);
-        std::copy_n((uint16_t*)(extractor[ftr::sck::extract::out_ROI_ymin].get_dataptr()), n_ROI, ROI_array_tmp->ymin);
-        std::copy_n((uint16_t*)(extractor[ftr::sck::extract::out_ROI_ymax].get_dataptr()), n_ROI, ROI_array_tmp->ymax);
-        std::copy_n((uint32_t*)(extractor[ftr::sck::extract::out_ROI_S].get_dataptr()), n_ROI, ROI_array_tmp->S);
-        std::copy_n((float*)(extractor[ftr::sck::extract::out_ROI_x].get_dataptr()), n_ROI, ROI_array_tmp->x);
-        std::copy_n((float*)(extractor[ftr::sck::extract::out_ROI_y].get_dataptr()), n_ROI, ROI_array_tmp->y);
-
-        ROI_array_tmp->_size = n_ROI;
-        std::fill_n(ROI_array_tmp->frame, ROI_array_tmp->_size, frame);
+        extractor[ftr_ext::sck::extract::in_img] = lsl[ccl::sck::apply::out_img];
+        extractor[ftr_ext::sck::extract::in_n_ROI] = lsl[ccl::sck::apply::out_n_ROI];
+        extractor[ftr_ext::tsk::extract].exec();
 
         // Step 3 : seuillage hysteresis && filter surface
-        features_merge_HI_CCL_v2((const uint32_t**)lsl.get_out_img(), (const uint8_t**)threshold_max.get_out_img(),
-                                 SH_2, i0, i1, j0, j1, ROI_array_tmp, p_surface_min, p_surface_max);
-        features_init_ROI_array(ROI_array1); // TODO: this is overkill, need to understand why we need to do that
-        features_shrink_ROI_array((const ROI_t*)ROI_array_tmp, ROI_array1);
+        merger[ftr_mrg::sck::merge::in_img1] = lsl[ccl::sck::apply::out_img];
+        merger[ftr_mrg::sck::merge::in_img2] = threshold_max[thr::sck::apply::out_img];
+        merger[ftr_mrg::sck::merge::in_ROI_id] = extractor[ftr_ext::sck::extract::out_ROI_id];
+        merger[ftr_mrg::sck::merge::in_ROI_xmin] = extractor[ftr_ext::sck::extract::out_ROI_xmin];
+        merger[ftr_mrg::sck::merge::in_ROI_xmax] = extractor[ftr_ext::sck::extract::out_ROI_xmax];
+        merger[ftr_mrg::sck::merge::in_ROI_ymin] = extractor[ftr_ext::sck::extract::out_ROI_ymin];
+        merger[ftr_mrg::sck::merge::in_ROI_ymax] = extractor[ftr_ext::sck::extract::out_ROI_ymax];
+        merger[ftr_mrg::sck::merge::in_ROI_S] = extractor[ftr_ext::sck::extract::out_ROI_S];
+        merger[ftr_mrg::sck::merge::in_ROI_x] = extractor[ftr_ext::sck::extract::out_ROI_x];
+        merger[ftr_mrg::sck::merge::in_ROI_y] = extractor[ftr_ext::sck::extract::out_ROI_y];
+        merger[ftr_mrg::sck::merge::in_n_ROI] = lsl[ccl::sck::apply::out_n_ROI];
+        merger[ftr_mrg::tsk::merge].exec();
 
         // Step 4 : mise en correspondance
-        KPPV_match(kppv_data, ROI_array0, ROI_array1, p_k);
+        matcher[knn::sck::match::in_ROI0_id] = delayer_ROI_id[dly::sck::produce::out];
+        matcher[knn::sck::match::in_ROI0_x] = delayer_ROI_x[dly::sck::produce::out];
+        matcher[knn::sck::match::in_ROI0_y] = delayer_ROI_y[dly::sck::produce::out];
+        matcher[knn::sck::match::in_n_ROI0] = delayer_n_ROI[dly::sck::produce::out];
+        matcher[knn::sck::match::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
+        matcher[knn::sck::match::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
+        matcher[knn::sck::match::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
+        matcher[knn::sck::match::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
+        matcher[knn::tsk::match].exec();
 
         // Step 5 : recalage
-        double theta, tx, ty, mean_error, std_deviation;
-        features_compute_motion((const ROI_t*)ROI_array1, ROI_array0, &theta, &tx, &ty, &mean_error, &std_deviation);
+        motion[ftr_mtn::sck::compute::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
+        motion[ftr_mtn::sck::compute::in_ROI0_x] = delayer_ROI_x[dly::sck::produce::out];
+        motion[ftr_mtn::sck::compute::in_ROI0_y] = delayer_ROI_y[dly::sck::produce::out];
+        motion[ftr_mtn::sck::compute::in_n_ROI0] = delayer_n_ROI[dly::sck::produce::out];
+        motion[ftr_mtn::sck::compute::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
+        motion[ftr_mtn::sck::compute::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
+        motion[ftr_mtn::tsk::compute].exec();
 
         // Step 6: tracking
-        tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, track_array, BB_array, frame, theta, tx,
-                         ty, mean_error, std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all,
-                         p_fra_star_min, p_fra_meteor_min, p_fra_meteor_max);
+        tracking[trk::sck::perform::in_frame] = video[vid::sck::generate::out_frame];
+        tracking[trk::sck::perform::in_ROI0_id] = delayer_ROI_id[dly::sck::produce::out];
+        tracking[trk::sck::perform::in_ROI0_frame] = delayer_ROI_frame[dly::sck::produce::out];
+        tracking[trk::sck::perform::in_ROI0_xmin] = delayer_ROI_xmin[dly::sck::produce::out];
+        tracking[trk::sck::perform::in_ROI0_xmax] = delayer_ROI_xmax[dly::sck::produce::out];
+        tracking[trk::sck::perform::in_ROI0_ymin] = delayer_ROI_ymin[dly::sck::produce::out];
+        tracking[trk::sck::perform::in_ROI0_ymax] = delayer_ROI_ymax[dly::sck::produce::out];
+        tracking[trk::sck::perform::in_ROI0_x] = delayer_ROI_x[dly::sck::produce::out];
+        tracking[trk::sck::perform::in_ROI0_y] = delayer_ROI_y[dly::sck::produce::out];
+        tracking[trk::sck::perform::in_ROI0_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
+        tracking[trk::sck::perform::in_ROI0_time] = delayer_ROI_time[dly::sck::produce::out];
+        tracking[trk::sck::perform::in_ROI0_time_motion] = delayer_ROI_time_motion[dly::sck::produce::out];
+        tracking[trk::sck::perform::in_ROI0_prev_id] = delayer_ROI_prev_id[dly::sck::produce::out];
+        tracking[trk::sck::perform::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
+        tracking[trk::sck::perform::in_ROI0_is_extrapolated] = delayer_ROI_is_extrapolated[dly::sck::produce::out];
+        tracking[trk::sck::perform::in_n_ROI0] = delayer_n_ROI[dly::sck::produce::out];
+        tracking[trk::sck::perform::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
+        tracking[trk::sck::perform::in_ROI1_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
+        tracking[trk::sck::perform::in_ROI1_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
+        tracking[trk::sck::perform::in_ROI1_ymin] = merger[ftr_mrg::sck::merge::out_ROI_ymin];
+        tracking[trk::sck::perform::in_ROI1_ymax] = merger[ftr_mrg::sck::merge::out_ROI_ymax];
+        tracking[trk::sck::perform::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
+        tracking[trk::sck::perform::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
+        tracking[trk::sck::perform::in_ROI1_prev_id] = matcher[knn::sck::match::out_ROI1_prev_id];
+        tracking[trk::sck::perform::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
+        tracking[trk::sck::perform::in_theta] = motion[ftr_mtn::sck::compute::out_theta];
+        tracking[trk::sck::perform::in_tx] = motion[ftr_mtn::sck::compute::out_tx];
+        tracking[trk::sck::perform::in_ty] = motion[ftr_mtn::sck::compute::out_ty];
+        tracking[trk::sck::perform::in_mean_error] = motion[ftr_mtn::sck::compute::out_mean_error];
+        tracking[trk::sck::perform::in_std_deviation] = motion[ftr_mtn::sck::compute::out_std_deviation];
+        tracking[trk::tsk::perform].exec();
+
+        // -- COPIES BEGIN
+        delayer_ROI_id[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_id];
+        delayer_ROI_xmin[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
+        delayer_ROI_xmax[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
+        delayer_ROI_ymin[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_ymin];
+        delayer_ROI_ymax[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_ymax];
+        delayer_ROI_S[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_S];
+        delayer_ROI_x[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_x];
+        delayer_ROI_y[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_y];
+        delayer_ROI_prev_id[dly::sck::memorize::in] = matcher[knn::sck::match::out_ROI1_prev_id];
+        delayer_ROI_frame[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_frame];
+        delayer_ROI_time[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_time];
+        delayer_ROI_time_motion[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_time_motion];
+        delayer_ROI_is_extrapolated[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_is_extrapolated];
+        delayer_n_ROI[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_n_ROI];
+
+        delayer_ROI_id[dly::tsk::memorize].exec();
+        delayer_ROI_xmin[dly::tsk::memorize].exec();
+        delayer_ROI_xmax[dly::tsk::memorize].exec();
+        delayer_ROI_ymin[dly::tsk::memorize].exec();
+        delayer_ROI_ymax[dly::tsk::memorize].exec();
+        delayer_ROI_S[dly::tsk::memorize].exec();
+        delayer_ROI_x[dly::tsk::memorize].exec();
+        delayer_ROI_y[dly::tsk::memorize].exec();
+        delayer_ROI_prev_id[dly::tsk::memorize].exec();
+        delayer_ROI_frame[dly::tsk::memorize].exec();
+        delayer_ROI_time[dly::tsk::memorize].exec();
+        delayer_ROI_time_motion[dly::tsk::memorize].exec();
+        delayer_ROI_is_extrapolated[dly::tsk::memorize].exec();
+        delayer_n_ROI[dly::tsk::memorize].exec();
+        // -- COPIES END
+
+        video[vid::tsk::generate].exec();
 
         // Saving frames
         if (p_out_frames) {
             tools_create_folder(p_out_frames);
             char filename[1024];
-            sprintf(filename, "%s/%05lu.pgm", p_out_frames, frame);
-            tools_save_frame_ui8matrix(filename, SH_2, i0, i1, j0, j1);
+            sprintf(filename, "%s/%05u.pgm", p_out_frames, frame);
+            tools_save_frame_ui8matrix(filename, (uint8_t**)merger[ftr_mrg::sck::merge::out_img].get_dataptr(), i0, i1,
+                                       j0, j1);
         }
 
         // Saving stats
         if (p_out_stats && n_frames) {
             tools_create_folder(p_out_stats);
-            KPPV_save_asso_conflicts(p_out_stats, frame - 1, kppv_data, ROI_array0, ROI_array1, track_array);
+            //
+            // KPPV_save_asso_conflicts(p_out_stats, frame - 1, matcher.get_data(), ROI_array0, ROI_array1,
+            //                          tracking.get_track_array());
             // tools_save_motion(path_motion, theta, tx, ty, frame-1);
             // tools_save_motionExtraction(path_extraction, ROI_array0.data, ROI_array1.data, ROI_array0.size, theta,
             //                             tx, ty, frame-1);
@@ -305,43 +401,22 @@ int main(int argc, char** argv) {
         }
 
         n_frames++;
-        real_n_tracks = tracking_count_objects(track_array, &n_stars, &n_meteors, &n_noise);
+        real_n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
         fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors, n_stars,
                 n_noise, real_n_tracks);
         fflush(stderr);
-
-        ROI_t* tmp = ROI_array0;
-        ROI_array0 = ROI_array1;
-        ROI_array1 = tmp;
     }
     fprintf(stderr, "\n");
 
     if (p_out_bb)
-        tracking_save_array_BB(p_out_bb, BB_array, track_array, MAX_N_FRAMES, p_track_all);
-    tracking_print_track_array(stdout, track_array);
+        tracking_save_array_BB(p_out_bb, tracking.get_BB_array(), tracking.get_track_array(), MAX_N_FRAMES,
+                               p_track_all);
+    tracking_print_track_array(stdout, tracking.get_track_array());
 
     printf("# Statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, real_n_tracks);
-
-    // ----------
-    // -- FREE --
-    // ----------
-
-    free_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui32matrix(SM_2, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui8matrix(SH_2, i0 - b, i1 + b, j0 - b, j1 + b);
-    features_free_ROI_array(ROI_array_tmp);
-    features_free_ROI_array(ROI_array0);
-    features_free_ROI_array(ROI_array1);
-    video_free(video);
-    CCL_LSL_free_data(ccl_data);
-    KPPV_free_data(kppv_data);
-    tracking_free_BB_array(BB_array);
-    tracking_free_track_array(track_array);
-    tracking_free_data(tracking_data);
-    free(BB_array);
 
     printf("# End of the program, exiting.\n");
 
