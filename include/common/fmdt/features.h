@@ -54,10 +54,12 @@ void features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_t
                               const int j0, const int j1, ROI_t* ROI_array, const uint32_t S_min, const uint32_t S_max);
 size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* ROI_src_xmin,
                                   const uint16_t* ROI_src_xmax, const uint16_t* ROI_src_ymin,
-                                  const uint16_t* ROI_src_ymax, const uint32_t* ROI_src_S, const float* ROI_src_x,
-                                  const float* ROI_src_y, const size_t n_ROI_src, uint16_t* ROI_dest_id,
-                                  uint16_t* ROI_dest_xmin, uint16_t* ROI_dest_xmax, uint16_t* ROI_dest_ymin,
-                                  uint16_t* ROI_dest_ymax, uint32_t* ROI_dest_S, float* ROI_dest_x, float* ROI_dest_y);
+                                  const uint16_t* ROI_src_ymax, const uint32_t* ROI_src_S, const uint32_t* ROI_src_Sx,
+                                  const uint32_t* ROI_src_Sy, const float* ROI_src_x, const float* ROI_src_y,
+                                  const size_t n_ROI_src, uint16_t* ROI_dest_id, uint16_t* ROI_dest_xmin,
+                                  uint16_t* ROI_dest_xmax, uint16_t* ROI_dest_ymin, uint16_t* ROI_dest_ymax,
+                                  uint32_t* ROI_dest_S, uint32_t* ROI_dest_Sx, uint32_t* ROI_dest_Sy, float* ROI_dest_x,
+                                  float* ROI_dest_y);
 void features_shrink_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest);
 double features_compute_mean_error(const ROI_t* stats);
 double features_compute_std_deviation(const ROI_t* stats, const double mean_error);
@@ -72,6 +74,11 @@ void features_compute_motion(const ROI_t* ROI_array1, ROI_t* ROI_array0, double*
 // void features_parse_stats(const char* filename, ROI_t* stats, int* n);
 // void features_save_stats(const char* filename, const ROI_t* ROI_array, const track_array_t* track_array,
 //                          const unsigned age);
+void _features_save_stats_file(FILE* f, const uint16_t* ROI_id, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
+                               const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
+                               const uint32_t* ROI_Sx, const uint32_t* ROI_Sy, const float* ROI_x, const float* ROI_y,
+                               const int32_t* ROI_time, const int32_t* ROI_time_motion, const size_t n_ROI,
+                               const track_t* track_array, const unsigned age);
 void features_save_stats_file(FILE* f, const ROI_t* ROI_array, const track_t* track_array, const unsigned age);
 // void features_save_stats(const char* filename, ROI_t* stats, int n, track_t* tracks);
 // void features_save_motion(const char* filename, double theta, double tx, double ty, int frame);

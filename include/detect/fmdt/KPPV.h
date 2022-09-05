@@ -22,5 +22,17 @@ void KPPV_free_data(KKPV_data_t* data);
 // void KPPV_save_asso_VT(const char* filename, int nc0, ROI_t* stats, int frame);
 // void KPPV_save_conflicts(const char* filename, uint32_t* conflicts, uint32_t** nearest, float** distances,
 //                          int n_asso, int n_conflict);
+void _KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data_t* data, const uint16_t* ROI0_id,
+                               const uint16_t* ROI0_xmin, const uint16_t* ROI0_xmax, const uint16_t* ROI0_ymin,
+                               const uint16_t* ROI0_ymax, const uint32_t* ROI0_S, const uint32_t* ROI0_Sx,
+                               const uint32_t* ROI0_Sy, const float* ROI0_x, const float* ROI0_y, const float* ROI0_dx,
+                               const float* ROI0_dy, const float* ROI0_error, const int32_t* ROI0_time,
+                               const int32_t* ROI0_time_motion, const int32_t* ROI0_next_id, const size_t n_ROI0,
+                               const uint16_t* ROI1_id, const uint16_t* ROI1_xmin, const uint16_t* ROI1_xmax,
+                               const uint16_t* ROI1_ymin, const uint16_t* ROI1_ymax, const uint32_t* ROI1_S,
+                               const uint32_t* ROI1_Sx, const uint32_t* ROI1_Sy, const float* ROI1_x,
+                               const float* ROI1_y, const int32_t* ROI1_time, const int32_t* ROI1_time_motion,
+                               const size_t n_ROI1, const track_t* track_array, const double mean_error,
+                               const double std_deviation);
 void KPPV_save_asso_conflicts(const char* filename, const int frame, const KKPV_data_t* data, const ROI_t* ROI_array0,
                               const ROI_t* ROI_array1, const track_t* tracks);

@@ -232,8 +232,18 @@ void KPPV_save_conflicts(const char* filename, uint32_t* conflicts, uint32_t** n
     fclose(f);
 }
 
-void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data_t* data, const ROI_t* ROI_array0,
-                              const ROI_t* ROI_array1, const track_t* track_array) {
+void _KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data_t* data, const uint16_t* ROI0_id,
+                               const uint16_t* ROI0_xmin, const uint16_t* ROI0_xmax, const uint16_t* ROI0_ymin,
+                               const uint16_t* ROI0_ymax, const uint32_t* ROI0_S, const uint32_t* ROI0_Sx,
+                               const uint32_t* ROI0_Sy, const float* ROI0_x, const float* ROI0_y, const float* ROI0_dx,
+                               const float* ROI0_dy, const float* ROI0_error, const int32_t* ROI0_time,
+                               const int32_t* ROI0_time_motion, const int32_t* ROI0_next_id, const size_t n_ROI0,
+                               const uint16_t* ROI1_id, const uint16_t* ROI1_xmin, const uint16_t* ROI1_xmax,
+                               const uint16_t* ROI1_ymin, const uint16_t* ROI1_ymax, const uint32_t* ROI1_S,
+                               const uint32_t* ROI1_Sx, const uint32_t* ROI1_Sy, const float* ROI1_x,
+                               const float* ROI1_y, const int32_t* ROI1_time, const int32_t* ROI1_time_motion,
+                               const size_t n_ROI1, const track_t* track_array, const double mean_error,
+                               const double std_deviation) {
     assert(frame >= 0);
     char filename[1024];
 
@@ -247,23 +257,24 @@ void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data
 
     // stats
     fprintf(f, "# Frame n°%05d (cur)\n", frame);
-    features_save_stats_file(f, ROI_array0, track_array, 1);
+    _features_save_stats_file(f, ROI0_id, ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax, ROI0_S, ROI0_Sx, ROI0_Sy, ROI0_x,
+                              ROI0_y, ROI0_time, ROI0_time_motion, n_ROI0, track_array, 1);
+
     fprintf(f, "#\n# Frame n°%05d (next)\n", frame + 1);
-    features_save_stats_file(f, ROI_array1, track_array, 0);
+    _features_save_stats_file(f, ROI1_id, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_S, ROI1_Sx, ROI1_Sy, ROI1_x,
+                              ROI1_y, ROI1_time, ROI1_time_motion, n_ROI1, track_array, 0);
     fprintf(f, "#\n");
 
     // Asso
     int cpt = 0;
-    for (size_t i = 0; i < ROI_array0->_size; i++) {
-        if (ROI_array0->next_id[i] != 0)
+    for (size_t i = 0; i < n_ROI0; i++) {
+        if (ROI0_next_id[i] != 0)
             cpt++;
     }
     fprintf(f, "# Associations [%d]:\n", cpt);
     size_t j;
 
     if (cpt) {
-        double mean_error = features_compute_mean_error(ROI_array0);
-        double std_deviation = features_compute_std_deviation(ROI_array0, mean_error);
         fprintf(f, "# * mean error    = %.3f\n", mean_error);
         fprintf(f, "# * std deviation = %.3f\n", std_deviation);
 
@@ -275,15 +286,13 @@ void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data
         fprintf(f, "# -----|------||--------|------||-------|-------|--------\n");
     }
 
-    for (size_t i = 0; i < ROI_array0->_size; i++) {
-        if (ROI_array0->S[i] == 0)
+    for (size_t i = 0; i < n_ROI0; i++) {
+        if (ROI0_S[i] == 0)
             continue;
-        if (ROI_array0->next_id[i]) {
-            j = (size_t)(ROI_array0->next_id[i] - 1);
-            float dx = ROI_array0->dx[i];
-            float dy = ROI_array0->dy[i];
-            fprintf(f, "  %4lu | %4lu || %6.2f | %4d || %5.1f | %5.1f | %6.3f \n", i, j, data->distances[i][j],
-                    data->nearest[i][j], dx, dy, ROI_array0->error[i]);
+        if (ROI0_next_id[i]) {
+            j = (size_t)(ROI0_next_id[i] - 1);
+            fprintf(f, "  %4u | %4u || %6.2f | %4d || %5.1f | %5.1f | %6.3f \n", ROI0_id[i], ROI0_next_id[i],
+                    data->distances[i][j], data->nearest[i][j], ROI0_dx[i], ROI0_dy[i], ROI0_error[i]);
         }
     }
 
@@ -304,7 +313,7 @@ void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data
     // for(int j = 1; j <= n_conflict; j++){
     //     if (conflicts[j] != 1 && conflicts[j] != 0){
     //         fprintf(f, "conflit CC = %4d : ", j);
-    //         for(int i = 1 ; i <= ROI_array0->_size; i++){
+    //         for(int i = 1 ; i <= n_ROI0; i++){
     //             if (nearest[i][j] == 1 ){
     //                 fprintf(f, "%4d\t", i);
     //             }
@@ -313,4 +322,18 @@ void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data
     //     }
     // }
     fclose(f);
+}
+
+void KPPV_save_asso_conflicts(const char* path, const int frame, const KKPV_data_t* data, const ROI_t* ROI_array0,
+                              const ROI_t* ROI_array1, const track_t* track_array) {
+    double mean_error = features_compute_mean_error(ROI_array0);
+    double std_deviation = features_compute_std_deviation(ROI_array0, mean_error);
+
+    _KPPV_save_asso_conflicts(path, frame, data, ROI_array0->id, ROI_array0->xmin, ROI_array0->xmax, ROI_array0->ymin,
+                              ROI_array0->ymax, ROI_array0->S, ROI_array0->Sx, ROI_array0->Sy, ROI_array0->x,
+                              ROI_array0->y, ROI_array0->dx, ROI_array0->dy, ROI_array0->error, ROI_array0->time,
+                              ROI_array0->time_motion, ROI_array0->next_id, ROI_array0->_size, ROI_array1->id,
+                              ROI_array1->xmin, ROI_array1->xmax, ROI_array1->ymin, ROI_array1->ymax, ROI_array1->S,
+                              ROI_array1->Sx, ROI_array1->Sy, ROI_array1->x, ROI_array1->y, ROI_array1->time,
+                              ROI_array1->time_motion, ROI_array1->_size, track_array, mean_error, std_deviation);
 }

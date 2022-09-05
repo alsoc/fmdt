@@ -12,16 +12,17 @@ namespace vid {
     }
 }
 
-class Video : public aff3ct::module::Module {
+class Video : public aff3ct::module::Module, public aff3ct::tools::Interface_is_done {
 protected:
     int i0, i1, j0, j1;
     int b;
     video_t* video;
     uint8_t** out_img;
+    bool done;
 public:
     Video(const std::string filename, const size_t frame_start, const size_t frame_end, const size_t frame_skip,
           const int b)
-    : Module(), i0(0), i1(0), j0(0), j1(0), b(b), video(nullptr), out_img(nullptr) {
+    : Module(), i0(0), i1(0), j0(0), j1(0), b(b), video(nullptr), out_img(nullptr), done(false) {
         const std::string name = "Video";
         this->set_name(name);
         this->set_short_name(name);
@@ -43,14 +44,14 @@ public:
             auto &vid = static_cast<Video&>(m);
             uint8_t* m_out_img = static_cast<uint8_t*>(t[ps_out_img].get_dataptr());
             vid.out_img[vid.i0 - vid.b] = m_out_img;
-            for (int i = vid.i0 - vid.b + 1; i <= vid.i1 + vid.b; i++) {
+            for (int i = vid.i0 - vid.b + 1; i <= vid.i1 + vid.b; i++)
                 vid.out_img[i] = vid.out_img[i - 1] + ((vid.j1 - vid.j0) + 1 + 2 * vid.b);
-            }
 
             *static_cast<uint32_t*>(t[ps_out_frame].get_dataptr()) = vid.video->frame_current;
-
             int ret = video_get_next_frame(vid.video, vid.out_img);
-
+            vid.done = ret ? false : true;
+            if (vid.done)
+                throw aff3ct::tools::processing_aborted(__FILE__, __LINE__, __func__);
             return ret ? aff3ct::module::status_t::SUCCESS : aff3ct::module::status_t::FAILURE_STOP;
         });
     }
@@ -78,6 +79,10 @@ public:
 
     inline int get_j1() {
         return this->j1;
+    }
+
+    virtual bool is_done() const {
+        return this->done;
     }
 
     inline aff3ct::module::Task& operator[](const vid::tsk t) {

@@ -293,10 +293,12 @@ void features_filter_surface(ROI_t* ROI_array, uint32_t** img, uint32_t threshol
 
 size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* ROI_src_xmin,
                                   const uint16_t* ROI_src_xmax, const uint16_t* ROI_src_ymin,
-                                  const uint16_t* ROI_src_ymax, const uint32_t* ROI_src_S, const float* ROI_src_x,
-                                  const float* ROI_src_y, const size_t n_ROI_src, uint16_t* ROI_dest_id,
-                                  uint16_t* ROI_dest_xmin, uint16_t* ROI_dest_xmax, uint16_t* ROI_dest_ymin,
-                                  uint16_t* ROI_dest_ymax, uint32_t* ROI_dest_S, float* ROI_dest_x, float* ROI_dest_y) {
+                                  const uint16_t* ROI_src_ymax, const uint32_t* ROI_src_S, const uint32_t* ROI_src_Sx,
+                                  const uint32_t* ROI_src_Sy, const float* ROI_src_x, const float* ROI_src_y,
+                                  const size_t n_ROI_src, uint16_t* ROI_dest_id, uint16_t* ROI_dest_xmin,
+                                  uint16_t* ROI_dest_xmax, uint16_t* ROI_dest_ymin, uint16_t* ROI_dest_ymax,
+                                  uint32_t* ROI_dest_S, uint32_t* ROI_dest_Sx, uint32_t* ROI_dest_Sy, float* ROI_dest_x,
+                                  float* ROI_dest_y) {
     size_t cpt = 0;
     for (size_t i = 0; i < n_ROI_src; i++) {
         if (ROI_src_S[i] > 0) {
@@ -306,6 +308,8 @@ size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* RO
             ROI_dest_ymin[cpt] = ROI_src_ymin[i];
             ROI_dest_ymax[cpt] = ROI_src_ymax[i];
             ROI_dest_S[cpt] = ROI_src_S[i];
+            ROI_dest_Sx[cpt] = ROI_src_Sx[i];
+            ROI_dest_Sy[cpt] = ROI_src_Sy[i];
             ROI_dest_x[cpt] = ROI_src_x[i];
             ROI_dest_y[cpt] = ROI_src_y[i];
             cpt++;
@@ -317,10 +321,12 @@ size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* RO
 void features_shrink_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest) {
     ROI_array_dest->_size = _features_shrink_ROI_array(ROI_array_src->id, ROI_array_src->xmin, ROI_array_src->xmax,
                                                        ROI_array_src->ymin, ROI_array_src->ymax, ROI_array_src->S,
-                                                       ROI_array_src->x, ROI_array_src->y, ROI_array_src->_size,
-                                                       ROI_array_dest->id, ROI_array_dest->xmin, ROI_array_dest->xmax,
-                                                       ROI_array_dest->ymin, ROI_array_dest->ymax, ROI_array_dest->S,
-                                                       ROI_array_dest->x, ROI_array_dest->y);
+                                                       ROI_array_src->Sx, ROI_array_src->Sy, ROI_array_src->x,
+                                                       ROI_array_src->y, ROI_array_src->_size, ROI_array_dest->id,
+                                                       ROI_array_dest->xmin, ROI_array_dest->xmax, ROI_array_dest->ymin,
+                                                       ROI_array_dest->ymax, ROI_array_dest->S, ROI_array_dest->Sx,
+                                                       ROI_array_dest->Sy, ROI_array_dest->x,
+                                                       ROI_array_dest->y);
 }
 
 void _features_rigid_registration(const int32_t* ROI0_next_id, const float* ROI0_x, const float* ROI0_y,
@@ -647,23 +653,32 @@ void features_parse_stats(const char* filename, ROI_t* stats, int* n) {
     fclose(file);
 }
 
-int find_corresponding_track(const track_t* track_array, const ROI_t* ROI_array, const int ROI_id,
-                             const unsigned age) {
+int _find_corresponding_track(const track_t* track_array, const uint16_t* ROI_id, const int sel_ROI_id,
+                              const unsigned age) {
     assert(age == 0 || age == 1);
     for (size_t t = track_array->_offset; t < track_array->_size; t++) {
-        int cur_ROI_id = (age == 0) ? track_array->end->id[t] : ROI_array->id[track_array->end->prev_id[t]];
+        int cur_ROI_id = (age == 0) ? track_array->end->id[t] : ROI_id[track_array->end->prev_id[t]];
         if (cur_ROI_id <= 0)
             continue;
-        if (ROI_id == cur_ROI_id)
+        if (sel_ROI_id == cur_ROI_id)
             return t;
     }
     return -1;
 }
 
-void features_save_stats_file(FILE* f, const ROI_t* ROI_array, const track_t* track_array, const unsigned age) {
+int find_corresponding_track(const track_t* track_array, const ROI_t* ROI_array, const int sel_ROI_id,
+                             const unsigned age) {
+    return _find_corresponding_track(track_array, ROI_array->id, sel_ROI_id, age);
+}
+
+void _features_save_stats_file(FILE* f, const uint16_t* ROI_id, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
+                               const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
+                               const uint32_t* ROI_Sx, const uint32_t* ROI_Sy, const float* ROI_x, const float* ROI_y,
+                               const int32_t* ROI_time, const int32_t* ROI_time_motion, const size_t n_ROI,
+                               const track_t* track_array, const unsigned age) {
     int cpt = 0;
-    for (size_t i = 0; i < ROI_array->_size; i++)
-        if (ROI_array->S[i] != 0)
+    for (size_t i = 0; i < n_ROI; i++)
+        if (ROI_S[i] != 0)
             cpt++;
 
     fprintf(f, "# Regions of interest (ROI) [%d]: \n", cpt);
@@ -676,9 +691,9 @@ void features_save_stats_file(FILE* f, const ROI_t* ROI_array, const track_t* tr
         fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||--------|--------\n");
     }
 
-    for (size_t i = 0; i < ROI_array->_size; i++) {
-        if (ROI_array->S[i] != 0) {
-            int t = find_corresponding_track(track_array, ROI_array, ROI_array->id[i], age);
+    for (size_t i = 0; i < n_ROI; i++) {
+        if (ROI_S[i] != 0) {
+            int t = _find_corresponding_track(track_array, ROI_id, ROI_id[i], age);
             char task_id_str[16];
             if (t == -1)
                 strcpy(task_id_str, "   -");
@@ -690,11 +705,16 @@ void features_save_stats_file(FILE* f, const ROI_t* ROI_array, const track_t* tr
             else
                 sprintf(task_obj_type, "%s", g_obj_to_string_with_spaces[track_array->obj_type[t]]);
             fprintf(f, "   %4d || %s | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f || %6d | %6d \n",
-                    ROI_array->id[i], task_id_str, task_obj_type, ROI_array->xmin[i], ROI_array->xmax[i],
-                    ROI_array->ymin[i], ROI_array->ymax[i], ROI_array->S[i], ROI_array->Sx[i], ROI_array->Sy[i],
-                    ROI_array->x[i], ROI_array->y[i], ROI_array->time[i], ROI_array->time_motion[i]);
+                    ROI_id[i], task_id_str, task_obj_type, ROI_xmin[i], ROI_xmax[i], ROI_ymin[i], ROI_ymax[i], ROI_S[i],
+                    ROI_Sx[i], ROI_Sy[i], ROI_x[i], ROI_y[i], ROI_time[i], ROI_time_motion[i]);
         }
     }
+}
+
+void features_save_stats_file(FILE* f, const ROI_t* ROI_array, const track_t* track_array, const unsigned age) {
+    _features_save_stats_file(f, ROI_array->id, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin, ROI_array->ymax,
+                              ROI_array->S, ROI_array->Sx, ROI_array->Sy, ROI_array->x, ROI_array->y,
+                              ROI_array->time, ROI_array->time_motion, ROI_array->_size, track_array, age);
 }
 
 void features_save_stats(const char* filename, const ROI_t* ROI_array, const track_t* track_array, const unsigned age) {

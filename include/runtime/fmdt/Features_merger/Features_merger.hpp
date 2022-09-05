@@ -9,9 +9,9 @@ namespace ftr_mrg {
     enum class tsk : size_t { merge, SIZE };
     namespace sck {
         enum class merge : size_t { in_img1, in_img2, in_ROI_id, in_ROI_xmin, in_ROI_xmax, in_ROI_ymin,
-                                    in_ROI_ymax, in_ROI_S, in_ROI_x, in_ROI_y, in_n_ROI, out_ROI_id, out_ROI_xmin,
-                                    out_ROI_xmax, out_ROI_ymin, out_ROI_ymax, out_ROI_S, out_ROI_x, out_ROI_y,
-                                    out_n_ROI, out_img, status };
+                                    in_ROI_ymax, in_ROI_S, in_ROI_Sx, in_ROI_Sy, in_ROI_x, in_ROI_y, in_n_ROI,
+                                    out_ROI_id, out_ROI_xmin, out_ROI_xmax, out_ROI_ymin, out_ROI_ymax, out_ROI_S,
+                                    out_ROI_Sx, out_ROI_Sy, out_ROI_x, out_ROI_y, out_n_ROI, out_img, status };
     }
 }
 
@@ -52,6 +52,8 @@ public:
         auto ps_in_ROI_ymin = this->template create_socket_in<uint16_t>(p, "in_ROI_ymin", max_ROI_size);
         auto ps_in_ROI_ymax = this->template create_socket_in<uint16_t>(p, "in_ROI_ymax", max_ROI_size);
         auto ps_in_ROI_S = this->template create_socket_in<uint32_t>(p, "in_ROI_S", max_ROI_size);
+        auto ps_in_ROI_Sx = this->template create_socket_in<uint32_t>(p, "in_ROI_Sx", max_ROI_size);
+        auto ps_in_ROI_Sy = this->template create_socket_in<uint32_t>(p, "in_ROI_Sy", max_ROI_size);
         auto ps_in_ROI_x = this->template create_socket_in<float>(p, "in_ROI_x", max_ROI_size);
         auto ps_in_ROI_y = this->template create_socket_in<float>(p, "in_ROI_y", max_ROI_size);
         auto ps_in_n_ROI = this->template create_socket_in<uint32_t>(p, "in_n_ROI", 1);
@@ -62,6 +64,8 @@ public:
         auto ps_out_ROI_ymin = this->template create_socket_out<uint16_t>(p, "out_ROI_ymin", max_ROI_size);
         auto ps_out_ROI_ymax = this->template create_socket_out<uint16_t>(p, "out_ROI_ymax", max_ROI_size);
         auto ps_out_ROI_S = this->template create_socket_out<uint32_t>(p, "out_ROI_S", max_ROI_size);
+        auto ps_out_ROI_Sx = this->template create_socket_out<uint32_t>(p, "out_ROI_Sx", max_ROI_size);
+        auto ps_out_ROI_Sy = this->template create_socket_out<uint32_t>(p, "out_ROI_Sy", max_ROI_size);
         auto ps_out_ROI_x = this->template create_socket_out<float>(p, "out_ROI_x", max_ROI_size);
         auto ps_out_ROI_y = this->template create_socket_out<float>(p, "out_ROI_y", max_ROI_size);
         auto ps_out_n_ROI = this->template create_socket_out<uint32_t>(p, "out_n_ROI", 1);
@@ -69,9 +73,10 @@ public:
         auto ps_out_img = this->template create_socket_out<uint8_t>(p, "out_img", socket_img_size);
 
         this->create_codelet(p, [ps_in_img1, ps_in_img2, ps_in_ROI_id, ps_in_ROI_xmin, ps_in_ROI_xmax, ps_in_ROI_ymin,
-                                 ps_in_ROI_ymax, ps_in_ROI_S, ps_in_ROI_x, ps_in_ROI_y, ps_in_n_ROI, ps_out_ROI_id,
-                                 ps_out_ROI_xmin, ps_out_ROI_xmax, ps_out_ROI_ymin, ps_out_ROI_ymax, ps_out_ROI_S,
-                                 ps_out_ROI_x, ps_out_ROI_y, ps_out_n_ROI, ps_out_img]
+                                 ps_in_ROI_ymax, ps_in_ROI_S, ps_in_ROI_Sx, ps_in_ROI_Sy, ps_in_ROI_x, ps_in_ROI_y,
+                                 ps_in_n_ROI, ps_out_ROI_id, ps_out_ROI_xmin, ps_out_ROI_xmax, ps_out_ROI_ymin,
+                                 ps_out_ROI_ymax, ps_out_ROI_S, ps_out_ROI_Sx, ps_out_ROI_Sy, ps_out_ROI_x,
+                                 ps_out_ROI_y, ps_out_n_ROI, ps_out_img]
                              (aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int {
             auto &mrg = static_cast<Features_merger&>(m);
             const uint32_t* m_in_img1 = static_cast<const uint32_t*>(t[ps_in_img1].get_dataptr());
@@ -101,12 +106,24 @@ public:
                                       in_n_ROI,
                                       mrg.S_min, mrg.S_max);
 
+
+size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* ROI_src_xmin,
+                                  const uint16_t* ROI_src_xmax, const uint16_t* ROI_src_ymin,
+                                  const uint16_t* ROI_src_ymax, const uint32_t* ROI_src_S, const uint32_t* ROI_src_Sx,
+                                  const uint32_t* ROI_src_Sy, const float* ROI_src_x, const float* ROI_src_y,
+                                  const size_t n_ROI_src, uint16_t* ROI_dest_id, uint16_t* ROI_dest_xmin,
+                                  uint16_t* ROI_dest_xmax, uint16_t* ROI_dest_ymin, uint16_t* ROI_dest_ymax,
+                                  uint32_t* ROI_dest_S, uint32_t* ROI_dest_Sx, uint32_t* ROI_dest_Sy, float* ROI_dest_x,
+                                  float* ROI_dest_y);
+
             size_t out_n_ROI = _features_shrink_ROI_array(static_cast<const uint16_t*>(t[ps_in_ROI_id].get_dataptr()),
                                                           static_cast<const uint16_t*>(t[ps_in_ROI_xmin].get_dataptr()),
                                                           static_cast<const uint16_t*>(t[ps_in_ROI_xmax].get_dataptr()),
                                                           static_cast<const uint16_t*>(t[ps_in_ROI_ymin].get_dataptr()),
                                                           static_cast<const uint16_t*>(t[ps_in_ROI_ymax].get_dataptr()),
                                                           static_cast<const uint32_t*>(t[ps_out_ROI_S].get_dataptr()),
+                                                          static_cast<const uint32_t*>(t[ps_in_ROI_Sx].get_dataptr()),
+                                                          static_cast<const uint32_t*>(t[ps_in_ROI_Sy].get_dataptr()),
                                                           static_cast<const float*>(t[ps_in_ROI_x].get_dataptr()),
                                                           static_cast<const float*>(t[ps_in_ROI_y].get_dataptr()),
                                                           in_n_ROI,
@@ -116,6 +133,8 @@ public:
                                                           static_cast<uint16_t*>(t[ps_out_ROI_ymin].get_dataptr()),
                                                           static_cast<uint16_t*>(t[ps_out_ROI_ymax].get_dataptr()),
                                                           static_cast<uint32_t*>(t[ps_out_ROI_S].get_dataptr()),
+                                                          static_cast<uint32_t*>(t[ps_out_ROI_Sx].get_dataptr()),
+                                                          static_cast<uint32_t*>(t[ps_out_ROI_Sy].get_dataptr()),
                                                           static_cast<float*>(t[ps_out_ROI_x].get_dataptr()),
                                                           static_cast<float*>(t[ps_out_ROI_y].get_dataptr()));
 
