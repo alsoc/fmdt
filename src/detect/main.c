@@ -250,8 +250,6 @@ int main(int argc, char** argv) {
         // Step 2 : ECC/ACC
         const int n_ROI = CCL_LSL_apply(ccl_data, (const uint8_t**)SM_1, SM_2, i0, i1, j0, j1);
         features_extract((const uint32_t**)SM_2, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
-        for (size_t r = 0; r < ROI_array_tmp->_size; r++)
-            ROI_array_tmp->frame[r] = frame;
 
         // Step 3 : seuillage hysteresis && filter surface
         features_merge_HI_CCL_v2((const uint32_t**)SM_2, (const uint8_t**)SH_1, SH_2, i0, i1, j0, j1, ROI_array_tmp,
@@ -267,6 +265,8 @@ int main(int argc, char** argv) {
         features_compute_motion((const ROI_t*)ROI_array1, ROI_array0, &theta, &tx, &ty, &mean_error, &std_deviation);
 
         // Step 6: tracking
+        for (size_t r = 0; r < ROI_array1->_size; r++)
+            ROI_array1->frame[r] = frame;
         tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, track_array, BB_array, frame, theta, tx,
                          ty, mean_error, std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all,
                          p_fra_star_min, p_fra_meteor_min, p_fra_meteor_max);
