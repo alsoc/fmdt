@@ -211,8 +211,8 @@ int main(int argc, char** argv) {
     const int i1 = video.get_i1();
     const int j0 = video.get_j0();
     const int j1 = video.get_j1();
-    Threshold threshold_min(i0 - b, i1 + b, j0 - b, j1 + b, p_light_min);
-    Threshold threshold_max(i0 - b, i1 + b, j0 - b, j1 + b, p_light_max);
+    Threshold threshold_min(i0, i1, j0, j1, b, p_light_min);
+    Threshold threshold_max(i0, i1, j0, j1, b, p_light_max);
     threshold_min.set_custom_name("Thr<min>");
     threshold_max.set_custom_name("Thr<max>");
     CCL_LSL lsl(i0, i1, j0, j1, b);

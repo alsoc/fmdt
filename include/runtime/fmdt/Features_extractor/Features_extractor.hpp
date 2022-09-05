@@ -51,7 +51,7 @@ public:
                                                              const size_t frame_id) -> int {
             auto &ext = static_cast<Features_extractor&>(m);
             const uint32_t* m_in_img = static_cast<const uint32_t*>(t[ps_in_img].get_dataptr());
-            ext.in_img[ext.i0 - ext.b] = m_in_img;
+            ext.in_img[ext.i0 - ext.b] = m_in_img - (ext.j0 - ext.b);
             for (int i = ext.i0 - ext.b + 1; i <= ext.i1 + ext.b; i++)
                 ext.in_img[i] = ext.in_img[i - 1] + ((ext.j1 - ext.j0) + 1 + 2 * ext.b);
 

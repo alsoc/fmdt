@@ -15,22 +15,23 @@ namespace thr {
 class Threshold : public aff3ct::module::Module {
 protected:
     const int i0, i1, j0, j1;
+    const int b;
     const uint8_t thr_val;
     const uint8_t** in_img;
     uint8_t** out_img;
 public:
-    Threshold(const int i0, const int i1, const int j0, const int j1, const uint8_t thr_val)
-    : Module(), i0(i0), i1(i1), j0(j0), j1(j1), thr_val(thr_val), in_img(nullptr), out_img(nullptr) {
+    Threshold(const int i0, const int i1, const int j0, const int j1, const int b, const uint8_t thr_val)
+    : Module(), i0(i0), i1(i1), j0(j0), j1(j1), b(b), thr_val(thr_val), in_img(nullptr), out_img(nullptr) {
         const std::string name = "Threshold";
         this->set_name(name);
         this->set_short_name(name);
 
-        this->in_img = (const uint8_t**)malloc((size_t)(((i1 - i0) + 1) * sizeof(const uint8_t*)));
-        this->out_img = (uint8_t**)malloc((size_t)(((i1 - i0) + 1) * sizeof(uint8_t*)));
-        this->in_img -= i0;
-        this->out_img -= i0;
+        this->in_img = (const uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint8_t*)));
+        this->out_img = (uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint8_t*)));
+        this->in_img -= i0 - b;
+        this->out_img -= i0 - b;
 
-        auto socket_size = ((i1 - i0) + 1) * ((j1 - j0) + 1);
+        auto socket_size = ((i1 - i0) + 1 + 2 * b) * ((j1 - j0) + 1 + 2 * b);
 
         auto &p = this->create_task("apply");
         auto ps_in_img = this->template create_socket_in<uint8_t>(p, "in", socket_size);
@@ -40,16 +41,14 @@ public:
                              const size_t frame_id) -> int {
             auto &thr = static_cast<Threshold&>(m);
             const uint8_t* m_in_img = static_cast<const uint8_t*>(t[ps_in_img].get_dataptr());
-            uint8_t* m_out_img = static_cast<uint8_t*>(t[ps_out_img].get_dataptr());
-            for (auto i = thr.i0; i <= thr.i1; i++) {
-                thr.in_img[i] = m_in_img + (i - thr.i0) * ((thr.j1 - thr.j0) + 1);
-                thr.in_img[i] -= thr.j0;
-            }
+            thr.in_img[thr.i0 - thr.b] = m_in_img - thr.j0;
+            for (int i = thr.i0 - thr.b + 1; i <= thr.i1 + thr.b; i++)
+                thr.in_img[i] = thr.in_img[i - 1] + ((thr.j1 - thr.j0) + 1 + 2 * thr.b);
 
-            thr.out_img[thr.i0] = m_out_img;
-            for (int i = thr.i0 +1; i <= thr.i1; i++) {
-                thr.out_img[i] = thr.out_img[i - 1] + ((thr.j1 - thr.j0) + 1);
-            }
+            uint8_t* m_out_img = static_cast<uint8_t*>(t[ps_out_img].get_dataptr());
+            thr.out_img[thr.i0 - thr.b] = m_out_img - thr.j0;
+            for (int i = thr.i0 - thr.b + 1; i <= thr.i1 + thr.b; i++)
+                thr.out_img[i] = thr.out_img[i - 1] + ((thr.j1 - thr.j0) + 1 + 2 * thr.b);
 
             threshold(thr.in_img, thr.out_img, thr.i0, thr.i1, thr.j0, thr.j1, thr.thr_val);
             return aff3ct::module::status_t::SUCCESS;
@@ -57,8 +56,8 @@ public:
     }
 
     virtual ~Threshold() {
-        free(this->in_img + i0);
-        free(this->out_img + i0);
+        free(this->in_img + this->i0 - this->b);
+        free(this->out_img + this->i0 - this->b);
     }
 
     inline uint8_t** get_out_img() {

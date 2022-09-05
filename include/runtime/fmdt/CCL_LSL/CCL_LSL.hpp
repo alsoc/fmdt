@@ -44,8 +44,8 @@ public:
             auto &lsl = static_cast<CCL_LSL&>(m);
             const uint8_t* m_in_img = static_cast<const uint8_t*>(t[ps_in_img].get_dataptr());
             uint32_t* m_out_img = static_cast<uint32_t*>(t[ps_out_img].get_dataptr());
-            lsl.in_img[lsl.i0 - lsl.b] = m_in_img;
-            lsl.out_img[lsl.i0 - lsl.b] = m_out_img;
+            lsl.in_img[lsl.i0 - lsl.b] = m_in_img - (lsl.j0 - lsl.b);
+            lsl.out_img[lsl.i0 - lsl.b] = m_out_img - (lsl.j0 - lsl.b);
             for (int i = lsl.i0 - lsl.b + 1; i <= lsl.i1 + lsl.b; i++) {
                 lsl.out_img[i] = lsl.out_img[i - 1] + ((lsl.j1 - lsl.j0) + 1 + 2 * lsl.b);
                 lsl.in_img[i] = lsl.in_img[i - 1] + ((lsl.j1 - lsl.j0) + 1 + 2 * lsl.b);
