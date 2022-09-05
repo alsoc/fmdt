@@ -81,6 +81,10 @@ public:
         return this->j1;
     }
 
+    inline int get_b() {
+        return this->b;
+    }
+
     virtual bool is_done() const {
         return this->done;
     }

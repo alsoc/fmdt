@@ -205,12 +205,12 @@ int main(int argc, char** argv) {
     // ---------------- //
 
     // objects allocation
-    int b = 1; // image border
+    const size_t b = 1; // image border
     Video video(p_in_video, p_fra_start, p_fra_end, p_skip_fra, b);
-    const int i0 = video.get_i0();
-    const int i1 = video.get_i1();
-    const int j0 = video.get_j0();
-    const int j1 = video.get_j1();
+    const size_t i0 = video.get_i0();
+    const size_t i1 = video.get_i1();
+    const size_t j0 = video.get_j0();
+    const size_t j1 = video.get_j1();
     Threshold threshold_min(i0, i1, j0, j1, b, p_light_min);
     Threshold threshold_max(i0, i1, j0, j1, b, p_light_max);
     threshold_min.set_custom_name("Thr<min>");
@@ -402,18 +402,21 @@ int main(int argc, char** argv) {
     // -- EXECUTE SEQUENCE -- //
     // ---------------------- //
 
+    uint8_t** tmp_img = (uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint8_t*)));
+    tmp_img += b;
     size_t real_n_tracks;
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     sequence.exec([&video, &merger, &matcher, &motion, &tracking, &delayer_ROI_id, &delayer_ROI_xmin, &delayer_ROI_xmax,
                    &delayer_ROI_ymin, &delayer_ROI_ymax, &delayer_ROI_S, &delayer_ROI_Sx, &delayer_ROI_Sy,
                    &delayer_ROI_x, &delayer_ROI_y, &delayer_ROI_time, &delayer_ROI_time_motion, &delayer_n_ROI,
-                   &real_n_tracks, &n_frames, &n_stars, &n_meteors, &n_noise, &p_out_frames, &p_out_stats]() {
+                   &real_n_tracks, &n_frames, &n_stars, &n_meteors, &n_noise, &p_out_frames, &p_out_stats, &i0, &i1,
+                   &j0, &j1, tmp_img]() {
         if (!video.is_done()) {
             const uint32_t frame = *(uint32_t*)video[vid::sck::generate::out_frame].get_dataptr();
             fprintf(stderr, "(II) Frame n°%4u", frame);
             real_n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
-            fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors, n_stars,
-                    n_noise, real_n_tracks);
+            fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
+                    n_stars, n_noise, real_n_tracks);
             fflush(stderr);
 
             // Saving frames
@@ -421,8 +424,11 @@ int main(int argc, char** argv) {
                 tools_create_folder(p_out_frames);
                 char filename[1024];
                 sprintf(filename, "%s/%05u.pgm", p_out_frames, frame);
-                tools_save_frame_ui8matrix(filename, (uint8_t**)merger[ftr_mrg::sck::merge::out_img].get_dataptr(),
-                                           video.get_i0(), video.get_i1(), video.get_j0(), video.get_j1());
+                uint8_t* out_img = static_cast<uint8_t*>(merger[ftr_mrg::sck::merge::out_img].get_dataptr());
+                tmp_img[i0 - b] = out_img - (j0 - b);
+                for (int i = i0 - b + 1; i <= (int)(i1 + b); i++)
+                    tmp_img[i] = tmp_img[i - 1] + ((j1 - j0) + 1 + 2 * b);
+                tools_save_frame_ui8matrix(filename, tmp_img, i0, i1, j0, j1);
             }
 
             // Saving stats
@@ -467,6 +473,7 @@ int main(int argc, char** argv) {
         }
         return false;
     });
+    free(tmp_img -b);
 
     // ------------------- //
     // -- PRINT RESULTS -- //
@@ -479,7 +486,7 @@ int main(int argc, char** argv) {
     tracking_print_track_array(stdout, tracking.get_track_array());
 
     printf("# Statistics:\n");
-    printf("# -> Processed frames = %4d\n", n_frames -1);
+    printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, real_n_tracks);
 
