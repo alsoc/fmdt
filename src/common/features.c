@@ -36,7 +36,7 @@ ROI_t* features_alloc_ROI_array(const size_t max_size) {
 
 void features_init_ROI_array(ROI_t* ROI_array) {
     memset(ROI_array->id, 0, ROI_array->_max_size * sizeof(uint16_t));
-    memset(ROI_array->frame, 0, ROI_array->_max_size * sizeof(size_t));
+    memset(ROI_array->frame, 0, ROI_array->_max_size * sizeof(uint32_t));
     memset(ROI_array->xmin, 0, ROI_array->_max_size * sizeof(uint16_t));
     memset(ROI_array->xmax, 0, ROI_array->_max_size * sizeof(uint16_t));
     memset(ROI_array->ymin, 0, ROI_array->_max_size * sizeof(uint16_t));
@@ -84,7 +84,7 @@ void features_copy_elmt_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_d
 void features_copy_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest) {
     ROI_array_dest->_size = ROI_array_src->_size;
     memcpy(ROI_array_dest->id, ROI_array_src->id, ROI_array_dest->_size * sizeof(uint16_t));
-    memcpy(ROI_array_dest->frame, ROI_array_src->frame, ROI_array_dest->_size * sizeof(size_t));
+    memcpy(ROI_array_dest->frame, ROI_array_src->frame, ROI_array_dest->_size * sizeof(uint32_t));
     memcpy(ROI_array_dest->xmin, ROI_array_src->xmin, ROI_array_dest->_size * sizeof(uint16_t));
     memcpy(ROI_array_dest->xmax, ROI_array_src->xmax, ROI_array_dest->_size * sizeof(uint16_t));
     memcpy(ROI_array_dest->ymin, ROI_array_src->ymin, ROI_array_dest->_size * sizeof(uint16_t));
