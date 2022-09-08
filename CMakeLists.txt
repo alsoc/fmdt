@@ -91,7 +91,7 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/detect/CCL.c
 		    ${src_dir}/detect/KPPV.c
 		    ${src_dir}/detect/threshold.c
-		    ${src_dir}/detect/main_rt.c)
+		    ${src_dir}/detect/main_rt.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt_files})
 		add_executable(fmdt-detect-rt-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_detectrt_files})
 		list(APPEND fmdt_targets_list fmdt-detect-rt-exe)

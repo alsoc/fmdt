@@ -26,6 +26,13 @@
 #include "fmdt/Threshold/Threshold.hpp"
 #include "fmdt/Tracking/Tracking.hpp"
 #include "fmdt/Video/Video.hpp"
+#include "fmdt/Logger/Logger_ROI.hpp"
+#include "fmdt/Logger/Logger_KNN.hpp"
+#include "fmdt/Logger/Logger_motion.hpp"
+#include "fmdt/Logger/Logger_track.hpp"
+#include "fmdt/Logger/Logger_frame.hpp"
+
+#define ENABLE_PIPELINE
 
 int main(int argc, char** argv) {
     // default values
@@ -163,6 +170,12 @@ int main(int argc, char** argv) {
     printf("#  * diff-dev       = %4.2f\n", p_diff_dev);
     printf("#  * track-all      = %d\n", p_track_all);
     printf("#\n");
+#ifdef ENABLE_PIPELINE
+    printf("#  * Runtime mode   = Pipeline\n");
+#else
+    printf("#  * Runtime mode   = Sequence\n");
+#endif
+    printf("#\n");
 
     // arguments checking
     if (!p_in_video) {
@@ -257,12 +270,12 @@ int main(int argc, char** argv) {
     delayer_ROI_time_motion.set_custom_name("D<ROI_t_mo>");
     delayer_ROI_is_extrapolated.set_custom_name("D<ROI_is_ex>");
     delayer_n_ROI.set_custom_name("D<n_ROI>");
-
-    // ---------------- //
-    // -- TRAITEMENT -- //
-    // ---------------- //
-
-    printf("# The program is running...\n");
+    Logger_ROI log_ROI(p_out_stats ? p_out_stats : "", MAX_ROI_SIZE, MAX_TRACKS_SIZE);
+    Logger_KNN log_KNN(p_out_stats ? p_out_stats : "", i0, i1, j0, j1, MAX_ROI_SIZE);
+    Logger_motion log_motion(p_out_stats ? p_out_stats : "");
+    Logger_track log_track(p_out_stats ? p_out_stats : "", MAX_TRACKS_SIZE);
+    Logger_frame log_frame(p_out_frames ? p_out_frames : "", i0, i1, j0, j1, b);
+    log_motion.set_custom_name("Logger_motio");
 
     // ------------------- //
     // -- TASKS BINDING -- //
@@ -378,14 +391,164 @@ int main(int argc, char** argv) {
     delayer_ROI_is_extrapolated[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_is_extrapolated];
     delayer_n_ROI[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_n_ROI];
 
+    if (p_out_stats) {
+        log_ROI[lgr_roi::sck::write::in_ROI0_id] = delayer_ROI_id[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_xmin] = delayer_ROI_xmin[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_xmax] = delayer_ROI_xmax[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_ymin] = delayer_ROI_ymin[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_ymax] = delayer_ROI_ymax[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_S] = delayer_ROI_S[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_Sx] = delayer_ROI_Sx[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_Sy] = delayer_ROI_Sy[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_x] = delayer_ROI_x[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_y] = delayer_ROI_y[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_time] = delayer_ROI_time[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_time_motion] = delayer_ROI_time_motion[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_n_ROI0] = delayer_n_ROI[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
+        log_ROI[lgr_roi::sck::write::in_ROI1_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
+        log_ROI[lgr_roi::sck::write::in_ROI1_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
+        log_ROI[lgr_roi::sck::write::in_ROI1_ymin] = merger[ftr_mrg::sck::merge::out_ROI_ymin];
+        log_ROI[lgr_roi::sck::write::in_ROI1_ymax] = merger[ftr_mrg::sck::merge::out_ROI_ymax];
+        log_ROI[lgr_roi::sck::write::in_ROI1_S] = merger[ftr_mrg::sck::merge::out_ROI_S];
+        log_ROI[lgr_roi::sck::write::in_ROI1_Sx] = merger[ftr_mrg::sck::merge::out_ROI_Sx];
+        log_ROI[lgr_roi::sck::write::in_ROI1_Sy] = merger[ftr_mrg::sck::merge::out_ROI_Sy];
+        log_ROI[lgr_roi::sck::write::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
+        log_ROI[lgr_roi::sck::write::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
+        log_ROI[lgr_roi::sck::write::in_ROI1_time] = tracking[trk::sck::perform::out_ROI1_time];
+        log_ROI[lgr_roi::sck::write::in_ROI1_time_motion] = tracking[trk::sck::perform::out_ROI1_time_motion];
+        log_ROI[lgr_roi::sck::write::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
+        log_ROI[lgr_roi::sck::write::in_track_id] = tracking[trk::sck::perform::out_track_id];
+        log_ROI[lgr_roi::sck::write::in_track_end] = tracking[trk::sck::perform::out_track_end];
+        log_ROI[lgr_roi::sck::write::in_track_obj_type] = tracking[trk::sck::perform::out_track_obj_type];
+        log_ROI[lgr_roi::sck::write::in_n_tracks] = tracking[trk::sck::perform::out_n_tracks];
+        log_ROI[lgr_roi::sck::write::in_frame] = video[vid::sck::generate::out_frame];
+
+        log_KNN[lgr_knn::sck::write::in_data_nearest] = matcher[knn::sck::match::out_data_nearest];
+        log_KNN[lgr_knn::sck::write::in_data_distances] = matcher[knn::sck::match::out_data_distances];
+        log_KNN[lgr_knn::sck::write::in_ROI_id] = delayer_ROI_id[dly::sck::produce::out];
+        log_KNN[lgr_knn::sck::write::in_ROI_S] = delayer_ROI_S[dly::sck::produce::out];
+        log_KNN[lgr_knn::sck::write::in_ROI_dx] = motion[ftr_mtn::sck::compute::out_ROI0_dx];
+        log_KNN[lgr_knn::sck::write::in_ROI_dy] = motion[ftr_mtn::sck::compute::out_ROI0_dy];
+        log_KNN[lgr_knn::sck::write::in_ROI_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
+        log_KNN[lgr_knn::sck::write::in_ROI_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
+        log_KNN[lgr_knn::sck::write::in_n_ROI] = delayer_n_ROI[dly::sck::produce::out];
+        log_KNN[lgr_knn::sck::write::in_frame] = video[vid::sck::generate::out_frame];
+
+        log_motion[lgr_mtn::sck::write::in_theta] = motion[ftr_mtn::sck::compute::out_theta];
+        log_motion[lgr_mtn::sck::write::in_tx] = motion[ftr_mtn::sck::compute::out_tx];
+        log_motion[lgr_mtn::sck::write::in_ty] = motion[ftr_mtn::sck::compute::out_ty];
+        log_motion[lgr_mtn::sck::write::in_mean_error] = motion[ftr_mtn::sck::compute::out_mean_error];
+        log_motion[lgr_mtn::sck::write::in_std_deviation] = motion[ftr_mtn::sck::compute::out_std_deviation];
+        log_motion[lgr_mtn::sck::write::in_frame] = video[vid::sck::generate::out_frame];
+
+        log_track[lgr_trk::sck::write::in_track_id] = tracking[trk::sck::perform::out_track_id];
+        log_track[lgr_trk::sck::write::in_track_begin] = tracking[trk::sck::perform::out_track_begin];
+        log_track[lgr_trk::sck::write::in_track_end] = tracking[trk::sck::perform::out_track_end];
+        log_track[lgr_trk::sck::write::in_track_obj_type] = tracking[trk::sck::perform::out_track_obj_type];
+        log_track[lgr_trk::sck::write::in_n_tracks] = tracking[trk::sck::perform::out_n_tracks];
+        log_track[lgr_trk::sck::write::in_frame] = video[vid::sck::generate::out_frame];
+    }
+
+    if (p_out_frames) {
+        log_frame[lgr_fra::sck::write::in_img] = merger[ftr_mrg::sck::merge::out_img];
+        log_frame[lgr_fra::sck::write::in_frame] = video[vid::sck::generate::out_frame];
+    }
+
     // --------------------- //
     // -- CREATE SEQUENCE -- //
     // --------------------- //
 
-    aff3ct::tools::Sequence sequence(video[vid::tsk::generate], 1);
+#ifdef ENABLE_PIPELINE
+    // pipeline definition with separation stages
+    std::vector<std::tuple<std::vector<aff3ct::module::Task*>,
+                           std::vector<aff3ct::module::Task*>,
+                           std::vector<aff3ct::module::Task*>>> sep_stages =
+    { // pipeline stage 0
+      std::make_tuple<std::vector<aff3ct::module::Task*>, std::vector<aff3ct::module::Task*>,
+                      std::vector<aff3ct::module::Task*>>(
+        { &video[vid::tsk::generate],},
+        { &video[vid::tsk::generate], },
+        { /* no exclusions in this stage */ } ),
+      // pipeline stage 1
+      std::make_tuple<std::vector<aff3ct::module::Task*>, std::vector<aff3ct::module::Task*>,
+                      std::vector<aff3ct::module::Task*>>(
+        { &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply] },
+        { &merger[ftr_mrg::tsk::merge], },
+        { } ),
+      // pipeline stage 2
+      std::make_tuple<std::vector<aff3ct::module::Task*>, std::vector<aff3ct::module::Task*>,
+                      std::vector<aff3ct::module::Task*>>(
+        { &delayer_ROI_id[dly::tsk::produce],
+          &delayer_ROI_xmin[dly::tsk::produce],
+          &delayer_ROI_xmax[dly::tsk::produce],
+          &delayer_ROI_ymin[dly::tsk::produce],
+          &delayer_ROI_ymax[dly::tsk::produce],
+          &delayer_ROI_S[dly::tsk::produce],
+          &delayer_ROI_Sx[dly::tsk::produce],
+          &delayer_ROI_Sy[dly::tsk::produce],
+          &delayer_ROI_x[dly::tsk::produce],
+          &delayer_ROI_y[dly::tsk::produce],
+          &delayer_ROI_prev_id[dly::tsk::produce],
+          &delayer_ROI_frame[dly::tsk::produce],
+          &delayer_ROI_time[dly::tsk::produce],
+          &delayer_ROI_time_motion[dly::tsk::produce],
+          &delayer_ROI_is_extrapolated[dly::tsk::produce],
+          &delayer_n_ROI[dly::tsk::produce],
+          &matcher[knn::tsk::match],
+          &motion[ftr_mtn::tsk::compute],
+          &tracking[trk::tsk::perform],
+          &delayer_ROI_id[dly::tsk::memorize],
+          &delayer_ROI_xmin[dly::tsk::memorize],
+          &delayer_ROI_xmax[dly::tsk::memorize],
+          &delayer_ROI_ymin[dly::tsk::memorize],
+          &delayer_ROI_ymax[dly::tsk::memorize],
+          &delayer_ROI_S[dly::tsk::memorize],
+          &delayer_ROI_Sx[dly::tsk::memorize],
+          &delayer_ROI_Sy[dly::tsk::memorize],
+          &delayer_ROI_x[dly::tsk::memorize],
+          &delayer_ROI_y[dly::tsk::memorize],
+          // &delayer_ROI_prev_id[dly::tsk::memorize],
+          // &delayer_ROI_frame[dly::tsk::memorize],
+          // &delayer_ROI_time[dly::tsk::memorize],
+          // &delayer_ROI_time_motion[dly::tsk::memorize],
+          // &delayer_ROI_is_extrapolated[dly::tsk::memorize],
+          &delayer_n_ROI[dly::tsk::memorize],
+          },
+        { },
+        { /* no exclusions in this stage */ } ),
+    };
+
+    if (p_out_stats) {
+        std::get<0>(sep_stages[2]).push_back(&log_ROI[lgr_roi::tsk::write]);
+        std::get<0>(sep_stages[2]).push_back(&log_KNN[lgr_knn::tsk::write]);
+        std::get<0>(sep_stages[2]).push_back(&log_motion[lgr_mtn::tsk::write]);
+        std::get<0>(sep_stages[2]).push_back(&log_track[lgr_trk::tsk::write]);
+    }
+
+    if (p_out_frames) {
+        std::get<0>(sep_stages[2]).push_back(&log_frame[lgr_fra::tsk::write]);
+    }
+
+    aff3ct::tools::Pipeline sequence_or_pipeline({ &video[vid::tsk::generate] }, // first task of the sequence
+                                                 sep_stages,
+                                                 {
+                                                   1, // number of threads in the stage 0
+                                                   4, // number of threads in the stage 1
+                                                   1, // number of threads in the stage 2
+                                                 }, {
+                                                   1024, // synchronization buffer size between stages 0 and 1
+                                                   1024, // synchronization buffer size between stages 1 and 2
+                                                 }, {
+                                                   false, // type of waiting between stages 0 and 1 (true = active, false = passive)
+                                                   false, // type of waiting between stages 1 and 2 (true = active, false = passive)
+                                                 });
+#else
+    aff3ct::tools::Sequence sequence_or_pipeline(video[vid::tsk::generate], 1);
+#endif
 
     // configuration of the sequence tasks
-    for (auto& mod : sequence.get_modules<aff3ct::module::Module>(false))
+    for (auto& mod : sequence_or_pipeline.get_modules<aff3ct::module::Module>(false))
         for (auto& tsk : mod->tasks) {
             tsk->set_debug(false); // disable the debug mode
             tsk->set_debug_limit(16); // display only the 16 first bits if the debug mode is enabled
@@ -395,85 +558,38 @@ int main(int argc, char** argv) {
                 tsk->set_fast(true);
         }
 
-    std::ofstream fs("sequence_dag.dot");
-    sequence.export_dot(fs);
+    std::ofstream fs("runtime_dag.dot");
+    sequence_or_pipeline.export_dot(fs);
 
     // ---------------------- //
     // -- EXECUTE SEQUENCE -- //
     // ---------------------- //
 
-    uint8_t** tmp_img = (uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint8_t*)));
-    tmp_img += b;
-    size_t real_n_tracks;
-    unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
-    sequence.exec([&video, &merger, &matcher, &motion, &tracking, &delayer_ROI_id, &delayer_ROI_xmin, &delayer_ROI_xmax,
-                   &delayer_ROI_ymin, &delayer_ROI_ymax, &delayer_ROI_S, &delayer_ROI_Sx, &delayer_ROI_Sy,
-                   &delayer_ROI_x, &delayer_ROI_y, &delayer_ROI_time, &delayer_ROI_time_motion, &delayer_n_ROI,
-                   &real_n_tracks, &n_frames, &n_stars, &n_meteors, &n_noise, &p_out_frames, &p_out_stats, &i0, &i1,
-                   &j0, &j1, tmp_img]() {
-        if (!video.is_done()) {
-            const uint32_t frame = *(uint32_t*)video[vid::sck::generate::out_frame].get_dataptr();
-            fprintf(stderr, "(II) Frame n°%4u", frame);
-            real_n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
-            fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
-                    n_stars, n_noise, real_n_tracks);
-            fflush(stderr);
-
-            // Saving frames
-            if (p_out_frames) {
-                tools_create_folder(p_out_frames);
-                char filename[1024];
-                sprintf(filename, "%s/%05u.pgm", p_out_frames, frame);
-                uint8_t* out_img = static_cast<uint8_t*>(merger[ftr_mrg::sck::merge::out_img].get_dataptr());
-                tmp_img[i0 - b] = out_img - (j0 - b);
-                for (int i = i0 - b + 1; i <= (int)(i1 + b); i++)
-                    tmp_img[i] = tmp_img[i - 1] + ((j1 - j0) + 1 + 2 * b);
-                tools_save_frame_ui8matrix(filename, tmp_img, i0, i1, j0, j1);
+    unsigned n_frames;
+    std::function<bool(const std::vector<const int*>&)> stop_condition =
+        [&video, &tracking, &n_frames] (const std::vector<const int*>& statuses) {
+            if (!video.is_done()) {
+                fprintf(stderr, "(II) Frame n°%4u", n_frames);
+                unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
+                size_t n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
+                fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
+                        n_stars, n_noise, n_tracks);
+                fflush(stderr);
+                n_frames++;
             }
+            return false;
+        };
 
-            // Saving stats
-            if (p_out_stats && n_frames) {
-                tools_create_folder(p_out_stats);
-                _KPPV_save_asso_conflicts(p_out_stats, frame - 1, matcher.get_data(),
-                                          (const uint16_t*)delayer_ROI_id[dly::sck::produce::out].get_dataptr(),
-                                          (const uint16_t*)delayer_ROI_xmin[dly::sck::produce::out].get_dataptr(),
-                                          (const uint16_t*)delayer_ROI_xmax[dly::sck::produce::out].get_dataptr(),
-                                          (const uint16_t*)delayer_ROI_ymin[dly::sck::produce::out].get_dataptr(),
-                                          (const uint16_t*)delayer_ROI_ymax[dly::sck::produce::out].get_dataptr(),
-                                          (const uint32_t*)delayer_ROI_S[dly::sck::produce::out].get_dataptr(),
-                                          (const uint32_t*)delayer_ROI_Sx[dly::sck::produce::out].get_dataptr(),
-                                          (const uint32_t*)delayer_ROI_Sy[dly::sck::produce::out].get_dataptr(),
-                                          (const float*)delayer_ROI_x[dly::sck::produce::out].get_dataptr(),
-                                          (const float*)delayer_ROI_y[dly::sck::produce::out].get_dataptr(),
-                                          (const float*)motion[ftr_mtn::sck::compute::out_ROI0_dx].get_dataptr(),
-                                          (const float*)motion[ftr_mtn::sck::compute::out_ROI0_dy].get_dataptr(),
-                                          (const float*)motion[ftr_mtn::sck::compute::out_ROI0_error].get_dataptr(),
-                                          (const int32_t*)delayer_ROI_time[dly::sck::produce::out].get_dataptr(),
-                                          (const int32_t*)delayer_ROI_time_motion[dly::sck::produce::out].get_dataptr(),
-                                          (const int32_t*)matcher[knn::sck::match::out_ROI0_next_id].get_dataptr(),
-                                          *(const uint32_t*)delayer_n_ROI[dly::sck::produce::out].get_dataptr(),
-                                          (const uint16_t*)merger[ftr_mrg::sck::merge::out_ROI_id].get_dataptr(),
-                                          (const uint16_t*)merger[ftr_mrg::sck::merge::out_ROI_xmin].get_dataptr(),
-                                          (const uint16_t*)merger[ftr_mrg::sck::merge::out_ROI_xmax].get_dataptr(),
-                                          (const uint16_t*)merger[ftr_mrg::sck::merge::out_ROI_ymin].get_dataptr(),
-                                          (const uint16_t*)merger[ftr_mrg::sck::merge::out_ROI_ymax].get_dataptr(),
-                                          (const uint32_t*)merger[ftr_mrg::sck::merge::out_ROI_S].get_dataptr(),
-                                          (const uint32_t*)merger[ftr_mrg::sck::merge::out_ROI_Sx].get_dataptr(),
-                                          (const uint32_t*)merger[ftr_mrg::sck::merge::out_ROI_Sy].get_dataptr(),
-                                          (const float*)merger[ftr_mrg::sck::merge::out_ROI_x].get_dataptr(),
-                                          (const float*)merger[ftr_mrg::sck::merge::out_ROI_y].get_dataptr(),
-                                          (const int32_t*)tracking[trk::sck::perform::out_ROI1_time].get_dataptr(),
-                                          (const int32_t*)tracking[trk::sck::perform::out_ROI1_time_motion].get_dataptr(),
-                                          *(const uint32_t*)merger[ftr_mrg::sck::merge::out_n_ROI].get_dataptr(),
-                                          tracking.get_track_array(),
-                                          *(const double*)motion[ftr_mtn::sck::compute::out_mean_error].get_dataptr(),
-                                          *(const double*)motion[ftr_mtn::sck::compute::out_std_deviation].get_dataptr());
-            }
-            n_frames++;
-        }
-        return false;
-    });
-    free(tmp_img -b);
+    printf("# The program is running...\n");
+
+#ifdef ENABLE_PIPELINE
+    sequence_or_pipeline.exec({
+        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 0
+        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 1
+        stop_condition});                                               // stop condition stage 2
+#else
+    sequence_or_pipeline.exec(stop_condition);
+#endif
 
     // ------------------- //
     // -- PRINT RESULTS -- //
@@ -483,16 +599,27 @@ int main(int argc, char** argv) {
     if (p_out_bb)
         tracking_save_array_BB(p_out_bb, tracking.get_BB_array(), tracking.get_track_array(), MAX_N_FRAMES,
                                p_track_all);
-    tracking_print_track_array(stdout, tracking.get_track_array());
+    tracking_track_array_write(stdout, tracking.get_track_array());
 
+    unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
+    size_t real_n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
     printf("# Statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, real_n_tracks);
 
     // display the statistics of the tasks (if enabled)
-    std::cout << "#" << std::endl;
-    aff3ct::tools::Stats::show(sequence.get_modules_per_types(), true);
+#ifdef ENABLE_PIPELINE
+    auto stages = sequence_or_pipeline.get_stages();
+    for (size_t s = 0; s < stages.size(); s++)
+    {
+        const int n_threads = stages[s]->get_n_threads();
+        std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
+        aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true);
+    }
+#else
+    aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true);
+#endif
 
     printf("# End of the program, exiting.\n");
 

@@ -370,7 +370,7 @@ void tools_save_frame_threshold(const char* filename, uint8** I0, uint8** I1, in
     free_rgb8matrix((rgb8**)img, 0, h - 1, 0, 2 * w - 1);
 }
 
-void tools_save_frame_ui32matrix(const char* filename, uint32** I, int i0, int i1, int j0, int j1) {
+void tools_save_frame_ui32matrix(const char* filename, const uint32** I, int i0, int i1, int j0, int j1) {
     int w = (j1 - j0 + 1);
     int h = (i1 - i0 + 1);
 
@@ -410,7 +410,7 @@ void tools_save_frame_ui32matrix(const char* filename, uint32** I, int i0, int i
     free_rgb8matrix((rgb8**)img, 0, h - 1, 0, w - 1);
 }
 
-void tools_save_frame_ui8matrix(const char* filename, uint8** I, int i0, int i1, int j0, int j1) {
+void tools_save_frame_ui8matrix(const char* filename, const uint8** I, int i0, int i1, int j0, int j1) {
     int w = (j1 - j0 + 1);
     int h = (i1 - i0 + 1);
 

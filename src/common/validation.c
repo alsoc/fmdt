@@ -127,21 +127,21 @@ void validation_process(const track_t* track_array) {
     for (size_t t = 0; t < track_array->_size; t++) {
         validation_obj_t* val_obj = NULL;
         for (unsigned i = 0; i < g_n_val_objects; i++) {
-            if ((size_t)g_val_objects[i].t0_min <= track_array->begin->frame[t] &&
-                track_array->begin->frame[t] + tracking_get_track_time(track_array, t) <=
+            if ((size_t)g_val_objects[i].t0_min <= track_array->begin[t].frame &&
+                track_array->begin[t].frame + tracking_get_track_time(track_array, t) <=
                 (size_t)g_val_objects[i].t1_max &&
-                g_val_objects[i].bb_x0 <= track_array->begin->x[t] &&
-                track_array->end->x[t] <= g_val_objects[i].bb_x1 &&
-                g_val_objects[i].bb_y0 <= track_array->begin->y[t] &&
-                track_array->end->y[t] <= g_val_objects[i].bb_y1 &&
+                g_val_objects[i].bb_x0 <= track_array->begin[t].x &&
+                track_array->end[t].x <= g_val_objects[i].bb_x1 &&
+                g_val_objects[i].bb_y0 <= track_array->begin[t].y &&
+                track_array->end[t].y <= g_val_objects[i].bb_y1 &&
                 track_array->obj_type[t] == g_val_objects[i].obj_type) {
 #ifdef ENABLE_DEBUG
-                g_val_objects[i].track_array_t0 = track_array->begin->frame[t];
-                g_val_objects[i].track_array_t1 = track_array->end->frame[t];
-                g_val_objects[i].track_array_x0 = track_array->begin->x[t];
-                g_val_objects[i].track_array_y0 = track_array->begin->y[t];
-                g_val_objects[i].track_array_x1 = track_array->end->x[t];
-                g_val_objects[i].track_array_y1 = track_array->end->y[t];
+                g_val_objects[i].track_array_t0 = track_array->begin[t].frame;
+                g_val_objects[i].track_array_t1 = track_array->end[t].frame[t];
+                g_val_objects[i].track_array_x0 = track_array->begin[t].x;
+                g_val_objects[i].track_array_y0 = track_array->begin[t]y;
+                g_val_objects[i].track_array_x1 = track_array->end[t].x;
+                g_val_objects[i].track_array_y1 = track_array->end[t]y;
 #endif
                 val_obj = &g_val_objects[i];
                 if (g_val_objects[i].nb_tracks == 0)

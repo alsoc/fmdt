@@ -248,7 +248,7 @@ int main(int argc, char** argv) {
         threshold_high((const uint8_t**)SH_0, SH_1, i0, i1, j0, j1, p_light_max);
 
         // Step 2 : ECC/ACC
-        const int n_ROI = CCL_LSL_apply(ccl_data, (const uint8_t**)SM_1, SM_2, i0, i1, j0, j1);
+        const int n_ROI = CCL_LSL_apply(ccl_data, (const uint8_t**)SM_1, SM_2);
         features_extract((const uint32_t**)SM_2, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
 
         // Step 3 : seuillage hysteresis && filter surface
@@ -276,17 +276,29 @@ int main(int argc, char** argv) {
             tools_create_folder(p_out_frames);
             char filename[1024];
             sprintf(filename, "%s/%05lu.pgm", p_out_frames, frame);
-            tools_save_frame_ui8matrix(filename, SH_2, i0, i1, j0, j1);
+            tools_save_frame_ui8matrix(filename, (const uint8_t**)SH_2, i0, i1, j0, j1);
         }
 
         // Saving stats
         if (p_out_stats && n_frames) {
             tools_create_folder(p_out_stats);
-            KPPV_save_asso_conflicts(p_out_stats, frame - 1, kppv_data, ROI_array0, ROI_array1, track_array);
-            // tools_save_motion(path_motion, theta, tx, ty, frame-1);
-            // tools_save_motionExtraction(path_extraction, ROI_array0.data, ROI_array1.data, ROI_array0.size, theta,
-            //                             tx, ty, frame-1);
-            // tools_save_error(path_error, ROI_array0.data, ROI_array0.size);
+            char filename[1024];
+            sprintf(filename, "%s/%05lu_%05lu.txt", p_out_stats, frame - 1, frame);
+            FILE* f = fopen(filename, "w");
+            if (f) {
+                features_ROI0_ROI1_write(f, frame, ROI_array0, ROI_array1, track_array);
+                fprintf(f, "#\n");
+                KPPV_asso_conflicts_write(f, kppv_data, ROI_array0);
+                fprintf(f, "#\n");
+                features_motion_write(f, theta, tx, ty, mean_error, std_deviation);
+                fprintf(f, "#\n");
+                tracking_track_array_write(f, track_array);
+                // tools_save_motionExtraction(path_extraction, ROI_array0.data, ROI_array1.data, ROI_array0.size, theta,
+                //                             tx, ty, frame-1);
+                fclose(f);
+            } else {
+                fprintf(stderr, "(WW) cannot open '%s' file.", filename);
+            }
         }
 
         n_frames++;
@@ -303,7 +315,7 @@ int main(int argc, char** argv) {
 
     if (p_out_bb)
         tracking_save_array_BB(p_out_bb, BB_array, track_array, MAX_N_FRAMES, p_track_all);
-    tracking_print_track_array(stdout, track_array);
+    tracking_track_array_write(stdout, track_array);
 
     printf("# Statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);

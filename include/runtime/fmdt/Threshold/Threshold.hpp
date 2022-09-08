@@ -26,10 +26,7 @@ public:
         this->set_name(name);
         this->set_short_name(name);
 
-        this->in_img = (const uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint8_t*)));
-        this->out_img = (uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint8_t*)));
-        this->in_img -= i0 - b;
-        this->out_img -= i0 - b;
+        this->init_data();
 
         auto socket_size = ((i1 - i0) + 1 + 2 * b) * ((j1 - j0) + 1 + 2 * b);
 
@@ -60,6 +57,18 @@ public:
         free(this->out_img + this->i0 - this->b);
     }
 
+    virtual Threshold* clone() const {
+        auto m = new Threshold(*this);
+        m->deep_copy(*this);
+        return m;
+    }
+
+    void deep_copy(const Threshold &m)
+    {
+        Module::deep_copy(m);
+        this->init_data();
+    }
+
     inline uint8_t** get_out_img() {
         return this->out_img;
     }
@@ -70,5 +79,13 @@ public:
 
     inline aff3ct::module::Socket& operator[](const thr::sck::apply s) {
         return aff3ct::module::Module::operator[]((size_t)thr::tsk::apply)[(size_t)s];
+    }
+
+protected:
+    void init_data() {
+        this->in_img = (const uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint8_t*)));
+        this->out_img = (uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint8_t*)));
+        this->in_img -= i0 - b;
+        this->out_img -= i0 - b;
     }
 };

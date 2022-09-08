@@ -33,12 +33,7 @@ public:
         this->set_name(name);
         this->set_short_name(name);
 
-        this->in_img1 = (const uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint32_t*)));
-        this->in_img2 = (const uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint8_t*)));
-        this->out_img = (uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint8_t*)));
-        this->in_img1 -= i0 - b;
-        this->in_img2 -= i0 - b;
-        this->out_img -= i0 - b;
+        this->init_data();
 
         auto socket_img_size = ((i1 - i0) + 1 + 2 * b) * ((j1 - j0) + 1 + 2 * b);
 
@@ -106,16 +101,6 @@ public:
                                       in_n_ROI,
                                       mrg.S_min, mrg.S_max);
 
-
-size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* ROI_src_xmin,
-                                  const uint16_t* ROI_src_xmax, const uint16_t* ROI_src_ymin,
-                                  const uint16_t* ROI_src_ymax, const uint32_t* ROI_src_S, const uint32_t* ROI_src_Sx,
-                                  const uint32_t* ROI_src_Sy, const float* ROI_src_x, const float* ROI_src_y,
-                                  const size_t n_ROI_src, uint16_t* ROI_dest_id, uint16_t* ROI_dest_xmin,
-                                  uint16_t* ROI_dest_xmax, uint16_t* ROI_dest_ymin, uint16_t* ROI_dest_ymax,
-                                  uint32_t* ROI_dest_S, uint32_t* ROI_dest_Sx, uint32_t* ROI_dest_Sy, float* ROI_dest_x,
-                                  float* ROI_dest_y);
-
             size_t out_n_ROI = _features_shrink_ROI_array(static_cast<const uint16_t*>(t[ps_in_ROI_id].get_dataptr()),
                                                           static_cast<const uint16_t*>(t[ps_in_ROI_xmin].get_dataptr()),
                                                           static_cast<const uint16_t*>(t[ps_in_ROI_xmax].get_dataptr()),
@@ -150,6 +135,18 @@ size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* RO
         free(this->out_img + (this->i0 - this->b));
     }
 
+    virtual Features_merger* clone() const {
+        auto m = new Features_merger(*this);
+        m->deep_copy(*this);
+        return m;
+    }
+
+    void deep_copy(const Features_merger &m)
+    {
+        Module::deep_copy(m);
+        this->init_data();
+    }
+
     inline uint8_t** get_out_img() {
         return this->out_img;
     }
@@ -160,5 +157,15 @@ size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* RO
 
     inline aff3ct::module::Socket& operator[](const ftr_mrg::sck::merge s) {
         return aff3ct::module::Module::operator[]((size_t)ftr_mrg::tsk::merge)[(size_t)s];
+    }
+
+protected:
+    void init_data() {
+        this->in_img1 = (const uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint32_t*)));
+        this->in_img2 = (const uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint8_t*)));
+        this->out_img = (uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint8_t*)));
+        this->in_img1 -= i0 - b;
+        this->in_img2 -= i0 - b;
+        this->out_img -= i0 - b;
     }
 };

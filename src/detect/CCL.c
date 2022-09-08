@@ -58,9 +58,9 @@ void LSL_segment_detection(uint32_t* line_er, uint32_t* line_rlc, uint32_t* line
     *line_ner = er;
 }
 
-void LSL_equivalence_construction(CCL_data_t* data, const uint32_t* line_rlc, uint32_t* line_era,
-                                  const uint32_t* prevline_er, const uint32_t* prevline_era, const int n, const int x0,
-                                  const int x1, uint32_t* nea) {
+void _LSL_equivalence_construction(uint32_t* data_eq, const uint32_t* line_rlc, uint32_t* line_era,
+                                   const uint32_t* prevline_er, const uint32_t* prevline_era, const int n, const int x0,
+                                   const int x1, uint32_t* nea) {
     int k, er, j0, j1, er0, er1, ea, erk, eak;
     for (k = 0; k < n; k += 2) {
         er = k + 1;
@@ -84,53 +84,54 @@ void LSL_equivalence_construction(CCL_data_t* data, const uint32_t* line_rlc, ui
 
         if (er1 >= er0) { // Adjacency -> connect components
             ea = prevline_era[er0];
-            uint32_t a = data->eq[ea];
+            uint32_t a = data_eq[ea];
             for (erk = er0 + 2; erk <= er1; erk += 2) {
                 eak = prevline_era[erk];
-                uint32_t ak = data->eq[eak];
-                while (ak != data->eq[ak]) {
-                    ak = data->eq[ak];
+                uint32_t ak = data_eq[eak];
+                while (ak != data_eq[ak]) {
+                    ak = data_eq[ak];
                 }
                 if (a < ak) {
-                    data->eq[eak] = a; // Minimum propagation
+                    data_eq[eak] = a; // Minimum propagation
                 }
 
                 if (a > ak) {
                     a = ak;
-                    data->eq[ea] = a;
+                    data_eq[ea] = a;
                     ea = eak;
                 }
             }
             line_era[er] = a; // Global minimum
         } else {              // No adjacency -> new label
             line_era[er] = *nea;
-            data->eq[*nea] = *nea;
+            data_eq[*nea] = *nea;
             (*nea)++;
         }
     }
 }
 
-uint32_t CCL_LSL_apply(CCL_data_t* data, const uint8_t** img_in, uint32_t** img_out, const int i0, const int i1,
-                       const int j0, const int j1) {
+uint32_t _CCL_LSL_apply(uint32_t** data_er, uint32_t** data_era, uint32_t** data_rlc, uint32_t* data_eq,
+                        uint32_t* data_ner, const uint8_t** img_in, uint32_t** img_out, const int i0, const int i1,
+                        const int j0, const int j1) {
     // if ((void*)img_in != (void*)img_out)
     //     for (int i = i0; i <= i1; i++)
     //         memcpy(img_out[i] + j0, img_in[i] + j0, sizeof(uint8_t) * ((j1 - j0) + 1));
 
     // Step #1 - Segment detection
     for (int i = i0; i <= i1; i++) {
-        LSL_segment_detection(data->er[i], data->rlc[i], &data->ner[i], img_in[i], j0, j1, img_out[i]);
+        LSL_segment_detection(data_er[i], data_rlc[i], &data_ner[i], img_in[i], j0, j1, img_out[i]);
     }
 
     // Step #2 - Equivalence construction
     uint32_t nea = i0;
-    uint32_t n = data->ner[i0];
+    uint32_t n = data_ner[i0];
     for (uint32_t k = 0; k < n; k += 2) {
-        data->eq[nea] = nea;
-        data->era[i0][k + 1] = nea++;
+        data_eq[nea] = nea;
+        data_era[i0][k + 1] = nea++;
     }
     for (int i = i0 + 1; i <= i1; i++) {
-        LSL_equivalence_construction(data, data->rlc[i], data->era[i], data->er[i - 1], data->era[i - 1], data->ner[i],
-                                     j0, j1, &nea);
+        _LSL_equivalence_construction(data_eq, data_rlc[i], data_era[i], data_er[i - 1], data_era[i - 1], data_ner[i],
+                                      j0, j1, &nea);
     }
 
     // Step #3 - Relative to Absolute label conversion
@@ -138,23 +139,23 @@ uint32_t CCL_LSL_apply(CCL_data_t* data, const uint8_t** img_in, uint32_t** img_
     // Step #4 - Resolution of equivalence classes
     uint32_t trueN = 0;
     for (uint32_t i = 0; i < nea; i++) {
-        if (i != data->eq[i]) {
-            data->eq[i] = data->eq[data->eq[i]];
+        if (i != data_eq[i]) {
+            data_eq[i] = data_eq[data_eq[i]];
         } else {
-            data->eq[i] = trueN++;
+            data_eq[i] = trueN++;
         }
     }
 
     // Step #5 - Final image labeling
     for (int i = i0; i <= i1; i++) {
-        n = data->ner[i];
+        n = data_ner[i];
         for (uint32_t k = 0; k < n; k += 2) {
-            int a = data->rlc[i][k];
-            int b = data->rlc[i][k + 1];
+            int a = data_rlc[i][k];
+            int b = data_rlc[i][k + 1];
 
             // Step #3 merged with step #5
-            uint32_t val = data->era[i][data->er[i][a]];
-            val = data->eq[val] + 1;
+            uint32_t val = data_era[i][data_er[i][a]];
+            val = data_eq[val] + 1;
 
             for (int j = a; j <= b; j++) {
                 img_out[i][j] = (uint32_t)val;
@@ -165,4 +166,9 @@ uint32_t CCL_LSL_apply(CCL_data_t* data, const uint8_t** img_in, uint32_t** img_
     assert(trueN < MAX_ROI_SIZE);
 
     return trueN;
+}
+
+uint32_t CCL_LSL_apply(CCL_data_t* data, const uint8_t** img_in, uint32_t** img_out) {
+    return _CCL_LSL_apply(data->er, data->era, data->rlc, data->eq, data->ner, img_in, img_out, data->i0, data->i1,
+                          data->j0, data->j1);
 }

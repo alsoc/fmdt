@@ -653,29 +653,33 @@ void features_parse_stats(const char* filename, ROI_t* stats, int* n) {
     fclose(file);
 }
 
-int _find_corresponding_track(const track_t* track_array, const uint16_t* ROI_id, const int sel_ROI_id,
-                              const unsigned age) {
+int _find_corresponding_track(const uint16_t* track_id, const ROI_light_t* track_end, const size_t n_tracks,
+                              const uint16_t* ROI_id, const int sel_ROI_id, const unsigned age) {
     assert(age == 0 || age == 1);
-    for (size_t t = track_array->_offset; t < track_array->_size; t++) {
-        int cur_ROI_id = (age == 0) ? track_array->end->id[t] : ROI_id[track_array->end->prev_id[t]];
-        if (cur_ROI_id <= 0)
-            continue;
-        if (sel_ROI_id == cur_ROI_id)
-            return t;
+    for (size_t t = 0; t < n_tracks; t++) {
+        if (track_id[t]) {
+            int cur_ROI_id = (age == 0) ? track_end[t].id : ROI_id[track_end[t].prev_id];
+            if (cur_ROI_id <= 0)
+                continue;
+            if (sel_ROI_id == cur_ROI_id)
+                return t;
+        }
     }
     return -1;
 }
 
 int find_corresponding_track(const track_t* track_array, const ROI_t* ROI_array, const int sel_ROI_id,
                              const unsigned age) {
-    return _find_corresponding_track(track_array, ROI_array->id, sel_ROI_id, age);
+    return _find_corresponding_track(track_array->id, track_array->end, track_array->_size, ROI_array->id, sel_ROI_id,
+                                     age);
 }
 
-void _features_save_stats_file(FILE* f, const uint16_t* ROI_id, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
-                               const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
-                               const uint32_t* ROI_Sx, const uint32_t* ROI_Sy, const float* ROI_x, const float* ROI_y,
-                               const int32_t* ROI_time, const int32_t* ROI_time_motion, const size_t n_ROI,
-                               const track_t* track_array, const unsigned age) {
+void _features_ROI_write(FILE* f, const uint16_t* ROI_id, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
+                         const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
+                         const uint32_t* ROI_Sx, const uint32_t* ROI_Sy, const float* ROI_x, const float* ROI_y,
+                         const int32_t* ROI_time, const int32_t* ROI_time_motion, const size_t n_ROI,
+                         const uint16_t* track_id, const ROI_light_t* track_end, const enum obj_e* track_obj_type,
+                         const size_t n_tracks, const unsigned age) {
     int cpt = 0;
     for (size_t i = 0; i < n_ROI; i++)
         if (ROI_S[i] != 0)
@@ -693,17 +697,17 @@ void _features_save_stats_file(FILE* f, const uint16_t* ROI_id, const uint16_t* 
 
     for (size_t i = 0; i < n_ROI; i++) {
         if (ROI_S[i] != 0) {
-            int t = _find_corresponding_track(track_array, ROI_id, ROI_id[i], age);
+            int t = _find_corresponding_track(track_id, track_end, n_tracks, ROI_id, ROI_id[i], age);
             char task_id_str[16];
             if (t == -1)
                 strcpy(task_id_str, "   -");
             else
-                sprintf(task_id_str, "%4d", track_array->id[t]);
+                sprintf(task_id_str, "%4d", track_id[t]);
             char task_obj_type[64];
             if (t == -1)
                 strcpy(task_obj_type, "      -");
             else
-                sprintf(task_obj_type, "%s", g_obj_to_string_with_spaces[track_array->obj_type[t]]);
+                sprintf(task_obj_type, "%s", g_obj_to_string_with_spaces[track_obj_type[t]]);
             fprintf(f, "   %4d || %s | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f || %6d | %6d \n",
                     ROI_id[i], task_id_str, task_obj_type, ROI_xmin[i], ROI_xmax[i], ROI_ymin[i], ROI_ymax[i], ROI_S[i],
                     ROI_Sx[i], ROI_Sy[i], ROI_x[i], ROI_y[i], ROI_time[i], ROI_time_motion[i]);
@@ -711,64 +715,53 @@ void _features_save_stats_file(FILE* f, const uint16_t* ROI_id, const uint16_t* 
     }
 }
 
-void features_save_stats_file(FILE* f, const ROI_t* ROI_array, const track_t* track_array, const unsigned age) {
-    _features_save_stats_file(f, ROI_array->id, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin, ROI_array->ymax,
-                              ROI_array->S, ROI_array->Sx, ROI_array->Sy, ROI_array->x, ROI_array->y,
-                              ROI_array->time, ROI_array->time_motion, ROI_array->_size, track_array, age);
+void features_ROI_write(FILE* f, const ROI_t* ROI_array, const track_t* track_array, const unsigned age) {
+    _features_ROI_write(f, ROI_array->id, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin, ROI_array->ymax,
+                        ROI_array->S, ROI_array->Sx, ROI_array->Sy, ROI_array->x, ROI_array->y,
+                        ROI_array->time, ROI_array->time_motion, ROI_array->_size, track_array->id,
+                        track_array->end, track_array->obj_type, track_array->_size, age);
 }
 
-void features_save_stats(const char* filename, const ROI_t* ROI_array, const track_t* track_array, const unsigned age) {
-    FILE* f = fopen(filename, "w");
-    if (f == NULL) {
-        fprintf(stderr, "(EE) error ouverture %s \n", filename);
-        exit(1);
-    }
-    features_save_stats_file(f, ROI_array, track_array, age);
-    fclose(f);
+void features_motion_write(FILE* f, const double theta, const double tx, const double ty, const double mean_error,
+                            const double std_deviation) {
+    fprintf(f, "# Motion:\n");
+    fprintf(f, "# * theta         = %6.7f\n", theta);
+    fprintf(f, "# * tx            = %6.4f\n", tx);
+    fprintf(f, "# * ty            = %6.4f\n", ty);
+    fprintf(f, "# * mean error    = %.3f\n", mean_error);
+    fprintf(f, "# * std deviation = %.3f\n", std_deviation);
 }
 
-void features_save_motion(const char* filename, double theta, double tx, double ty, int frame) {
-    FILE* f = fopen(filename, "a");
-    if (f == NULL) {
-        fprintf(stderr, "(EE) error ouverture %s \n", filename);
-        exit(1);
-    }
+void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id, const uint16_t* ROI0_xmin,
+                               const uint16_t* ROI0_xmax, const uint16_t* ROI0_ymin, const uint16_t* ROI0_ymax,
+                               const uint32_t* ROI0_S, const uint32_t* ROI0_Sx, const uint32_t* ROI0_Sy,
+                               const float* ROI0_x, const float* ROI0_y, const int32_t* ROI0_time,
+                               const int32_t* ROI0_time_motion, const size_t n_ROI0, const uint16_t* ROI1_id,
+                               const uint16_t* ROI1_xmin, const uint16_t* ROI1_xmax, const uint16_t* ROI1_ymin,
+                               const uint16_t* ROI1_ymax, const uint32_t* ROI1_S, const uint32_t* ROI1_Sx,
+                               const uint32_t* ROI1_Sy, const float* ROI1_x, const float* ROI1_y,
+                               const int32_t* ROI1_time, const int32_t* ROI1_time_motion, const size_t n_ROI1,
+                               const uint16_t* track_id, const ROI_light_t* track_end, const enum obj_e* track_obj_type,
+                               const size_t n_tracks) {
+    // stats
+    fprintf(f, "# Frame n°%05d (cur)\n", frame - 1);
+    _features_ROI_write(f, ROI0_id, ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax, ROI0_S, ROI0_Sx, ROI0_Sy, ROI0_x,
+                        ROI0_y, ROI0_time, ROI0_time_motion, n_ROI0, track_id, track_end, track_obj_type, n_tracks, 1);
 
-    fprintf(f, "%d - %d\n", frame, frame + 1);
-    fprintf(f, "%6.7f \t %6.4f \t %6.4f \n", theta, tx, ty);
-    fprintf(f, "---------------------------------------------------------------\n");
-    fclose(f);
+    fprintf(f, "#\n# Frame n°%05d (next)\n", frame);
+    _features_ROI_write(f, ROI1_id, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_S, ROI1_Sx, ROI1_Sy, ROI1_x,
+                        ROI1_y, ROI1_time, ROI1_time_motion, n_ROI1, track_id, track_end, track_obj_type, n_tracks, 0);
 }
 
-void features_save_error(const char* filename, const ROI_t* ROI_array) {
-    double S = 0;
-    int cpt = 0;
-    FILE* f = fopen(filename, "a");
-    if (f == NULL) {
-        fprintf(stderr, "(EE) error ouverture %s \n", filename);
-        exit(1);
-    }
-
-    for (size_t i = 0; i < ROI_array->_size; i++) {
-        if (ROI_array->S[i] > 0) {
-            S += ROI_array->error[i];
-            cpt++;
-        }
-    }
-
-    fprintf(f, "%.2f\n", S / cpt);
-    fclose(f);
-}
-
-void features_save_error_moy(const char* filename, double mean_error, double std_deviation) {
-    char path[200];
-    FILE* f = fopen(filename, "a");
-    if (f == NULL) {
-        fprintf(stderr, "(EE) error ouverture %s \n", path);
-        exit(1);
-    }
-    fprintf(f, "%5.2f \t %5.2f \n", mean_error, std_deviation);
-    fclose(f);
+void features_ROI0_ROI1_write(FILE* f, const int frame, const ROI_t* ROI_array0, const ROI_t* ROI_array1,
+                              const track_t* track_array) {
+    _features_ROI0_ROI1_write(f, frame, ROI_array0->id, ROI_array0->xmin, ROI_array0->xmax, ROI_array0->ymin,
+                              ROI_array0->ymax, ROI_array0->S, ROI_array0->Sx, ROI_array0->Sy, ROI_array0->x,
+                              ROI_array0->y, ROI_array0->time, ROI_array0->time_motion, ROI_array0->_size,
+                              ROI_array1->id, ROI_array1->xmin, ROI_array1->xmax, ROI_array1->ymin, ROI_array1->ymax,
+                              ROI_array1->S, ROI_array1->Sx, ROI_array1->Sy, ROI_array1->x, ROI_array1->y,
+                              ROI_array1->time, ROI_array1->time_motion, ROI_array1->_size, track_array->id,
+                              track_array->end, track_array->obj_type, track_array->_size);
 }
 
 void features_save_motion_extraction(const char* filename, const ROI_t* ROI_array, const double theta, const double tx,

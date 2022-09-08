@@ -5,7 +5,7 @@
 #include "fmdt/features.h"
 
 // Enums
-enum obj_e { UNKNOWN = 0, METEOR, STAR, NOISE, N_OBJECTS };
+// enum obj_e { UNKNOWN = 0, METEOR, STAR, NOISE, N_OBJECTS }; // <= now defined in "fmdt/features.h"
 enum color_e { MISC = 0, GRAY, GREEN, RED, PURPLE, ORANGE, BLUE, YELLOW, N_COLORS };
 enum state_e { TRACK_NEW = 1, TRACK_UPDATED, TRACK_EXTRAPOLATED, TRACK_LOST, TRACK_FINISHED };
 // to remember why a 'meteor' object became a 'noise' object
@@ -21,10 +21,28 @@ enum change_state_reason_e { REASON_TOO_BIG_ANGLE = 1, REASON_WRONG_DIRECTION, R
 #define NOISE_STR "noise"
 #define UNKNOWN_STR "unknown"
 
+typedef struct ROI_light {
+    uint16_t id;
+    uint32_t frame;
+    uint16_t xmin;
+    uint16_t xmax;
+    uint16_t ymin;
+    uint16_t ymax;
+    float x;
+    float y;
+    float dx;
+    float dy;
+    int32_t time;
+    int32_t time_motion;
+    int32_t prev_id;
+    int32_t next_id;
+    uint8_t is_extrapolated;
+} ROI_light_t;
+
 typedef struct track {
     uint16_t* id;
-    ROI_t* begin;
-    ROI_t* end;
+    ROI_light_t* begin;
+    ROI_light_t* end;
     float* extrapol_x;
     float* extrapol_y;
     enum state_e* state;
@@ -46,14 +64,16 @@ typedef struct BB_t {
 } BB_t;
 
 typedef struct {
-    ROI_t** array;
+    ROI_light_t** array;
+    uint32_t* n_ROI;
+    uint32_t _max_n_ROI;
     size_t _size; // current size/utilization of the 'ROI_history_t.array' field
     size_t _max_size; // maximum amount of data that can be contained in the 'ROI_history_t.array' field
 } ROI_history_t;
 
 typedef struct {
     ROI_history_t* ROI_history;
-    ROI_t* ROI_list;
+    ROI_light_t* ROI_list;
 } tracking_data_t;
 
 extern enum color_e g_obj_to_color[N_OBJECTS];
@@ -82,7 +102,7 @@ void _tracking_perform(tracking_data_t* tracking_data, const uint16_t* ROI0_id, 
                        const uint16_t* ROI1_xmax, const uint16_t* ROI1_ymin, const uint16_t* ROI1_ymax,
                        const float* ROI1_x, const float* ROI1_y, int32_t* ROI1_time, int32_t* ROI1_time_motion,
                        const int32_t* ROI1_prev_id, uint8_t* ROI1_is_extrapolated, const size_t n_ROI1,
-                       uint16_t* track_id, ROI_t* track_begin, ROI_t* track_end, float* track_extrapol_x,
+                       uint16_t* track_id, ROI_light_t* track_begin, ROI_light_t* track_end, float* track_extrapol_x,
                        float* track_extrapol_y, enum state_e* track_state, enum obj_e* track_obj_type,
                        enum change_state_reason_e* track_change_state_reason, size_t* offset_tracks, size_t* n_tracks,
                        BB_t** BB_array, size_t frame, double theta, double tx, double ty, double mean_error,
@@ -92,10 +112,15 @@ void tracking_perform(tracking_data_t* tracking_data, const ROI_t* ROI_array0, R
                       BB_t** BB_array, size_t frame, double theta, double tx, double ty, double mean_error,
                       double std_deviation, size_t r_extrapol, float angle_max, float diff_dev, int track_all,
                       size_t fra_star_min, size_t fra_meteor_min, size_t fra_meteor_max);
+size_t _tracking_count_objects(const uint16_t* track_id, const enum obj_e* track_obj_type, unsigned* n_stars,
+                               unsigned* n_meteors, unsigned* n_noise, const size_t n_tracks);
 // return the real number of tracks
 size_t tracking_count_objects(const track_t* track_array, unsigned* n_stars, unsigned* n_meteors, unsigned* n_noise);
 // void tracking_print_array_BB(BB_t** tabBB, int n);
-void tracking_print_track_array(FILE* f, const track_t* track_array);
+void _tracking_track_array_write(FILE* f, const uint16_t* track_id, const ROI_light_t* track_begin,
+                                 const ROI_light_t* track_end, const enum obj_e* track_obj_type,
+                                 const size_t n_tracks);
+void tracking_track_array_write(FILE* f, const track_t* track_array);
 // void tracking_print_buffer(ROIx2_t* buffer, int n);
 void tracking_parse_tracks(const char* filename, track_t* track_array);
 // void tracking_save_tracks(const char* filename, track_t* tracks, int n);

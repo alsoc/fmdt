@@ -26,8 +26,7 @@ public:
         this->set_name(name);
         this->set_short_name(name);
 
-        this->in_img = (const uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint32_t*)));
-        this->in_img -= i0 - b;
+        this->init_data();
 
         auto socket_img_size = ((i1 - i0) + 1 + 2 * b) * ((j1 - j0) + 1 + 2 * b);
 
@@ -78,11 +77,29 @@ public:
         free(this->in_img + (this->i0 - this->b));
     }
 
+    virtual Features_extractor* clone() const {
+        auto m = new Features_extractor(*this);
+        m->deep_copy(*this);
+        return m;
+    }
+
+    void deep_copy(const Features_extractor &m)
+    {
+        Module::deep_copy(m);
+        this->init_data();
+    }
+
     inline aff3ct::module::Task& operator[](const ftr_ext::tsk t) {
         return aff3ct::module::Module::operator[]((size_t)t);
     }
 
     inline aff3ct::module::Socket& operator[](const ftr_ext::sck::extract s) {
         return aff3ct::module::Module::operator[]((size_t)ftr_ext::tsk::extract)[(size_t)s];
+    }
+
+protected:
+    void init_data() {
+        this->in_img = (const uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint32_t*)));
+        this->in_img -= i0 - b;
     }
 };

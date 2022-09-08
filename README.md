@@ -15,11 +15,13 @@
 
 ## Dependencies
 
-This project use `ffmpeg-io` and `nrc2` projects as submodules:
+This project use `ffmpeg-io`, `nrc2` and `aff3ct` projects as submodules:
 
 ```bash
 git submodule update --init --recursive
 ```
+
+If you want to enable text indication in generated videos/images (`--show-id`  option), the OpenCV library is required.
 
 ## Compilation with CMake
 

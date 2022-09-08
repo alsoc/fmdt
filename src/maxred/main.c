@@ -173,14 +173,14 @@ int main(int argc, char** argv) {
                 listBB[m].track_id = track_array->id[t];
 #endif
                 int delta = 5;
-                listBB[m].xmin = (track_array->begin->x[t] < track_array->end->x[t] ?
-                    track_array->begin->x[t] : track_array->end->x[t]) - delta;
-                listBB[m].xmax = (track_array->begin->x[t] < track_array->end->x[t] ?
-                    track_array->end->x[t] : track_array->begin->x[t]) + delta;
-                listBB[m].ymin = (track_array->begin->y[t] < track_array->end->y[t] ?
-                    track_array->begin->y[t] : track_array->end->y[t]) - delta;
-                listBB[m].ymax = (track_array->begin->y[t] < track_array->end->y[t] ?
-                    track_array->end->y[t] : track_array->begin->y[t]) + delta;
+                listBB[m].xmin = (track_array->begin[t].x < track_array->end[t].x ?
+                    track_array->begin[t].x : track_array->end[t].x) - delta;
+                listBB[m].xmax = (track_array->begin[t].x < track_array->end[t].x ?
+                    track_array->end[t].x : track_array->begin[t].x) + delta;
+                listBB[m].ymin = (track_array->begin[t].y < track_array->end[t].y ?
+                    track_array->begin[t].y : track_array->end[t].y) - delta;
+                listBB[m].ymax = (track_array->begin[t].y < track_array->end[t].y ?
+                    track_array->end[t].y : track_array->begin[t].y) + delta;
 
                 if (track_array->obj_type[t] != UNKNOWN)
                     listBB[m].color = g_obj_to_color[track_array->obj_type[t]];

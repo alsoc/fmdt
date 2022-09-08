@@ -55,20 +55,20 @@ enum obj_e tracking_string_to_obj_type(const char* string) {
     return obj;
 }
 
-size_t _tracking_get_track_time(const ROI_t* track_begin, const ROI_t* track_end, const size_t t) {
-    return track_end->frame[t] - track_begin->frame[t];
+size_t _tracking_get_track_time(const ROI_light_t* track_begin, const ROI_light_t* track_end, const size_t t) {
+    return track_end[t].frame - track_begin[t].frame;
 }
 
 size_t tracking_get_track_time(const track_t* track_array, const size_t t) {
     return _tracking_get_track_time(track_array->begin, track_array->end, t);
 }
 
-size_t tracking_count_objects(const track_t* track_array, unsigned* n_stars, unsigned* n_meteors,
-                              unsigned* n_noise) {
+size_t _tracking_count_objects(const uint16_t* track_id, const enum obj_e* track_obj_type, unsigned* n_stars,
+                               unsigned* n_meteors, unsigned* n_noise, const size_t n_tracks) {
     (*n_stars) = (*n_meteors) = (*n_noise) = 0;
-    for (size_t i = 0; i < track_array->_size; i++)
-        if (track_array->id[i])
-            switch (track_array->obj_type[i]) {
+    for (size_t i = 0; i < n_tracks; i++)
+        if (track_id[i])
+            switch (track_obj_type[i]) {
             case STAR:
                 (*n_stars)++;
                 break;
@@ -79,18 +79,24 @@ size_t tracking_count_objects(const track_t* track_array, unsigned* n_stars, uns
                 (*n_noise)++;
                 break;
             default:
-                fprintf(stderr, "(EE) This should never happen ('track_array->obj_type[i] = %d', 'i = %lu')\n",
-                        track_array->obj_type[i], i);
+                fprintf(stderr, "(EE) This should never happen ('track_obj_type[i] = %d', 'i = %lu')\n",
+                        track_obj_type[i], i);
                 exit(1);
             }
     return (*n_stars) + (*n_meteors) + (*n_noise);
 }
 
+size_t tracking_count_objects(const track_t* track_array, unsigned* n_stars, unsigned* n_meteors,
+                              unsigned* n_noise) {
+    return _tracking_count_objects(track_array->id, track_array->obj_type, n_stars, n_meteors, n_noise,
+                                   track_array->_size);
+}
+
 track_t* tracking_alloc_track_array(const size_t max_size) {
     track_t* track_array = (track_t*)malloc(sizeof(track_t));
     track_array->id = (uint16_t*)malloc(max_size * sizeof(uint16_t));
-    track_array->begin = features_alloc_ROI_array(max_size);
-    track_array->end = features_alloc_ROI_array(max_size);
+    track_array->begin = (ROI_light_t*)malloc(max_size * sizeof(ROI_light_t));
+    track_array->end = (ROI_light_t*)malloc(max_size * sizeof(ROI_light_t));
     track_array->extrapol_x = (float*)malloc(max_size * sizeof(float));
     track_array->extrapol_y = (float*)malloc(max_size * sizeof(float));
     track_array->state = (enum state_e*)malloc(max_size * sizeof(enum state_e));
@@ -102,8 +108,8 @@ track_t* tracking_alloc_track_array(const size_t max_size) {
 
 void tracking_init_track_array(track_t* track_array) {
     memset(track_array->id, 0, track_array->_max_size * sizeof(uint16_t));
-    features_init_ROI_array(track_array->begin);
-    features_init_ROI_array(track_array->end);
+    memset(track_array->begin, 0, track_array->_max_size * sizeof(ROI_light_t));
+    memset(track_array->end, 0, track_array->_max_size * sizeof(ROI_light_t));
     memset(track_array->extrapol_x, 0, track_array->_max_size * sizeof(float));
     memset(track_array->extrapol_y, 0, track_array->_max_size * sizeof(float));
     memset(track_array->state, 0, track_array->_max_size * sizeof(enum state_e));
@@ -123,8 +129,8 @@ void tracking_clear_index_track_array(track_t* track_array, const size_t t) {
 
 void tracking_free_track_array(track_t* track_array) {
     free(track_array->id);
-    features_free_ROI_array(track_array->begin);
-    features_free_ROI_array(track_array->end);
+    free(track_array->begin);
+    free(track_array->end);
     free(track_array->extrapol_x);
     free(track_array->extrapol_y);
     free(track_array->state);
@@ -168,21 +174,23 @@ void add_to_BB_array(BB_t** BB_array, uint16_t rx, uint16_t ry, uint16_t bb_x, u
 ROI_history_t* alloc_ROI_history(const size_t max_history_size, const size_t max_ROI_size) {
     ROI_history_t* ROI_hist = (ROI_history_t*)malloc(sizeof(ROI_history_t));
     ROI_hist->_max_size = max_history_size;
-    ROI_hist->array = (ROI_t**)malloc(ROI_hist->_max_size * sizeof(ROI_t*));
+    ROI_hist->array = (ROI_light_t**)malloc(ROI_hist->_max_size * sizeof(ROI_light_t*));
+    ROI_hist->n_ROI = (uint32_t*)malloc(ROI_hist->_max_size * sizeof(uint32_t));
+    ROI_hist->_max_n_ROI = max_ROI_size;
     for (size_t i = 0; i < ROI_hist->_max_size; i++)
-        ROI_hist->array[i] = features_alloc_ROI_array(max_ROI_size);
+        ROI_hist->array[i] = (ROI_light_t*)malloc(max_ROI_size * sizeof(ROI_light_t));
     return ROI_hist;
 }
 
 void free_ROI_history(ROI_history_t* ROI_hist) {
     for (size_t i = 0; i < ROI_hist->_max_size; i++)
-        features_free_ROI_array(ROI_hist->array[i]);
+        free(ROI_hist->array[i]);
     free(ROI_hist->array);
     free(ROI_hist);
 }
 
 void rotate_ROI_history(ROI_history_t* ROI_hist) {
-    ROI_t* last_ROI_tmp = ROI_hist->array[ROI_hist->_max_size -1];
+    ROI_light_t* last_ROI_tmp = ROI_hist->array[ROI_hist->_max_size -1];
     for (int i = (int)(ROI_hist->_max_size -2); i >= 0; i--)
         ROI_hist->array[i + 1] = ROI_hist->array[i];
     ROI_hist->array[0] = last_ROI_tmp;
@@ -192,87 +200,84 @@ void rotate_ROI_history(ROI_history_t* ROI_hist) {
 tracking_data_t* tracking_alloc_data(const size_t max_history_size, const size_t max_ROI_size) {
     tracking_data_t* tracking_data = (tracking_data_t*)malloc(sizeof(tracking_data_t));
     tracking_data->ROI_history = alloc_ROI_history(max_history_size, max_ROI_size);
-    tracking_data->ROI_list = features_alloc_ROI_array(max_history_size);
+    // tracking_data->ROI_list = features_alloc_ROI_array(max_history_size);
+    tracking_data->ROI_list = (ROI_light_t*)malloc(max_history_size * sizeof(ROI_light_t));
     return tracking_data;
 }
 
 void tracking_init_data(tracking_data_t* tracking_data) {
-    features_init_ROI_array(tracking_data->ROI_list);
+    memset(tracking_data->ROI_list, 0, tracking_data->ROI_history->_max_size * sizeof(ROI_light_t));
     for (size_t i = 0; i < tracking_data->ROI_history->_max_size; i++)
-        features_init_ROI_array(tracking_data->ROI_history->array[i]);
+        memset(tracking_data->ROI_history->array[i], 0, tracking_data->ROI_history->_max_n_ROI * sizeof(ROI_light_t));
     tracking_data->ROI_history->_size = 0;
 }
 
 void tracking_free_data(tracking_data_t* tracking_data) {
     free_ROI_history(tracking_data->ROI_history);
-    features_free_ROI_array(tracking_data->ROI_list);
+    // features_free_ROI_array(tracking_data->ROI_list);
+    free(tracking_data->ROI_list);
     free(tracking_data);
 }
 
-void _track_extrapolate(const ROI_t* track_end, float* track_extrapol_x, float* track_extrapol_y, const size_t t,
-                        double theta, double tx, double ty) {
+void _track_extrapolate(const ROI_light_t* track_end, float* track_extrapol_x, float* track_extrapol_y, double theta,
+                        double tx, double ty) {
     // compensation du mouvement + calcul vitesse entre t-1 et t
-    float u = track_end->x[t] - track_end->dx[t] - track_extrapol_x[t];
-    float v = track_end->y[t] - track_end->dy[t] - track_extrapol_y[t];
+    float u = track_end->x - track_end->dx - *track_extrapol_x;
+    float v = track_end->y - track_end->dy - *track_extrapol_y;
 
-    float x = (float)tx + track_end->x[t] * (float)cos(theta) - track_end->y[t] * (float)sin(theta);
-    float y = (float)ty + track_end->x[t] * (float)sin(theta) + track_end->y[t] * (float)cos(theta);
+    float x = (float)tx + track_end->x * (float)cos(theta) - track_end->y * (float)sin(theta);
+    float y = (float)ty + track_end->x * (float)sin(theta) + track_end->y * (float)cos(theta);
 
-    track_extrapol_x[t] = x + u;
-    track_extrapol_y[t] = y + v;
+    *track_extrapol_x = x + u;
+    *track_extrapol_y = y + v;
 }
 
 void track_extrapolate(track_t* track_array, const size_t t, double theta, double tx, double ty) {
-    _track_extrapolate(track_array->end, track_array->extrapol_x, track_array->extrapol_y, t, theta, tx, ty);
+    _track_extrapolate(&track_array->end[t], &track_array->extrapol_x[t], &track_array->extrapol_y[t], theta, tx, ty);
 }
 
-void _update_bounding_box(BB_t** BB_array, const int track_id, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
-                          const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const size_t r, int frame) {
-    assert(ROI_xmin[r] || ROI_xmax[r] || ROI_ymin[r] || ROI_ymax[r]);
+void _update_bounding_box(BB_t** BB_array, const int track_id, const uint16_t ROI_xmin, const uint16_t ROI_xmax,
+                          const uint16_t ROI_ymin, const uint16_t ROI_ymax, int frame) {
+    assert(ROI_xmin || ROI_xmax || ROI_ymin || ROI_ymax);
 
-    uint16_t bb_x = (uint16_t)ceil((double)((ROI_xmin[r] + ROI_xmax[r])) / 2);
-    uint16_t bb_y = (uint16_t)ceil((double)((ROI_ymin[r] + ROI_ymax[r])) / 2);
-    uint16_t rx = (bb_x - ROI_xmin[r]);
-    uint16_t ry = (bb_y - ROI_ymin[r]);
+    uint16_t bb_x = (uint16_t)ceil((double)((ROI_xmin + ROI_xmax)) / 2);
+    uint16_t bb_y = (uint16_t)ceil((double)((ROI_ymin + ROI_ymax)) / 2);
+    uint16_t rx = (bb_x - ROI_xmin);
+    uint16_t ry = (bb_y - ROI_ymin);
 
     add_to_BB_array(BB_array, rx, ry, bb_x, bb_y, track_id, frame - 1);
 }
 
 void update_bounding_box(BB_t** BB_array, const int track_id, const ROI_t* ROI_array, const size_t r, int frame) {
-    _update_bounding_box(BB_array, track_id, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin, ROI_array->ymax, r,
-                         frame);
+    _update_bounding_box(BB_array, track_id, ROI_array->xmin[r], ROI_array->xmax[r], ROI_array->ymin[r],
+                         ROI_array->ymax[r], frame);
 }
 
 void _light_copy_elmt_ROI_array(const uint16_t* ROI_src_id, const uint32_t* ROI_src_frame, const uint16_t* ROI_src_xmin,
                                 const uint16_t* ROI_src_xmax, const uint16_t* ROI_src_ymin,
                                 const uint16_t* ROI_src_ymax, const float* ROI_src_x, const float* ROI_src_y,
                                 const int32_t* ROI_src_prev_id, const int32_t* ROI_src_next_id, const size_t i_src,
-                                uint16_t* ROI_dest_id, uint32_t* ROI_dest_frame, uint16_t* ROI_dest_xmin,
-                                uint16_t* ROI_dest_xmax, uint16_t* ROI_dest_ymin, uint16_t* ROI_dest_ymax,
-                                float* ROI_dest_x, float* ROI_dest_y, int32_t* ROI_dest_prev_id,
-                                int32_t* ROI_dest_next_id, const size_t i_dest) {
-    ROI_dest_id[i_dest] = ROI_src_id[i_src];
-    ROI_dest_frame[i_dest] = ROI_src_frame[i_src];
-    ROI_dest_xmin[i_dest] = ROI_src_xmin[i_src];
-    ROI_dest_xmax[i_dest] = ROI_src_xmax[i_src];
-    ROI_dest_ymin[i_dest] = ROI_src_ymin[i_src];
-    ROI_dest_ymax[i_dest] = ROI_src_ymax[i_src];
-    ROI_dest_x[i_dest] = ROI_src_x[i_src];
-    ROI_dest_y[i_dest] = ROI_src_y[i_src];
-    ROI_dest_prev_id[i_dest] = ROI_src_prev_id[i_src];
-    ROI_dest_next_id[i_dest] = (ROI_src_next_id) ? ROI_src_next_id[i_src] : 0;
+                                ROI_light_t* ROI_array_dest, const size_t i_dest) {
+    ROI_array_dest[i_dest].id = ROI_src_id[i_src];
+    ROI_array_dest[i_dest].frame = ROI_src_frame[i_src];
+    ROI_array_dest[i_dest].xmin = ROI_src_xmin[i_src];
+    ROI_array_dest[i_dest].xmax = ROI_src_xmax[i_src];
+    ROI_array_dest[i_dest].ymin = ROI_src_ymin[i_src];
+    ROI_array_dest[i_dest].ymax = ROI_src_ymax[i_src];
+    ROI_array_dest[i_dest].x = ROI_src_x[i_src];
+    ROI_array_dest[i_dest].y = ROI_src_y[i_src];
+    ROI_array_dest[i_dest].prev_id = ROI_src_prev_id[i_src];
+    ROI_array_dest[i_dest].next_id = (ROI_src_next_id) ? ROI_src_next_id[i_src] : 0;
 }
 
-void light_copy_elmt_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest, const int i_src, const int i_dest) {
+void light_copy_elmt_ROI_array(const ROI_t* ROI_array_src, ROI_light_t* ROI_array_dest, const int i_src,
+                               const int i_dest) {
     _light_copy_elmt_ROI_array(ROI_array_src->id, ROI_array_src->frame, ROI_array_src->xmin, ROI_array_src->xmax,
                                ROI_array_src->ymin, ROI_array_src->ymax, ROI_array_src->x, ROI_array_src->y,
-                               ROI_array_src->prev_id, ROI_array_src->next_id, i_src, ROI_array_dest->id,
-                               ROI_array_dest->frame, ROI_array_dest->xmin, ROI_array_dest->xmax, ROI_array_dest->ymin,
-                               ROI_array_dest->ymax, ROI_array_dest->x, ROI_array_dest->y, ROI_array_dest->prev_id,
-                               ROI_array_dest->next_id, i_dest);
+                               ROI_array_src->prev_id, ROI_array_src->next_id, i_src, ROI_array_dest, i_dest);
 }
 
-void _update_existing_tracks(const ROI_t** ROI_hist, const uint16_t* ROI0_id, const uint32_t* ROI0_frame,
+void _update_existing_tracks(const ROI_light_t** ROI_hist, const uint16_t* ROI0_id, const uint32_t* ROI0_frame,
                              const uint16_t* ROI0_xmin, const uint16_t* ROI0_xmax, const uint16_t* ROI0_ymin,
                              const uint16_t* ROI0_ymax, const float* ROI0_x, const float* ROI0_y,
                              const int32_t* ROI0_prev_id, const int32_t* ROI0_next_id, const size_t n_ROI0,
@@ -280,13 +285,13 @@ void _update_existing_tracks(const ROI_t** ROI_hist, const uint16_t* ROI0_id, co
                              const uint16_t* ROI1_xmax, const uint16_t* ROI1_ymin, const uint16_t* ROI1_ymax,
                              const float* ROI1_x, const float* ROI1_y, const int32_t* ROI1_prev_id,
                              uint8_t* ROI1_is_extrapolated, const size_t n_ROI1, uint16_t* track_id,
-                             const ROI_t* track_begin, ROI_t* track_end, float* track_extrapol_x,
+                             const ROI_light_t* track_begin, ROI_light_t* track_end, float* track_extrapol_x,
                              float* track_extrapol_y, enum state_e* track_state, enum obj_e* track_obj_type,
                              enum change_state_reason_e* track_change_state_reason, size_t* offset_tracks,
                              const size_t n_tracks, BB_t** BB_array, size_t frame, double theta, double tx, double ty,
                              size_t r_extrapol, float angle_max, int track_all, size_t fra_meteor_max) {
     for (size_t i = *offset_tracks; i < n_tracks; i++) {
-        int next_id = track_end->next_id[i];
+        int next_id = track_end[i].next_id;
         if (!next_id) {
             *offset_tracks = i;
             break;
@@ -301,14 +306,11 @@ void _update_existing_tracks(const ROI_t** ROI_hist, const uint16_t* ROI0_id, co
                         (ROI0_y[j] < track_extrapol_y[i] + r_extrapol) &&
                         (ROI0_y[j] > track_extrapol_y[i] - r_extrapol)) {
                         _light_copy_elmt_ROI_array(ROI0_id, ROI0_frame, ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax,
-                                                   ROI0_x, ROI0_y, ROI0_prev_id, ROI0_next_id, j, track_end->id,
-                                                   track_end->frame, track_end->xmin, track_end->xmax, track_end->ymin,
-                                                   track_end->ymax, track_end->x, track_end->y, track_end->prev_id,
-                                                   track_end->next_id, i);
+                                                   ROI0_x, ROI0_y, ROI0_prev_id, ROI0_next_id, j, track_end, i);
                         track_state[i] = TRACK_UPDATED;
                         // update_bounding_box(BB_array, track_id[i], ROI_array0, j, frame - 1);
-                        _update_bounding_box(BB_array, track_id[i], ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax, j,
-                                             frame - 1);
+                        _update_bounding_box(BB_array, track_id[i], ROI0_xmin[j], ROI0_xmax[j], ROI0_ymin[j],
+                                             ROI0_ymax[j], frame - 1);
                     }
                 }
             }
@@ -328,15 +330,15 @@ void _update_existing_tracks(const ROI_t** ROI_hist, const uint16_t* ROI0_id, co
                     track_state[i] = TRACK_FINISHED;
             }
             if (track_state[i] == TRACK_UPDATED || track_state[i] == TRACK_NEW) {
-                int next_id = ROI0_next_id[track_end->id[i] - 1];
+                int next_id = ROI0_next_id[track_end[i].id - 1];
                 if (next_id) {
                     if (track_obj_type[i] == METEOR) {
-                        if (ROI0_prev_id[track_end->id[i] - 1]) {
-                            int k = ROI0_prev_id[track_end->id[i] - 1] - 1;
-                            float u_x = ROI0_x[track_end->id[i] - 1] - ROI_hist[0]->x[k];
-                            float u_y = ROI0_y[track_end->id[i] - 1] - ROI_hist[0]->y[k];
-                            float v_x = ROI1_x[next_id - 1] - ROI_hist[0]->x[k];
-                            float v_y = ROI1_y[next_id - 1] - ROI_hist[0]->y[k];
+                        if (ROI0_prev_id[track_end[i].id - 1]) {
+                            int k = ROI0_prev_id[track_end[i].id - 1] - 1;
+                            float u_x = ROI0_x[track_end[i].id - 1] - ROI_hist[0][k].x;
+                            float u_y = ROI0_y[track_end[i].id - 1] - ROI_hist[0][k].y;
+                            float v_x = ROI1_x[next_id - 1] - ROI_hist[0][k].x;
+                            float v_y = ROI1_y[next_id - 1] - ROI_hist[0][k].y;
                             float scalar_prod_uv = u_x * v_x + u_y * v_y;
                             float norm_u = sqrtf(u_x * u_x + u_y * u_y);
                             float norm_v = sqrtf(v_x * v_x + v_y * v_y);
@@ -355,23 +357,19 @@ void _update_existing_tracks(const ROI_t** ROI_hist, const uint16_t* ROI0_id, co
                             }
                         }
                     }
-                    track_extrapol_x[i] = track_end->x[i];
-                    track_extrapol_y[i] = track_end->y[i];
+                    track_extrapol_x[i] = track_end[i].x;
+                    track_extrapol_y[i] = track_end[i].y;
                     int32_t* ROI1_next_id = NULL;
                     _light_copy_elmt_ROI_array(ROI1_id, ROI1_frame, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_x,
-                                               ROI1_y, ROI1_prev_id, ROI1_next_id, next_id - 1, track_end->id,
-                                               track_end->frame, track_end->xmin, track_end->xmax, track_end->ymin,
-                                               track_end->ymax, track_end->x, track_end->y, track_end->prev_id,
-                                               track_end->next_id, i);
+                                               ROI1_y, ROI1_prev_id, ROI1_next_id, next_id - 1, track_end, i);
                     if (track_state[i] == TRACK_NEW) // because the right time has been set in 'insert_new_track'
                         track_state[i] = TRACK_UPDATED;
                     // update_bounding_box(BB_array, track_id[i], ROI_array1, next_id - 1, frame + 1);
-                    _update_bounding_box(BB_array, track_id[i], ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, next_id - 1,
-                                         frame + 1);
+                    _update_bounding_box(BB_array, track_id[i], ROI1_xmin[next_id - 1], ROI1_xmax[next_id - 1],
+                                         ROI1_ymin[next_id - 1], ROI1_ymax[next_id - 1], frame + 1);
                 } else {
                     // on extrapole si pas finished
-                    _track_extrapolate(track_end, track_extrapol_x, track_extrapol_y, i, theta, tx,
-                                       ty);
+                    _track_extrapolate(&track_end[i], &track_extrapol_x[i], &track_extrapol_y[i], theta, tx, ty);
                     track_state[i] = TRACK_LOST;
                 }
             }
@@ -387,9 +385,9 @@ void _update_existing_tracks(const ROI_t** ROI_hist, const uint16_t* ROI0_id, co
     }
 }
 
-void update_existing_tracks(const ROI_t** ROI_hist, const ROI_t* ROI_array0, ROI_t* ROI_array1, track_t* track_array,
-                            BB_t** BB_array, size_t frame, double theta, double tx, double ty, size_t r_extrapol,
-                            float angle_max, int track_all, size_t fra_meteor_max) {
+void update_existing_tracks(const ROI_light_t** ROI_hist, const ROI_t* ROI_array0, ROI_t* ROI_array1,
+                            track_t* track_array, BB_t** BB_array, size_t frame, double theta, double tx, double ty,
+                            size_t r_extrapol, float angle_max, int track_all, size_t fra_meteor_max) {
     _update_existing_tracks(ROI_hist, ROI_array0->id, ROI_array0->frame, ROI_array0->xmin, ROI_array0->xmax,
                             ROI_array0->ymin, ROI_array0->ymax, ROI_array0->x, ROI_array0->y, ROI_array0->prev_id,
                             ROI_array0->next_id, ROI_array0->_size, ROI_array1->id, ROI_array1->frame, ROI_array1->xmin,
@@ -401,55 +399,59 @@ void update_existing_tracks(const ROI_t** ROI_hist, const ROI_t* ROI_array0, ROI
                             angle_max, track_all, fra_meteor_max);
 }
 
-void _insert_new_track(const ROI_t* ROI_list, unsigned n_ROI, uint16_t* track_id, ROI_t* track_begin, ROI_t* track_end,
-                       enum state_e* track_state, enum obj_e* track_obj_type, size_t* n_tracks, BB_t** BB_array,
-                       int frame, enum obj_e type) {
+void _insert_new_track(const ROI_light_t* ROI_list, unsigned n_ROI, uint16_t* track_id, ROI_light_t* track_begin,
+                       ROI_light_t* track_end, enum state_e* track_state, enum obj_e* track_obj_type, size_t* n_tracks,
+                       BB_t** BB_array, int frame, enum obj_e type) {
     assert(n_ROI >= 1);
     size_t cur_track = *n_tracks;
     track_id[cur_track] = cur_track + 1;
-    light_copy_elmt_ROI_array(ROI_list, track_begin, n_ROI - 1, cur_track);
-    light_copy_elmt_ROI_array(ROI_list, track_end, 0, cur_track);
+    // light_copy_elmt_ROI_array(ROI_list, track_begin, n_ROI - 1, cur_track);
+    memcpy(&track_begin[cur_track], &ROI_list[n_ROI - 1], sizeof(ROI_light_t));
+    // light_copy_elmt_ROI_array(ROI_list, track_end, 0, cur_track);
+    memcpy(&track_end[cur_track], &ROI_list[0], sizeof(ROI_light_t));
     track_state[cur_track] = TRACK_NEW;
     track_obj_type[cur_track] = type;
     for (unsigned n = 0; n < n_ROI; n++)
-        update_bounding_box(BB_array, track_id[cur_track], ROI_list, n, frame - n);
+        _update_bounding_box(BB_array, track_id[cur_track], ROI_list[n].xmin, ROI_list[n].xmax, ROI_list[n].ymin,
+                             ROI_list[n].ymax, frame - n);
     (*n_tracks)++;
 }
 
-void insert_new_track(const ROI_t* ROI_list, unsigned n_ROI, track_t* track_array, BB_t** BB_array,
+void insert_new_track(const ROI_light_t* ROI_list, unsigned n_ROI, track_t* track_array, BB_t** BB_array,
                       int frame, enum obj_e type) {
     assert(track_array->_size < track_array->_max_size);
     _insert_new_track(ROI_list, n_ROI, track_array->id, track_array->begin, track_array->end, track_array->state,
                       track_array->obj_type,  &track_array->_size, BB_array, frame, type);
 }
 
-void _fill_ROI_list(const ROI_t** ROI_hist, ROI_t* ROI_list, const uint16_t* ROI_id, const uint32_t* ROI_frame,
-                    const uint16_t* ROI_xmin, const uint16_t* ROI_xmax, const uint16_t* ROI_ymin,
-                    const uint16_t* ROI_ymax, const float* ROI_x, const float* ROI_y, const int32_t* ROI_prev_id,
-                    const int32_t* ROI_next_id, const size_t r) {
-    _light_copy_elmt_ROI_array(ROI_id, ROI_frame, ROI_xmin, ROI_xmax, ROI_ymin,
-                               ROI_ymax, ROI_x, ROI_y, ROI_prev_id, ROI_next_id, r, ROI_list->id,
-                               ROI_list->frame, ROI_list->xmin, ROI_list->xmax, ROI_list->ymin, ROI_list->ymax,
-                               ROI_list->x, ROI_list->y, ROI_list->prev_id, ROI_list->next_id, 0);
-    for (size_t i = 1; i < ROI_list->_size; i++)
-        light_copy_elmt_ROI_array(ROI_hist[i - 1], ROI_list, ROI_list->prev_id[i - 1] - 1, i);
+void _fill_ROI_list(const ROI_light_t** ROI_hist, ROI_light_t* ROI_list, const uint16_t* ROI_id,
+                    const uint32_t* ROI_frame, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
+                    const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const float* ROI_x, const float* ROI_y,
+                    const int32_t* ROI_prev_id, const int32_t* ROI_next_id, const size_t n_ROI, const size_t r) {
+    _light_copy_elmt_ROI_array(ROI_id, ROI_frame, ROI_xmin, ROI_xmax, ROI_ymin, ROI_ymax, ROI_x, ROI_y, ROI_prev_id,
+                               ROI_next_id, r, ROI_list, 0);
+    for (size_t i = 1; i < n_ROI; i++)
+        // light_copy_elmt_ROI_array(ROI_hist[i - 1], ROI_list, ROI_list->prev_id[i - 1] - 1, i);
+        memcpy(&ROI_list[i], &ROI_hist[i - 1][ROI_list[i - 1].prev_id - 1], sizeof(ROI_light_t));
 }
 
-void fill_ROI_list(const ROI_t** ROI_hist, ROI_t* ROI_list, const ROI_t* ROI_array, const size_t r) {
+void fill_ROI_list(const ROI_light_t** ROI_hist, ROI_light_t* ROI_list, const ROI_t* ROI_array, const size_t n_ROI,
+                   const size_t r) {
     _fill_ROI_list(ROI_hist, ROI_list, ROI_array->id, ROI_array->frame, ROI_array->xmin, ROI_array->xmax,
                    ROI_array->ymin, ROI_array->ymax, ROI_array->x, ROI_array->y, ROI_array->prev_id, ROI_array->next_id,
-                   r);
+                   n_ROI, r);
 }
 
-void _create_new_tracks(const ROI_t** ROI_hist, ROI_t* ROI_list, const uint16_t* ROI0_id, const uint32_t* ROI0_frame,
-                        const uint16_t* ROI0_xmin, const uint16_t* ROI0_xmax, const uint16_t* ROI0_ymin,
-                        const uint16_t* ROI0_ymax, const float* ROI0_x, const float* ROI0_y, const float* ROI0_error,
-                        const int32_t* ROI0_prev_id, const int32_t* ROI0_next_id, const int32_t* ROI0_time,
-                        const int32_t* ROI0_time_motion, const uint8_t* ROI0_is_extrapolated, const size_t n_ROI0,
-                        int32_t* ROI1_time, int32_t* ROI1_time_motion, uint16_t* track_id, ROI_t* track_begin,
-                        ROI_t* track_end, enum state_e* track_state, enum obj_e* track_obj_type,
-                        const size_t offset_tracks, size_t* n_tracks, BB_t** BB_array, size_t frame, double mean_error,
-                        double std_deviation, float diff_dev, int track_all, size_t fra_star_min, size_t fra_meteor_min)
+void _create_new_tracks(const ROI_light_t** ROI_hist, ROI_light_t* ROI_list, const uint16_t* ROI0_id,
+                        const uint32_t* ROI0_frame, const uint16_t* ROI0_xmin, const uint16_t* ROI0_xmax,
+                        const uint16_t* ROI0_ymin, const uint16_t* ROI0_ymax, const float* ROI0_x, const float* ROI0_y,
+                        const float* ROI0_error, const int32_t* ROI0_prev_id, const int32_t* ROI0_next_id,
+                        const int32_t* ROI0_time, const int32_t* ROI0_time_motion, const uint8_t* ROI0_is_extrapolated,
+                        const size_t n_ROI0, int32_t* ROI1_time, int32_t* ROI1_time_motion, uint16_t* track_id,
+                        ROI_light_t* track_begin, ROI_light_t* track_end, enum state_e* track_state,
+                        enum obj_e* track_obj_type, const size_t offset_tracks, size_t* n_tracks, BB_t** BB_array,
+                        size_t frame, double mean_error, double std_deviation, float diff_dev, int track_all,
+                        size_t fra_star_min, size_t fra_meteor_min)
 {
     for (size_t i = 0; i < n_ROI0; i++) {
         float e = ROI0_error[i];
@@ -479,14 +481,14 @@ void _create_new_tracks(const ROI_t** ROI_hist, ROI_t* ROI_list, const uint16_t*
                 if (time == fra_min - 1) {
                     // this loop prevent adding duplicated tracks
                     size_t j = offset_tracks;
-                    while (j < *n_tracks && (track_end->id[j] != ROI0_id[i] ||
-                           track_end->x[j] != ROI0_x[i] || track_end->y[j] != ROI0_y[i]))
+                    while (j < *n_tracks && (track_end[j].id != ROI0_id[i] ||
+                           track_end[j].x != ROI0_x[i] || track_end[j].y != ROI0_y[i]))
                         j++;
 
                     if (j == *n_tracks || *n_tracks == 0) {
-                        ROI_list->_size = fra_min - 1;
+                        // ROI_list->_size = fra_min - 1;
                         _fill_ROI_list(ROI_hist, ROI_list, ROI0_id, ROI0_frame, ROI0_xmin, ROI0_xmax, ROI0_ymin,
-                                       ROI0_ymax, ROI0_x, ROI0_y, ROI0_prev_id, ROI0_next_id, i);
+                                       ROI0_ymax, ROI0_x, ROI0_y, ROI0_prev_id, ROI0_next_id, fra_min - 1, i);
                         _insert_new_track(ROI_list, fra_min - 1, track_id, track_begin, track_end, track_state,
                                           track_obj_type, n_tracks, BB_array, frame, is_new_meteor ? METEOR : STAR);
                     }
@@ -496,7 +498,7 @@ void _create_new_tracks(const ROI_t** ROI_hist, ROI_t* ROI_list, const uint16_t*
     }
 }
 
-void create_new_tracks(const ROI_t** ROI_hist, ROI_t* ROI_list, const ROI_t* ROI_array0, ROI_t* ROI_array1,
+void create_new_tracks(const ROI_light_t** ROI_hist, ROI_light_t* ROI_list, const ROI_t* ROI_array0, ROI_t* ROI_array1,
                        track_t* track_array, BB_t** BB_array, size_t frame, double mean_error, double std_deviation,
                        float diff_dev, int track_all, size_t fra_star_min, size_t fra_meteor_min) {
     _create_new_tracks(ROI_hist, ROI_list, ROI_array0->id, ROI_array0->frame, ROI_array0->xmin, ROI_array0->xmax,
@@ -512,35 +514,28 @@ void _light_copy_ROI_array(const uint16_t* ROI_src_id, const uint32_t* ROI_src_f
                            const uint16_t* ROI_src_xmax, const uint16_t* ROI_src_ymin, const uint16_t* ROI_src_ymax,
                            const float* ROI_src_x, const float* ROI_src_y, const int32_t* ROI_src_time,
                            const int32_t* ROI_src_time_motion, const int32_t* ROI_src_prev_id,
-                           const uint8_t* ROI_src_is_extrapolated, const size_t n_ROI_src, uint16_t* ROI_dest_id,
-                           uint32_t* ROI_dest_frame, uint16_t* ROI_dest_xmin, uint16_t* ROI_dest_xmax,
-                           uint16_t* ROI_dest_ymin, uint16_t* ROI_dest_ymax, float* ROI_dest_x, float* ROI_dest_y,
-                           int32_t* ROI_dest_time, int32_t* ROI_dest_time_motion, int32_t* ROI_dest_prev_id,
-                           uint8_t* ROI_dest_is_extrapolated, size_t* n_ROI_dest) {
-    *n_ROI_dest = n_ROI_src;
-    memcpy(ROI_dest_id, ROI_src_id, *n_ROI_dest * sizeof(uint16_t));
-    memcpy(ROI_dest_frame, ROI_src_frame, *n_ROI_dest * sizeof(uint32_t));
-    memcpy(ROI_dest_xmin, ROI_src_xmin, *n_ROI_dest * sizeof(uint16_t));
-    memcpy(ROI_dest_xmax, ROI_src_xmax, *n_ROI_dest * sizeof(uint16_t));
-    memcpy(ROI_dest_ymin, ROI_src_ymin, *n_ROI_dest * sizeof(uint16_t));
-    memcpy(ROI_dest_ymax, ROI_src_ymax, *n_ROI_dest * sizeof(uint16_t));
-    memcpy(ROI_dest_x, ROI_src_x, *n_ROI_dest * sizeof(float));
-    memcpy(ROI_dest_y, ROI_src_y, *n_ROI_dest * sizeof(float));
-    memcpy(ROI_dest_time, ROI_src_time, *n_ROI_dest * sizeof(int32_t));
-    memcpy(ROI_dest_time_motion, ROI_src_time_motion, *n_ROI_dest * sizeof(int32_t));
-    memcpy(ROI_dest_prev_id, ROI_src_prev_id, *n_ROI_dest * sizeof(int32_t));
-    memcpy(ROI_dest_is_extrapolated, ROI_src_is_extrapolated, *n_ROI_dest * sizeof(uint8_t));
+                           const uint8_t* ROI_src_is_extrapolated, const size_t n_ROI_src, ROI_light_t* ROI_dest) {
+    for (size_t i = 0; i < n_ROI_src; i++) {
+        ROI_dest[i].id = ROI_src_id[i];
+        ROI_dest[i].frame = ROI_src_frame[i];
+        ROI_dest[i].xmin = ROI_src_xmin[i];
+        ROI_dest[i].xmax = ROI_src_xmax[i];
+        ROI_dest[i].ymin = ROI_src_ymin[i];
+        ROI_dest[i].ymax = ROI_src_ymax[i];
+        ROI_dest[i].x = ROI_src_x[i];
+        ROI_dest[i].y = ROI_src_y[i];
+        ROI_dest[i].time = ROI_src_time[i];
+        ROI_dest[i].time_motion = ROI_src_time_motion[i];
+        ROI_dest[i].prev_id = ROI_src_prev_id[i];
+        ROI_dest[i].is_extrapolated = ROI_src_is_extrapolated[i];
+    }
 }
 
-void light_copy_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest) {
+void light_copy_ROI_array(const ROI_t* ROI_array_src, ROI_light_t* ROI_array_dest) {
     _light_copy_ROI_array(ROI_array_src->id, ROI_array_src->frame, ROI_array_src->xmin, ROI_array_src->xmax,
                           ROI_array_src->ymin, ROI_array_src->ymax, ROI_array_src->x, ROI_array_src->y,
                           ROI_array_src->time, ROI_array_src->time_motion, ROI_array_src->prev_id,
-                          ROI_array_src->is_extrapolated, ROI_array_src->_size, ROI_array_dest->id,
-                          ROI_array_dest->frame, ROI_array_dest->xmin, ROI_array_dest->xmax, ROI_array_dest->ymin,
-                          ROI_array_dest->ymax, ROI_array_dest->x, ROI_array_dest->y, ROI_array_dest->time,
-                          ROI_array_dest->time_motion, ROI_array_dest->prev_id, ROI_array_dest->is_extrapolated,
-                          &ROI_array_dest->_size);
+                          ROI_array_src->is_extrapolated, ROI_array_src->_size, ROI_array_dest);
 }
 
 void _tracking_perform(tracking_data_t* tracking_data, const uint16_t* ROI0_id, const uint32_t* ROI0_frame,
@@ -552,32 +547,25 @@ void _tracking_perform(tracking_data_t* tracking_data, const uint16_t* ROI0_id, 
                        const uint16_t* ROI1_xmax, const uint16_t* ROI1_ymin, const uint16_t* ROI1_ymax,
                        const float* ROI1_x, const float* ROI1_y, int32_t* ROI1_time, int32_t* ROI1_time_motion,
                        const int32_t* ROI1_prev_id, uint8_t* ROI1_is_extrapolated, const size_t n_ROI1,
-                       uint16_t* track_id, ROI_t* track_begin, ROI_t* track_end, float* track_extrapol_x,
+                       uint16_t* track_id, ROI_light_t* track_begin, ROI_light_t* track_end, float* track_extrapol_x,
                        float* track_extrapol_y, enum state_e* track_state, enum obj_e* track_obj_type,
                        enum change_state_reason_e* track_change_state_reason, size_t* offset_tracks, size_t* n_tracks,
                        BB_t** BB_array, size_t frame, double theta, double tx, double ty, double mean_error,
                        double std_deviation, size_t r_extrapol, float angle_max, float diff_dev, int track_all,
-                       size_t fra_star_min, size_t fra_meteor_min, size_t fra_meteor_max)
-{
+                       size_t fra_star_min, size_t fra_meteor_min, size_t fra_meteor_max) {
+    tracking_data->ROI_history->n_ROI[0] = n_ROI1;
     _light_copy_ROI_array(ROI1_id, ROI1_frame, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_x, ROI1_y, ROI1_time,
                           ROI1_time_motion, ROI1_prev_id, ROI1_is_extrapolated, n_ROI1,
-                          tracking_data->ROI_history->array[0]->id, tracking_data->ROI_history->array[0]->frame,
-                          tracking_data->ROI_history->array[0]->xmin, tracking_data->ROI_history->array[0]->xmax,
-                          tracking_data->ROI_history->array[0]->ymin, tracking_data->ROI_history->array[0]->ymax,
-                          tracking_data->ROI_history->array[0]->x, tracking_data->ROI_history->array[0]->y,
-                          tracking_data->ROI_history->array[0]->time, tracking_data->ROI_history->array[0]->time_motion,
-                          tracking_data->ROI_history->array[0]->prev_id,
-                          tracking_data->ROI_history->array[0]->is_extrapolated,
-                          &tracking_data->ROI_history->array[0]->_size);
+                          tracking_data->ROI_history->array[0]);
     if (tracking_data->ROI_history->_size < tracking_data->ROI_history->_max_size)
         tracking_data->ROI_history->_size++;
-    _create_new_tracks((const ROI_t**)&tracking_data->ROI_history->array[2], tracking_data->ROI_list, ROI0_id,
+    _create_new_tracks((const ROI_light_t**)&tracking_data->ROI_history->array[2], tracking_data->ROI_list, ROI0_id,
                        ROI0_frame, ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax, ROI0_x, ROI0_y, ROI0_error, ROI0_prev_id,
                        ROI0_next_id, ROI0_time, ROI0_time_motion, ROI0_is_extrapolated, n_ROI0, ROI1_time,
                        ROI1_time_motion, track_id, track_begin, track_end, track_state, track_obj_type, *offset_tracks,
                        n_tracks, BB_array, frame, mean_error, std_deviation, diff_dev, track_all, fra_star_min,
                        fra_meteor_min);
-    _update_existing_tracks((const ROI_t**)&tracking_data->ROI_history->array[2], ROI0_id, ROI0_frame, ROI0_xmin,
+    _update_existing_tracks((const ROI_light_t**)&tracking_data->ROI_history->array[2], ROI0_id, ROI0_frame, ROI0_xmin,
                             ROI0_xmax, ROI0_ymin, ROI0_ymax, ROI0_x, ROI0_y, ROI0_prev_id, ROI0_next_id, n_ROI0,
                             ROI1_id, ROI1_frame, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_x, ROI1_y,
                             ROI1_prev_id, ROI1_is_extrapolated, n_ROI1, track_id, track_begin, track_end,
@@ -615,7 +603,15 @@ void tracking_print_array_BB(BB_t** BB_array, int n) {
     }
 }
 
-void tracking_print_track_array(FILE* f, const track_t* track_array) {
+void _tracking_track_array_write(FILE* f, const uint16_t* track_id, const ROI_light_t* track_begin,
+                                 const ROI_light_t* track_end, const enum obj_e* track_obj_type,
+                                 const size_t n_tracks) {
+    size_t real_n_tracks = 0;
+    for (size_t i = 0; i < n_tracks; i++)
+        if (track_id[i])
+            real_n_tracks++;
+
+    fprintf(f, "# Tracks [%lu]:\n", real_n_tracks);
     fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
     fprintf(f, "#  Track ||           Begin           ||            End            ||  Object \n");
     fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
@@ -623,13 +619,17 @@ void tracking_print_track_array(FILE* f, const track_t* track_array) {
     fprintf(f, "#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type \n");
     fprintf(f, "# -------||---------|--------|--------||---------|--------|--------||---------\n");
 
-    for (size_t i = 0; i < track_array->_size; i++)
-        if (track_array->id[i]) {
-            fprintf(f, "   %5d || %7u | %6.1f | %6.1f || %7u | %6.1f | %6.1f || %s \n", track_array->id[i],
-                    track_array->begin->frame[i], track_array->begin->x[i], track_array->begin->y[i],
-                    track_array->end->frame[i], track_array->end->x[i], track_array->end->y[i],
-                    g_obj_to_string_with_spaces[track_array->obj_type[i]]);
+    for (size_t i = 0; i < n_tracks; i++)
+        if (track_id[i]) {
+            fprintf(f, "   %5d || %7u | %6.1f | %6.1f || %7u | %6.1f | %6.1f || %s \n", track_id[i],
+                    track_begin[i].frame, track_begin[i].x, track_begin[i].y, track_end[i].frame, track_end[i].x,
+                    track_end[i].y, g_obj_to_string_with_spaces[track_obj_type[i]]);
         }
+}
+
+void tracking_track_array_write(FILE* f, const track_t* track_array) {
+    _tracking_track_array_write(f, track_array->id, track_array->begin, track_array->end, track_array->obj_type,
+                                track_array->_size);
 }
 
 void tracking_parse_tracks(const char* filename, track_t* track_array) {
@@ -653,13 +653,13 @@ void tracking_parse_tracks(const char* filename, track_t* track_array) {
         if (line[0] != '#') {
             sscanf(line, "%d || %d | %f | %f || %d | %f | %f || %s ", &tid, &t0, &x0, &y0, &t1, &x1, &y1, obj_type_str);
             track_array->id[track_array->_size] = tid;
-            track_array->begin->frame[track_array->_size] = t0;
-            track_array->end->frame[track_array->_size] = t1;
+            track_array->begin[track_array->_size].frame = t0;
+            track_array->end[track_array->_size].frame = t1;
             track_array->state[track_array->_size] = TRACK_FINISHED;
-            track_array->begin->x[track_array->_size] = x0;
-            track_array->begin->y[track_array->_size] = y0;
-            track_array->end->x[track_array->_size] = x1;
-            track_array->end->y[track_array->_size] = y1;
+            track_array->begin[track_array->_size].x = x0;
+            track_array->begin[track_array->_size].y = y0;
+            track_array->end[track_array->_size].x = x1;
+            track_array->end[track_array->_size].y = y1;
             track_array->obj_type[track_array->_size] = tracking_string_to_obj_type((const char*)obj_type_str);
             track_array->_size++;
         }
