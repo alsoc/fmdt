@@ -565,7 +565,7 @@ int main(int argc, char** argv) {
     // -- EXECUTE SEQUENCE -- //
     // ---------------------- //
 
-    unsigned n_frames;
+    unsigned n_frames = 0;
     std::function<bool(const std::vector<const int*>&)> stop_condition =
         [&video, &tracking, &n_frames] (const std::vector<const int*>& statuses) {
             if (!video.is_done()) {
