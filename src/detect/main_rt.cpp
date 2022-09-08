@@ -219,7 +219,8 @@ int main(int argc, char** argv) {
 
     // objects allocation
     const size_t b = 1; // image border
-    Video video(p_in_video, p_fra_start, p_fra_end, p_skip_fra, b);
+    const size_t n_ffmpeg_threads = 4; // 0 = use all the threads available
+    Video video(p_in_video, p_fra_start, p_fra_end, p_skip_fra, n_ffmpeg_threads, b);
     const size_t i0 = video.get_i0();
     const size_t i1 = video.get_i1();
     const size_t j0 = video.get_j0();
@@ -534,7 +535,7 @@ int main(int argc, char** argv) {
                                                  sep_stages,
                                                  {
                                                    1, // number of threads in the stage 0
-                                                   4, // number of threads in the stage 1
+                                                   1, // number of threads in the stage 1
                                                    1, // number of threads in the stage 2
                                                  }, {
                                                    1024, // synchronization buffer size between stages 0 and 1

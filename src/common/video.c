@@ -4,15 +4,20 @@
 
 #include "fmdt/video.h"
 
-video_t* video_init_from_file(const char* filename, int start, int end, int skip, int* i0, int* i1, int* j0, int* j1) {
+video_t* video_init_from_file(const char* filename, const int start, const int end, const int skip,
+                              const size_t n_ffmpeg_threads, int* i0, int* i1, int* j0, int* j1) {
     video_t* video = (video_t*)malloc(sizeof(video_t));
     if (!video) {
         fprintf(stderr, "(EE) can't allocate video structure\n");
         exit(1);
     }
 
+    ffmpeg_options_init(&video->ffmpeg_options);
+    if (n_ffmpeg_threads)
+        video->ffmpeg_options.threads_input = n_ffmpeg_threads;
+
     ffmpeg_init(&video->ffmpeg);
-    if (!ffmpeg_probe(&video->ffmpeg, filename, NULL)) {
+    if (!ffmpeg_probe(&video->ffmpeg, filename, &video->ffmpeg_options)) {
         fprintf(stderr, "(EE) can't open file %s\n", filename);
         free(video);
         exit(1);
@@ -24,7 +29,7 @@ video_t* video_init_from_file(const char* filename, int start, int end, int skip
     video->frame_current = 0;
     video->ffmpeg.output.pixfmt = ffmpeg_str2pixfmt("gray");
 
-    if (!ffmpeg_start_reader(&video->ffmpeg, filename, NULL)) {
+    if (!ffmpeg_start_reader(&video->ffmpeg, filename, &video->ffmpeg_options)) {
         fprintf(stderr, "(EE) can't open file %s\n", filename);
         free(video);
         exit(1);

@@ -13,6 +13,9 @@
 #include "fmdt/validation.h"
 #include "fmdt/video.h"
 
+// allow to control the number of threads to use to write the output video with ffmpeg
+static const ffmpeg_options g_ffopts_output = {.debug = 0, .threads_output = 1};
+
 #define DELTA_BB 5 // extra pixel size for bounding boxes
 
 void add_to_BB_coord_list(BB_coord_t* coord, int rx, int ry, int bb_x, int bb_y, int track_id, enum color_e color) {
@@ -176,7 +179,8 @@ int main(int argc, char** argv) {
            n_noise, track_array->_size);
 
     // init
-    video_t* video = video_init_from_file(p_in_video, start, end, 0, &i0, &i1, &j0, &j1);
+    const size_t n_ffmpeg_threads = 0; // 0 = use all the threads available
+    video_t* video = video_init_from_file(p_in_video, start, end, 0, n_ffmpeg_threads, &i0, &i1, &j0, &j1);
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
 
     // validation pour établir si une track est vrai/faux positif
@@ -207,7 +211,7 @@ int main(int argc, char** argv) {
     writer_video_out.input.width = j1 - j0 + 1;
     writer_video_out.input.height = i1 - i0 + 1;
     writer_video_out.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
-    if (!ffmpeg_start_writer(&writer_video_out, p_out_video, NULL)) {
+    if (!ffmpeg_start_writer(&writer_video_out, p_out_video, &g_ffopts_output)) {
         fprintf(stderr, "(EE) Something went wrong when starting to write output video.");
         exit(-1);
     }

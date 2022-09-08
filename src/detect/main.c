@@ -187,7 +187,9 @@ int main(int argc, char** argv) {
     // -------------------------- //
 
     int i0, i1, j0, j1; // image dimension (y_min, y_max, x_min, x_max)
-    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_skip_fra, &i0, &i1, &j0, &j1);
+    const size_t n_ffmpeg_threads = 0; // 0 = use all the threads available
+    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_skip_fra, n_ffmpeg_threads, &i0, &i1,
+                                          &j0, &j1);
 
     // ---------------- //
     // -- ALLOCATION -- //

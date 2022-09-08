@@ -131,7 +131,9 @@ int main(int argc, char** argv) {
     // -- INITIALISATION VIDEO-- //
     // ------------------------- //
     PUTS("INIT VIDEO");
-    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, skip, &i0, &i1, &j0, &j1);
+    const size_t n_ffmpeg_threads = 0; // 0 = use all the threads available
+    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, skip, n_ffmpeg_threads, &i0, &i1, &j0,
+                                          &j1);
 
     // ---------------- //
     // -- ALLOCATION -- //
