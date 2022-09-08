@@ -32,7 +32,7 @@
 #include "fmdt/Logger/Logger_track.hpp"
 #include "fmdt/Logger/Logger_frame.hpp"
 
-#define ENABLE_PIPELINE
+// #define ENABLE_PIPELINE
 
 int main(int argc, char** argv) {
     // default values
@@ -436,6 +436,11 @@ int main(int argc, char** argv) {
         log_KNN[lgr_knn::sck::write::in_n_ROI] = delayer_n_ROI[dly::sck::produce::out];
         log_KNN[lgr_knn::sck::write::in_frame] = video[vid::sck::generate::out_frame];
 
+        log_motion[lgr_mtn::sck::write::in_first_theta] = motion[ftr_mtn::sck::compute::out_first_theta];
+        log_motion[lgr_mtn::sck::write::in_first_tx] = motion[ftr_mtn::sck::compute::out_first_tx];
+        log_motion[lgr_mtn::sck::write::in_first_ty] = motion[ftr_mtn::sck::compute::out_first_ty];
+        log_motion[lgr_mtn::sck::write::in_first_mean_error] = motion[ftr_mtn::sck::compute::out_first_mean_error];
+        log_motion[lgr_mtn::sck::write::in_first_std_deviation] = motion[ftr_mtn::sck::compute::out_first_std_deviation];
         log_motion[lgr_mtn::sck::write::in_theta] = motion[ftr_mtn::sck::compute::out_theta];
         log_motion[lgr_mtn::sck::write::in_tx] = motion[ftr_mtn::sck::compute::out_tx];
         log_motion[lgr_mtn::sck::write::in_ty] = motion[ftr_mtn::sck::compute::out_ty];
@@ -538,8 +543,8 @@ int main(int argc, char** argv) {
                                                    1, // number of threads in the stage 1
                                                    1, // number of threads in the stage 2
                                                  }, {
-                                                   1024, // synchronization buffer size between stages 0 and 1
-                                                   1024, // synchronization buffer size between stages 1 and 2
+                                                   128, // synchronization buffer size between stages 0 and 1
+                                                   128, // synchronization buffer size between stages 1 and 2
                                                  }, {
                                                    false, // type of waiting between stages 0 and 1 (true = active, false = passive)
                                                    false, // type of waiting between stages 1 and 2 (true = active, false = passive)

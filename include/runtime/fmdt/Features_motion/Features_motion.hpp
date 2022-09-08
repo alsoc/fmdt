@@ -9,8 +9,9 @@ namespace ftr_mtn {
     enum class tsk : size_t { compute, SIZE };
     namespace sck {
         enum class compute : size_t { in_ROI0_next_id, in_ROI0_x, in_ROI0_y, in_n_ROI0, in_ROI1_x, in_ROI1_y,
-                                      out_ROI0_dx, out_ROI0_dy, out_ROI0_error, out_ROI0_is_moving, out_theta, out_tx,
-                                      out_ty, out_mean_error, out_std_deviation, status };
+                                      out_ROI0_dx, out_ROI0_dy, out_ROI0_error, out_ROI0_is_moving, out_first_theta,
+                                      out_first_tx, out_first_ty, out_first_mean_error, out_first_std_deviation,
+                                      out_theta, out_tx, out_ty, out_mean_error, out_std_deviation, status };
     }
 }
 
@@ -37,6 +38,12 @@ public:
         auto ps_out_ROI0_error = this->template create_socket_out<float>(p, "out_ROI0_error", max_ROI_size);
         auto ps_out_ROI0_is_moving = this->template create_socket_out<uint8_t>(p, "out_ROI0_is_moving", max_ROI_size);
 
+        auto ps_out_first_theta = this->template create_socket_out<double>(p, "out_first_theta", 1);
+        auto ps_out_first_tx = this->template create_socket_out<double>(p, "out_first_tx", 1);
+        auto ps_out_first_ty = this->template create_socket_out<double>(p, "out_first_ty", 1);
+        auto ps_out_first_mean_error = this->template create_socket_out<double>(p, "out_first_mean_error", 1);
+        auto ps_out_first_std_deviation = this->template create_socket_out<double>(p, "out_first_std_deviation", 1);
+
         auto ps_out_theta = this->template create_socket_out<double>(p, "out_theta", 1);
         auto ps_out_tx = this->template create_socket_out<double>(p, "out_tx", 1);
         auto ps_out_ty = this->template create_socket_out<double>(p, "out_ty", 1);
@@ -45,8 +52,9 @@ public:
 
         this->create_codelet(p, [ps_in_ROI0_next_id, ps_in_ROI0_x, ps_in_ROI0_y, ps_in_n_ROI0, ps_in_ROI1_x,
                                  ps_in_ROI1_y, ps_out_ROI0_dx, ps_out_ROI0_dy, ps_out_ROI0_error,
-                                 ps_out_ROI0_is_moving, ps_out_theta, ps_out_tx, ps_out_ty, ps_out_mean_error,
-                                 ps_out_std_deviation]
+                                 ps_out_ROI0_is_moving, ps_out_first_theta, ps_out_first_tx, ps_out_first_ty,
+                                 ps_out_first_mean_error, ps_out_first_std_deviation, ps_out_theta, ps_out_tx,
+                                 ps_out_ty, ps_out_mean_error, ps_out_std_deviation]
                              (aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int {
             const uint32_t n_ROI0 = *static_cast<const uint32_t*>(t[ps_in_n_ROI0].get_dataptr());
 
@@ -62,6 +70,11 @@ public:
                                      n_ROI0,
                                      static_cast<const float*>(t[ps_in_ROI1_x].get_dataptr()),
                                      static_cast<const float*>(t[ps_in_ROI1_y].get_dataptr()),
+                                     static_cast<double*>(t[ps_out_first_theta].get_dataptr()),
+                                     static_cast<double*>(t[ps_out_first_tx].get_dataptr()),
+                                     static_cast<double*>(t[ps_out_first_ty].get_dataptr()),
+                                     static_cast<double*>(t[ps_out_first_mean_error].get_dataptr()),
+                                     static_cast<double*>(t[ps_out_first_std_deviation].get_dataptr()),
                                      static_cast<double*>(t[ps_out_theta].get_dataptr()),
                                      static_cast<double*>(t[ps_out_tx].get_dataptr()),
                                      static_cast<double*>(t[ps_out_ty].get_dataptr()),

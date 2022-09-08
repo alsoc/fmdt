@@ -68,10 +68,12 @@ double features_compute_mean_error(const ROI_t* stats);
 double features_compute_std_deviation(const ROI_t* stats, const double mean_error);
 void _features_compute_motion(const int32_t* ROI0_next_id, const float* ROI0_x, const float* ROI0_y, float* ROI0_dx,
                               float* ROI0_dy, float* ROI0_error, uint8_t* ROI0_is_moving, const size_t n_ROI0,
-                              const float* ROI1_x, const float* ROI1_y, double* theta, double* tx, double* ty,
-                              double* mean_error, double* std_deviation);
-void features_compute_motion(const ROI_t* ROI_array1, ROI_t* ROI_array0, double* theta, double* tx,
-                             double* ty, double* mean_error, double* std_deviation);
+                              const float* ROI1_x, const float* ROI1_y, double* first_theta, double* first_tx,
+                              double* first_ty, double* first_mean_error, double* first_std_deviation, double* theta,
+                              double* tx, double* ty, double* mean_error, double* std_deviation);
+void features_compute_motion(const ROI_t* ROI_array1, ROI_t* ROI_array0, double* first_theta, double* first_tx,
+                             double* first_ty, double* first_mean_error, double* first_std_deviation, double* theta,
+                             double* tx, double* ty, double* mean_error, double* std_deviation);
 void _features_ROI_write(FILE* f, const uint16_t* ROI_id, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
                          const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
                          const uint32_t* ROI_Sx, const uint32_t* ROI_Sy, const float* ROI_x, const float* ROI_y,
@@ -92,5 +94,6 @@ void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id
                                const size_t n_tracks);
 void features_ROI0_ROI1_write(FILE* f, const int frame, const ROI_t* ROI_array0, const ROI_t* ROI_array1,
                               const track_t* track_array);
-void features_motion_write(FILE* f, const double theta, const double tx, const double ty, const double mean_error,
-                           const double std_deviation);
+void features_motion_write(FILE* f, const double first_theta, const double first_tx, const double first_ty,
+                           const double first_mean_error, const double first_std_deviation, const double theta,
+                           const double tx, const double ty, const double mean_error, const double std_deviation);

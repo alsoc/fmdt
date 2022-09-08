@@ -58,7 +58,8 @@ void features_init_ROI_array(ROI_t* ROI_array) {
     ROI_array->_size = 0;
 }
 
-void features_copy_elmt_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest, const int i_src, const int i_dest) {
+void features_copy_elmt_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest, const int i_src,
+                                  const int i_dest) {
     ROI_array_dest->id[i_dest] = ROI_array_src->id[i_src];
     ROI_array_dest->frame[i_dest] = ROI_array_src->frame[i_src];
     ROI_array_dest->xmin[i_dest] = ROI_array_src->xmin[i_src];
@@ -567,27 +568,31 @@ void features_motion_extraction(ROI_t* ROI_array0, const ROI_t* ROI_array1, doub
 
 void _features_compute_motion(const int32_t* ROI0_next_id, const float* ROI0_x, const float* ROI0_y, float* ROI0_dx,
                               float* ROI0_dy, float* ROI0_error, uint8_t* ROI0_is_moving, const size_t n_ROI0,
-                              const float* ROI1_x, const float* ROI1_y, double* theta, double* tx, double* ty,
-                              double* mean_error, double* std_deviation) {
-    _features_rigid_registration(ROI0_next_id, ROI0_x, ROI0_y, n_ROI0, ROI1_x, ROI1_y, theta, tx, ty);
+                              const float* ROI1_x, const float* ROI1_y, double* first_theta, double* first_tx,
+                              double* first_ty, double* first_mean_error, double* first_std_deviation, double* theta,
+                              double* tx, double* ty, double* mean_error, double* std_deviation) {
+    _features_rigid_registration(ROI0_next_id, ROI0_x, ROI0_y, n_ROI0, ROI1_x, ROI1_y, first_theta, first_tx, first_ty);
     _features_motion_extraction(ROI0_next_id, ROI0_x, ROI0_y, ROI0_dx, ROI0_dy, ROI0_error, n_ROI0, ROI1_x, ROI1_y,
-                                *theta, *tx, *ty);
-    *mean_error = _features_compute_mean_error(ROI0_next_id, ROI0_error, ROI0_is_moving, n_ROI0);
-    *std_deviation = _features_compute_std_deviation(ROI0_next_id, ROI0_error, ROI0_is_moving, n_ROI0, *mean_error);
+                                *first_theta, *first_tx, *first_ty);
+    *first_mean_error = _features_compute_mean_error(ROI0_next_id, ROI0_error, ROI0_is_moving, n_ROI0);
+    *first_std_deviation = _features_compute_std_deviation(ROI0_next_id, ROI0_error, ROI0_is_moving, n_ROI0,
+                                                           *first_mean_error);
     // saveErrorMoy("first_error.txt", mean_error, std_deviation);
     _features_rigid_registration_corrected(ROI0_next_id, ROI0_x, ROI0_y, ROI0_error, ROI0_is_moving, n_ROI0, ROI1_x,
-                                           ROI1_y, theta, tx, ty, *mean_error, *std_deviation);
+                                           ROI1_y, theta, tx, ty, *first_mean_error, *first_std_deviation);
     _features_motion_extraction(ROI0_next_id, ROI0_x, ROI0_y, ROI0_dx, ROI0_dy, ROI0_error, n_ROI0, ROI1_x, ROI1_y,
                                 *theta, *tx, *ty);
     *mean_error = _features_compute_mean_error(ROI0_next_id, ROI0_error, ROI0_is_moving, n_ROI0);
     *std_deviation = _features_compute_std_deviation(ROI0_next_id, ROI0_error, ROI0_is_moving, n_ROI0, *mean_error);
 }
 
-void features_compute_motion(const ROI_t* ROI_array1, ROI_t* ROI_array0, double* theta, double* tx, double* ty,
-                             double* mean_error, double* std_deviation) {
+void features_compute_motion(const ROI_t* ROI_array1, ROI_t* ROI_array0, double* first_theta, double* first_tx,
+                             double* first_ty, double* first_mean_error, double* first_std_deviation, double* theta,
+                             double* tx, double* ty, double* mean_error, double* std_deviation) {
     _features_compute_motion(ROI_array0->next_id, ROI_array0->x, ROI_array0->y, ROI_array0->dx, ROI_array0->dy,
                              ROI_array0->error, ROI_array0->is_moving, ROI_array0->_size, ROI_array1->x, ROI_array1->y,
-                             theta, tx, ty, mean_error, std_deviation);
+                             first_theta, first_tx, first_ty, first_mean_error, first_std_deviation, theta, tx, ty,
+                             mean_error, std_deviation);
 }
 
 void features_print_stats(ROI_t* stats, int n) {
@@ -722,14 +727,20 @@ void features_ROI_write(FILE* f, const ROI_t* ROI_array, const track_t* track_ar
                         track_array->end, track_array->obj_type, track_array->_size, age);
 }
 
-void features_motion_write(FILE* f, const double theta, const double tx, const double ty, const double mean_error,
-                            const double std_deviation) {
+void features_motion_write(FILE* f, const double first_theta, const double first_tx, const double first_ty,
+                           const double first_mean_error, const double first_std_deviation, const double theta,
+                           const double tx, const double ty, const double mean_error, const double std_deviation) {
     fprintf(f, "# Motion:\n");
-    fprintf(f, "# * theta         = %6.7f\n", theta);
-    fprintf(f, "# * tx            = %6.4f\n", tx);
-    fprintf(f, "# * ty            = %6.4f\n", ty);
-    fprintf(f, "# * mean error    = %.3f\n", mean_error);
-    fprintf(f, "# * std deviation = %.3f\n", std_deviation);
+    fprintf(f, "# * first theta         = %6.7f\n", first_theta);
+    fprintf(f, "# * first tx            = %6.4f\n", first_tx);
+    fprintf(f, "# * first ty            = %6.4f\n", first_ty);
+    fprintf(f, "# * first mean error    = %.3f\n", first_mean_error);
+    fprintf(f, "# * first std deviation = %.3f\n", first_std_deviation);
+    fprintf(f, "# * theta               = %6.7f\n", theta);
+    fprintf(f, "# * tx                  = %6.4f\n", tx);
+    fprintf(f, "# * ty                  = %6.4f\n", ty);
+    fprintf(f, "# * mean error          = %.3f\n", mean_error);
+    fprintf(f, "# * std deviation       = %.3f\n", std_deviation);
 }
 
 void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id, const uint16_t* ROI0_xmin,
