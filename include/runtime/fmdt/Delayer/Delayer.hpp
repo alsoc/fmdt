@@ -22,27 +22,27 @@ template <typename D = int>
 class Delayer : public aff3ct::module::Module
 {
 public:
-	inline aff3ct::module::Task&   operator[](const dly::tsk           t) { return aff3ct::module::Module::operator[]((int)t);                          }
-	inline aff3ct::module::Socket& operator[](const dly::sck::memorize s) { return aff3ct::module::Module::operator[]((int)dly::tsk::memorize)[(int)s]; }
-	inline aff3ct::module::Socket& operator[](const dly::sck::produce  s) { return aff3ct::module::Module::operator[]((int)dly::tsk::produce )[(int)s]; }
+	inline aff3ct::module::Task& operator[](const dly::tsk t) {
+		return aff3ct::module::Module::operator[]((int)t);
+	}
+
+	inline aff3ct::module::Socket& operator[](const dly::sck::memorize s) {
+		return aff3ct::module::Module::operator[]((int)dly::tsk::memorize)[(int)s];
+	}
+
+	inline aff3ct::module::Socket& operator[](const dly::sck::produce s) {
+		return aff3ct::module::Module::operator[]((int)dly::tsk::produce)[(int)s];
+	}
 
 protected:
 	const size_t size; // Size of one frame (= number of datas in one frame)
 	const D init_val;
 	std::vector<D> data;
-
 public:
 	Delayer(const size_t size, const D init_val);
-
-	/*!
-	 * \brief Destructor.
-	 */
 	virtual ~Delayer() = default;
-
 	virtual Delayer<D>* clone() const;
-
 	virtual size_t get_size() const;
-
 	virtual void set_n_frames(const size_t n_frames);
 
 protected:

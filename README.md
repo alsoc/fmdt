@@ -21,7 +21,7 @@ This project use `ffmpeg-io`, `nrc2` and `aff3ct` projects as submodules:
 git submodule update --init --recursive
 ```
 
-If you want to enable text indication in generated videos/images (`--show-id`  option), the OpenCV library is required.
+If you want to enable text indications in generated videos/images (`--show-id` option), the `OpenCV` library is required.
 
 ## Compilation with CMake
 

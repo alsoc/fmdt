@@ -1,8 +1,8 @@
 #pragma once
 
 #include <stdint.h>
-
-#include "fmdt/tracking.h"
+#include <stddef.h>
+#include <stdio.h>
 
 enum obj_e { UNKNOWN = 0, METEOR, STAR, NOISE, N_OBJECTS };
 

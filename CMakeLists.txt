@@ -77,23 +77,37 @@ list(APPEND fmdt_targets_list fmdt-common-obj)
 
 # executables
 if(FMDT_DETECT_EXE)
-	set(src_detect_files
+	set(src_detect_common_files
 	    ${src_dir}/detect/CCL.c
 	    ${src_dir}/detect/KPPV.c
-	    ${src_dir}/detect/threshold.c
+	    ${src_dir}/detect/threshold.c)
+	list(APPEND fmdt_src_list ${src_detect_common_files})
+	add_library(fmdt-detect-common-obj OBJECT ${src_detect_common_files})
+	list(APPEND fmdt_targets_list fmdt-detect-common-obj)
+	set(src_detect_files
 	    ${src_dir}/detect/main.c)
 	list(APPEND fmdt_src_list ${src_detect_files})
-	add_executable(fmdt-detect-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_detect_files})
+	add_executable(fmdt-detect-exe $<TARGET_OBJECTS:fmdt-common-obj> $<TARGET_OBJECTS:fmdt-detect-common-obj> ${src_detect_files})
 	list(APPEND fmdt_targets_list fmdt-detect-exe)
 	set_target_properties(fmdt-detect-exe PROPERTIES OUTPUT_NAME fmdt-detect)
 	if (FMDT_AFF3CT_RUNTIME)
 		set(src_detectrt_files
-		    ${src_dir}/detect/CCL.c
-		    ${src_dir}/detect/KPPV.c
-		    ${src_dir}/detect/threshold.c
+		    ${src_dir}/runtime/CCL_LSL/CCL_LSL.cpp
+		    ${src_dir}/runtime/Features/Features_extractor.cpp
+		    ${src_dir}/runtime/Features/Features_merger.cpp
+		    ${src_dir}/runtime/Features/Features_motion.cpp
+		    ${src_dir}/runtime/KNN_matcher/KNN_matcher.cpp
+		    ${src_dir}/runtime/Logger/Logger_frame.cpp
+		    ${src_dir}/runtime/Logger/Logger_KNN.cpp
+		    ${src_dir}/runtime/Logger/Logger_motion.cpp
+		    ${src_dir}/runtime/Logger/Logger_ROI.cpp
+		    ${src_dir}/runtime/Logger/Logger_track.cpp
+		    ${src_dir}/runtime/Threshold/Threshold.cpp
+		    ${src_dir}/runtime/Tracking/Tracking.cpp
+		    ${src_dir}/runtime/Video/Video.cpp
 		    ${src_dir}/detect/main_rt.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt_files})
-		add_executable(fmdt-detect-rt-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_detectrt_files})
+		add_executable(fmdt-detect-rt-exe $<TARGET_OBJECTS:fmdt-common-obj> $<TARGET_OBJECTS:fmdt-detect-common-obj> ${src_detectrt_files})
 		list(APPEND fmdt_targets_list fmdt-detect-rt-exe)
 		set_target_properties(fmdt-detect-rt-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt)
 	endif()

@@ -19,9 +19,9 @@
 
 #include "fmdt/CCL_LSL/CCL_LSL.hpp"
 #include "fmdt/Delayer/Delayer.hpp"
-#include "fmdt/Features_extractor/Features_extractor.hpp"
-#include "fmdt/Features_merger/Features_merger.hpp"
-#include "fmdt/Features_motion/Features_motion.hpp"
+#include "fmdt/Features/Features_extractor.hpp"
+#include "fmdt/Features/Features_merger.hpp"
+#include "fmdt/Features/Features_motion.hpp"
 #include "fmdt/KNN_matcher/KNN_matcher.hpp"
 #include "fmdt/Threshold/Threshold.hpp"
 #include "fmdt/Tracking/Tracking.hpp"
@@ -32,7 +32,7 @@
 #include "fmdt/Logger/Logger_track.hpp"
 #include "fmdt/Logger/Logger_frame.hpp"
 
-// #define ENABLE_PIPELINE
+#define ENABLE_PIPELINE
 
 int main(int argc, char** argv) {
     // default values
@@ -540,11 +540,11 @@ int main(int argc, char** argv) {
                                                  sep_stages,
                                                  {
                                                    1, // number of threads in the stage 0
-                                                   1, // number of threads in the stage 1
+                                                   4, // number of threads in the stage 1
                                                    1, // number of threads in the stage 2
                                                  }, {
-                                                   128, // synchronization buffer size between stages 0 and 1
-                                                   128, // synchronization buffer size between stages 1 and 2
+                                                   16, // synchronization buffer size between stages 0 and 1
+                                                   16, // synchronization buffer size between stages 1 and 2
                                                  }, {
                                                    false, // type of waiting between stages 0 and 1 (true = active, false = passive)
                                                    false, // type of waiting between stages 1 and 2 (true = active, false = passive)
@@ -573,16 +573,14 @@ int main(int argc, char** argv) {
 
     unsigned n_frames = 0;
     std::function<bool(const std::vector<const int*>&)> stop_condition =
-        [&video, &tracking, &n_frames] (const std::vector<const int*>& statuses) {
-            if (!video.is_done()) {
-                fprintf(stderr, "(II) Frame n°%4u", n_frames);
-                unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
-                size_t n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
-                fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
-                        n_stars, n_noise, n_tracks);
-                fflush(stderr);
-                n_frames++;
-            }
+        [&tracking, &n_frames] (const std::vector<const int*>& statuses) {
+            fprintf(stderr, "(II) Frame n°%4u", n_frames);
+            unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
+            size_t n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
+            fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
+                    n_stars, n_noise, n_tracks);
+            fflush(stderr);
+            n_frames++;
             return false;
         };
 
@@ -609,7 +607,7 @@ int main(int argc, char** argv) {
 
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
     size_t real_n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
-    printf("# Statistics:\n");
+    printf("# Tracks statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, real_n_tracks);
@@ -624,6 +622,7 @@ int main(int argc, char** argv) {
         aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true);
     }
 #else
+    std::cout << "#" << std::endl;
     aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true);
 #endif
 
