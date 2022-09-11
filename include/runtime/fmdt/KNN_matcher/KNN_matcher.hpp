@@ -21,12 +21,8 @@ protected:
 public:
     KNN_matcher(const size_t i0, const int i1, const int j0, const int j1, const size_t k, const size_t max_ROI_size);
     virtual ~KNN_matcher();
-
-    inline aff3ct::module::Task& operator[](const knn::tsk t) {
-        return aff3ct::module::Module::operator[]((size_t)t);
-    }
-
-    inline aff3ct::module::Socket& operator[](const knn::sck::match s) {
-        return aff3ct::module::Module::operator[]((size_t)knn::tsk::match)[(size_t)s];
-    }
+    inline aff3ct::module::Task& operator[](const knn::tsk t);
+    inline aff3ct::module::Socket& operator[](const knn::sck::match s);
 };
+
+#include "fmdt/KNN_matcher/KNN_matcher.hxx"

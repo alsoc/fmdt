@@ -25,12 +25,8 @@ public:
     Logger_KNN(const std::string KNN_path, const size_t i0, const int i1, const int j0, const int j1,
                const size_t max_ROI_size);
     virtual ~Logger_KNN();
-
-    inline aff3ct::module::Task& operator[](const lgr_knn::tsk t) {
-        return aff3ct::module::Module::operator[]((size_t)t);
-    }
-
-    inline aff3ct::module::Socket& operator[](const lgr_knn::sck::write s) {
-        return aff3ct::module::Module::operator[]((size_t)lgr_knn::tsk::write)[(size_t)s];
-    }
+    inline aff3ct::module::Task& operator[](const lgr_knn::tsk t);
+    inline aff3ct::module::Socket& operator[](const lgr_knn::sck::write s);
 };
+
+#include "fmdt/Logger/Logger_KNN.hxx"

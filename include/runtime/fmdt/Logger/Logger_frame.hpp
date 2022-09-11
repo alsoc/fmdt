@@ -22,12 +22,8 @@ protected:
 public:
     Logger_frame(const std::string frames_path, const int i0, const int i1, const int j0, const int j1, const int b);
     virtual ~Logger_frame();
-
-    inline aff3ct::module::Task& operator[](const lgr_fra::tsk t) {
-        return aff3ct::module::Module::operator[]((size_t)t);
-    }
-
-    inline aff3ct::module::Socket& operator[](const lgr_fra::sck::write s) {
-        return aff3ct::module::Module::operator[]((size_t)lgr_fra::tsk::write)[(size_t)s];
-    }
+    inline aff3ct::module::Task& operator[](const lgr_fra::tsk t);
+    inline aff3ct::module::Socket& operator[](const lgr_fra::sck::write s);
 };
+
+#include "fmdt/Logger/Logger_frame.hxx"

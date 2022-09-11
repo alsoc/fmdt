@@ -40,6 +40,24 @@ Delayer<D>
 }
 
 template <typename D>
+aff3ct::module::Task& Delayer<D>
+::operator[](const dly::tsk t) {
+	return aff3ct::module::Module::operator[]((int)t);
+}
+
+template <typename D>
+aff3ct::module::Socket& Delayer<D>
+::operator[](const dly::sck::memorize s) {
+	return aff3ct::module::Module::operator[]((int)dly::tsk::memorize)[(int)s];
+}
+
+template <typename D>
+aff3ct::module::Socket& Delayer<D>
+::operator[](const dly::sck::produce s) {
+	return aff3ct::module::Module::operator[]((int)dly::tsk::produce)[(int)s];
+}
+
+template <typename D>
 Delayer<D>* Delayer<D>
 ::clone() const
 {

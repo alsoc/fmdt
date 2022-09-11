@@ -21,20 +21,12 @@ public:
     Threshold(const int i0, const int i1, const int j0, const int j1, const int b, const uint8_t thr_val);
     virtual ~Threshold();
     virtual Threshold* clone() const;
-
-    inline uint8_t** get_out_img() {
-        return this->out_img;
-    }
-
-    inline aff3ct::module::Task& operator[](const thr::tsk t) {
-        return aff3ct::module::Module::operator[]((size_t)t);
-    }
-
-    inline aff3ct::module::Socket& operator[](const thr::sck::apply s) {
-        return aff3ct::module::Module::operator[]((size_t)thr::tsk::apply)[(size_t)s];
-    }
-
+    inline uint8_t** get_out_img();
+    inline aff3ct::module::Task& operator[](const thr::tsk t);
+    inline aff3ct::module::Socket& operator[](const thr::sck::apply s);
 protected:
     void init_data();
     void deep_copy(const Threshold &m);
 };
+
+#include "fmdt/Threshold/Threshold.hxx"

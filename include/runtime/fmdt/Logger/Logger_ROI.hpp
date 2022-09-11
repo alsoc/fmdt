@@ -21,12 +21,8 @@ protected:
 public:
     Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, const size_t max_tracks_size);
     virtual ~Logger_ROI();
-
-    inline aff3ct::module::Task& operator[](const lgr_roi::tsk t) {
-        return aff3ct::module::Module::operator[]((size_t)t);
-    }
-
-    inline aff3ct::module::Socket& operator[](const lgr_roi::sck::write s) {
-        return aff3ct::module::Module::operator[]((size_t)lgr_roi::tsk::write)[(size_t)s];
-    }
+    inline aff3ct::module::Task& operator[](const lgr_roi::tsk t);
+    inline aff3ct::module::Socket& operator[](const lgr_roi::sck::write s);
 };
+
+#include "fmdt/Logger/Logger_ROI.hxx"

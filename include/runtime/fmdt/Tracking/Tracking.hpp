@@ -38,20 +38,10 @@ public:
              const size_t fra_star_min, const size_t fra_meteor_min, const size_t fra_meteor_max,
              const size_t max_ROI_size, const size_t max_tracks_size, const size_t max_n_frames);
     virtual ~Tracking();
-
-    inline track_t* get_track_array() {
-        return this->track_array;
-    }
-
-    inline BB_t** get_BB_array() {
-        return this->BB_array;
-    }
-
-    inline aff3ct::module::Task& operator[](const trk::tsk t) {
-        return aff3ct::module::Module::operator[]((size_t)t);
-    }
-
-    inline aff3ct::module::Socket& operator[](const trk::sck::perform s) {
-        return aff3ct::module::Module::operator[]((size_t)trk::tsk::perform)[(size_t)s];
-    }
+    inline track_t* get_track_array();
+    inline BB_t** get_BB_array();
+    inline aff3ct::module::Task& operator[](const trk::tsk t);
+    inline aff3ct::module::Socket& operator[](const trk::sck::perform s) ;
 };
+
+#include "fmdt/Tracking/Tracking.hxx"

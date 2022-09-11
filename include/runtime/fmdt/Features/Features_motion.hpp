@@ -19,12 +19,8 @@ protected:
 public:
     Features_motion(const size_t max_ROI_size);
     virtual ~Features_motion();
-
-    inline aff3ct::module::Task& operator[](const ftr_mtn::tsk t) {
-        return aff3ct::module::Module::operator[]((size_t)t);
-    }
-
-    inline aff3ct::module::Socket& operator[](const ftr_mtn::sck::compute s) {
-        return aff3ct::module::Module::operator[]((size_t)ftr_mtn::tsk::compute)[(size_t)s];
-    }
+    inline aff3ct::module::Task& operator[](const ftr_mtn::tsk t);
+    inline aff3ct::module::Socket& operator[](const ftr_mtn::sck::compute s);
 };
+
+#include "fmdt/Features/Features_motion.hxx"

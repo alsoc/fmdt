@@ -27,20 +27,12 @@ public:
                     const uint32_t S_max, const size_t max_ROI_size);
     virtual ~Features_merger();
     virtual Features_merger* clone() const;
-
-    inline uint8_t** get_out_img() {
-        return this->out_img;
-    }
-
-    inline aff3ct::module::Task& operator[](const ftr_mrg::tsk t) {
-        return aff3ct::module::Module::operator[]((size_t)t);
-    }
-
-    inline aff3ct::module::Socket& operator[](const ftr_mrg::sck::merge s) {
-        return aff3ct::module::Module::operator[]((size_t)ftr_mrg::tsk::merge)[(size_t)s];
-    }
-
+    inline uint8_t** get_out_img();
+    inline aff3ct::module::Task& operator[](const ftr_mrg::tsk t);
+    inline aff3ct::module::Socket& operator[](const ftr_mrg::sck::merge s);
 protected:
     void init_data();
     void deep_copy(const Features_merger &m);
 };
+
+#include "fmdt/Features/Features_merger.hxx"

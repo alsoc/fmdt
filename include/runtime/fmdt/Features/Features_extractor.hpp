@@ -21,16 +21,11 @@ public:
     Features_extractor(const int i0, const int i1, const int j0, const int j1, const int b, const size_t max_ROI_size);
     virtual ~Features_extractor();
     virtual Features_extractor* clone() const;
-
-    inline aff3ct::module::Task& operator[](const ftr_ext::tsk t) {
-        return aff3ct::module::Module::operator[]((size_t)t);
-    }
-
-    inline aff3ct::module::Socket& operator[](const ftr_ext::sck::extract s) {
-        return aff3ct::module::Module::operator[]((size_t)ftr_ext::tsk::extract)[(size_t)s];
-    }
-
+    inline aff3ct::module::Task& operator[](const ftr_ext::tsk t);
+    inline aff3ct::module::Socket& operator[](const ftr_ext::sck::extract s);
 protected:
     void init_data();
     void deep_copy(const Features_extractor &m);
 };
+
+#include "fmdt/Features/Features_extractor.hxx"

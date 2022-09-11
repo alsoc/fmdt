@@ -18,12 +18,8 @@ protected:
 public:
     Logger_motion(const std::string motion_path);
     virtual ~Logger_motion();
-
-    inline aff3ct::module::Task& operator[](const lgr_mtn::tsk t) {
-        return aff3ct::module::Module::operator[]((size_t)t);
-    }
-
-    inline aff3ct::module::Socket& operator[](const lgr_mtn::sck::write s) {
-        return aff3ct::module::Module::operator[]((size_t)lgr_mtn::tsk::write)[(size_t)s];
-    }
+    inline aff3ct::module::Task& operator[](const lgr_mtn::tsk t);
+    inline aff3ct::module::Socket& operator[](const lgr_mtn::sck::write s);
 };
+
+#include "fmdt/Logger/Logger_motion.hxx"

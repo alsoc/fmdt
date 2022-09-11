@@ -25,20 +25,13 @@ public:
     CCL_LSL(const int i0, const int i1, const int j0, const int j1, const int b);
     virtual ~CCL_LSL();
     virtual CCL_LSL* clone() const;
-
-    inline uint32_t** get_out_img() {
-        return this->out_img;
-    }
-
-    inline aff3ct::module::Task& operator[](const ccl::tsk t) {
-        return aff3ct::module::Module::operator[]((size_t)t);
-    }
-
-    inline aff3ct::module::Socket& operator[](const ccl::sck::apply s) {
-        return aff3ct::module::Module::operator[]((size_t)ccl::tsk::apply)[(size_t)s];
-    }
+    inline uint32_t** get_out_img();
+    inline aff3ct::module::Task& operator[](const ccl::tsk t);
+    inline aff3ct::module::Socket& operator[](const ccl::sck::apply s);
 
 protected:
     void init_data();
     void deep_copy(const CCL_LSL &m);
 };
+
+#include "fmdt/CCL_LSL/CCL_LSL.hxx"

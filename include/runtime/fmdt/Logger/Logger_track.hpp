@@ -17,12 +17,8 @@ protected:
 public:
     Logger_track(const std::string tracks_path, const size_t max_tracks_size);
     virtual ~Logger_track();
-
-    inline aff3ct::module::Task& operator[](const lgr_trk::tsk t) {
-        return aff3ct::module::Module::operator[]((size_t)t);
-    }
-
-    inline aff3ct::module::Socket& operator[](const lgr_trk::sck::write s) {
-        return aff3ct::module::Module::operator[]((size_t)lgr_trk::tsk::write)[(size_t)s];
-    }
+    inline aff3ct::module::Task& operator[](const lgr_trk::tsk t);
+    inline aff3ct::module::Socket& operator[](const lgr_trk::sck::write s);
 };
+
+#include "fmdt/Logger/Logger_track.hxx"
