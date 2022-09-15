@@ -74,8 +74,8 @@ The list of available arguments:
 | :---               | :---     | :---        | :---    | :--- |
 | `--in-video`       | str      | None        | Yes     | Input video path where we want to detect meteors. |
 | `--out-bb`         | str      | None        | No      | Path to the bounding boxes file required by `fmdt-visu` to draw detection rectangles. |
-| `--out-frames`     | str      | None        | No      | Path of the output frames for debug (PPM format). |
-| `--out-stats`      | str      | None        | No      | TODO. |
+| `--out-frames`     | str      | None        | No      | Path of the output frames for debug (PGM format). |
+| `--out-stats`      | str      | None        | No      | Path of the output statistics, only required for debugging purpose. |
 | `--fra-start`      | int      | 0           | No      | First frame id to start the detection in the video sequence. |
 | `--fra-end`        | int      | 10000       | No      | Last frame id to stop the detection in the video sequence. |
 | `--skip-fra`       | int      | 0           | No      | Number of frames to skip. |

@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
                 "  --out-bb            Path to the file containing the bounding boxes (frame by frame)        [%s]\n",
                 def_p_out_bb ? def_p_out_bb : "NULL");
         fprintf(stderr,
-                "  --out-stats         TODO! Path to folder                                                   [%s]\n",
+                "  --out-stats         Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_out_stats ? def_p_out_stats : "NULL");
         fprintf(stderr,
                 "  --fra-start         Starting point of the video                                            [%d]\n",
