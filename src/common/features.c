@@ -238,7 +238,7 @@ void _features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_
                         for (k = x0; k <= x1; k++) {
                             for (l = y0; l <= y1; l++) {
                                 if ((uint32_t)M[k][l] == (uint32_t)id) {
-                                    HI_out[k][l] = (uint8_t)MIN(i + 1, 255);
+                                    HI_out[k][l] = (uint8_t)MAX(MIN(i + 1, 255), 80);
                                 }
                             }
                         }
@@ -663,7 +663,7 @@ int _find_corresponding_track(const uint16_t* track_id, const ROI_light_t* track
     assert(age == 0 || age == 1);
     for (size_t t = 0; t < n_tracks; t++) {
         if (track_id[t]) {
-            int cur_ROI_id = (age == 0) ? track_end[t].id : ROI_id[track_end[t].prev_id];
+            int cur_ROI_id = (age == 0) ? track_end[t].id : ROI_id[track_end[t].prev_id - 1];
             if (cur_ROI_id <= 0)
                 continue;
             if (sel_ROI_id == cur_ROI_id)
