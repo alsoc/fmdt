@@ -183,7 +183,7 @@ if (FMDT_AFF3CT_RUNTIME)
 		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct/)
 	else()
 		message(FATAL_ERROR "'aff3ct' can't be found, try to init the submodule with the following cmd:\n"
-		                    "$ git submodule update --init --recursice -- ../lib/aff3ct/")
+		                    "$ git submodule update --init --recursive -- ../lib/aff3ct/")
 	endif()
 endif()
 

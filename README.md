@@ -22,7 +22,7 @@ git submodule update --init -- ./lib/ffmpeg-io/
 git submodule update --init -- ./lib/nrc2/
 ```
 
-If you plan (and only if) to compile the multi-threaded dectection executable you will also need get the `aff3ct` submodule:
+If you plan (and only if) to compile the multi-threaded detection executable you will also need to get the `aff3ct` submodule:
 ```bash
 git submodule update --init --recursive -- ./lib/aff3ct/
 ```
