@@ -150,24 +150,41 @@ endif()
 
 # Add and compile sub-projects ------------------------------------------------
 # -----------------------------------------------------------------------------
-# FFmpeg-IO
-option(FFMPEG-IO_EXE "Forced option from '${CMAKE_PROJECT_NAME}'." OFF)
+# ffmpeg-io
 if (NOT TARGET ffmpeg-io-slib)
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/ffmpeg-io/)
+	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/ffmpeg-io/include/constants.h")
+		option(FFMPEG-IO_EXE "Forced option from '${CMAKE_PROJECT_NAME}'." OFF)
+		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/ffmpeg-io/)
+	else()
+		message(FATAL_ERROR "'ffmpeg-io' can't be found, try to init the submodule with the following cmd:\n"
+		                    "$ git submodule update --init -- ../lib/ffmpeg-io/")
+	endif()
 endif()
 
+# nrc
 if (NOT TARGET nrc-slib)
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/nrc2/)
+	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/nrc2/include/nrc.h")
+		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/nrc2/)
+	else()
+		message(FATAL_ERROR "'nrc2' can't be found, try to init the submodule with the following cmd:\n"
+		                    "$ git submodule update --init -- ../lib/nrc2/")
+	endif()
 endif()
 
+# aff3ct
 if (FMDT_AFF3CT_RUNTIME)
-	option(AFF3CT_COMPILE_EXE "" OFF)
-	option(AFF3CT_COMPILE_STATIC_LIB "" ON)
-	option(AFF3CT_COMPILE_SHARED_LIB "" OFF)
-	option(AFF3CT_LINK_GSL "" OFF)
-	option(AFF3CT_LINK_MKL "" OFF)
-	set(AFF3CT_PREC  "MULTI" CACHE STRING "")
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct/)
+	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct/include/aff3ct.hpp")
+		option(AFF3CT_COMPILE_EXE "" OFF)
+		option(AFF3CT_COMPILE_STATIC_LIB "" ON)
+		option(AFF3CT_COMPILE_SHARED_LIB "" OFF)
+		option(AFF3CT_LINK_GSL "" OFF)
+		option(AFF3CT_LINK_MKL "" OFF)
+		set(AFF3CT_PREC  "MULTI" CACHE STRING "")
+		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct/)
+	else()
+		message(FATAL_ERROR "'aff3ct' can't be found, try to init the submodule with the following cmd:\n"
+		                    "$ git submodule update --init --recursice -- ../lib/aff3ct/")
+	endif()
 endif()
 
 if (FMDT_OPENCV_LINK)
