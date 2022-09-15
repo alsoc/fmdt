@@ -303,6 +303,7 @@ Here is the list of contributors:
  * Clara CIOCAN, *Master student*
  * Mathuran KANDEEPAN, *Master student*
  * Maxime MILLET, *PhD student*
+ * Florian LEMAÎTRE, *PhD*
  * Arthur HENNEQUIN, *PhD*
  * Adrien CASSAGNE, *Associate professor*
  * Lionel LACASSAGNE, *Full professor*
