@@ -6,4 +6,4 @@
 	url = ../nrc2.git
 [submodule "lib/aff3ct"]
 	path = lib/aff3ct
-	url = git@github.com:aff3ct/aff3ct.git
+	url = https://github.com/aff3ct/aff3ct.git
