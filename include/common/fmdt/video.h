@@ -4,7 +4,7 @@
 #include <ffmpeg-io/common.h>
 
 typedef struct {
-    ffmpeg_options ffmpeg_options;
+    ffmpeg_options ffmpeg_opts;
     ffmpeg_handle ffmpeg;
     int frame_start;
     int frame_end;

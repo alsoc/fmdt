@@ -12,12 +12,12 @@ video_t* video_init_from_file(const char* filename, const int start, const int e
         exit(1);
     }
 
-    ffmpeg_options_init(&video->ffmpeg_options);
+    ffmpeg_options_init(&video->ffmpeg_opts);
     if (n_ffmpeg_threads)
-        video->ffmpeg_options.threads_input = n_ffmpeg_threads;
+        video->ffmpeg_opts.threads_input = n_ffmpeg_threads;
 
     ffmpeg_init(&video->ffmpeg);
-    if (!ffmpeg_probe(&video->ffmpeg, filename, &video->ffmpeg_options)) {
+    if (!ffmpeg_probe(&video->ffmpeg, filename, &video->ffmpeg_opts)) {
         fprintf(stderr, "(EE) can't open file %s\n", filename);
         free(video);
         exit(1);
@@ -29,7 +29,7 @@ video_t* video_init_from_file(const char* filename, const int start, const int e
     video->frame_current = 0;
     video->ffmpeg.output.pixfmt = ffmpeg_str2pixfmt("gray");
 
-    if (!ffmpeg_start_reader(&video->ffmpeg, filename, &video->ffmpeg_options)) {
+    if (!ffmpeg_start_reader(&video->ffmpeg, filename, &video->ffmpeg_opts)) {
         fprintf(stderr, "(EE) can't open file %s\n", filename);
         free(video);
         exit(1);
