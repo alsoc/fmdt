@@ -13,9 +13,6 @@
 #include "fmdt/validation.h"
 #include "fmdt/video.h"
 
-// allow to control the number of threads to use to write the output video with ffmpeg
-static const ffmpeg_options g_ffopts_output = {.debug = 0, .threads_output = 1};
-
 #define DELTA_BB 5 // extra pixel size for bounding boxes
 
 void add_to_BB_coord_list(BB_coord_t* coord, int rx, int ry, int bb_x, int bb_y, int track_id, enum color_e color) {
@@ -208,10 +205,16 @@ int main(int argc, char** argv) {
 
     ffmpeg_handle writer_video_out;
     ffmpeg_init(&writer_video_out);
+
+    // set the number of output threads to 4 for ffmpeg-io
+    ffmpeg_options ffmpeg_opts;
+    ffmpeg_options_init(&ffmpeg_opts);
+    ffmpeg_opts.threads_output = 4;
+
     writer_video_out.input.width = j1 - j0 + 1;
     writer_video_out.input.height = i1 - i0 + 1;
     writer_video_out.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
-    if (!ffmpeg_start_writer(&writer_video_out, p_out_video, &g_ffopts_output)) {
+    if (!ffmpeg_start_writer(&writer_video_out, p_out_video, &ffmpeg_opts)) {
         fprintf(stderr, "(EE) Something went wrong when starting to write output video.");
         exit(-1);
     }
