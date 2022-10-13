@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <aff3ct.hpp>
+#include <aff3ct_core.hpp>
 
 namespace lgr_fra {
     enum class tsk : size_t { write, SIZE };

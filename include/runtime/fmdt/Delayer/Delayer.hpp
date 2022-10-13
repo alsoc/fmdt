@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 
-#include <aff3ct.hpp>
+#include <aff3ct_core.hpp>
 
 namespace dly
 {

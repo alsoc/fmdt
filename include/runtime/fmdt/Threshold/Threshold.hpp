@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <aff3ct.hpp>
+#include <aff3ct_core.hpp>
 
 namespace thr {
     enum class tsk : size_t { apply, SIZE };
