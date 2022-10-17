@@ -27,7 +27,7 @@ CCL_LSL::CCL_LSL(const int i0, const int i1, const int j0, const int j1, const i
 
     this->create_codelet(p, [ps_in_img, ps_out_img, ps_out_n_ROI, ps_out_data_er, ps_out_data_era, ps_out_data_rlc,
                              ps_out_data_eq, ps_out_data_ner]
-                         (aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int {
+                         (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lsl = static_cast<CCL_LSL&>(m);
         const uint8_t* m_in_img = static_cast<const uint8_t*>(t[ps_in_img].get_dataptr());
         uint32_t* m_out_img = static_cast<uint32_t*>(t[ps_out_img].get_dataptr());
@@ -60,7 +60,7 @@ CCL_LSL::CCL_LSL(const int i0, const int i1, const int j0, const int j1, const i
                                       static_cast<uint32_t*>(t[ps_out_data_eq].get_dataptr()),
                                       static_cast<uint32_t*>(t[ps_out_data_ner].get_dataptr()),
                                       lsl.in_img, lsl.out_img, lsl.i0, lsl.i1, lsl.j0, lsl.j1);
-        return aff3ct::module::status_t::SUCCESS;
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 

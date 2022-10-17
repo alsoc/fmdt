@@ -28,7 +28,7 @@ Logger_motion::Logger_motion(const std::string motion_path)
     this->create_codelet(p, [ps_in_first_theta, ps_in_first_tx, ps_in_first_ty, ps_in_first_mean_error,
                              ps_in_first_std_deviation, ps_in_theta, ps_in_tx, ps_in_ty, ps_in_mean_error,
                              ps_in_std_deviation, ps_in_frame]
-                         (aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int {
+                         (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_mtn = static_cast<Logger_motion&>(m);
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
         if (frame && !lgr_mtn.motion_path.empty()) {
@@ -49,7 +49,7 @@ Logger_motion::Logger_motion(const std::string motion_path)
                                   *static_cast<const double*>(t[ps_in_std_deviation].get_dataptr()));
             fclose(file);
         }
-        return aff3ct::module::status_t::SUCCESS;
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 

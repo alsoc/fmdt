@@ -36,7 +36,7 @@ Logger_KNN::Logger_KNN(const std::string KNN_path, const size_t i0, const int i1
 
     this->create_codelet(p, [ps_in_data_nearest, ps_in_data_distances, ps_in_ROI_id, ps_in_ROI_S, ps_in_ROI_dx,
                              ps_in_ROI_dy, ps_in_ROI_error, ps_in_ROI_next_id, ps_in_n_ROI, ps_in_frame]
-                         (aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int {
+                         (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_knn = static_cast<Logger_KNN&>(m);
 
         const uint32_t* m_in_data_nearest = static_cast<const uint32_t*>(t[ps_in_data_nearest].get_dataptr());
@@ -64,7 +64,7 @@ Logger_KNN::Logger_KNN(const std::string KNN_path, const size_t i0, const int i1
                                        *static_cast<const uint32_t*>(t[ps_in_n_ROI].get_dataptr()));
             fclose(file);
         }
-        return aff3ct::module::status_t::SUCCESS;
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 

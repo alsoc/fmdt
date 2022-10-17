@@ -84,7 +84,7 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                              ps_out_ROI1_is_extrapolated, ps_out_track_id, ps_out_track_begin, ps_out_track_end,
                              ps_out_track_extrapol_x, ps_out_track_extrapol_y, ps_out_track_state,
                              ps_out_track_obj_type, ps_out_track_change_state_reason, ps_out_n_tracks]
-                         (aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int {
+                         (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &trk = static_cast<Tracking&>(m);
 
         const uint32_t n_ROI0 = *static_cast<const uint32_t*>(t[ps_in_n_ROI0].get_dataptr());
@@ -171,7 +171,7 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
         }
         *out_n_tracks = real_n_tracks;
 
-        return aff3ct::module::status_t::SUCCESS;
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 

@@ -298,8 +298,6 @@ int main(int argc, char** argv) {
                                       tx, ty, mean_error, std_deviation);
                 fprintf(f, "#\n");
                 tracking_track_array_write(f, track_array);
-                // tools_save_motionExtraction(path_extraction, ROI_array0.data, ROI_array1.data, ROI_array0.size, theta,
-                //                             tx, ty, frame-1);
                 fclose(f);
             } else {
                 fprintf(stderr, "(WW) cannot open '%s' file.", filename);

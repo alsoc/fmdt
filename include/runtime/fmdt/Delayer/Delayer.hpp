@@ -5,7 +5,7 @@
 #include <string>
 #include <iostream>
 
-#include <aff3ct_core.hpp>
+#include <aff3ct-core.hpp>
 
 namespace dly
 {
@@ -22,9 +22,9 @@ template <typename D = int>
 class Delayer : public aff3ct::module::Module
 {
 public:
-	inline aff3ct::module::Task& operator[](const dly::tsk t);
-	inline aff3ct::module::Socket& operator[](const dly::sck::memorize s);
-	inline aff3ct::module::Socket& operator[](const dly::sck::produce s);
+	inline aff3ct::runtime::Task& operator[](const dly::tsk t);
+	inline aff3ct::runtime::Socket& operator[](const dly::sck::memorize s);
+	inline aff3ct::runtime::Socket& operator[](const dly::sck::produce s);
 protected:
 	const size_t size; // Size of one frame (= number of datas in one frame)
 	const D init_val;

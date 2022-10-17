@@ -26,10 +26,10 @@ int Video::get_b() {
     return this->b;
 }
 
-aff3ct::module::Task& Video::operator[](const vid::tsk t) {
+aff3ct::runtime::Task& Video::operator[](const vid::tsk t) {
     return aff3ct::module::Module::operator[]((size_t)t);
 }
 
-aff3ct::module::Socket& Video::operator[](const vid::sck::generate s) {
+aff3ct::runtime::Socket& Video::operator[](const vid::sck::generate s) {
     return aff3ct::module::Module::operator[]((size_t)vid::tsk::generate)[(size_t)s];
 }

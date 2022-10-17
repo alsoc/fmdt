@@ -24,7 +24,7 @@ Delayer<D>
 
 	auto &p1 = this->create_task("memorize");
 	auto p1s_in = this->template create_socket_in <D>(p1, "in", this->size);
-	this->create_codelet(p1, [p1s_in](aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int
+	this->create_codelet(p1, [p1s_in](aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int
 	{
 		static_cast<Delayer<D>&>(m)._memorize(static_cast<D*>(t[p1s_in].get_dataptr()), frame_id);
 		return 0;
@@ -32,27 +32,27 @@ Delayer<D>
 
 	auto &p2 = this->create_task("produce");
 	auto p2s_out = this->template create_socket_out<D>(p2, "out", this->size);
-	this->create_codelet(p2, [p2s_out](aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int
+	this->create_codelet(p2, [p2s_out](aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int
 	{
 		static_cast<Delayer<D>&>(m)._produce(static_cast<D*>(t[p2s_out].get_dataptr()), frame_id);
-		return 0;
+		return aff3ct::runtime::status_t::SUCCESS;
 	});
 }
 
 template <typename D>
-aff3ct::module::Task& Delayer<D>
+aff3ct::runtime::Task& Delayer<D>
 ::operator[](const dly::tsk t) {
 	return aff3ct::module::Module::operator[]((int)t);
 }
 
 template <typename D>
-aff3ct::module::Socket& Delayer<D>
+aff3ct::runtime::Socket& Delayer<D>
 ::operator[](const dly::sck::memorize s) {
 	return aff3ct::module::Module::operator[]((int)dly::tsk::memorize)[(int)s];
 }
 
 template <typename D>
-aff3ct::module::Socket& Delayer<D>
+aff3ct::runtime::Socket& Delayer<D>
 ::operator[](const dly::sck::produce s) {
 	return aff3ct::module::Module::operator[]((int)dly::tsk::produce)[(int)s];
 }

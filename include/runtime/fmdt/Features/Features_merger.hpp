@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <aff3ct_core.hpp>
+#include <aff3ct-core.hpp>
 
 namespace ftr_mrg {
     enum class tsk : size_t { merge, SIZE };
@@ -28,8 +28,8 @@ public:
     virtual ~Features_merger();
     virtual Features_merger* clone() const;
     inline uint8_t** get_out_img();
-    inline aff3ct::module::Task& operator[](const ftr_mrg::tsk t);
-    inline aff3ct::module::Socket& operator[](const ftr_mrg::sck::merge s);
+    inline aff3ct::runtime::Task& operator[](const ftr_mrg::tsk t);
+    inline aff3ct::runtime::Socket& operator[](const ftr_mrg::sck::merge s);
 protected:
     void init_data();
     void deep_copy(const Features_merger &m);

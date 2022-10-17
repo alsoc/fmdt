@@ -36,7 +36,7 @@ KNN_matcher::KNN_matcher(const size_t i0, const int i1, const int j0, const int 
     this->create_codelet(p, [ps_in_ROI0_id, ps_in_ROI0_x, ps_in_ROI0_y, ps_in_n_ROI0, ps_in_ROI1_id, ps_in_ROI1_x,
                              ps_in_ROI1_y, ps_in_n_ROI1, ps_out_ROI0_next_id, ps_out_ROI1_prev_id,
                              ps_out_data_nearest, ps_out_data_distances, ps_out_data_conflicts]
-                         (aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int {
+                         (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &knn = static_cast<KNN_matcher&>(m);
 
         const size_t n_ROI0 = (size_t)*static_cast<const uint32_t*>(t[ps_in_n_ROI0].get_dataptr());
@@ -67,7 +67,7 @@ KNN_matcher::KNN_matcher(const size_t i0, const int i1, const int j0, const int 
                     static_cast<int32_t*>(t[ps_out_ROI1_prev_id].get_dataptr()),
                     n_ROI1, knn.k);
 
-        return aff3ct::module::status_t::SUCCESS;
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 

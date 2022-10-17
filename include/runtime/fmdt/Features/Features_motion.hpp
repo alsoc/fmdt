@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <aff3ct_core.hpp>
+#include <aff3ct-core.hpp>
 
 namespace ftr_mtn {
     enum class tsk : size_t { compute, SIZE };
@@ -19,8 +19,8 @@ protected:
 public:
     Features_motion(const size_t max_ROI_size);
     virtual ~Features_motion();
-    inline aff3ct::module::Task& operator[](const ftr_mtn::tsk t);
-    inline aff3ct::module::Socket& operator[](const ftr_mtn::sck::compute s);
+    inline aff3ct::runtime::Task& operator[](const ftr_mtn::tsk t);
+    inline aff3ct::runtime::Socket& operator[](const ftr_mtn::sck::compute s);
 };
 
 #include "fmdt/Features/Features_motion.hxx"

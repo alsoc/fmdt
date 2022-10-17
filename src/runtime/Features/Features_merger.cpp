@@ -49,7 +49,7 @@ Features_merger::Features_merger(const int i0, const int i1, const int j0, const
                              ps_in_n_ROI, ps_out_ROI_id, ps_out_ROI_xmin, ps_out_ROI_xmax, ps_out_ROI_ymin,
                              ps_out_ROI_ymax, ps_out_ROI_S, ps_out_ROI_Sx, ps_out_ROI_Sy, ps_out_ROI_x,
                              ps_out_ROI_y, ps_out_n_ROI, ps_out_img]
-                         (aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int {
+                         (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &mrg = static_cast<Features_merger&>(m);
         const uint32_t* m_in_img1 = static_cast<const uint32_t*>(t[ps_in_img1].get_dataptr());
         const uint8_t* m_in_img2 = static_cast<const uint8_t*>(t[ps_in_img2].get_dataptr());
@@ -102,7 +102,7 @@ Features_merger::Features_merger(const int i0, const int i1, const int j0, const
 
         *static_cast<uint32_t*>(t[ps_out_n_ROI].get_dataptr()) = (uint32_t)out_n_ROI;
 
-        return aff3ct::module::status_t::SUCCESS;
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 

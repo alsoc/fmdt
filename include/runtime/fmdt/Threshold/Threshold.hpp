@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <aff3ct_core.hpp>
+#include <aff3ct-core.hpp>
 
 namespace thr {
     enum class tsk : size_t { apply, SIZE };
@@ -22,8 +22,8 @@ public:
     virtual ~Threshold();
     virtual Threshold* clone() const;
     inline uint8_t** get_out_img();
-    inline aff3ct::module::Task& operator[](const thr::tsk t);
-    inline aff3ct::module::Socket& operator[](const thr::sck::apply s);
+    inline aff3ct::runtime::Task& operator[](const thr::tsk t);
+    inline aff3ct::runtime::Socket& operator[](const thr::sck::apply s);
 protected:
     void init_data();
     void deep_copy(const Threshold &m);

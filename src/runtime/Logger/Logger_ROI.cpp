@@ -54,7 +54,7 @@ Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, co
                              ps_in_ROI1_Sy, ps_in_ROI1_x, ps_in_ROI1_y, ps_in_ROI1_time, ps_in_ROI1_time_motion,
                              ps_in_n_ROI1, ps_in_track_id, ps_in_track_end, ps_in_track_obj_type, ps_in_n_tracks,
                              ps_in_frame]
-                         (aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int {
+                         (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_roi = static_cast<Logger_ROI&>(m);
 
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
@@ -95,7 +95,7 @@ Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, co
                                       *static_cast<const uint32_t*>(t[ps_in_n_tracks].get_dataptr()));
             fclose(file);
         }
-        return aff3ct::module::status_t::SUCCESS;
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 

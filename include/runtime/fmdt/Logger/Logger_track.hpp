@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <aff3ct_core.hpp>
+#include <aff3ct-core.hpp>
 
 namespace lgr_trk {
     enum class tsk : size_t { write, SIZE };
@@ -17,8 +17,8 @@ protected:
 public:
     Logger_track(const std::string tracks_path, const size_t max_tracks_size);
     virtual ~Logger_track();
-    inline aff3ct::module::Task& operator[](const lgr_trk::tsk t);
-    inline aff3ct::module::Socket& operator[](const lgr_trk::sck::write s);
+    inline aff3ct::runtime::Task& operator[](const lgr_trk::tsk t);
+    inline aff3ct::runtime::Socket& operator[](const lgr_trk::sck::write s);
 };
 
 #include "fmdt/Logger/Logger_track.hxx"

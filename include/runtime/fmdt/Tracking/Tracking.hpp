@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <aff3ct_core.hpp>
+#include <aff3ct-core.hpp>
 
 namespace trk {
     enum class tsk : size_t { perform, SIZE };
@@ -40,8 +40,8 @@ public:
     virtual ~Tracking();
     inline track_t* get_track_array();
     inline BB_t** get_BB_array();
-    inline aff3ct::module::Task& operator[](const trk::tsk t);
-    inline aff3ct::module::Socket& operator[](const trk::sck::perform s) ;
+    inline aff3ct::runtime::Task& operator[](const trk::tsk t);
+    inline aff3ct::runtime::Socket& operator[](const trk::sck::perform s) ;
 };
 
 #include "fmdt/Tracking/Tracking.hxx"

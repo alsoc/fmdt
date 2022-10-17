@@ -116,6 +116,8 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --track-all         Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
+                "  --task-stats        Display the statistics of tasks                                            \n");
+        fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
     }
@@ -140,6 +142,7 @@ int main(int argc, char** argv) {
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
     const int p_track_all = args_find(argc, argv, "--track-all");
+    const int p_task_stats = args_find(argc, argv, "--task-stats");
 
     // heading display
     printf("#  ---------------------\n");
@@ -467,24 +470,24 @@ int main(int argc, char** argv) {
 
 #ifdef ENABLE_PIPELINE
     // pipeline definition with separation stages
-    std::vector<std::tuple<std::vector<aff3ct::module::Task*>,
-                           std::vector<aff3ct::module::Task*>,
-                           std::vector<aff3ct::module::Task*>>> sep_stages =
+    std::vector<std::tuple<std::vector<aff3ct::runtime::Task*>,
+                           std::vector<aff3ct::runtime::Task*>,
+                           std::vector<aff3ct::runtime::Task*>>> sep_stages =
     { // pipeline stage 0
-      std::make_tuple<std::vector<aff3ct::module::Task*>, std::vector<aff3ct::module::Task*>,
-                      std::vector<aff3ct::module::Task*>>(
+      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                      std::vector<aff3ct::runtime::Task*>>(
         { &video[vid::tsk::generate],},
         { &video[vid::tsk::generate], },
         { /* no exclusions in this stage */ } ),
       // pipeline stage 1
-      std::make_tuple<std::vector<aff3ct::module::Task*>, std::vector<aff3ct::module::Task*>,
-                      std::vector<aff3ct::module::Task*>>(
+      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                      std::vector<aff3ct::runtime::Task*>>(
         { &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply] },
         { &merger[ftr_mrg::tsk::merge], },
         { } ),
       // pipeline stage 2
-      std::make_tuple<std::vector<aff3ct::module::Task*>, std::vector<aff3ct::module::Task*>,
-                      std::vector<aff3ct::module::Task*>>(
+      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                      std::vector<aff3ct::runtime::Task*>>(
         { &delayer_ROI_id[dly::tsk::produce],
           &delayer_ROI_xmin[dly::tsk::produce],
           &delayer_ROI_xmax[dly::tsk::produce],
@@ -536,21 +539,21 @@ int main(int argc, char** argv) {
         std::get<0>(sep_stages[2]).push_back(&log_frame[lgr_fra::tsk::write]);
     }
 
-    aff3ct::tools::Pipeline sequence_or_pipeline({ &video[vid::tsk::generate] }, // first task of the sequence
-                                                 sep_stages,
-                                                 {
-                                                   1, // number of threads in the stage 0
-                                                   4, // number of threads in the stage 1
-                                                   1, // number of threads in the stage 2
-                                                 }, {
-                                                   16, // synchronization buffer size between stages 0 and 1
-                                                   16, // synchronization buffer size between stages 1 and 2
-                                                 }, {
-                                                   false, // type of waiting between stages 0 and 1 (true = active, false = passive)
-                                                   false, // type of waiting between stages 1 and 2 (true = active, false = passive)
-                                                 });
+    aff3ct::runtime::Pipeline sequence_or_pipeline({ &video[vid::tsk::generate] }, // first task of the sequence
+                                                   sep_stages,
+                                                   {
+                                                     1, // number of threads in the stage 0
+                                                     4, // number of threads in the stage 1
+                                                     1, // number of threads in the stage 2
+                                                   }, {
+                                                     16, // synchronization buffer size between stages 0 and 1
+                                                     16, // synchronization buffer size between stages 1 and 2
+                                                   }, {
+                                                     false, // type of waiting between stages 0 and 1 (true = active, false = passive)
+                                                     false, // type of waiting between stages 1 and 2 (true = active, false = passive)
+                                                   });
 #else
-    aff3ct::tools::Sequence sequence_or_pipeline(video[vid::tsk::generate], 1);
+    aff3ct::runtime::Sequence sequence_or_pipeline(video[vid::tsk::generate], 1);
 #endif
 
     // configuration of the sequence tasks
@@ -558,7 +561,7 @@ int main(int argc, char** argv) {
         for (auto& tsk : mod->tasks) {
             tsk->set_debug(false); // disable the debug mode
             tsk->set_debug_limit(16); // display only the 16 first bits if the debug mode is enabled
-            tsk->set_stats(true); // enable the statistics
+            tsk->set_stats(p_task_stats); // enable the statistics
             // enable the fast mode (= disable the useless verifs in the tasks) if there is no debug and stats modes
             if (!tsk->is_debug() && !tsk->is_stats())
                 tsk->set_fast(true);
@@ -613,18 +616,20 @@ int main(int argc, char** argv) {
            n_noise, real_n_tracks);
 
     // display the statistics of the tasks (if enabled)
+    if (p_task_stats) {
 #ifdef ENABLE_PIPELINE
-    auto stages = sequence_or_pipeline.get_stages();
-    for (size_t s = 0; s < stages.size(); s++)
-    {
-        const int n_threads = stages[s]->get_n_threads();
-        std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
-        aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true);
-    }
+        auto stages = sequence_or_pipeline.get_stages();
+        for (size_t s = 0; s < stages.size(); s++)
+        {
+            const int n_threads = stages[s]->get_n_threads();
+            std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
+            aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true);
+        }
 #else
-    std::cout << "#" << std::endl;
-    aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true);
+        std::cout << "#" << std::endl;
+        aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true);
 #endif
+    }
 
     printf("# End of the program, exiting.\n");
 

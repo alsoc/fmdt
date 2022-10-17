@@ -173,7 +173,7 @@ endif()
 
 # aff3ct
 if (FMDT_AFF3CT_RUNTIME)
-	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct-core/include/aff3ct_core.hpp")
+	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct-core/include/aff3ct-core.hpp")
 		option(AFF3CT_CORE_COMPILE_STATIC_LIB "" ON)
 		option(AFF3CT_CORE_COMPILE_SHARED_LIB "" OFF)
 		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct-core/)

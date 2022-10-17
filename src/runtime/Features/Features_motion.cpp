@@ -39,7 +39,7 @@ Features_motion::Features_motion(const size_t max_ROI_size)
                              ps_out_ROI0_is_moving, ps_out_first_theta, ps_out_first_tx, ps_out_first_ty,
                              ps_out_first_mean_error, ps_out_first_std_deviation, ps_out_theta, ps_out_tx,
                              ps_out_ty, ps_out_mean_error, ps_out_std_deviation]
-                         (aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int {
+                         (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         const uint32_t n_ROI0 = *static_cast<const uint32_t*>(t[ps_in_n_ROI0].get_dataptr());
 
         std::fill_n(static_cast<uint8_t*>(t[ps_out_ROI0_is_moving].get_dataptr()), n_ROI0, 0);
@@ -65,7 +65,7 @@ Features_motion::Features_motion(const size_t max_ROI_size)
                                  static_cast<double*>(t[ps_out_mean_error].get_dataptr()),
                                  static_cast<double*>(t[ps_out_std_deviation].get_dataptr()));
 
-        return aff3ct::module::status_t::SUCCESS;
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 
