@@ -91,7 +91,7 @@ if(FMDT_DETECT_EXE)
 	list(APPEND fmdt_targets_list fmdt-detect-exe)
 	set_target_properties(fmdt-detect-exe PROPERTIES OUTPUT_NAME fmdt-detect)
 	if (FMDT_AFF3CT_RUNTIME)
-		set(src_detectrt_files
+		set(src_detectrt_common_files
 		    ${src_dir}/runtime/CCL_LSL/CCL_LSL.cpp
 		    ${src_dir}/runtime/Features/Features_extractor.cpp
 		    ${src_dir}/runtime/Features/Features_merger.cpp
@@ -103,13 +103,34 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/runtime/Logger/Logger_ROI.cpp
 		    ${src_dir}/runtime/Logger/Logger_track.cpp
 		    ${src_dir}/runtime/Threshold/Threshold.cpp
-		    ${src_dir}/runtime/Tracking/Tracking.cpp
-		    ${src_dir}/runtime/Video/Video.cpp
-		    ${src_dir}/detect/main_rt.cpp)
-		list(APPEND fmdt_src_list ${src_detectrt_files})
-		add_executable(fmdt-detect-rt-exe $<TARGET_OBJECTS:fmdt-common-obj> $<TARGET_OBJECTS:fmdt-detect-common-obj> ${src_detectrt_files})
-		list(APPEND fmdt_targets_list fmdt-detect-rt-exe)
-		set_target_properties(fmdt-detect-rt-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt)
+		    ${src_dir}/runtime/Tracking/Tracking.cpp)
+		list(APPEND fmdt_src_list ${src_detectrt_common_files})
+        add_library(fmdt-detectrt-common-obj OBJECT ${src_detectrt_common_files})
+        list(APPEND fmdt_targets_list fmdt-detectrt-common-obj)
+
+        set(src_detectrt1_files
+            ${src_dir}/runtime/Video/Video.cpp
+            ${src_dir}/detect/main_rt.cpp)
+		list(APPEND fmdt_src_list ${src_detectrt1_files})
+        add_executable(fmdt-detect-rt-exe 
+            $<TARGET_OBJECTS:fmdt-common-obj> 
+            $<TARGET_OBJECTS:fmdt-detect-common-obj> 
+            $<TARGET_OBJECTS:fmdt-detectrt-common-obj> 
+            ${src_detectrt1_files})
+        list(APPEND fmdt_targets_list fmdt-detect-rt-exe)
+        set_target_properties(fmdt-detect-rt-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt)
+        
+        set(src_detectrt2_files
+            ${src_dir}/runtime/Video/Video2.cpp
+            ${src_dir}/detect/main_rt2.cpp)
+		list(APPEND fmdt_src_list ${src_detectrt2_files})
+        add_executable(fmdt-detect-rt2-exe 
+            $<TARGET_OBJECTS:fmdt-common-obj> 
+            $<TARGET_OBJECTS:fmdt-detect-common-obj> 
+            $<TARGET_OBJECTS:fmdt-detectrt-common-obj> 
+            ${src_detectrt2_files})
+		list(APPEND fmdt_targets_list fmdt-detect-rt2-exe)
+		set_target_properties(fmdt-detect-rt2-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2)
 	endif()
 endif()
 if(FMDT_VISU_EXE)
