@@ -103,13 +103,13 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/runtime/Logger/Logger_ROI.cpp
 		    ${src_dir}/runtime/Logger/Logger_track.cpp
 		    ${src_dir}/runtime/Threshold/Threshold.cpp
-		    ${src_dir}/runtime/Tracking/Tracking.cpp)
-		list(APPEND fmdt_src_list ${src_detectrt_common_files})
+		    ${src_dir}/runtime/Tracking/Tracking.cpp
+		    ${src_dir}/runtime/Video/Video.cpp)
+		    list(APPEND fmdt_src_list ${src_detectrt_common_files})
         add_library(fmdt-detectrt-common-obj OBJECT ${src_detectrt_common_files})
         list(APPEND fmdt_targets_list fmdt-detectrt-common-obj)
 
         set(src_detectrt1_files
-            ${src_dir}/runtime/Video/Video.cpp
             ${src_dir}/detect/main_rt.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt1_files})
         add_executable(fmdt-detect-rt-exe 
@@ -121,7 +121,6 @@ if(FMDT_DETECT_EXE)
         set_target_properties(fmdt-detect-rt-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt)
         
         set(src_detectrt2_files
-            ${src_dir}/runtime/Video/Video2.cpp
             ${src_dir}/detect/main_rt2.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt2_files})
         add_executable(fmdt-detect-rt2-exe 

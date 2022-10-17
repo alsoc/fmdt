@@ -25,7 +25,7 @@
 #include "fmdt/KNN_matcher/KNN_matcher.hpp"
 #include "fmdt/Threshold/Threshold.hpp"
 #include "fmdt/Tracking/Tracking.hpp"
-#include "fmdt/Video/Video2.hpp"
+#include "fmdt/Video/Video.hpp"
 #include "fmdt/Logger/Logger_ROI.hpp"
 #include "fmdt/Logger/Logger_KNN.hpp"
 #include "fmdt/Logger/Logger_motion.hpp"
@@ -214,7 +214,7 @@ int main(int argc, char** argv) {
     // objects allocation
     const size_t b = 1; // image border
     const size_t n_ffmpeg_threads = 4; // 0 = use all the threads available
-    Video2 video(p_in_video, p_fra_start, p_fra_end, p_skip_fra, n_ffmpeg_threads, b);
+    Video video(p_in_video, p_fra_start, p_fra_end, p_skip_fra, n_ffmpeg_threads, b);
     const size_t i0 = video.get_i0();
     const size_t i1 = video.get_i1();
     const size_t j0 = video.get_j0();
@@ -271,18 +271,18 @@ int main(int argc, char** argv) {
     // ------------------- //
 
     // Step 0 : delais => caractéristiques des ROIs à t - 1
-    delayer_frame[dly::tsk::produce] = video[vid2::sck::generate::out_img];
-    delayer_ROI_prev_id[dly::tsk::produce] = video[vid2::sck::generate::out_img];
-    delayer_ROI_frame[dly::tsk::produce] = video[vid2::sck::generate::out_img];
-    delayer_ROI_time[dly::tsk::produce] = video[vid2::sck::generate::out_img];
-    delayer_ROI_time_motion[dly::tsk::produce] = video[vid2::sck::generate::out_img];
-    delayer_ROI_is_extrapolated[dly::tsk::produce] = video[vid2::sck::generate::out_img];
+    delayer_frame[dly::tsk::produce] = video[vid::sck::generate::out_img];
+    delayer_ROI_prev_id[dly::tsk::produce] = video[vid::sck::generate::out_img];
+    delayer_ROI_frame[dly::tsk::produce] = video[vid::sck::generate::out_img];
+    delayer_ROI_time[dly::tsk::produce] = video[vid::sck::generate::out_img];
+    delayer_ROI_time_motion[dly::tsk::produce] = video[vid::sck::generate::out_img];
+    delayer_ROI_is_extrapolated[dly::tsk::produce] = video[vid::sck::generate::out_img];
 
     // Step 1 : seuillage low/high
     threshold_min0[thr::sck::apply::in_img] = delayer_frame[dly::sck::produce::out];
     threshold_max0[thr::sck::apply::in_img] = delayer_frame[dly::sck::produce::out];
-    threshold_min1[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img];
-    threshold_max1[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img];
+    threshold_min1[thr::sck::apply::in_img] = video[vid::sck::generate::out_img];
+    threshold_max1[thr::sck::apply::in_img] = video[vid::sck::generate::out_img];
     
     // Step 2 : ECC/ACC
     lsl0[ccl::sck::apply::in_img] = threshold_min0[thr::sck::apply::out_img];
@@ -341,7 +341,7 @@ int main(int argc, char** argv) {
     motion[ftr_mtn::sck::compute::in_ROI1_y] = merger1[ftr_mrg::sck::merge::out_ROI_y];
 
     // Step 6 : tracking
-    tracking[trk::sck::perform::in_frame] = video[vid2::sck::generate::out_frame];
+    tracking[trk::sck::perform::in_frame] = video[vid::sck::generate::out_frame];
     tracking[trk::sck::perform::in_ROI0_id] = merger0[ftr_mrg::sck::merge::out_ROI_id];
     tracking[trk::sck::perform::in_ROI0_frame] = delayer_ROI_frame[dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI0_xmin] = merger0[ftr_mrg::sck::merge::out_ROI_xmin];
@@ -373,7 +373,7 @@ int main(int argc, char** argv) {
     tracking[trk::sck::perform::in_std_deviation] = motion[ftr_mtn::sck::compute::out_std_deviation];
 
 
-    delayer_frame[dly::sck::memorize::in] = video[vid2::sck::generate::out_img];
+    delayer_frame[dly::sck::memorize::in] = video[vid::sck::generate::out_img];
     delayer_ROI_prev_id[dly::sck::memorize::in] = matcher[knn::sck::match::out_ROI1_prev_id];
     delayer_ROI_frame[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_frame];
     delayer_ROI_time[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_time];
@@ -382,7 +382,7 @@ int main(int argc, char** argv) {
 
     if (p_out_frames) {
         log_frame[lgr_fra::sck::write::in_img] =  threshold_min1[thr::sck::apply::out_img];  
-        log_frame[lgr_fra::sck::write::in_frame] =   video[vid2::sck::generate::out_frame];
+        log_frame[lgr_fra::sck::write::in_frame] =   video[vid::sck::generate::out_frame];
     }
 
     if (p_out_stats) {
@@ -416,7 +416,7 @@ int main(int argc, char** argv) {
         log_ROI[lgr_roi::sck::write::in_track_end] = tracking[trk::sck::perform::out_track_end];
         log_ROI[lgr_roi::sck::write::in_track_obj_type] = tracking[trk::sck::perform::out_track_obj_type];
         log_ROI[lgr_roi::sck::write::in_n_tracks] = tracking[trk::sck::perform::out_n_tracks];
-        log_ROI[lgr_roi::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
+        log_ROI[lgr_roi::sck::write::in_frame] = video[vid::sck::generate::out_frame];
 
         log_KNN[lgr_knn::sck::write::in_data_nearest] = matcher[knn::sck::match::out_data_nearest];
         log_KNN[lgr_knn::sck::write::in_data_distances] = matcher[knn::sck::match::out_data_distances];
@@ -427,7 +427,7 @@ int main(int argc, char** argv) {
         log_KNN[lgr_knn::sck::write::in_ROI_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
         log_KNN[lgr_knn::sck::write::in_ROI_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
         log_KNN[lgr_knn::sck::write::in_n_ROI] = merger1[ftr_mrg::sck::merge::out_n_ROI]; // pas sur
-        log_KNN[lgr_knn::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
+        log_KNN[lgr_knn::sck::write::in_frame] = video[vid::sck::generate::out_frame];
 
         log_motion[lgr_mtn::sck::write::in_first_theta] = motion[ftr_mtn::sck::compute::out_first_theta];
         log_motion[lgr_mtn::sck::write::in_first_tx] = motion[ftr_mtn::sck::compute::out_first_tx];
@@ -439,21 +439,21 @@ int main(int argc, char** argv) {
         log_motion[lgr_mtn::sck::write::in_ty] = motion[ftr_mtn::sck::compute::out_ty];
         log_motion[lgr_mtn::sck::write::in_mean_error] = motion[ftr_mtn::sck::compute::out_mean_error];
         log_motion[lgr_mtn::sck::write::in_std_deviation] = motion[ftr_mtn::sck::compute::out_std_deviation];
-        log_motion[lgr_mtn::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
+        log_motion[lgr_mtn::sck::write::in_frame] = video[vid::sck::generate::out_frame];
 
         log_track[lgr_trk::sck::write::in_track_id] = tracking[trk::sck::perform::out_track_id];
         log_track[lgr_trk::sck::write::in_track_begin] = tracking[trk::sck::perform::out_track_begin];
         log_track[lgr_trk::sck::write::in_track_end] = tracking[trk::sck::perform::out_track_end];
         log_track[lgr_trk::sck::write::in_track_obj_type] = tracking[trk::sck::perform::out_track_obj_type];
         log_track[lgr_trk::sck::write::in_n_tracks] = tracking[trk::sck::perform::out_n_tracks];
-        log_track[lgr_trk::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
+        log_track[lgr_trk::sck::write::in_frame] = video[vid::sck::generate::out_frame];
     }
 
     // --------------------- //
     // -- CREATE SEQUENCE -- //
     // --------------------- //
 
-    aff3ct::tools::Sequence sequence_or_pipeline(video[vid2::tsk::generate], 1);
+    aff3ct::tools::Sequence sequence_or_pipeline(video[vid::tsk::generate], 1);
 
     // configuration of the sequence tasks
     for (auto& mod : sequence_or_pipeline.get_modules<aff3ct::module::Module>(false))
