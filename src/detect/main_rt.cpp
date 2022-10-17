@@ -172,6 +172,7 @@ int main(int argc, char** argv) {
     printf("#  * fra-meteor-max = %d\n", p_fra_meteor_max);
     printf("#  * diff-dev       = %4.2f\n", p_diff_dev);
     printf("#  * track-all      = %d\n", p_track_all);
+    printf("#  * task-stats     = %d\n", p_task_stats);
     printf("#\n");
 #ifdef ENABLE_PIPELINE
     printf("#  * Runtime mode   = Pipeline\n");
