@@ -269,8 +269,6 @@ int main(int argc, char** argv) {
                                 &first_mean_error, &first_std_deviation, &theta, &tx, &ty, &mean_error, &std_deviation);
 
         // Step 6: tracking
-        for (size_t r = 0; r < ROI_array1->_size; r++)
-            ROI_array1->frame[r] = frame;
         tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, track_array, BB_array, frame, theta, tx,
                          ty, mean_error, std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all,
                          p_fra_star_min, p_fra_meteor_min, p_fra_meteor_max);

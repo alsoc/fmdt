@@ -8,7 +8,6 @@ enum obj_e { UNKNOWN = 0, METEOR, STAR, NOISE, N_OBJECTS };
 
 typedef struct {
     uint16_t* id;
-    uint32_t* frame;
     uint16_t* xmin;
     uint16_t* xmax;
     uint16_t* ymin;

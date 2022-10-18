@@ -11,7 +11,6 @@
 ROI_t* features_alloc_ROI_array(const size_t max_size) {
     ROI_t* ROI_array = (ROI_t*)malloc(sizeof(ROI_t));
     ROI_array->id = (uint16_t*)malloc(max_size * sizeof(uint16_t));
-    ROI_array->frame = (uint32_t*)malloc(max_size * sizeof(uint32_t));
     ROI_array->xmin = (uint16_t*)malloc(max_size * sizeof(uint16_t));
     ROI_array->xmax = (uint16_t*)malloc(max_size * sizeof(uint16_t));
     ROI_array->ymin = (uint16_t*)malloc(max_size * sizeof(uint16_t));
@@ -36,7 +35,6 @@ ROI_t* features_alloc_ROI_array(const size_t max_size) {
 
 void features_init_ROI_array(ROI_t* ROI_array) {
     memset(ROI_array->id, 0, ROI_array->_max_size * sizeof(uint16_t));
-    memset(ROI_array->frame, 0, ROI_array->_max_size * sizeof(uint32_t));
     memset(ROI_array->xmin, 0, ROI_array->_max_size * sizeof(uint16_t));
     memset(ROI_array->xmax, 0, ROI_array->_max_size * sizeof(uint16_t));
     memset(ROI_array->ymin, 0, ROI_array->_max_size * sizeof(uint16_t));
@@ -61,7 +59,6 @@ void features_init_ROI_array(ROI_t* ROI_array) {
 void features_copy_elmt_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest, const int i_src,
                                   const int i_dest) {
     ROI_array_dest->id[i_dest] = ROI_array_src->id[i_src];
-    ROI_array_dest->frame[i_dest] = ROI_array_src->frame[i_src];
     ROI_array_dest->xmin[i_dest] = ROI_array_src->xmin[i_src];
     ROI_array_dest->xmax[i_dest] = ROI_array_src->xmax[i_src];
     ROI_array_dest->ymin[i_dest] = ROI_array_src->ymin[i_src];
@@ -85,7 +82,6 @@ void features_copy_elmt_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_d
 void features_copy_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest) {
     ROI_array_dest->_size = ROI_array_src->_size;
     memcpy(ROI_array_dest->id, ROI_array_src->id, ROI_array_dest->_size * sizeof(uint16_t));
-    memcpy(ROI_array_dest->frame, ROI_array_src->frame, ROI_array_dest->_size * sizeof(uint32_t));
     memcpy(ROI_array_dest->xmin, ROI_array_src->xmin, ROI_array_dest->_size * sizeof(uint16_t));
     memcpy(ROI_array_dest->xmax, ROI_array_src->xmax, ROI_array_dest->_size * sizeof(uint16_t));
     memcpy(ROI_array_dest->ymin, ROI_array_src->ymin, ROI_array_dest->_size * sizeof(uint16_t));
@@ -108,7 +104,6 @@ void features_copy_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest) 
 
 void features_free_ROI_array(ROI_t* ROI_array) {
     free(ROI_array->id);
-    free(ROI_array->frame);
     free(ROI_array->xmin);
     free(ROI_array->xmax);
     free(ROI_array->ymin);
@@ -132,7 +127,6 @@ void features_free_ROI_array(ROI_t* ROI_array) {
 
 void features_clear_index_ROI_array(ROI_t* ROI_array, const size_t r) {
     ROI_array->id[r] = 0;
-    ROI_array->frame[r] = 0;
     ROI_array->xmin[r] = 0;
     ROI_array->xmax[r] = 0;
     ROI_array->ymin[r] = 0;
