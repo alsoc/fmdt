@@ -26,7 +26,6 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
     auto ps_in_frame = this->template create_socket_in<uint32_t>(p, "in_frame", 1);
 
     auto ps_in_ROI0_id = this->template create_socket_in<uint16_t>(p, "in_ROI0_id", max_ROI_size);
-    auto ps_in_ROI0_frame = this->template create_socket_in<uint32_t>(p, "in_ROI0_frame", max_ROI_size);
     auto ps_in_ROI0_xmin = this->template create_socket_in<uint16_t>(p, "in_ROI0_xmin", max_ROI_size);
     auto ps_in_ROI0_xmax = this->template create_socket_in<uint16_t>(p, "in_ROI0_xmax", max_ROI_size);
     auto ps_in_ROI0_ymin = this->template create_socket_in<uint16_t>(p, "in_ROI0_ymin", max_ROI_size);
@@ -57,11 +56,9 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
     auto ps_in_mean_error = this->template create_socket_in<double>(p, "in_mean_error", 1);
     auto ps_in_std_deviation = this->template create_socket_in<double>(p, "in_std_deviation", 1);
 
-    auto ps_out_ROI1_frame = this->template create_socket_out<uint32_t>(p, "out_ROI1_frame", max_ROI_size);
     auto ps_out_ROI1_time = this->template create_socket_out<int32_t>(p, "out_ROI1_time", max_ROI_size);
     auto ps_out_ROI1_time_motion = this->template create_socket_out<int32_t>(p, "out_ROI1_time_motion", max_ROI_size);
     auto ps_out_ROI1_is_extrapolated = this->template create_socket_out<uint8_t>(p, "out_ROI1_is_extrapolated", max_ROI_size);
-
 
     auto ps_out_track_id = this->template create_socket_out<uint16_t>(p, "out_track_id", max_tracks_size);
     auto ps_out_track_begin = this->template create_socket_out<uint8_t>(p, "out_track_begin", max_tracks_size * sizeof(ROI_light_t));
@@ -73,16 +70,14 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
     auto ps_out_track_change_state_reason = this->template create_socket_out<uint8_t>(p, "out_track_change_state_reason", max_tracks_size * sizeof(enum change_state_reason_e));
     auto ps_out_n_tracks = this->template create_socket_out<uint32_t>(p, "out_n_tracks", 1);
 
-
-    this->create_codelet(p, [ps_in_frame, ps_in_ROI0_id, ps_in_ROI0_frame, ps_in_ROI0_xmin, ps_in_ROI0_xmax,
-                             ps_in_ROI0_ymin, ps_in_ROI0_ymax, ps_in_ROI0_x, ps_in_ROI0_y, ps_in_ROI0_error,
-                             ps_in_ROI0_time, ps_in_ROI0_time_motion, ps_in_ROI0_prev_id, ps_in_ROI0_next_id,
-                             ps_in_ROI0_is_extrapolated, ps_in_n_ROI0, ps_in_ROI1_id, ps_in_ROI1_xmin,
-                             ps_in_ROI1_xmax, ps_in_ROI1_ymin, ps_in_ROI1_ymax, ps_in_ROI1_x, ps_in_ROI1_y,
-                             ps_in_ROI1_prev_id, ps_in_n_ROI1, ps_in_theta, ps_in_tx, ps_in_ty, ps_in_mean_error,
-                             ps_in_std_deviation, ps_out_ROI1_frame, ps_out_ROI1_time, ps_out_ROI1_time_motion,
-                             ps_out_ROI1_is_extrapolated, ps_out_track_id, ps_out_track_begin, ps_out_track_end,
-                             ps_out_track_extrapol_x, ps_out_track_extrapol_y, ps_out_track_state,
+    this->create_codelet(p, [ps_in_frame, ps_in_ROI0_id, ps_in_ROI0_xmin, ps_in_ROI0_xmax, ps_in_ROI0_ymin,
+                             ps_in_ROI0_ymax, ps_in_ROI0_x, ps_in_ROI0_y, ps_in_ROI0_error, ps_in_ROI0_time,
+                             ps_in_ROI0_time_motion, ps_in_ROI0_prev_id, ps_in_ROI0_next_id, ps_in_ROI0_is_extrapolated,
+                             ps_in_n_ROI0, ps_in_ROI1_id, ps_in_ROI1_xmin, ps_in_ROI1_xmax, ps_in_ROI1_ymin,
+                             ps_in_ROI1_ymax, ps_in_ROI1_x, ps_in_ROI1_y, ps_in_ROI1_prev_id, ps_in_n_ROI1, ps_in_theta,
+                             ps_in_tx, ps_in_ty, ps_in_mean_error, ps_in_std_deviation, ps_out_ROI1_time,
+                             ps_out_ROI1_time_motion, ps_out_ROI1_is_extrapolated, ps_out_track_id, ps_out_track_begin,
+                             ps_out_track_end, ps_out_track_extrapol_x, ps_out_track_extrapol_y, ps_out_track_state,
                              ps_out_track_obj_type, ps_out_track_change_state_reason, ps_out_n_tracks]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &trk = static_cast<Tracking&>(m);
@@ -91,14 +86,12 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
         const uint32_t n_ROI1 = *static_cast<const uint32_t*>(t[ps_in_n_ROI1].get_dataptr());
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
 
-        std::fill_n(static_cast<uint32_t*>(t[ps_out_ROI1_frame].get_dataptr()), n_ROI1, frame);
         std::fill_n(static_cast<int32_t*>(t[ps_out_ROI1_time].get_dataptr()), n_ROI1, 0);
         std::fill_n(static_cast<int32_t*>(t[ps_out_ROI1_time_motion].get_dataptr()), n_ROI1, 0);
         std::fill_n(static_cast<uint8_t*>(t[ps_out_ROI1_is_extrapolated].get_dataptr()), n_ROI1, 0);
 
         _tracking_perform(trk.tracking_data,
                           static_cast<const uint16_t*>(t[ps_in_ROI0_id].get_dataptr()),
-                          static_cast<const uint32_t*>(t[ps_in_ROI0_frame].get_dataptr()),
                           static_cast<const uint16_t*>(t[ps_in_ROI0_xmin].get_dataptr()),
                           static_cast<const uint16_t*>(t[ps_in_ROI0_xmax].get_dataptr()),
                           static_cast<const uint16_t*>(t[ps_in_ROI0_ymin].get_dataptr()),
@@ -113,7 +106,6 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                           static_cast<const uint8_t*>(t[ps_in_ROI0_is_extrapolated].get_dataptr()),
                           n_ROI0,
                           static_cast<const uint16_t*>(t[ps_in_ROI1_id].get_dataptr()),
-                          static_cast<const uint32_t*>(t[ps_out_ROI1_frame].get_dataptr()),
                           static_cast<const uint16_t*>(t[ps_in_ROI1_xmin].get_dataptr()),
                           static_cast<const uint16_t*>(t[ps_in_ROI1_xmax].get_dataptr()),
                           static_cast<const uint16_t*>(t[ps_in_ROI1_ymin].get_dataptr()),
