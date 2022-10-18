@@ -6,7 +6,7 @@
 namespace vid2 {
     enum class tsk : size_t { generate, SIZE };
     namespace sck {
-        enum class generate : size_t { out_img, out_frame, status };
+        enum class generate : size_t { out_img0, out_img1, out_frame, status };
     }
 }
 
@@ -16,6 +16,7 @@ protected:
     int b;
     video_t* video;
     uint8_t** out_img;
+    int size_image;
     bool done;
 public:
     Video2(const std::string filename, const size_t frame_start, const size_t frame_end, const size_t frame_skip,

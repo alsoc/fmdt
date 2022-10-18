@@ -247,13 +247,11 @@ int main(int argc, char** argv) {
     motion.set_custom_name("Motion");
     Tracking tracking(p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
                       p_fra_meteor_max, MAX_ROI_SIZE, MAX_TRACKS_SIZE, MAX_N_FRAMES);
-    Delayer<uint8_t> delayer_frame(((i1 - i0) + 1 + 2 * b) * ((j1 - j0) + 1 + 2 * b), 0);
     Delayer<int32_t> delayer_ROI_prev_id(MAX_ROI_SIZE, 0);
     Delayer<uint32_t> delayer_ROI_frame(MAX_ROI_SIZE, 0);
     Delayer<int32_t> delayer_ROI_time(MAX_ROI_SIZE, 0);
     Delayer<int32_t> delayer_ROI_time_motion(MAX_ROI_SIZE, 0);
     Delayer<uint8_t> delayer_ROI_is_extrapolated(MAX_ROI_SIZE, 0);
-    delayer_frame.set_custom_name("D<frame>");
     delayer_ROI_prev_id.set_custom_name("D<ROI_p_id>");
     delayer_ROI_frame.set_custom_name("D<ROI_frame>");
     delayer_ROI_time.set_custom_name("D<ROI_t>");
@@ -271,18 +269,17 @@ int main(int argc, char** argv) {
     // ------------------- //
 
     // Step 0 : delais => caractéristiques des ROIs à t - 1
-    delayer_frame[dly::tsk::produce] = video[vid2::sck::generate::out_img];
-    delayer_ROI_prev_id[dly::tsk::produce] = video[vid2::sck::generate::out_img];
-    delayer_ROI_frame[dly::tsk::produce] = video[vid2::sck::generate::out_img];
-    delayer_ROI_time[dly::tsk::produce] = video[vid2::sck::generate::out_img];
-    delayer_ROI_time_motion[dly::tsk::produce] = video[vid2::sck::generate::out_img];
-    delayer_ROI_is_extrapolated[dly::tsk::produce] = video[vid2::sck::generate::out_img];
+    delayer_ROI_prev_id[dly::tsk::produce] = video[vid2::sck::generate::out_img1];
+    delayer_ROI_frame[dly::tsk::produce] = video[vid2::sck::generate::out_img1];
+    delayer_ROI_time[dly::tsk::produce] = video[vid2::sck::generate::out_img1];
+    delayer_ROI_time_motion[dly::tsk::produce] = video[vid2::sck::generate::out_img1];
+    delayer_ROI_is_extrapolated[dly::tsk::produce] = video[vid2::sck::generate::out_img1];
 
     // Step 1 : seuillage low/high
-    threshold_min0[thr::sck::apply::in_img] = delayer_frame[dly::sck::produce::out];
-    threshold_max0[thr::sck::apply::in_img] = delayer_frame[dly::sck::produce::out];
-    threshold_min1[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img];
-    threshold_max1[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img];
+    threshold_min0[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img0];
+    threshold_max0[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img0];
+    threshold_min1[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img1];
+    threshold_max1[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img1];
     
     // Step 2 : ECC/ACC
     lsl0[ccl::sck::apply::in_img] = threshold_min0[thr::sck::apply::out_img];
@@ -373,7 +370,6 @@ int main(int argc, char** argv) {
     tracking[trk::sck::perform::in_std_deviation] = motion[ftr_mtn::sck::compute::out_std_deviation];
 
 
-    delayer_frame[dly::sck::memorize::in] = video[vid2::sck::generate::out_img];
     delayer_ROI_prev_id[dly::sck::memorize::in] = matcher[knn::sck::match::out_ROI1_prev_id];
     delayer_ROI_frame[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_frame];
     delayer_ROI_time[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_time];
@@ -381,7 +377,7 @@ int main(int argc, char** argv) {
     delayer_ROI_is_extrapolated[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_is_extrapolated];
 
     if (p_out_frames) {
-        log_frame[lgr_fra::sck::write::in_img] =  threshold_min1[thr::sck::apply::out_img];  
+        log_frame[lgr_fra::sck::write::in_img] =  video[vid2::sck::generate::out_img0];  
         log_frame[lgr_fra::sck::write::in_frame] =   video[vid2::sck::generate::out_frame];
     }
 
