@@ -588,9 +588,9 @@ int main(int argc, char** argv) {
 
 #ifdef ENABLE_PIPELINE
     sequence_or_pipeline.exec({
-        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 0
-        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 1
-        stop_condition});                                               // stop condition stage 2
+        stop_condition,                                                   // stop condition stage 0
+        [] (const std::vector<const int*>& statuses) { return false; },   // stop condition stage 1
+        [] (const std::vector<const int*>& statuses) { return false; }}); // stop condition stage 2
 #else
     sequence_or_pipeline.exec(stop_condition);
 #endif
@@ -608,7 +608,7 @@ int main(int argc, char** argv) {
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
     size_t real_n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
     printf("# Tracks statistics:\n");
-    printf("# -> Processed frames = %4d\n", n_frames);
+    printf("# -> Processed frames = %4d\n", n_frames -1);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, real_n_tracks);
 
