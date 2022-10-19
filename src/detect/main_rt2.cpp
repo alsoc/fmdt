@@ -248,12 +248,10 @@ int main(int argc, char** argv) {
     Tracking tracking(p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
                       p_fra_meteor_max, MAX_ROI_SIZE, MAX_TRACKS_SIZE, MAX_N_FRAMES);
     Delayer<int32_t> delayer_ROI_prev_id(MAX_ROI_SIZE, 0);
-    Delayer<uint32_t> delayer_ROI_frame(MAX_ROI_SIZE, 0);
     Delayer<int32_t> delayer_ROI_time(MAX_ROI_SIZE, 0);
     Delayer<int32_t> delayer_ROI_time_motion(MAX_ROI_SIZE, 0);
     Delayer<uint8_t> delayer_ROI_is_extrapolated(MAX_ROI_SIZE, 0);
     delayer_ROI_prev_id.set_custom_name("D<ROI_p_id>");
-    delayer_ROI_frame.set_custom_name("D<ROI_frame>");
     delayer_ROI_time.set_custom_name("D<ROI_t>");
     delayer_ROI_time_motion.set_custom_name("D<ROI_t_mo>");
     delayer_ROI_is_extrapolated.set_custom_name("D<ROI_is_ex>");
@@ -270,7 +268,6 @@ int main(int argc, char** argv) {
 
     // Step 0 : delais => caractéristiques des ROIs à t - 1
     delayer_ROI_prev_id[dly::tsk::produce] = video[vid2::sck::generate::out_img1];
-    delayer_ROI_frame[dly::tsk::produce] = video[vid2::sck::generate::out_img1];
     delayer_ROI_time[dly::tsk::produce] = video[vid2::sck::generate::out_img1];
     delayer_ROI_time_motion[dly::tsk::produce] = video[vid2::sck::generate::out_img1];
     delayer_ROI_is_extrapolated[dly::tsk::produce] = video[vid2::sck::generate::out_img1];
@@ -340,7 +337,6 @@ int main(int argc, char** argv) {
     // Step 6 : tracking
     tracking[trk::sck::perform::in_frame] = video[vid2::sck::generate::out_frame];
     tracking[trk::sck::perform::in_ROI0_id] = merger0[ftr_mrg::sck::merge::out_ROI_id];
-    tracking[trk::sck::perform::in_ROI0_frame] = delayer_ROI_frame[dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI0_xmin] = merger0[ftr_mrg::sck::merge::out_ROI_xmin];
     tracking[trk::sck::perform::in_ROI0_xmax] = merger0[ftr_mrg::sck::merge::out_ROI_xmax];
     tracking[trk::sck::perform::in_ROI0_ymin] = merger0[ftr_mrg::sck::merge::out_ROI_ymin];
@@ -371,7 +367,6 @@ int main(int argc, char** argv) {
 
 
     delayer_ROI_prev_id[dly::sck::memorize::in] = matcher[knn::sck::match::out_ROI1_prev_id];
-    delayer_ROI_frame[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_frame];
     delayer_ROI_time[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_time];
     delayer_ROI_time_motion[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_time_motion];
     delayer_ROI_is_extrapolated[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_is_extrapolated];
@@ -449,7 +444,7 @@ int main(int argc, char** argv) {
     // -- CREATE SEQUENCE -- //
     // --------------------- //
 
-    aff3ct::tools::Sequence sequence_or_pipeline(video[vid2::tsk::generate], 1);
+    aff3ct::runtime::Sequence sequence_or_pipeline(video[vid2::tsk::generate], 1);
 
     // configuration of the sequence tasks
     for (auto& mod : sequence_or_pipeline.get_modules<aff3ct::module::Module>(false))
@@ -499,7 +494,7 @@ int main(int argc, char** argv) {
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
     size_t real_n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
     printf("# Tracks statistics:\n");
-    printf("# -> Processed frames = %4d\n", n_frames);
+    printf("# -> Processed frames = %4d\n", n_frames -1);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, real_n_tracks);
 

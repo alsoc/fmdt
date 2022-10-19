@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <aff3ct.hpp>
+#include <aff3ct-core.hpp>
 
 namespace vid2 {
     enum class tsk : size_t { generate, SIZE };
@@ -29,8 +29,8 @@ public:
     inline int get_j0();
     inline int get_j1();
     inline int get_b();
-    inline aff3ct::module::Task& operator[](const vid2::tsk t);
-    inline aff3ct::module::Socket& operator[](const vid2::sck::generate s);
+    inline aff3ct::runtime::Task& operator[](const vid2::tsk t);
+    inline aff3ct::runtime::Socket& operator[](const vid2::sck::generate s);
 };
 
 #include "fmdt/Video/Video2.hxx"

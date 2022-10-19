@@ -24,7 +24,7 @@ Video2::Video2(const std::string filename, const size_t frame_start, const size_
     auto ps_out_frame = this->template create_socket_out<uint32_t>(p, "out_frame", 1);
 
     this->create_codelet(p, [ps_out_img0, ps_out_img1, ps_out_frame]
-                            (aff3ct::module::Module &m, aff3ct::module::Task &t,const size_t frame_id) -> int {
+                            (aff3ct::module::Module &m, aff3ct::runtime::Task &t,const size_t frame_id) -> int {
         auto &vid2 = static_cast<Video2&>(m);
 
         uint8_t* m_out_img0 = static_cast<uint8_t*>(t[ps_out_img0].get_dataptr());
@@ -42,7 +42,7 @@ Video2::Video2(const std::string filename, const size_t frame_start, const size_
 
         if (vid2.done)
             throw aff3ct::tools::processing_aborted(__FILE__, __LINE__, __func__);
-        return ret ? aff3ct::module::status_t::SUCCESS : aff3ct::module::status_t::FAILURE_STOP;
+        return ret ? aff3ct::runtime::status_t::SUCCESS : aff3ct::runtime::status_t::FAILURE_STOP;
     });
 }
 
