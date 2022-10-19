@@ -29,7 +29,7 @@ Features_extractor::Features_extractor(const int i0, const int i1, const int j0,
 
     this->create_codelet(p, [ps_in_img, ps_in_n_ROI, ps_out_ROI_id, ps_out_ROI_xmin, ps_out_ROI_xmax, ps_out_ROI_ymin,
                              ps_out_ROI_ymax, ps_out_ROI_S, ps_out_ROI_Sx, ps_out_ROI_Sy, ps_out_ROI_x, ps_out_ROI_y]
-                         (aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int {
+                         (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &ext = static_cast<Features_extractor&>(m);
         const uint32_t* m_in_img = static_cast<const uint32_t*>(t[ps_in_img].get_dataptr());
         ext.in_img[ext.i0 - ext.b] = m_in_img - (ext.j0 - ext.b);
@@ -51,7 +51,7 @@ Features_extractor::Features_extractor(const int i0, const int i1, const int j0,
                           static_cast<float*>(t[ps_out_ROI_y].get_dataptr()),
                           n_ROI);
 
-        return aff3ct::module::status_t::SUCCESS;
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 

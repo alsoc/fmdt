@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <aff3ct.hpp>
+#include <aff3ct-core.hpp>
 
 namespace knn {
     enum class tsk : size_t { match, SIZE };
@@ -21,8 +21,8 @@ protected:
 public:
     KNN_matcher(const size_t i0, const int i1, const int j0, const int j1, const size_t k, const size_t max_ROI_size);
     virtual ~KNN_matcher();
-    inline aff3ct::module::Task& operator[](const knn::tsk t);
-    inline aff3ct::module::Socket& operator[](const knn::sck::match s);
+    inline aff3ct::runtime::Task& operator[](const knn::tsk t);
+    inline aff3ct::runtime::Socket& operator[](const knn::sck::match s);
 };
 
 #include "fmdt/KNN_matcher/KNN_matcher.hxx"

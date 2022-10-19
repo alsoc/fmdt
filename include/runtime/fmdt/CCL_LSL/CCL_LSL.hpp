@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <aff3ct.hpp>
+#include <aff3ct-core.hpp>
 
 namespace ccl {
     enum class tsk : size_t { apply, SIZE };
@@ -26,8 +26,8 @@ public:
     virtual ~CCL_LSL();
     virtual CCL_LSL* clone() const;
     inline uint32_t** get_out_img();
-    inline aff3ct::module::Task& operator[](const ccl::tsk t);
-    inline aff3ct::module::Socket& operator[](const ccl::sck::apply s);
+    inline aff3ct::runtime::Task& operator[](const ccl::tsk t);
+    inline aff3ct::runtime::Socket& operator[](const ccl::sck::apply s);
 
 protected:
     void init_data();

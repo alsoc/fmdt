@@ -4,6 +4,6 @@
 [submodule "lib/nrc2"]
 	path = lib/nrc2
 	url = ../nrc2.git
-[submodule "lib/aff3ct"]
-	path = lib/aff3ct
-	url = https://github.com/aff3ct/aff3ct.git
+[submodule "lib/aff3ct-core"]
+	path = lib/aff3ct-core
+	url = https://github.com/aff3ct/aff3ct-core.git

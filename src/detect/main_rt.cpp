@@ -116,6 +116,8 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --track-all         Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
+                "  --task-stats        Display the statistics of tasks                                            \n");
+        fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
     }
@@ -140,6 +142,7 @@ int main(int argc, char** argv) {
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
     const int p_track_all = args_find(argc, argv, "--track-all");
+    const int p_task_stats = args_find(argc, argv, "--task-stats");
 
     // heading display
     printf("#  ---------------------\n");
@@ -169,6 +172,7 @@ int main(int argc, char** argv) {
     printf("#  * fra-meteor-max = %d\n", p_fra_meteor_max);
     printf("#  * diff-dev       = %4.2f\n", p_diff_dev);
     printf("#  * track-all      = %d\n", p_track_all);
+    printf("#  * task-stats     = %d\n", p_task_stats);
     printf("#\n");
 #ifdef ENABLE_PIPELINE
     printf("#  * Runtime mode   = Pipeline\n");
@@ -250,7 +254,7 @@ int main(int argc, char** argv) {
     Delayer<float> delayer_ROI_x(MAX_ROI_SIZE, 0.f);
     Delayer<float> delayer_ROI_y(MAX_ROI_SIZE, 0.f);
     Delayer<int32_t> delayer_ROI_prev_id(MAX_ROI_SIZE, 0);
-    Delayer<uint32_t> delayer_ROI_frame(MAX_ROI_SIZE, 0);
+    // Delayer<uint32_t> delayer_ROI_frame(MAX_ROI_SIZE, 0);
     Delayer<int32_t> delayer_ROI_time(MAX_ROI_SIZE, 0);
     Delayer<int32_t> delayer_ROI_time_motion(MAX_ROI_SIZE, 0);
     Delayer<uint8_t> delayer_ROI_is_extrapolated(MAX_ROI_SIZE, 0);
@@ -266,7 +270,7 @@ int main(int argc, char** argv) {
     delayer_ROI_x.set_custom_name("D<ROI_x>");
     delayer_ROI_y.set_custom_name("D<ROI_y>");
     delayer_ROI_prev_id.set_custom_name("D<ROI_p_id>");
-    delayer_ROI_frame.set_custom_name("D<ROI_frame>");
+    // delayer_ROI_frame.set_custom_name("D<ROI_frame>");
     delayer_ROI_time.set_custom_name("D<ROI_t>");
     delayer_ROI_time_motion.set_custom_name("D<ROI_t_mo>");
     delayer_ROI_is_extrapolated.set_custom_name("D<ROI_is_ex>");
@@ -294,7 +298,6 @@ int main(int argc, char** argv) {
     delayer_ROI_x[dly::tsk::produce] = video[vid::sck::generate::out_img];
     delayer_ROI_y[dly::tsk::produce] = video[vid::sck::generate::out_img];
     delayer_ROI_prev_id[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_frame[dly::tsk::produce] = video[vid::sck::generate::out_img];
     delayer_ROI_time[dly::tsk::produce] = video[vid::sck::generate::out_img];
     delayer_ROI_time_motion[dly::tsk::produce] = video[vid::sck::generate::out_img];
     delayer_ROI_is_extrapolated[dly::tsk::produce] = video[vid::sck::generate::out_img];
@@ -346,7 +349,6 @@ int main(int argc, char** argv) {
     // Step 6 : tracking
     tracking[trk::sck::perform::in_frame] = video[vid::sck::generate::out_frame];
     tracking[trk::sck::perform::in_ROI0_id] = delayer_ROI_id[dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_frame] = delayer_ROI_frame[dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI0_xmin] = delayer_ROI_xmin[dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI0_xmax] = delayer_ROI_xmax[dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI0_ymin] = delayer_ROI_ymin[dly::sck::produce::out];
@@ -386,7 +388,6 @@ int main(int argc, char** argv) {
     delayer_ROI_x[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_x];
     delayer_ROI_y[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_y];
     delayer_ROI_prev_id[dly::sck::memorize::in] = matcher[knn::sck::match::out_ROI1_prev_id];
-    delayer_ROI_frame[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_frame];
     delayer_ROI_time[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_time];
     delayer_ROI_time_motion[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_time_motion];
     delayer_ROI_is_extrapolated[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_is_extrapolated];
@@ -467,24 +468,24 @@ int main(int argc, char** argv) {
 
 #ifdef ENABLE_PIPELINE
     // pipeline definition with separation stages
-    std::vector<std::tuple<std::vector<aff3ct::module::Task*>,
-                           std::vector<aff3ct::module::Task*>,
-                           std::vector<aff3ct::module::Task*>>> sep_stages =
+    std::vector<std::tuple<std::vector<aff3ct::runtime::Task*>,
+                           std::vector<aff3ct::runtime::Task*>,
+                           std::vector<aff3ct::runtime::Task*>>> sep_stages =
     { // pipeline stage 0
-      std::make_tuple<std::vector<aff3ct::module::Task*>, std::vector<aff3ct::module::Task*>,
-                      std::vector<aff3ct::module::Task*>>(
+      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                      std::vector<aff3ct::runtime::Task*>>(
         { &video[vid::tsk::generate],},
         { &video[vid::tsk::generate], },
         { /* no exclusions in this stage */ } ),
       // pipeline stage 1
-      std::make_tuple<std::vector<aff3ct::module::Task*>, std::vector<aff3ct::module::Task*>,
-                      std::vector<aff3ct::module::Task*>>(
+      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                      std::vector<aff3ct::runtime::Task*>>(
         { &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply] },
         { &merger[ftr_mrg::tsk::merge], },
         { } ),
       // pipeline stage 2
-      std::make_tuple<std::vector<aff3ct::module::Task*>, std::vector<aff3ct::module::Task*>,
-                      std::vector<aff3ct::module::Task*>>(
+      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                      std::vector<aff3ct::runtime::Task*>>(
         { &delayer_ROI_id[dly::tsk::produce],
           &delayer_ROI_xmin[dly::tsk::produce],
           &delayer_ROI_xmax[dly::tsk::produce],
@@ -496,7 +497,6 @@ int main(int argc, char** argv) {
           &delayer_ROI_x[dly::tsk::produce],
           &delayer_ROI_y[dly::tsk::produce],
           &delayer_ROI_prev_id[dly::tsk::produce],
-          &delayer_ROI_frame[dly::tsk::produce],
           &delayer_ROI_time[dly::tsk::produce],
           &delayer_ROI_time_motion[dly::tsk::produce],
           &delayer_ROI_is_extrapolated[dly::tsk::produce],
@@ -536,21 +536,21 @@ int main(int argc, char** argv) {
         std::get<0>(sep_stages[2]).push_back(&log_frame[lgr_fra::tsk::write]);
     }
 
-    aff3ct::tools::Pipeline sequence_or_pipeline({ &video[vid::tsk::generate] }, // first task of the sequence
-                                                 sep_stages,
-                                                 {
-                                                   1, // number of threads in the stage 0
-                                                   4, // number of threads in the stage 1
-                                                   1, // number of threads in the stage 2
-                                                 }, {
-                                                   16, // synchronization buffer size between stages 0 and 1
-                                                   16, // synchronization buffer size between stages 1 and 2
-                                                 }, {
-                                                   false, // type of waiting between stages 0 and 1 (true = active, false = passive)
-                                                   false, // type of waiting between stages 1 and 2 (true = active, false = passive)
-                                                 });
+    aff3ct::runtime::Pipeline sequence_or_pipeline({ &video[vid::tsk::generate] }, // first task of the sequence
+                                                   sep_stages,
+                                                   {
+                                                     1, // number of threads in the stage 0
+                                                     4, // number of threads in the stage 1
+                                                     1, // number of threads in the stage 2
+                                                   }, {
+                                                     16, // synchronization buffer size between stages 0 and 1
+                                                     16, // synchronization buffer size between stages 1 and 2
+                                                   }, {
+                                                     false, // type of waiting between stages 0 and 1 (true = active, false = passive)
+                                                     false, // type of waiting between stages 1 and 2 (true = active, false = passive)
+                                                   });
 #else
-    aff3ct::tools::Sequence sequence_or_pipeline(video[vid::tsk::generate], 1);
+    aff3ct::runtime::Sequence sequence_or_pipeline(video[vid::tsk::generate], 1);
 #endif
 
     // configuration of the sequence tasks
@@ -558,7 +558,7 @@ int main(int argc, char** argv) {
         for (auto& tsk : mod->tasks) {
             tsk->set_debug(false); // disable the debug mode
             tsk->set_debug_limit(16); // display only the 16 first bits if the debug mode is enabled
-            tsk->set_stats(true); // enable the statistics
+            tsk->set_stats(p_task_stats); // enable the statistics
             // enable the fast mode (= disable the useless verifs in the tasks) if there is no debug and stats modes
             if (!tsk->is_debug() && !tsk->is_stats())
                 tsk->set_fast(true);
@@ -588,9 +588,9 @@ int main(int argc, char** argv) {
 
 #ifdef ENABLE_PIPELINE
     sequence_or_pipeline.exec({
-        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 0
-        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 1
-        stop_condition});                                               // stop condition stage 2
+        stop_condition,                                                   // stop condition stage 0
+        [] (const std::vector<const int*>& statuses) { return false; },   // stop condition stage 1
+        [] (const std::vector<const int*>& statuses) { return false; }}); // stop condition stage 2
 #else
     sequence_or_pipeline.exec(stop_condition);
 #endif
@@ -608,23 +608,25 @@ int main(int argc, char** argv) {
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
     size_t real_n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
     printf("# Tracks statistics:\n");
-    printf("# -> Processed frames = %4d\n", n_frames);
+    printf("# -> Processed frames = %4d\n", n_frames -1);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, real_n_tracks);
 
     // display the statistics of the tasks (if enabled)
+    if (p_task_stats) {
 #ifdef ENABLE_PIPELINE
-    auto stages = sequence_or_pipeline.get_stages();
-    for (size_t s = 0; s < stages.size(); s++)
-    {
-        const int n_threads = stages[s]->get_n_threads();
-        std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
-        aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true);
-    }
+        auto stages = sequence_or_pipeline.get_stages();
+        for (size_t s = 0; s < stages.size(); s++)
+        {
+            const int n_threads = stages[s]->get_n_threads();
+            std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
+            aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true);
+        }
 #else
-    std::cout << "#" << std::endl;
-    aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true);
+        std::cout << "#" << std::endl;
+        aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true);
 #endif
+    }
 
     printf("# End of the program, exiting.\n");
 

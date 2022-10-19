@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <aff3ct.hpp>
+#include <aff3ct-core.hpp>
 
 namespace lgr_mtn {
     enum class tsk : size_t { write, SIZE };
@@ -18,8 +18,8 @@ protected:
 public:
     Logger_motion(const std::string motion_path);
     virtual ~Logger_motion();
-    inline aff3ct::module::Task& operator[](const lgr_mtn::tsk t);
-    inline aff3ct::module::Socket& operator[](const lgr_mtn::sck::write s);
+    inline aff3ct::runtime::Task& operator[](const lgr_mtn::tsk t);
+    inline aff3ct::runtime::Socket& operator[](const lgr_mtn::sck::write s);
 };
 
 #include "fmdt/Logger/Logger_motion.hxx"

@@ -22,7 +22,7 @@ Logger_frame::Logger_frame(const std::string frames_path, const int i0, const in
         tools_create_folder(frames_path.c_str());
 
     this->create_codelet(p, [ps_in_img, ps_in_frame]
-                         (aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int {
+                         (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_fra = static_cast<Logger_frame&>(m);
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
         const uint8_t* m_in_img = static_cast<const uint8_t*>(t[ps_in_img].get_dataptr());
@@ -36,7 +36,7 @@ Logger_frame::Logger_frame(const std::string frames_path, const int i0, const in
             tools_save_frame_ui8matrix(file_path, lgr_fra.in_img, lgr_fra.i0, lgr_fra.i1, lgr_fra.j0, lgr_fra.j1);
         }
 
-        return aff3ct::module::status_t::SUCCESS;
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 

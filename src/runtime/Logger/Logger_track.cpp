@@ -22,7 +22,7 @@ Logger_track::Logger_track(const std::string tracks_path, const size_t max_track
 
     this->create_codelet(p, [ps_in_track_id, ps_in_track_begin, ps_in_track_end, ps_in_track_obj_type,
                              ps_in_n_tracks, ps_in_frame]
-                         (aff3ct::module::Module &m, aff3ct::module::Task &t, const size_t frame_id) -> int {
+                         (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_trk = static_cast<Logger_track&>(m);
 
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
@@ -42,7 +42,7 @@ Logger_track::Logger_track(const std::string tracks_path, const size_t max_track
             fclose(file);
         }
 
-        return aff3ct::module::status_t::SUCCESS;
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 

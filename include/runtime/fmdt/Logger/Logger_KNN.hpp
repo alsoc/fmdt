@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <aff3ct.hpp>
+#include <aff3ct-core.hpp>
 
 namespace lgr_knn {
     enum class tsk : size_t { write, SIZE };
@@ -25,8 +25,8 @@ public:
     Logger_KNN(const std::string KNN_path, const size_t i0, const int i1, const int j0, const int j1,
                const size_t max_ROI_size);
     virtual ~Logger_KNN();
-    inline aff3ct::module::Task& operator[](const lgr_knn::tsk t);
-    inline aff3ct::module::Socket& operator[](const lgr_knn::sck::write s);
+    inline aff3ct::runtime::Task& operator[](const lgr_knn::tsk t);
+    inline aff3ct::runtime::Socket& operator[](const lgr_knn::sck::write s);
 };
 
 #include "fmdt/Logger/Logger_KNN.hxx"

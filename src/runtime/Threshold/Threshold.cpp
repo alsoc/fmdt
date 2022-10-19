@@ -16,7 +16,7 @@ Threshold::Threshold(const int i0, const int i1, const int j0, const int j1, con
     auto ps_in_img = this->template create_socket_in<uint8_t>(p, "in", socket_size);
     auto ps_out_img = this->template create_socket_out<uint8_t>(p, "out", socket_size);
 
-    this->create_codelet(p, [ps_in_img, ps_out_img](aff3ct::module::Module &m, aff3ct::module::Task &t,
+    this->create_codelet(p, [ps_in_img, ps_out_img](aff3ct::module::Module &m, aff3ct::runtime::Task &t,
                          const size_t frame_id) -> int {
         auto &thr = static_cast<Threshold&>(m);
         const uint8_t* m_in_img = static_cast<const uint8_t*>(t[ps_in_img].get_dataptr());
@@ -30,7 +30,7 @@ Threshold::Threshold(const int i0, const int i1, const int j0, const int j1, con
             thr.out_img[i] = thr.out_img[i - 1] + ((thr.j1 - thr.j0) + 1 + 2 * thr.b);
 
         threshold(thr.in_img, thr.out_img, thr.i0, thr.i1, thr.j0, thr.j1, thr.thr_val);
-        return aff3ct::module::status_t::SUCCESS;
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 

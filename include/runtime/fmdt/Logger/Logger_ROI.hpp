@@ -1,7 +1,7 @@
 #pragma once
 
 #include <stdint.h>
-#include <aff3ct.hpp>
+#include <aff3ct-core.hpp>
 
 namespace lgr_roi {
     enum class tsk : size_t { write, SIZE };
@@ -21,8 +21,8 @@ protected:
 public:
     Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, const size_t max_tracks_size);
     virtual ~Logger_ROI();
-    inline aff3ct::module::Task& operator[](const lgr_roi::tsk t);
-    inline aff3ct::module::Socket& operator[](const lgr_roi::sck::write s);
+    inline aff3ct::runtime::Task& operator[](const lgr_roi::tsk t);
+    inline aff3ct::runtime::Socket& operator[](const lgr_roi::sck::write s);
 };
 
 #include "fmdt/Logger/Logger_ROI.hxx"
