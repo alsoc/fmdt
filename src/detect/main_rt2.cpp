@@ -113,6 +113,8 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --track-all         Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
+                "  --task-stats        Display the statistics of tasks                                            \n");
+        fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
     }
@@ -137,6 +139,7 @@ int main(int argc, char** argv) {
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
     const int p_track_all = args_find(argc, argv, "--track-all");
+    const int p_task_stats = args_find(argc, argv, "--task-stats");
 
     // heading display
     printf("#  ---------------------\n");
@@ -166,6 +169,7 @@ int main(int argc, char** argv) {
     printf("#  * fra-meteor-max = %d\n", p_fra_meteor_max);
     printf("#  * diff-dev       = %4.2f\n", p_diff_dev);
     printf("#  * track-all      = %d\n", p_track_all);
+    printf("#  * task-stats     = %d\n", p_task_stats);
     printf("#\n");
     printf("#  * Runtime mode   = Sequence\n");
     printf("#\n");
@@ -422,7 +426,7 @@ int main(int argc, char** argv) {
         for (auto& tsk : mod->tasks) {
             tsk->set_debug(false); // disable the debug mode
             tsk->set_debug_limit(16); // display only the 16 first bits if the debug mode is enabled
-            tsk->set_stats(true); // enable the statistics
+            tsk->set_stats(p_task_stats); // enable the statistics
             // enable the fast mode (= disable the useless verifs in the tasks) if there is no debug and stats modes
             if (!tsk->is_debug() && !tsk->is_stats())
                 tsk->set_fast(true);
