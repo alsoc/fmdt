@@ -47,7 +47,6 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
     auto ps_in_ROI0_x = this->template create_socket_in<float>(p, "in_ROI0_x", max_ROI_size);
     auto ps_in_ROI0_y = this->template create_socket_in<float>(p, "in_ROI0_y", max_ROI_size);
     auto ps_in_ROI0_error = this->template create_socket_in<float>(p, "in_ROI0_error", max_ROI_size);
-    // auto ps_in_ROI0_prev_id = this->template create_socket_in<int32_t>(p, "in_ROI0_prev_id", max_ROI_size);
     auto ps_in_ROI0_next_id = this->template create_socket_in<int32_t>(p, "in_ROI0_next_id", max_ROI_size);
     auto ps_in_n_ROI0 = this->template create_socket_in<uint32_t>(p, "in_n_ROI0", 1);
 
