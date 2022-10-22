@@ -253,11 +253,6 @@ int main(int argc, char** argv) {
     Delayer<uint32_t> delayer_ROI_Sy(MAX_ROI_SIZE, 0);
     Delayer<float> delayer_ROI_x(MAX_ROI_SIZE, 0.f);
     Delayer<float> delayer_ROI_y(MAX_ROI_SIZE, 0.f);
-    Delayer<int32_t> delayer_ROI_prev_id(MAX_ROI_SIZE, 0);
-    // Delayer<uint32_t> delayer_ROI_frame(MAX_ROI_SIZE, 0);
-    Delayer<int32_t> delayer_ROI_time(MAX_ROI_SIZE, 0);
-    Delayer<int32_t> delayer_ROI_time_motion(MAX_ROI_SIZE, 0);
-    Delayer<uint8_t> delayer_ROI_is_extrapolated(MAX_ROI_SIZE, 0);
     Delayer<uint32_t> delayer_n_ROI(1, 0);
     delayer_ROI_id.set_custom_name("D<ROI_id>");
     delayer_ROI_xmin.set_custom_name("D<ROI_xmin>");
@@ -269,11 +264,6 @@ int main(int argc, char** argv) {
     delayer_ROI_Sy.set_custom_name("D<ROI_Sy>");
     delayer_ROI_x.set_custom_name("D<ROI_x>");
     delayer_ROI_y.set_custom_name("D<ROI_y>");
-    delayer_ROI_prev_id.set_custom_name("D<ROI_p_id>");
-    // delayer_ROI_frame.set_custom_name("D<ROI_frame>");
-    delayer_ROI_time.set_custom_name("D<ROI_t>");
-    delayer_ROI_time_motion.set_custom_name("D<ROI_t_mo>");
-    delayer_ROI_is_extrapolated.set_custom_name("D<ROI_is_ex>");
     delayer_n_ROI.set_custom_name("D<n_ROI>");
     Logger_ROI log_ROI(p_out_stats ? p_out_stats : "", MAX_ROI_SIZE, MAX_TRACKS_SIZE);
     Logger_KNN log_KNN(p_out_stats ? p_out_stats : "", i0, i1, j0, j1, MAX_ROI_SIZE);
@@ -297,10 +287,6 @@ int main(int argc, char** argv) {
     delayer_ROI_Sy[dly::tsk::produce] = video[vid::sck::generate::out_img];
     delayer_ROI_x[dly::tsk::produce] = video[vid::sck::generate::out_img];
     delayer_ROI_y[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_prev_id[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_time[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_time_motion[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_is_extrapolated[dly::tsk::produce] = video[vid::sck::generate::out_img];
     delayer_n_ROI[dly::tsk::produce] = video[vid::sck::generate::out_img];
 
     // Step 1 : seuillage low/high
@@ -356,11 +342,7 @@ int main(int argc, char** argv) {
     tracking[trk::sck::perform::in_ROI0_x] = delayer_ROI_x[dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI0_y] = delayer_ROI_y[dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI0_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
-    tracking[trk::sck::perform::in_ROI0_time] = delayer_ROI_time[dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_time_motion] = delayer_ROI_time_motion[dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_prev_id] = delayer_ROI_prev_id[dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
-    tracking[trk::sck::perform::in_ROI0_is_extrapolated] = delayer_ROI_is_extrapolated[dly::sck::produce::out];
     tracking[trk::sck::perform::in_n_ROI0] = delayer_n_ROI[dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
     tracking[trk::sck::perform::in_ROI1_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
@@ -387,10 +369,6 @@ int main(int argc, char** argv) {
     delayer_ROI_Sy[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_Sy];
     delayer_ROI_x[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_x];
     delayer_ROI_y[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_y];
-    delayer_ROI_prev_id[dly::sck::memorize::in] = matcher[knn::sck::match::out_ROI1_prev_id];
-    delayer_ROI_time[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_time];
-    delayer_ROI_time_motion[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_time_motion];
-    delayer_ROI_is_extrapolated[dly::sck::memorize::in] = tracking[trk::sck::perform::out_ROI1_is_extrapolated];
     delayer_n_ROI[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_n_ROI];
 
     if (p_out_stats) {
@@ -404,8 +382,6 @@ int main(int argc, char** argv) {
         log_ROI[lgr_roi::sck::write::in_ROI0_Sy] = delayer_ROI_Sy[dly::sck::produce::out];
         log_ROI[lgr_roi::sck::write::in_ROI0_x] = delayer_ROI_x[dly::sck::produce::out];
         log_ROI[lgr_roi::sck::write::in_ROI0_y] = delayer_ROI_y[dly::sck::produce::out];
-        log_ROI[lgr_roi::sck::write::in_ROI0_time] = delayer_ROI_time[dly::sck::produce::out];
-        log_ROI[lgr_roi::sck::write::in_ROI0_time_motion] = delayer_ROI_time_motion[dly::sck::produce::out];
         log_ROI[lgr_roi::sck::write::in_n_ROI0] = delayer_n_ROI[dly::sck::produce::out];
         log_ROI[lgr_roi::sck::write::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
         log_ROI[lgr_roi::sck::write::in_ROI1_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
@@ -417,8 +393,6 @@ int main(int argc, char** argv) {
         log_ROI[lgr_roi::sck::write::in_ROI1_Sy] = merger[ftr_mrg::sck::merge::out_ROI_Sy];
         log_ROI[lgr_roi::sck::write::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
         log_ROI[lgr_roi::sck::write::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
-        log_ROI[lgr_roi::sck::write::in_ROI1_time] = tracking[trk::sck::perform::out_ROI1_time];
-        log_ROI[lgr_roi::sck::write::in_ROI1_time_motion] = tracking[trk::sck::perform::out_ROI1_time_motion];
         log_ROI[lgr_roi::sck::write::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
         log_ROI[lgr_roi::sck::write::in_track_id] = tracking[trk::sck::perform::out_track_id];
         log_ROI[lgr_roi::sck::write::in_track_end] = tracking[trk::sck::perform::out_track_end];
@@ -496,10 +470,6 @@ int main(int argc, char** argv) {
           &delayer_ROI_Sy[dly::tsk::produce],
           &delayer_ROI_x[dly::tsk::produce],
           &delayer_ROI_y[dly::tsk::produce],
-          &delayer_ROI_prev_id[dly::tsk::produce],
-          &delayer_ROI_time[dly::tsk::produce],
-          &delayer_ROI_time_motion[dly::tsk::produce],
-          &delayer_ROI_is_extrapolated[dly::tsk::produce],
           &delayer_n_ROI[dly::tsk::produce],
           &matcher[knn::tsk::match],
           &motion[ftr_mtn::tsk::compute],
@@ -514,11 +484,6 @@ int main(int argc, char** argv) {
           &delayer_ROI_Sy[dly::tsk::memorize],
           &delayer_ROI_x[dly::tsk::memorize],
           &delayer_ROI_y[dly::tsk::memorize],
-          // &delayer_ROI_prev_id[dly::tsk::memorize],
-          // &delayer_ROI_frame[dly::tsk::memorize],
-          // &delayer_ROI_time[dly::tsk::memorize],
-          // &delayer_ROI_time_motion[dly::tsk::memorize],
-          // &delayer_ROI_is_extrapolated[dly::tsk::memorize],
           &delayer_n_ROI[dly::tsk::memorize],
           },
         { },
