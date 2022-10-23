@@ -578,7 +578,6 @@ int main(int argc, char** argv) {
            n_noise, real_n_tracks);
 
     // display the statistics of the tasks (if enabled)
-    if (p_task_stats) {
 #ifdef ENABLE_PIPELINE
         auto stages = sequence_or_pipeline.get_stages();
         for (size_t s = 0; s < stages.size(); s++)
@@ -591,7 +590,6 @@ int main(int argc, char** argv) {
         std::cout << "#" << std::endl;
         aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true);
 #endif
-    }
 
     printf("# End of the program, exiting.\n");
 
