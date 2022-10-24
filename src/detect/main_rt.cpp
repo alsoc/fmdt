@@ -32,7 +32,7 @@
 #include "fmdt/Logger/Logger_track.hpp"
 #include "fmdt/Logger/Logger_frame.hpp"
 
-// #define ENABLE_PIPELINE
+#define ENABLE_PIPELINE
 
 int main(int argc, char** argv) {
     // default values
