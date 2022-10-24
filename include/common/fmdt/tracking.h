@@ -95,19 +95,16 @@ void tracking_init_BB_array(BB_t** BB_array);
 void tracking_free_BB_array(BB_t** BB_array);
 void _tracking_perform(tracking_data_t* tracking_data, const uint16_t* ROI0_id, const uint16_t* ROI0_xmin,
                        const uint16_t* ROI0_xmax, const uint16_t* ROI0_ymin, const uint16_t* ROI0_ymax,
-                       const float* ROI0_x, const float* ROI0_y, const float* ROI0_error, const int32_t* ROI0_time,
-                       const int32_t* ROI0_time_motion, const int32_t* ROI0_prev_id, const int32_t* ROI0_next_id,
-                       const uint8_t* ROI0_is_extrapolated, const size_t n_ROI0, const uint16_t* ROI1_id,
+                       const float* ROI0_x, const float* ROI0_y, const float* ROI0_error, const int32_t* ROI0_prev_id, 
+                       const int32_t* ROI0_next_id, const size_t n_ROI0, const uint16_t* ROI1_id,
                        const uint16_t* ROI1_xmin, const uint16_t* ROI1_xmax, const uint16_t* ROI1_ymin,
-                       const uint16_t* ROI1_ymax, const float* ROI1_x, const float* ROI1_y, int32_t* ROI1_time,
-                       int32_t* ROI1_time_motion, const int32_t* ROI1_prev_id, uint8_t* ROI1_is_extrapolated,
+                       const uint16_t* ROI1_ymax, const float* ROI1_x, const float* ROI1_y, const int32_t* ROI1_prev_id,
                        const size_t n_ROI1, uint16_t* track_id, ROI_light_t* track_begin, ROI_light_t* track_end,
                        float* track_extrapol_x, float* track_extrapol_y, enum state_e* track_state,
                        enum obj_e* track_obj_type, enum change_state_reason_e* track_change_state_reason,
                        size_t* offset_tracks, size_t* n_tracks, BB_t** BB_array, size_t frame, double theta, double tx,
                        double ty, double mean_error, double std_deviation, size_t r_extrapol, float angle_max,
-                       float diff_dev, int track_all, size_t fra_star_min, size_t fra_meteor_min,
-                       size_t fra_meteor_max);
+                       float diff_dev, int track_all, size_t fra_star_min, size_t fra_meteor_min, size_t fra_meteor_max);
 void tracking_perform(tracking_data_t* tracking_data, const ROI_t* ROI_array0, ROI_t* ROI_array1, track_t* track_array,
                       BB_t** BB_array, size_t frame, double theta, double tx, double ty, double mean_error,
                       double std_deviation, size_t r_extrapol, float angle_max, float diff_dev, int track_all,

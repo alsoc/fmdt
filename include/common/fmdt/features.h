@@ -20,12 +20,9 @@ typedef struct {
     float* dx; // erreur par rapport a l`image recalee
     float* dy; // erreur par rapport a l`image recalee
     float* error;
-    int32_t* time;
-    int32_t* time_motion;
     int32_t* prev_id; // associated CC from t-1 -> t -> t+1
     int32_t* next_id; // associated CC from t-1 -> t -> t+1
     uint8_t* is_moving;
-    uint8_t* is_extrapolated;
 
     size_t _size; // current size/utilization of the fields
     size_t _max_size; // maximum amount of data that can be contained in the fields
@@ -76,21 +73,18 @@ void features_compute_motion(const ROI_t* ROI_array1, ROI_t* ROI_array0, double*
 void _features_ROI_write(FILE* f, const uint16_t* ROI_id, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
                          const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
                          const uint32_t* ROI_Sx, const uint32_t* ROI_Sy, const float* ROI_x, const float* ROI_y,
-                         const int32_t* ROI_time, const int32_t* ROI_time_motion, const size_t n_ROI,
-                         const uint16_t* track_id, const ROI_light_t* track_end, const enum obj_e* track_obj_type,
-                         const size_t n_tracks, const unsigned age);
+                         const size_t n_ROI, const uint16_t* track_id, const ROI_light_t* track_end, 
+                         const enum obj_e* track_obj_type, const size_t n_tracks, const unsigned age);
 void features_ROI_write(FILE* f, const ROI_t* ROI_array, const track_t* track_array, const unsigned age);
 void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id, const uint16_t* ROI0_xmin,
                                const uint16_t* ROI0_xmax, const uint16_t* ROI0_ymin, const uint16_t* ROI0_ymax,
                                const uint32_t* ROI0_S, const uint32_t* ROI0_Sx, const uint32_t* ROI0_Sy,
-                               const float* ROI0_x, const float* ROI0_y, const int32_t* ROI0_time,
-                               const int32_t* ROI0_time_motion, const size_t n_ROI0, const uint16_t* ROI1_id,
+                               const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, const uint16_t* ROI1_id,
                                const uint16_t* ROI1_xmin, const uint16_t* ROI1_xmax, const uint16_t* ROI1_ymin,
                                const uint16_t* ROI1_ymax, const uint32_t* ROI1_S, const uint32_t* ROI1_Sx,
-                               const uint32_t* ROI1_Sy, const float* ROI1_x, const float* ROI1_y,
-                               const int32_t* ROI1_time, const int32_t* ROI1_time_motion, const size_t n_ROI1,
-                               const uint16_t* track_id, const ROI_light_t* track_end, const enum obj_e* track_obj_type,
-                               const size_t n_tracks);
+                               const uint32_t* ROI1_Sy, const float* ROI1_x, const float* ROI1_y, const size_t n_ROI1, 
+                               const uint16_t* track_id, const ROI_light_t* track_end, 
+                               const enum obj_e* track_obj_type, const size_t n_tracks);
 void features_ROI0_ROI1_write(FILE* f, const int frame, const ROI_t* ROI_array0, const ROI_t* ROI_array1,
                               const track_t* track_array);
 void features_motion_write(FILE* f, const double first_theta, const double first_tx, const double first_ty,

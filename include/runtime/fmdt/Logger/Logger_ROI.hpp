@@ -7,11 +7,10 @@ namespace lgr_roi {
     enum class tsk : size_t { write, SIZE };
     namespace sck {
         enum class write : size_t { in_ROI0_id, in_ROI0_xmin, in_ROI0_xmax, in_ROI0_ymin, in_ROI0_ymax,
-                                    in_ROI0_S, in_ROI0_Sx, in_ROI0_Sy, in_ROI0_x, in_ROI0_y, in_ROI0_time,
-                                    in_ROI0_time_motion, in_n_ROI0, in_ROI1_id, in_ROI1_xmin, in_ROI1_xmax,
-                                    in_ROI1_ymin, in_ROI1_ymax, in_ROI1_S, in_ROI1_Sx, in_ROI1_Sy, in_ROI1_x,
-                                    in_ROI1_y, in_ROI1_time, in_ROI1_time_motion, in_n_ROI1, in_track_id,
-                                    in_track_end, in_track_obj_type, in_n_tracks, in_frame, status};
+                                    in_ROI0_S, in_ROI0_Sx, in_ROI0_Sy, in_ROI0_x, in_ROI0_y, in_n_ROI0, in_ROI1_id, 
+                                    in_ROI1_xmin, in_ROI1_xmax, in_ROI1_ymin, in_ROI1_ymax, in_ROI1_S, in_ROI1_Sx, 
+                                    in_ROI1_Sy, in_ROI1_x, in_ROI1_y, in_n_ROI1, in_track_id, in_track_end, 
+                                    in_track_obj_type, in_n_tracks, in_frame, status};
     }
 }
 

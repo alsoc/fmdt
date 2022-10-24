@@ -11,31 +11,7 @@ BB_t** Tracking::get_BB_array() {
 }
 
 int32_t* Tracking::get_ROI0_prev_id() {
-    return this->ROI0_time;
-}
-
-int32_t* Tracking::get_ROI0_time() {
-    return this->ROI0_time;
-}
-
-int32_t* Tracking::get_ROI0_time_motion() {
-    return this->ROI0_time_motion;
-}
-
-uint8_t* Tracking::get_ROI0_is_extrapolated() {
-    return this->ROI0_is_extrapolated;
-}
-
-int32_t* Tracking::get_ROI1_time() {
-    return this->ROI1_time;
-}
-
-int32_t* Tracking::get_ROI1_time_motion() {
-    return this->ROI1_time_motion;
-}
-
-uint8_t* Tracking::get_ROI1_is_extrapolated() {
-    return this->ROI1_is_extrapolated;
+    return this->ROI0_prev_id;
 }
 
 aff3ct::runtime::Task& Tracking::operator[](const trk::tsk t) {
