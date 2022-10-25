@@ -8,29 +8,25 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
 : Module(), r_extrapol(r_extrapol), angle_max(angle_max), diff_dev(diff_dev), track_all(track_all),
   fra_star_min(fra_star_min), fra_meteor_min(fra_meteor_min), fra_meteor_max(fra_meteor_max), 
   max_ROI_size(max_ROI_size), max_tracks_size(max_tracks_size), max_n_frames(max_n_frames), ROI0_prev_id(nullptr),
-  ROI0_time(nullptr), ROI0_time_motion(nullptr), ROI0_is_extrapolated(nullptr), ROI1_time(nullptr), 
-  ROI1_time_motion(nullptr), ROI1_is_extrapolated(nullptr), tracking_data(nullptr), track_array(nullptr), 
-  BB_array(nullptr) {
+  ROI_time_tmp(nullptr), ROI_time_motion_tmp(nullptr), ROI_is_extrapolated_tmp(nullptr), tracking_data(nullptr),
+  track_array(nullptr), BB_array(nullptr) {
     const std::string name = "Tracking";
     this->set_name(name);
     this->set_short_name(name);
 
     this->ROI0_prev_id = (int32_t*)malloc(max_ROI_size * sizeof(uint32_t));
-    this->ROI0_time = (int32_t*)malloc(max_ROI_size * sizeof(uint32_t));
-    this->ROI0_time_motion = (int32_t*)malloc(max_ROI_size * sizeof(uint32_t));
-    this->ROI0_is_extrapolated = (uint8_t*)malloc(max_ROI_size * sizeof(uint8_t));
-    this->ROI1_time = (int32_t*)malloc(max_ROI_size * sizeof(uint32_t));
-    this->ROI1_time_motion = (int32_t*)malloc(max_ROI_size * sizeof(uint32_t));
-    this->ROI1_is_extrapolated = (uint8_t*)malloc(max_ROI_size * sizeof(uint8_t));
+    this->ROI_time_tmp = (int32_t*)malloc(max_ROI_size * sizeof(uint32_t));
+    this->ROI_time_motion_tmp = (int32_t*)malloc(max_ROI_size * sizeof(uint32_t));
+    this->ROI_is_extrapolated_tmp = (uint8_t*)malloc(max_ROI_size * sizeof(uint8_t));
     this->tracking_data = tracking_alloc_data(std::max(fra_star_min, fra_meteor_min), max_ROI_size);
     this->track_array = tracking_alloc_track_array(max_tracks_size);
     this->BB_array = (BB_t**)malloc(max_n_frames * sizeof(BB_t*));
 
-    
-    memset(this->ROI0_prev_id, 0, max_ROI_size * sizeof(int32_t));
-    memset(this->ROI0_time, 0, max_ROI_size * sizeof(int32_t));
-    memset(this->ROI0_time_motion, 0, max_ROI_size * sizeof(int32_t));
-    memset(this->ROI0_is_extrapolated, 0, max_ROI_size * sizeof(uint8_t));
+    std::fill(this->ROI0_prev_id, this->ROI0_prev_id + max_ROI_size, 0);
+    std::fill(this->ROI_time_tmp, this->ROI_time_tmp + max_ROI_size, 0);
+    std::fill(this->ROI_time_motion_tmp, this->ROI_time_motion_tmp + max_ROI_size, 0);
+    std::fill(this->ROI_is_extrapolated_tmp, this->ROI_is_extrapolated_tmp + max_ROI_size, 0);
+
     tracking_init_data(this->tracking_data);
     tracking_init_track_array(this->track_array);
     tracking_init_BB_array(this->BB_array);
@@ -47,7 +43,6 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
     auto ps_in_ROI0_x = this->template create_socket_in<float>(p, "in_ROI0_x", max_ROI_size);
     auto ps_in_ROI0_y = this->template create_socket_in<float>(p, "in_ROI0_y", max_ROI_size);
     auto ps_in_ROI0_error = this->template create_socket_in<float>(p, "in_ROI0_error", max_ROI_size);
-    // auto ps_in_ROI0_prev_id = this->template create_socket_in<int32_t>(p, "in_ROI0_prev_id", max_ROI_size);
     auto ps_in_ROI0_next_id = this->template create_socket_in<int32_t>(p, "in_ROI0_next_id", max_ROI_size);
     auto ps_in_n_ROI0 = this->template create_socket_in<uint32_t>(p, "in_n_ROI0", 1);
 
@@ -67,6 +62,13 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
     auto ps_in_mean_error = this->template create_socket_in<double>(p, "in_mean_error", 1);
     auto ps_in_std_deviation = this->template create_socket_in<double>(p, "in_std_deviation", 1);
 
+    auto ps_out_ROI0_time = this->template create_socket_out<int32_t>(p, "out_ROI0_time", max_ROI_size);
+    auto ps_out_ROI0_time_motion = this->template create_socket_out<int32_t>(p, "out_ROI0_time_motion", max_ROI_size);
+    auto ps_out_ROI0_is_extrapolated = this->template create_socket_out<uint8_t>(p, "out_ROI0_is_extrapolated", max_ROI_size);
+    auto ps_out_ROI1_time = this->template create_socket_out<int32_t>(p, "out_ROI1_time", max_ROI_size);
+    auto ps_out_ROI1_time_motion = this->template create_socket_out<int32_t>(p, "out_ROI1_time_motion", max_ROI_size);
+    auto ps_out_ROI1_is_extrapolated = this->template create_socket_out<uint8_t>(p, "out_ROI1_is_extrapolated", max_ROI_size);
+
     auto ps_out_track_id = this->template create_socket_out<uint16_t>(p, "out_track_id", max_tracks_size);
     auto ps_out_track_begin = this->template create_socket_out<uint8_t>(p, "out_track_begin", max_tracks_size * sizeof(ROI_light_t));
     auto ps_out_track_end = this->template create_socket_out<uint8_t>(p, "out_track_end", max_tracks_size * sizeof(ROI_light_t));
@@ -81,10 +83,11 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                              ps_in_ROI0_ymax, ps_in_ROI0_x, ps_in_ROI0_y, ps_in_ROI0_error, ps_in_ROI0_next_id, 
                              ps_in_n_ROI0, ps_in_ROI1_id, ps_in_ROI1_xmin, ps_in_ROI1_xmax, ps_in_ROI1_ymin, 
                              ps_in_ROI1_ymax, ps_in_ROI1_x, ps_in_ROI1_y, ps_in_ROI1_prev_id, ps_in_n_ROI1, 
-                             ps_in_theta, ps_in_tx, ps_in_ty, ps_in_mean_error, ps_in_std_deviation, ps_out_track_id, 
-                             ps_out_track_begin, ps_out_track_end, ps_out_track_extrapol_x, ps_out_track_extrapol_y, 
-                             ps_out_track_state, ps_out_track_obj_type, ps_out_track_change_state_reason, 
-                             ps_out_n_tracks]
+                             ps_in_theta, ps_in_tx, ps_in_ty, ps_in_mean_error, ps_in_std_deviation, ps_out_ROI0_time,
+                             ps_out_ROI0_time_motion, ps_out_ROI0_is_extrapolated, ps_out_ROI1_time,
+                             ps_out_ROI1_time_motion, ps_out_ROI1_is_extrapolated, ps_out_track_id, ps_out_track_begin,
+                             ps_out_track_end, ps_out_track_extrapol_x, ps_out_track_extrapol_y, ps_out_track_state,
+                             ps_out_track_obj_type, ps_out_track_change_state_reason, ps_out_n_tracks]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &trk = static_cast<Tracking&>(m);
 
@@ -93,13 +96,21 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
         const int32_t* ROI1_prev_id = static_cast<const int32_t*>(t[ps_in_ROI1_prev_id].get_dataptr());
 
-        memcpy(trk.ROI0_time, trk.ROI1_time, trk.max_ROI_size * sizeof(int32_t));
-        memcpy(trk.ROI0_time_motion, trk.ROI1_time_motion, trk.max_ROI_size * sizeof(int32_t));
-        memcpy(trk.ROI0_is_extrapolated, trk.ROI1_is_extrapolated, trk.max_ROI_size * sizeof(uint8_t));
+        int32_t *ROI0_time = static_cast<int32_t*>(t[ps_out_ROI0_time].get_dataptr());
+        int32_t *ROI0_time_motion = static_cast<int32_t*>(t[ps_out_ROI0_time_motion].get_dataptr());
+        uint8_t *ROI0_is_extrapolated = static_cast<uint8_t*>(t[ps_out_ROI0_is_extrapolated].get_dataptr());
+
+        std::copy(trk.ROI_time_tmp, trk.ROI_time_tmp + trk.max_ROI_size, ROI0_time);
+        std::copy(trk.ROI_time_motion_tmp, trk.ROI_time_motion_tmp + trk.max_ROI_size, ROI0_time_motion);
+        std::copy(trk.ROI_is_extrapolated_tmp, trk.ROI_is_extrapolated_tmp + trk.max_ROI_size, ROI0_is_extrapolated);
         
-        memset(trk.ROI1_time, 0, trk.max_ROI_size * sizeof(int32_t));
-        memset(trk.ROI1_time_motion, 0, trk.max_ROI_size * sizeof(int32_t));
-        memset(trk.ROI1_is_extrapolated, 0, trk.max_ROI_size * sizeof(uint8_t));
+        int32_t *ROI1_time = static_cast<int32_t*>(t[ps_out_ROI1_time].get_dataptr());
+        int32_t *ROI1_time_motion = static_cast<int32_t*>(t[ps_out_ROI1_time_motion].get_dataptr());
+        uint8_t *ROI1_is_extrapolated = static_cast<uint8_t*>(t[ps_out_ROI1_is_extrapolated].get_dataptr());
+
+        std::fill(ROI1_time, ROI1_time + trk.max_ROI_size, 0);
+        std::fill(ROI1_time_motion, ROI1_time_motion + trk.max_ROI_size, 0);
+        std::fill(ROI1_is_extrapolated, ROI1_is_extrapolated + trk.max_ROI_size, 0);
 
         _tracking_perform(trk.tracking_data,
                           static_cast<const uint16_t*>(t[ps_in_ROI0_id].get_dataptr()),
@@ -110,11 +121,11 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                           static_cast<const float*>(t[ps_in_ROI0_x].get_dataptr()),
                           static_cast<const float*>(t[ps_in_ROI0_y].get_dataptr()),
                           static_cast<const float*>(t[ps_in_ROI0_error].get_dataptr()),
-                          trk.ROI0_time,
-                          trk.ROI0_time_motion,
+                          ROI0_time,
+                          ROI0_time_motion,
                           trk.ROI0_prev_id,
                           static_cast<const int32_t*>(t[ps_in_ROI0_next_id].get_dataptr()),
-                          trk.ROI0_is_extrapolated,
+                          ROI0_is_extrapolated,
                           n_ROI0,
                           static_cast<const uint16_t*>(t[ps_in_ROI1_id].get_dataptr()),
                           static_cast<const uint16_t*>(t[ps_in_ROI1_xmin].get_dataptr()),
@@ -123,10 +134,10 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                           static_cast<const uint16_t*>(t[ps_in_ROI1_ymax].get_dataptr()),
                           static_cast<const float*>(t[ps_in_ROI1_x].get_dataptr()),
                           static_cast<const float*>(t[ps_in_ROI1_y].get_dataptr()),
-                          trk.ROI1_time,
-                          trk.ROI1_time_motion,
+                          ROI1_time,
+                          ROI1_time_motion,
                           ROI1_prev_id,
-                          trk.ROI1_is_extrapolated,
+                          ROI1_is_extrapolated,
                           n_ROI1,
                           trk.track_array->id,
                           trk.track_array->begin,
@@ -148,7 +159,10 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                           trk.r_extrapol, trk.angle_max, trk.diff_dev, trk.track_all, trk.fra_star_min,
                           trk.fra_meteor_min, trk.fra_meteor_max);
 
-        memcpy(trk.ROI0_prev_id, ROI1_prev_id, trk.max_ROI_size * sizeof(int32_t));
+        std::copy(ROI1_prev_id, ROI1_prev_id + trk.max_ROI_size, trk.ROI0_prev_id);
+        std::copy(ROI1_time, ROI1_time + trk.max_ROI_size, trk.ROI_time_tmp);
+        std::copy(ROI1_time_motion, ROI1_time_motion + trk.max_ROI_size, trk.ROI_time_motion_tmp);
+        std::copy(ROI1_is_extrapolated, ROI1_is_extrapolated + trk.max_ROI_size, trk.ROI_is_extrapolated_tmp);
 
         uint16_t* out_track_id = static_cast<uint16_t*>(t[ps_out_track_id].get_dataptr());
         ROI_light_t* out_track_begin = static_cast<ROI_light_t*>(t[ps_out_track_begin].get_dataptr());

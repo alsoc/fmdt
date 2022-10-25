@@ -382,6 +382,8 @@ int main(int argc, char** argv) {
         log_ROI[lgr_roi::sck::write::in_ROI0_Sy] = delayer_ROI_Sy[dly::sck::produce::out];
         log_ROI[lgr_roi::sck::write::in_ROI0_x] = delayer_ROI_x[dly::sck::produce::out];
         log_ROI[lgr_roi::sck::write::in_ROI0_y] = delayer_ROI_y[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_time] = tracking[trk::sck::perform::out_ROI0_time];
+        log_ROI[lgr_roi::sck::write::in_ROI0_time_motion] = tracking[trk::sck::perform::out_ROI0_time_motion];
         log_ROI[lgr_roi::sck::write::in_n_ROI0] = delayer_n_ROI[dly::sck::produce::out];
         log_ROI[lgr_roi::sck::write::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
         log_ROI[lgr_roi::sck::write::in_ROI1_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
@@ -389,6 +391,8 @@ int main(int argc, char** argv) {
         log_ROI[lgr_roi::sck::write::in_ROI1_ymin] = merger[ftr_mrg::sck::merge::out_ROI_ymin];
         log_ROI[lgr_roi::sck::write::in_ROI1_ymax] = merger[ftr_mrg::sck::merge::out_ROI_ymax];
         log_ROI[lgr_roi::sck::write::in_ROI1_S] = merger[ftr_mrg::sck::merge::out_ROI_S];
+        log_ROI[lgr_roi::sck::write::in_ROI1_time] = tracking[trk::sck::perform::out_ROI1_time];
+        log_ROI[lgr_roi::sck::write::in_ROI1_time_motion] = tracking[trk::sck::perform::out_ROI1_time_motion];
         log_ROI[lgr_roi::sck::write::in_ROI1_Sx] = merger[ftr_mrg::sck::merge::out_ROI_Sx];
         log_ROI[lgr_roi::sck::write::in_ROI1_Sy] = merger[ftr_mrg::sck::merge::out_ROI_Sy];
         log_ROI[lgr_roi::sck::write::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];

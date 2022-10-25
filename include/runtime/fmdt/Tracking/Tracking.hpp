@@ -10,9 +10,11 @@ namespace trk {
                                       in_ROI0_x, in_ROI0_y, in_ROI0_error, in_ROI0_next_id, in_n_ROI0, in_ROI1_id, 
                                       in_ROI1_xmin, in_ROI1_xmax, in_ROI1_ymin, in_ROI1_ymax, in_ROI1_x, in_ROI1_y, 
                                       in_ROI1_prev_id, in_n_ROI1, in_theta, in_tx, in_ty, in_mean_error, 
-                                      in_std_deviation, out_track_id, out_track_begin, out_track_end, 
-                                      out_track_extrapol_x, out_track_extrapol_y, out_track_state, out_track_obj_type, 
-                                      out_track_change_state_reason, out_n_tracks, status };
+                                      in_std_deviation, out_ROI0_time, out_ROI0_time_motion, out_ROI0_is_extrapolated,
+                                      out_ROI1_time, out_ROI1_time_motion, out_ROI1_is_extrapolated, out_track_id,
+                                      out_track_begin, out_track_end, out_track_extrapol_x, out_track_extrapol_y,
+                                      out_track_state, out_track_obj_type, out_track_change_state_reason, out_n_tracks,
+                                      status };
     }
 }
 
@@ -29,12 +31,9 @@ protected:
     const size_t max_tracks_size;
     const size_t max_n_frames;
     int32_t* ROI0_prev_id;
-    int32_t* ROI0_time; 
-    int32_t* ROI0_time_motion;
-    uint8_t* ROI0_is_extrapolated;
-    int32_t* ROI1_time; 
-    int32_t* ROI1_time_motion;
-    uint8_t* ROI1_is_extrapolated;
+    int32_t* ROI_time_tmp;
+    int32_t* ROI_time_motion_tmp;
+    uint8_t* ROI_is_extrapolated_tmp;
     tracking_data_t* tracking_data;
     track_t* track_array;
     BB_t** BB_array;
@@ -46,12 +45,9 @@ public:
     inline track_t* get_track_array();
     inline BB_t** get_BB_array();
     inline int32_t* get_ROI0_prev_id();
-    inline int32_t* get_ROI0_time();
-    inline int32_t* get_ROI0_time_motion();
-    inline uint8_t* get_ROI0_is_extrapolated();
-    inline int32_t* get_ROI1_time();
-    inline int32_t* get_ROI1_time_motion();
-    inline uint8_t* get_ROI1_is_extrapolated();
+    inline int32_t* get_ROI_time_tmp();
+    inline int32_t* get_ROI_time_motion_tmp();
+    inline uint8_t* get_ROI_is_extrapolated_tmp();
     inline aff3ct::runtime::Task& operator[](const trk::tsk t);
     inline aff3ct::runtime::Socket& operator[](const trk::sck::perform s) ;
 
