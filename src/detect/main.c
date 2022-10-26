@@ -318,7 +318,7 @@ int main(int argc, char** argv) {
         tracking_save_array_BB(p_out_bb, BB_array, track_array, MAX_N_FRAMES, p_track_all);
     tracking_track_array_write(stdout, track_array);
 
-    printf("# Statistics:\n");
+    printf("# Tracks statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, real_n_tracks);

@@ -351,7 +351,7 @@ int main(int argc, char** argv) {
     tracking[trk::sck::perform::in_std_deviation] = motion[ftr_mtn::sck::compute::out_std_deviation];
 
     if (p_out_frames) {
-        log_frame[lgr_fra::sck::write::in_img] =  video[vid2::sck::generate::out_img0];  
+        log_frame[lgr_fra::sck::write::in_img] =  merger1[ftr_mrg::sck::merge::out_img];
         log_frame[lgr_fra::sck::write::in_frame] =   video[vid2::sck::generate::out_frame];
     }
 
@@ -392,7 +392,7 @@ int main(int argc, char** argv) {
         log_KNN[lgr_knn::sck::write::in_ROI_dy] = motion[ftr_mtn::sck::compute::out_ROI0_dy];
         log_KNN[lgr_knn::sck::write::in_ROI_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
         log_KNN[lgr_knn::sck::write::in_ROI_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
-        log_KNN[lgr_knn::sck::write::in_n_ROI] = merger1[ftr_mrg::sck::merge::out_n_ROI]; // pas sur
+        log_KNN[lgr_knn::sck::write::in_n_ROI] = merger0[ftr_mrg::sck::merge::out_n_ROI]; // pas sur
         log_KNN[lgr_knn::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
 
         log_motion[lgr_mtn::sck::write::in_first_theta] = motion[ftr_mtn::sck::compute::out_first_theta];
