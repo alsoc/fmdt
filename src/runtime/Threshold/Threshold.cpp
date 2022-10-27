@@ -20,12 +20,12 @@ Threshold::Threshold(const int i0, const int i1, const int j0, const int j1, con
                          const size_t frame_id) -> int {
         auto &thr = static_cast<Threshold&>(m);
         const uint8_t* m_in_img = static_cast<const uint8_t*>(t[ps_in_img].get_dataptr());
-        thr.in_img[thr.i0 - thr.b] = m_in_img - thr.j0;
+        thr.in_img[thr.i0 - thr.b] = m_in_img - (thr.j0 - thr.b);
         for (int i = thr.i0 - thr.b + 1; i <= thr.i1 + thr.b; i++)
             thr.in_img[i] = thr.in_img[i - 1] + ((thr.j1 - thr.j0) + 1 + 2 * thr.b);
 
         uint8_t* m_out_img = static_cast<uint8_t*>(t[ps_out_img].get_dataptr());
-        thr.out_img[thr.i0 - thr.b] = m_out_img - thr.j0;
+        thr.out_img[thr.i0 - thr.b] = m_out_img - (thr.j0 - thr.b);
         for (int i = thr.i0 - thr.b + 1; i <= thr.i1 + thr.b; i++)
             thr.out_img[i] = thr.out_img[i - 1] + ((thr.j1 - thr.j0) + 1 + 2 * thr.b);
 
