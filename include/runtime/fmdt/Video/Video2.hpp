@@ -15,7 +15,8 @@ protected:
     int i0, i1, j0, j1;
     int b;
     video_t* video;
-    uint8_t** out_img;
+    uint8_t** out_img0;
+    uint8_t** img_buf;
     int size_image;
     bool done;
 public:
@@ -23,7 +24,8 @@ public:
           const size_t n_ffmpeg_threads, const int b);
     virtual ~Video2();
     virtual bool is_done() const;
-    inline uint8_t** get_out_img();
+    inline uint8_t** get_out_img0();
+    inline uint8_t** get_img_buf();
     inline int get_i0();
     inline int get_i1();
     inline int get_j0();
