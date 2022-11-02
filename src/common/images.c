@@ -145,8 +145,6 @@ images_t* images_init_from_path(const char* path, const size_t start, const size
 }
 
 int images_get_next_frame(images_t* images, uint8_t** I) {
-    size_t cur_fra = images->frame_current;
-
     if (images->frame_current < images->files_count) {
         MLoadPGM_ui8matrix(images->path_files[images->frame_current], images->i0, images->i1, images->j0, images->j1,
                            I);

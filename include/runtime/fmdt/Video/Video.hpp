@@ -3,6 +3,8 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
+#include "fmdt/video.h"
+
 namespace vid {
     enum class tsk : size_t { generate, SIZE };
     namespace sck {

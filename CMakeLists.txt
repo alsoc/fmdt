@@ -113,6 +113,7 @@ if(FMDT_DETECT_EXE)
 
         set(src_detectrt1_files
             ${src_dir}/runtime/Video/Video.cpp
+            ${src_dir}/runtime/Images/Images.cpp
             ${src_dir}/detect/main_rt.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt1_files})
         add_executable(fmdt-detect-rt-exe 
