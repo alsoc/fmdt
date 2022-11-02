@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #ifdef OPENCV_LINK
 #include <tuple>
@@ -723,4 +725,11 @@ void tools_convert_ui8matrix_ui32matrix(const uint8** X, const int nrl, const in
 void tools_write_PNM_row(const uint8* line, const int width, FILE* file) {
     /* Le fichier est deja ouvert et ne sera pas ferme a la fin */
     fwrite(&(line[0]), sizeof(byte), 3 * sizeof(byte) * width, file);
+}
+
+int tools_is_dir(const char *path)
+{
+    struct stat path_stat;
+    stat(path, &path_stat);
+    return S_ISDIR(path_stat.st_mode);
 }

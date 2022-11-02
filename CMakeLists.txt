@@ -68,7 +68,8 @@ set(src_common_files
     ${src_dir}/common/tools.c
     ${src_dir}/common/tracking.c
     ${src_dir}/common/validation.c
-    ${src_dir}/common/video.c)
+    ${src_dir}/common/video.c
+    ${src_dir}/common/images.c)
 list(APPEND fmdt_src_list ${src_common_files})
 
 # Create binaries -------------------------------------------------------------

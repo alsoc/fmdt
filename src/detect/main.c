@@ -13,7 +13,16 @@
 #include "fmdt/threshold.h"
 #include "fmdt/tracking.h"
 #include "fmdt/video.h"
+#include "fmdt/images.h"
 #include "fmdt/macros.h"
+
+int get_next_frame(video_t* video, images_t* images, uint8_t** I) {
+    if (video)
+        return video_get_next_frame(video, I);
+    else if (images)
+        return images_get_next_frame(images, I);
+    return 0;
+}
 
 int main(int argc, char** argv) {
     // default values
@@ -187,9 +196,16 @@ int main(int argc, char** argv) {
     // -------------------------- //
 
     int i0, i1, j0, j1; // image dimension (y_min, y_max, x_min, x_max)
-    const size_t n_ffmpeg_threads = 0; // 0 = use all the threads available
-    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_skip_fra, n_ffmpeg_threads, &i0, &i1,
-                                          &j0, &j1);
+    video_t* video = NULL;
+    images_t* images = NULL;
+    if (!tools_is_dir(p_in_video)) {
+        const size_t n_ffmpeg_threads = 0; // 0 = use all the threads available
+        video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_skip_fra, n_ffmpeg_threads, &i0, &i1, &j0,
+                                     &j1);
+    } else {
+        images = images_init_from_path(p_in_video, p_fra_start, p_fra_end, p_skip_fra);
+        i0 = images->i0; i1 = images->i1; j0 = images->j0; j1 = images->j1;
+    }
 
     // ---------------- //
     // -- ALLOCATION -- //
@@ -238,8 +254,8 @@ int main(int argc, char** argv) {
     printf("# The program is running...\n");
     size_t real_n_tracks;
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
-    while (video_get_next_frame(video, I)) {
-        size_t frame = video->frame_current - 1;
+    while (get_next_frame(video, images, I)) {
+        size_t frame = video ? video->frame_current - 1 : images->frame_current - (images->frame_skip + 1);
         assert(frame < MAX_N_FRAMES);
         fprintf(stderr, "(II) Frame n°%4lu", frame);
 
@@ -337,7 +353,10 @@ int main(int argc, char** argv) {
     features_free_ROI_array(ROI_array_tmp);
     features_free_ROI_array(ROI_array0);
     features_free_ROI_array(ROI_array1);
-    video_free(video);
+    if (video)
+        video_free(video);
+    if (images)
+        images_free(images);
     CCL_LSL_free_data(ccl_data);
     KPPV_free_data(kppv_data);
     tracking_free_BB_array(BB_array);

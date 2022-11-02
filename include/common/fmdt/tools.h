@@ -45,3 +45,4 @@ void tools_copy_ui8matrix_ui8matrix(const uint8_t** X, const int i0, const int i
 void tools_convert_ui8matrix_ui32matrix(const uint8_t** X, const int nrl, const int nrh, const int ncl, const int nch,
                                         uint32_t** Y);
 void tools_write_PNM_row(const uint8_t* line, const int width, FILE* file);
+int tools_is_dir(const char *path);
