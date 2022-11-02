@@ -10,8 +10,8 @@ namespace trk {
                                       in_ROI0_x, in_ROI0_y, in_ROI0_error, in_ROI0_next_id, in_n_ROI0, in_ROI1_id, 
                                       in_ROI1_xmin, in_ROI1_xmax, in_ROI1_ymin, in_ROI1_ymax, in_ROI1_x, in_ROI1_y, 
                                       in_ROI1_prev_id, in_n_ROI1, in_theta, in_tx, in_ty, in_mean_error, 
-                                      in_std_deviation, out_track_id, out_track_begin, out_track_end, 
-                                      out_track_extrapol_x, out_track_extrapol_y, out_track_state, out_track_obj_type, 
+                                      in_std_deviation, out_track_id, out_track_begin, out_track_end,
+                                      out_track_extrapol_x, out_track_extrapol_y, out_track_state, out_track_obj_type,
                                       out_track_change_state_reason, out_n_tracks, status };
     }
 }

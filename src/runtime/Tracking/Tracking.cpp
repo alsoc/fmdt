@@ -17,7 +17,6 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
     this->tracking_data = tracking_alloc_data(std::max(fra_star_min, fra_meteor_min), max_ROI_size);
     this->track_array = tracking_alloc_track_array(max_tracks_size);
     this->BB_array = (BB_t**)malloc(max_n_frames * sizeof(BB_t*));
-
     
     memset(this->ROI0_prev_id, 0, max_ROI_size * sizeof(int32_t));
     tracking_init_data(this->tracking_data);
