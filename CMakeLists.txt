@@ -197,6 +197,7 @@ if (FMDT_AFF3CT_RUNTIME)
 	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct-core/include/aff3ct-core.hpp")
 		option(AFF3CT_CORE_COMPILE_STATIC_LIB "" ON)
 		option(AFF3CT_CORE_COMPILE_SHARED_LIB "" OFF)
+		option(AFF3CT_CORE_TESTS "" OFF)
 		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct-core/)
 	else()
 		message(FATAL_ERROR "'aff3ct-core' can't be found, try to init the submodule with the following cmd:\n"
@@ -212,7 +213,7 @@ endif()
 # -----------------------------------------------------------------------------
 macro(fmdt_target_compile_definitions targets privacy dir)
 	foreach(_target IN ITEMS ${targets})
-		target_compile_definitions(${_target} ${privacy} ${dir} )
+		target_compile_definitions(${_target} ${privacy} ${dir})
 	endforeach()
 endmacro()
 

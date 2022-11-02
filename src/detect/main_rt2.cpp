@@ -475,7 +475,7 @@ int main(int argc, char** argv) {
 
     // display the statistics of the tasks (if enabled)
     std::cout << "#" << std::endl;
-    aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true);
+    aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
 
     printf("# End of the program, exiting.\n");
 
