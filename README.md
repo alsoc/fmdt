@@ -72,13 +72,13 @@ The list of available arguments:
 
 | **Argument**       | **Type** | **Default** | **Req** | **Description** |
 | :---               | :---     | :---        | :---    | :--- |
-| `--in-video`       | str      | None        | Yes     | Input video path where we want to detect meteors. |
+| `--in-video`       | str      | None        | Yes     | Input video path where we want to detect meteors (supports also a path to a folder containing PGM images). |
 | `--out-bb`         | str      | None        | No      | Path to the bounding boxes file required by `fmdt-visu` to draw detection rectangles. |
 | `--out-frames`     | str      | None        | No      | Path of the output frames for debug (PGM format). |
 | `--out-stats`      | str      | None        | No      | Path of the output statistics, only required for debugging purpose. |
 | `--fra-start`      | int      | 0           | No      | First frame id to start the detection in the video sequence. |
 | `--fra-end`        | int      | 10000       | No      | Last frame id to stop the detection in the video sequence. |
-| `--skip-fra`       | int      | 0           | No      | Number of frames to skip. |
+| `--fra-skip`       | int      | 0           | No      | Number of frames to skip. |
 | `--light-min`      | int      | 55          | No      | Minimum light intensity hysteresis threshold (grayscale [0;255]). |
 | `--light-max`      | int      | 80          | No      | Maximum light intensity hysteresis threshold (grayscale [0;255]). |
 | `--surface-min`    | int      | 3           | No      | Minimum surface of the CCs in pixel. |
@@ -91,6 +91,7 @@ The list of available arguments:
 | `--fra-star-min`   | int      | 15          | No      | Minimum number of frames required to track a star. |
 | `--fra-meteor-min` | int      | 3           | No      | Minimum number of frames required to track a meteor. |
 | `--fra-meteor-max` | int      | 100         | No      | Maximum number of frames required to track a meteor. |
+| `--video-buff`     | bool     | -           | No      | Bufferize all the video in global memory before executing the chain (for now it only works with `--in-video` as a folder of PGM images). |
 
 Output text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.
 

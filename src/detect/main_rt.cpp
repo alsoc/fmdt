@@ -32,13 +32,14 @@
 #include "fmdt/Logger/Logger_track.hpp"
 #include "fmdt/Logger/Logger_frame.hpp"
 
-#define ENABLE_PIPELINE
+// Do not use this define anymore!! NOW it is set in the CMakeFile :-)
+// #define FMDT_ENABLE_PIPELINE
 
 int main(int argc, char** argv) {
     // default values
     int def_p_fra_start = 0;
     int def_p_fra_end = MAX_N_FRAMES;
-    int def_p_skip_fra = 0;
+    int def_p_fra_skip = 0;
     int def_p_light_min = 55;
     int def_p_light_max = 80;
     int def_p_surface_min = 3;
@@ -76,8 +77,8 @@ int main(int argc, char** argv) {
                 "  --fra-end           Ending point of the video                                              [%d]\n",
                 def_p_fra_end);
         fprintf(stderr,
-                "  --skip-fra          Number of skipped frames                                               [%d]\n",
-                def_p_skip_fra);
+                "  --fra-skip          Number of skipped frames                                               [%d]\n",
+                def_p_fra_skip);
         fprintf(stderr,
                 "  --light-min         Low hysteresis threshold (grayscale [0;255])                           [%d]\n",
                 def_p_light_min);
@@ -118,6 +119,8 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --task-stats        Display the statistics of tasks                                            \n");
         fprintf(stderr,
+                "  --video-buff        Bufferize all the video in global memory before executing the chain        \n");
+        fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
     }
@@ -125,7 +128,7 @@ int main(int argc, char** argv) {
     // Parsing Arguments
     const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
     const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
-    const int p_skip_fra = args_find_int(argc, argv, "--skip-fra", def_p_skip_fra);
+    const int p_fra_skip = args_find_int(argc, argv, "--fra-skip", def_p_fra_skip);
     const int p_light_min = args_find_int(argc, argv, "--light-min", def_p_light_min);
     const int p_light_max = args_find_int(argc, argv, "--light-max", def_p_light_max);
     const int p_surface_min = args_find_int(argc, argv, "--surface-min", def_p_surface_min);
@@ -143,6 +146,7 @@ int main(int argc, char** argv) {
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
     const int p_track_all = args_find(argc, argv, "--track-all");
     const int p_task_stats = args_find(argc, argv, "--task-stats");
+    const int p_video_buff = args_find(argc, argv, "--video-buff");
 
     // heading display
     printf("#  ---------------------\n");
@@ -159,7 +163,7 @@ int main(int argc, char** argv) {
     printf("#  * out-stats      = %s\n", p_out_stats);
     printf("#  * fra-start      = %d\n", p_fra_start);
     printf("#  * fra-end        = %d\n", p_fra_end);
-    printf("#  * skip-fra       = %d\n", p_skip_fra);
+    printf("#  * fra-skip       = %d\n", p_fra_skip);
     printf("#  * light-min      = %d\n", p_light_min);
     printf("#  * light-max      = %d\n", p_light_max);
     printf("#  * surface-min    = %d\n", p_surface_min);
@@ -173,8 +177,9 @@ int main(int argc, char** argv) {
     printf("#  * diff-dev       = %4.2f\n", p_diff_dev);
     printf("#  * track-all      = %d\n", p_track_all);
     printf("#  * task-stats     = %d\n", p_task_stats);
+    printf("#  * video-buff     = %d\n", p_video_buff);
     printf("#\n");
-#ifdef ENABLE_PIPELINE
+#ifdef FMDT_ENABLE_PIPELINE
     printf("#  * Runtime mode   = Pipeline\n");
 #else
     printf("#  * Runtime mode   = Sequence\n");
@@ -228,13 +233,13 @@ int main(int argc, char** argv) {
     Images* images = nullptr;
     size_t i0, i1, j0, j1;
     if (!tools_is_dir(p_in_video)) {
-        video = new Video(p_in_video, p_fra_start, p_fra_end, p_skip_fra, n_ffmpeg_threads, b);
+        video = new Video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, n_ffmpeg_threads, b);
         i0 = video->get_i0();
         i1 = video->get_i1();
         j0 = video->get_j0();
         j1 = video->get_j1();
     } else {
-        images = new Images(p_in_video, p_fra_start, p_fra_end, p_skip_fra, b);
+        images = new Images(p_in_video, p_fra_start, p_fra_end, p_fra_skip, b, p_video_buff);
         i0 = images->get_i0();
         i1 = images->get_i1();
         j0 = images->get_j0();
@@ -452,7 +457,7 @@ int main(int argc, char** argv) {
     // -- CREATE SEQUENCE -- //
     // --------------------- //
 
-#ifdef ENABLE_PIPELINE
+#ifdef FMDT_ENABLE_PIPELINE
     // pipeline definition with separation stages
     std::vector<std::tuple<std::vector<aff3ct::runtime::Task*>,
                            std::vector<aff3ct::runtime::Task*>,
@@ -563,7 +568,7 @@ int main(int argc, char** argv) {
 
     printf("# The program is running...\n");
 
-#ifdef ENABLE_PIPELINE
+#ifdef FMDT_ENABLE_PIPELINE
     sequence_or_pipeline.exec({
         stop_condition,                                                   // stop condition stage 0
         [] (const std::vector<const int*>& statuses) { return false; },   // stop condition stage 1
@@ -590,7 +595,7 @@ int main(int argc, char** argv) {
            n_noise, real_n_tracks);
 
     // display the statistics of the tasks (if enabled)
-#ifdef ENABLE_PIPELINE
+#ifdef FMDT_ENABLE_PIPELINE
         auto stages = sequence_or_pipeline.get_stages();
         for (size_t s = 0; s < stages.size(); s++)
         {
@@ -605,7 +610,7 @@ int main(int argc, char** argv) {
 
     printf("# End of the program, exiting.\n");
 
-#ifdef ENABLE_PIPELINE
+#ifdef FMDT_ENABLE_PIPELINE
     sequence_or_pipeline.unbind_adaptors();
 #endif
 

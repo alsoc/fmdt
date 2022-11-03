@@ -3,13 +3,13 @@
 #include "fmdt/Images/Images.hpp"
 
 Images::Images(const std::string path, const size_t frame_start, const size_t frame_end, const size_t frame_skip,
-               const int b)
+               const int b, const int bufferize)
 : Module(), b(b), images(nullptr), out_img(nullptr), done(false) {
     const std::string name = "Images";
     this->set_name(name);
     this->set_short_name(name);
 
-    this->images = images_init_from_path(path.c_str(), frame_start, frame_end, frame_skip);
+    this->images = images_init_from_path(path.c_str(), frame_start, frame_end, frame_skip, bufferize);
 
     this->out_img = (uint8_t**)malloc((size_t)(((this->images->i1 - this->images->i0) + 1 + 2 * b) * sizeof(uint8_t*)));
     this->out_img -= this->images->i0 - b;

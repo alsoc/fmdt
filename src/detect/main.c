@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     // default values
     int def_p_fra_start = 0;
     int def_p_fra_end = MAX_N_FRAMES;
-    int def_p_skip_fra = 0;
+    int def_p_fra_skip = 0;
     int def_p_light_min = 55;
     int def_p_light_max = 80;
     int def_p_surface_min = 3;
@@ -48,7 +48,7 @@ int main(int argc, char** argv) {
     // Help
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr,
-                "  --in-video          Path to video file                                                     [%s]\n",
+                "  --in-video          Path to video file or to a folder of PGM images                        [%s]\n",
                 def_p_in_video ? def_p_in_video : "NULL");
         fprintf(stderr,
                 "  --out-frames        Path to frames output folder                                           [%s]\n",
@@ -66,8 +66,8 @@ int main(int argc, char** argv) {
                 "  --fra-end           Ending point of the video                                              [%d]\n",
                 def_p_fra_end);
         fprintf(stderr,
-                "  --skip-fra          Number of skipped frames                                               [%d]\n",
-                def_p_skip_fra);
+                "  --fra-skip          Number of skipped frames                                               [%d]\n",
+                def_p_fra_skip);
         fprintf(stderr,
                 "  --light-min         Low hysteresis threshold (grayscale [0;255])                           [%d]\n",
                 def_p_light_min);
@@ -106,6 +106,8 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --track-all         Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
+                "  --video-buff        Bufferize all the video in global memory before executing the chain        \n");
+        fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
     }
@@ -113,7 +115,7 @@ int main(int argc, char** argv) {
     // Parsing Arguments
     const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
     const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
-    const int p_skip_fra = args_find_int(argc, argv, "--skip-fra", def_p_skip_fra);
+    const int p_fra_skip = args_find_int(argc, argv, "--fra-skip", def_p_fra_skip);
     const int p_light_min = args_find_int(argc, argv, "--light-min", def_p_light_min);
     const int p_light_max = args_find_int(argc, argv, "--light-max", def_p_light_max);
     const int p_surface_min = args_find_int(argc, argv, "--surface-min", def_p_surface_min);
@@ -130,6 +132,7 @@ int main(int argc, char** argv) {
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
     const int p_track_all = args_find(argc, argv, "--track-all");
+    const int p_video_buff = args_find(argc, argv, "--video-buff");
 
     // heading display
     printf("#  ---------------------\n");
@@ -146,7 +149,7 @@ int main(int argc, char** argv) {
     printf("#  * out-stats      = %s\n", p_out_stats);
     printf("#  * fra-start      = %d\n", p_fra_start);
     printf("#  * fra-end        = %d\n", p_fra_end);
-    printf("#  * skip-fra       = %d\n", p_skip_fra);
+    printf("#  * fra-skip       = %d\n", p_fra_skip);
     printf("#  * light-min      = %d\n", p_light_min);
     printf("#  * light-max      = %d\n", p_light_max);
     printf("#  * surface-min    = %d\n", p_surface_min);
@@ -159,6 +162,7 @@ int main(int argc, char** argv) {
     printf("#  * fra-meteor-max = %d\n", p_fra_meteor_max);
     printf("#  * diff-dev       = %4.2f\n", p_diff_dev);
     printf("#  * track-all      = %d\n", p_track_all);
+    printf("#  * video-buff     = %d\n", p_video_buff);
     printf("#\n");
 
     // arguments checking
@@ -200,10 +204,10 @@ int main(int argc, char** argv) {
     images_t* images = NULL;
     if (!tools_is_dir(p_in_video)) {
         const size_t n_ffmpeg_threads = 0; // 0 = use all the threads available
-        video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_skip_fra, n_ffmpeg_threads, &i0, &i1, &j0,
+        video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_fra_skip, n_ffmpeg_threads, &i0, &i1, &j0,
                                      &j1);
     } else {
-        images = images_init_from_path(p_in_video, p_fra_start, p_fra_end, p_skip_fra);
+        images = images_init_from_path(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_video_buff);
         i0 = images->i0; i1 = images->i1; j0 = images->j0; j1 = images->j1;
     }
 

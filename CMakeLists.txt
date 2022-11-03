@@ -116,13 +116,22 @@ if(FMDT_DETECT_EXE)
             ${src_dir}/runtime/Images/Images.cpp
             ${src_dir}/detect/main_rt.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt1_files})
-        add_executable(fmdt-detect-rt-exe 
+        add_executable(fmdt-detect-rt-seq-exe
+            $<TARGET_OBJECTS:fmdt-common-obj>
+            $<TARGET_OBJECTS:fmdt-detect-common-obj>
+            $<TARGET_OBJECTS:fmdt-detectrt-common-obj>
+            ${src_detectrt1_files})
+        list(APPEND fmdt_targets_list fmdt-detect-rt-seq-exe)
+        set_target_properties(fmdt-detect-rt-seq-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-seq)
+
+        add_executable(fmdt-detect-rt-pip-exe
             $<TARGET_OBJECTS:fmdt-common-obj> 
             $<TARGET_OBJECTS:fmdt-detect-common-obj> 
             $<TARGET_OBJECTS:fmdt-detectrt-common-obj> 
             ${src_detectrt1_files})
-        list(APPEND fmdt_targets_list fmdt-detect-rt-exe)
-        set_target_properties(fmdt-detect-rt-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt)
+        list(APPEND fmdt_targets_list fmdt-detect-rt-pip-exe)
+        set_target_properties(fmdt-detect-rt-pip-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-pip)
+        target_compile_definitions(fmdt-detect-rt-pip-exe PUBLIC FMDT_ENABLE_PIPELINE)
         
         set(src_detectrt2_files
             ${src_dir}/runtime/Video/Video2.cpp

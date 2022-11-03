@@ -20,7 +20,7 @@ protected:
     bool done;
 public:
     Images(const std::string filename, const size_t frame_start, const size_t frame_end, const size_t frame_skip,
-           const int b);
+           const int b, const int bufferize);
     virtual ~Images();
     virtual bool is_done() const;
     inline uint8_t** get_out_img();

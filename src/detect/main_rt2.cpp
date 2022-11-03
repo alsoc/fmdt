@@ -35,7 +35,7 @@ int main(int argc, char** argv) {
     // default values
     int def_p_fra_start = 0;
     int def_p_fra_end = MAX_N_FRAMES;
-    int def_p_skip_fra = 0;
+    int def_p_fra_skip = 0;
     int def_p_light_min = 55;
     int def_p_light_max = 80;
     int def_p_surface_min = 3;
@@ -73,8 +73,8 @@ int main(int argc, char** argv) {
                 "  --fra-end           Ending point of the video                                              [%d]\n",
                 def_p_fra_end);
         fprintf(stderr,
-                "  --skip-fra          Number of skipped frames                                               [%d]\n",
-                def_p_skip_fra);
+                "  --fra-skip          Number of skipped frames                                               [%d]\n",
+                def_p_fra_skip);
         fprintf(stderr,
                 "  --light-min         Low hysteresis threshold (grayscale [0;255])                           [%d]\n",
                 def_p_light_min);
@@ -122,7 +122,7 @@ int main(int argc, char** argv) {
     // Parsing Arguments
     const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
     const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
-    const int p_skip_fra = args_find_int(argc, argv, "--skip-fra", def_p_skip_fra);
+    const int p_fra_skip = args_find_int(argc, argv, "--fra-skip", def_p_fra_skip);
     const int p_light_min = args_find_int(argc, argv, "--light-min", def_p_light_min);
     const int p_light_max = args_find_int(argc, argv, "--light-max", def_p_light_max);
     const int p_surface_min = args_find_int(argc, argv, "--surface-min", def_p_surface_min);
@@ -156,7 +156,7 @@ int main(int argc, char** argv) {
     printf("#  * out-stats      = %s\n", p_out_stats);
     printf("#  * fra-start      = %d\n", p_fra_start);
     printf("#  * fra-end        = %d\n", p_fra_end);
-    printf("#  * skip-fra       = %d\n", p_skip_fra);
+    printf("#  * fra-skip       = %d\n", p_fra_skip);
     printf("#  * light-min      = %d\n", p_light_min);
     printf("#  * light-max      = %d\n", p_light_max);
     printf("#  * surface-min    = %d\n", p_surface_min);
@@ -217,7 +217,7 @@ int main(int argc, char** argv) {
     // objects allocation
     const size_t b = 1; // image border
     const size_t n_ffmpeg_threads = 4; // 0 = use all the threads available
-    Video2 video(p_in_video, p_fra_start, p_fra_end, p_skip_fra, n_ffmpeg_threads, b);
+    Video2 video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, n_ffmpeg_threads, b);
     const size_t i0 = video.get_i0();
     const size_t i1 = video.get_i1();
     const size_t j0 = video.get_j0();

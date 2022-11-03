@@ -84,7 +84,7 @@ static void fill_path_files(const char *dir, const size_t start, const size_t en
     closedir(dp);
 }
 
-static void read_PGM_metadata(const char *filename, size_t *nrl, size_t *nrh, size_t *ncl, size_t *nch) {
+static void read_PGM_metadata(const char *filename, int *nrl, int *nrh, int *ncl, int *nch) {
     FILE *file = fopen(filename,"rb");
     if (file == NULL) {
         fprintf(stderr, "(EE) Cannot open '%s' file, exiting.\n", filename);
@@ -102,31 +102,39 @@ static void read_PGM_metadata(const char *filename, size_t *nrl, size_t *nrh, si
     int height = atoi(readitem(file, buffer));
 
     *nrl = 0;
-    *nrh = (size_t)(height - 1);
+    *nrh = height - 1;
     *ncl = 0;
-    *nch = (size_t)(width - 1);
+    *nch = width - 1;
 
     fclose(file);
 }
 
-images_t* images_init_from_path(const char* path, const size_t start, const size_t end, const size_t skip) {
+images_t* images_init_from_path(const char* path, const size_t start, const size_t end, const size_t skip,
+                                const int bufferize) {
     images_t* images = (images_t*)malloc(sizeof(images_t));
 
     images->frame_start = start;
     images->frame_end = end;
     images->frame_skip = skip;
     images->frame_current = 0;
+    images->buffer_files = NULL;
 
     int count = count_files(path);
     images->files_count = (size_t)count < (end + 1) ? (size_t)count - start : (size_t)(end + 1) - start;
 
     images->path_files = (char**)malloc(images->files_count * sizeof(char**));
+    if (bufferize)
+        images->buffer_files = (uint8_t***)malloc(images->files_count * sizeof(uint8_t***));
     fill_path_files(path, start, end, images->path_files, count);
 
     images->i0 = images->i1 = images->j0 = images->j1 = 0;
-    size_t i0_tmp, i1_tmp, j0_tmp, j1_tmp;
+    int i0_tmp, i1_tmp, j0_tmp, j1_tmp;
     for (size_t i = 0; i < images->files_count; i += 1 + skip) {
-        read_PGM_metadata(images->path_files[i], &i0_tmp, &i1_tmp, &j0_tmp, &j1_tmp);
+        if (images->buffer_files)
+            images->buffer_files[i] = LoadPGM_ui8matrix(images->path_files[i], &i0_tmp, &i1_tmp, &j0_tmp, &j1_tmp);
+        else
+            read_PGM_metadata(images->path_files[i], &i0_tmp, &i1_tmp, &j0_tmp, &j1_tmp);
+
         if (images->i0 == 0 && images->i1 == 0 && images->j0 == 0 && images->j1 == 0) {
             images->i0 = i0_tmp;
             images->i1 = i1_tmp;
@@ -134,8 +142,8 @@ images_t* images_init_from_path(const char* path, const size_t start, const size
             images->j1 = j1_tmp;
         } else if (images->i0 != i0_tmp || images->i1 != i1_tmp || images->j0 != j0_tmp || images->j1 != j1_tmp) {
             fprintf(stderr, "(EE) Size of image '%s' is different from other images "
-                            "(images->i0 = %lu, i0_tmp = %lu, images->i1 = %lu, i1_tmp = %lu, images->j0 = %lu, "
-                            "j0_tmp = %lu, images->j1 = %lu, j1_tmp = %lu).\n",
+                            "(images->i0 = %d, i0_tmp = %d, images->i1 = %d, i1_tmp = %d, images->j0 = %d, "
+                            "j0_tmp = %d, images->j1 = %d, j1_tmp = %d).\n",
                             images->path_files[i], images->i0, i0_tmp, images->i1, i1_tmp, images->j0, j0_tmp,
                             images->j1, j1_tmp);
             exit(-1);
@@ -146,8 +154,13 @@ images_t* images_init_from_path(const char* path, const size_t start, const size
 
 int images_get_next_frame(images_t* images, uint8_t** I) {
     if (images->frame_current < images->files_count) {
-        MLoadPGM_ui8matrix(images->path_files[images->frame_current], images->i0, images->i1, images->j0, images->j1,
-                           I);
+        if (images->buffer_files) {
+            for (int l = 0; l < images->i1; l++)
+                memcpy(I[l], images->buffer_files[images->frame_current][l], images->j1);
+        }
+        else
+            MLoadPGM_ui8matrix(images->path_files[images->frame_current], images->i0, images->i1, images->j0,
+                               images->j1, I);
         images->frame_current += 1 + images->frame_skip;
         return images->frame_start + images->frame_current;
     }
@@ -159,5 +172,10 @@ void images_free(images_t* images) {
     for (size_t i = 0; i < images->files_count; i++)
         free(images->path_files[i]);
     free(images->path_files);
+    if (images->buffer_files) {
+        for (size_t i = 0; i < images->files_count; i += 1 + images->frame_skip)
+            free_ui8matrix(images->buffer_files[i], images->i0, images->i1, images->j0, images->j1);
+        free(images->buffer_files);
+    }
     free(images);
 }
