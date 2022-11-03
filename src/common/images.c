@@ -43,16 +43,22 @@ static int count_files(const char *dir) {
     struct stat statbuf;
     if ((dp = opendir(dir)) == NULL) {
         fprintf(stderr, "(EE) Cannot open directory: '%s'\n", dir);
-        return -1;
+        exit(-1);
     }
-    chdir(dir);
+    if (chdir(dir) == -1) {
+        fprintf(stderr, "(EE) Error when calling 'chdir' on 'dir' : '%s'\n", dir);
+        exit(-1);
+    }
     while ((entry = readdir(dp)) != NULL) {
         lstat(entry->d_name,&statbuf);
         if (!S_ISDIR(statbuf.st_mode)) {
             count++;
         }
     }
-    chdir("..");
+    if (chdir("..") == -1) {
+        fprintf(stderr, "(EE) Error when calling 'chdir' on 'dir' : '..'\n");
+        exit(-1);
+    }
     closedir(dp);
 
     return count;
@@ -67,7 +73,10 @@ static void fill_path_files(const char *dir, const size_t start, const size_t en
         fprintf(stderr, "(EE) Cannot open directory: '%s'\n", dir);
         return;
     }
-    chdir(dir);
+    if (chdir(dir) == -1) {
+        fprintf(stderr, "(EE) Error when calling 'chdir' on 'dir' : '%s'\n", dir);
+        exit(-1);
+    }
     while ((entry = readdir(dp)) != NULL) {
         lstat(entry->d_name,&statbuf);
         if (!S_ISDIR(statbuf.st_mode)) {
@@ -80,7 +89,10 @@ static void fill_path_files(const char *dir, const size_t start, const size_t en
             }
         }
     }
-    chdir("..");
+    if (chdir("..") == -1) {
+        fprintf(stderr, "(EE) Error when calling 'chdir' on 'dir' : '..'\n");
+        exit(-1);
+    }
     closedir(dp);
 }
 
