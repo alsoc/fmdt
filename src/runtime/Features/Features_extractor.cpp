@@ -1,4 +1,5 @@
 #include "fmdt/features.h"
+#include "fmdt/tools.h"
 
 #include "fmdt/Features/Features_extractor.hpp"
 
@@ -31,10 +32,9 @@ Features_extractor::Features_extractor(const int i0, const int i1, const int j0,
                              ps_out_ROI_ymax, ps_out_ROI_S, ps_out_ROI_Sx, ps_out_ROI_Sy, ps_out_ROI_x, ps_out_ROI_y]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &ext = static_cast<Features_extractor&>(m);
+        
         const uint32_t* m_in_img = static_cast<const uint32_t*>(t[ps_in_img].get_dataptr());
-        ext.in_img[ext.i0 - ext.b] = m_in_img - (ext.j0 - ext.b);
-        for (int i = ext.i0 - ext.b + 1; i <= ext.i1 + ext.b; i++)
-            ext.in_img[i] = ext.in_img[i - 1] + ((ext.j1 - ext.j0) + 1 + 2 * ext.b);
+        tools_linear_2d_nrc_ui32matrix(m_in_img, ext.i0, ext.i1, ext.j0, ext.j1, ext.b, ext.in_img);
 
         uint32_t n_ROI = *static_cast<uint32_t*>(t[ps_in_n_ROI].get_dataptr());
 

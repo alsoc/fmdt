@@ -724,3 +724,17 @@ void tools_write_PNM_row(const uint8* line, const int width, FILE* file) {
     /* Le fichier est deja ouvert et ne sera pas ferme a la fin */
     fwrite(&(line[0]), sizeof(byte), 3 * sizeof(byte) * width, file);
 }
+
+void tools_linear_2d_nrc_ui8matrix(const uint8_t* X, const int i0, const int i1, const int j0, const int j1, const int b, 
+                         const uint8_t** Y) {
+    Y[i0 - b] = X - (j0 - b);
+    for (int i = i0 - b + 1; i <= i1 + b; i++)
+        Y[i] = Y[i - 1] + ((j1 - j0) + 1 + 2 * b);
+}
+
+void tools_linear_2d_nrc_ui32matrix(const uint32_t* X, const int i0, const int i1, const int j0, const int j1, const int b, 
+                         const uint32_t** Y) {
+    Y[i0 - b] = X - (j0 - b);
+    for (int i = i0 - b + 1; i <= i1 + b; i++)
+        Y[i] = Y[i - 1] + ((j1 - j0) + 1 + 2 * b);
+}

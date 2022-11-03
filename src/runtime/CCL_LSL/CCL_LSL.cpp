@@ -1,4 +1,5 @@
 #include "fmdt/CCL.h"
+#include "fmdt/tools.h"
 
 #include "fmdt/CCL_LSL/CCL_LSL.hpp"
 
@@ -35,11 +36,11 @@ CCL_LSL::CCL_LSL(const int i0, const int i1, const int j0, const int j1, const i
         uint32_t* m_out_data_era = static_cast<uint32_t*>(t[ps_out_data_era].get_dataptr());
         uint32_t* m_out_data_rlc = static_cast<uint32_t*>(t[ps_out_data_rlc].get_dataptr());
 
-        lsl.in_img[lsl.i0 - lsl.b] = m_in_img - (lsl.j0 - lsl.b);
-        lsl.out_img[lsl.i0 - lsl.b] = m_out_img - (lsl.j0 - lsl.b);
+        tools_linear_2d_nrc_ui8matrix(m_in_img, lsl.i0, lsl.i1, lsl.j0, lsl.j1, lsl.b,  lsl.in_img);
+        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_img, lsl.i0, lsl.i1, lsl.j0, lsl.j1, lsl.b,  
+                                       (const uint32_t**)lsl.out_img);
+
         for (int i = lsl.i0 - lsl.b + 1; i <= lsl.i1 + lsl.b; i++) {
-            lsl.out_img[i] = lsl.out_img[i - 1] + ((lsl.j1 - lsl.j0) + 1 + 2 * lsl.b);
-            lsl.in_img[i] = lsl.in_img[i - 1] + ((lsl.j1 - lsl.j0) + 1 + 2 * lsl.b);
             lsl.out_data_er[i] = lsl.out_data_er[i - 1] + ((lsl.j1 - lsl.j0) + 1);
             lsl.out_data_era[i] = lsl.out_data_era[i - 1] + ((lsl.j1 - lsl.j0) + 1);
             lsl.out_data_rlc[i] = lsl.out_data_rlc[i - 1] + ((lsl.j1 - lsl.j0) + 1);

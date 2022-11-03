@@ -45,3 +45,8 @@ void tools_copy_ui8matrix_ui8matrix(const uint8_t** X, const int i0, const int i
 void tools_convert_ui8matrix_ui32matrix(const uint8_t** X, const int nrl, const int nrh, const int ncl, const int nch,
                                         uint32_t** Y);
 void tools_write_PNM_row(const uint8_t* line, const int width, FILE* file);
+
+void tools_linear_2d_nrc_ui8matrix(const uint8_t* X, const int i0, const int i1, const int j0, const int j1, const int b, 
+                                   const uint8_t** Y);
+void tools_linear_2d_nrc_ui32matrix(const uint32_t* X, const int i0, const int i1, const int j0, const int j1, const int b, 
+                                    const uint32_t** Y);

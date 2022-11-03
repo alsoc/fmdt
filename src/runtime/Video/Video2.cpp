@@ -1,4 +1,5 @@
 #include "fmdt/video.h"
+#include "fmdt/tools.h"
 
 #include "fmdt/Video/Video2.hpp"
 
@@ -34,9 +35,8 @@ Video2::Video2(const std::string filename, const size_t frame_start, const size_
         
         memcpy(m_out_img0, vid2.img_buf, vid2.size_image);
         
-        vid2.out_img0[vid2.i0 - vid2.b] = m_out_img1 - (vid2.j0 - vid2.b);
-        for (int i = vid2.i0 - vid2.b + 1; i <= vid2.i1 + vid2.b; i++)
-            vid2.out_img0[i] = vid2.out_img0[i - 1] + ((vid2.j1 - vid2.j0) + 1 + 2 * vid2.b);
+        tools_linear_2d_nrc_ui8matrix((const uint8_t*)m_out_img1, vid2.i0, vid2.i1, vid2.j0, vid2.j1, vid2.b,  
+                            (const uint8_t**)vid2.out_img0);
 
         *static_cast<uint32_t*>(t[ps_out_frame].get_dataptr()) = vid2.video->frame_current;
         int ret = video_get_next_frame(vid2.video, vid2.out_img0);
