@@ -72,7 +72,7 @@ static void fill_path_files(const char *dir, const size_t start, const size_t en
         lstat(entry->d_name,&statbuf);
         if (!S_ISDIR(statbuf.st_mode)) {
             int n = atoi(entry->d_name);
-            if (n >= start && n < count && n < (end + 1)) {
+            if (n >= (int)start && n < (int)count && n < ((int)end + 1)) {
                 char path[2048];
                 sprintf(path, "%s/%s", dir, entry->d_name);
                 path_files[n - start] = (char*)malloc((strlen(path) +1) * sizeof(char));
@@ -118,14 +118,14 @@ images_t* images_init_from_path(const char* path, const size_t start, const size
     images->frame_current = 0;
 
     int count = count_files(path);
-    images->files_count = count < (end + 1) ? (size_t)count - start : (size_t)(end + 1) - start;
+    images->files_count = (size_t)count < (end + 1) ? (size_t)count - start : (size_t)(end + 1) - start;
 
     images->path_files = (char**)malloc(images->files_count * sizeof(char**));
     fill_path_files(path, start, end, images->path_files, count);
 
     images->i0 = images->i1 = images->j0 = images->j1 = 0;
     size_t i0_tmp, i1_tmp, j0_tmp, j1_tmp;
-    for (int i = 0; i < images->files_count; i += 1 + skip) {
+    for (size_t i = 0; i < images->files_count; i += 1 + skip) {
         read_PGM_metadata(images->path_files[i], &i0_tmp, &i1_tmp, &j0_tmp, &j1_tmp);
         if (images->i0 == 0 && images->i1 == 0 && images->j0 == 0 && images->j1 == 0) {
             images->i0 = i0_tmp;
@@ -156,7 +156,7 @@ int images_get_next_frame(images_t* images, uint8_t** I) {
 }
 
 void images_free(images_t* images) {
-    for (int i = 0; i < images->files_count; i++)
+    for (size_t i = 0; i < images->files_count; i++)
         free(images->path_files[i]);
     free(images->path_files);
     free(images);

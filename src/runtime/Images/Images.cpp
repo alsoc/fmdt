@@ -26,7 +26,7 @@ Images::Images(const std::string path, const size_t frame_start, const size_t fr
         auto &img = static_cast<Images&>(m);
         uint8_t* m_out_img = static_cast<uint8_t*>(t[ps_out_img].get_dataptr());
         img.out_img[img.images->i0 - img.b] = m_out_img - (img.images->j0 - img.b);
-        for (int i = img.images->i0 - img.b + 1; i <= img.images->i1 + img.b; i++)
+        for (int i = (int)img.images->i0 - img.b + 1; i <= (int)img.images->i1 + img.b; i++)
             img.out_img[i] = img.out_img[i - 1] + ((img.images->j1 - img.images->j0) + 1 + 2 * img.b);
 
         *static_cast<uint32_t*>(t[ps_out_frame].get_dataptr()) = img.images->frame_current + img.images->frame_start;

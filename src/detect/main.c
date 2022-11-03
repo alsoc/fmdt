@@ -252,7 +252,7 @@ int main(int argc, char** argv) {
     // ----------------//
 
     printf("# The program is running...\n");
-    size_t real_n_tracks;
+    size_t real_n_tracks = 0;
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     while (get_next_frame(video, images, I)) {
         size_t frame = video ? video->frame_current - 1 : images->frame_current - (images->frame_skip + 1);
