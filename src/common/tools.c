@@ -738,3 +738,10 @@ void tools_linear_2d_nrc_ui32matrix(const uint32_t* X, const int i0, const int i
     for (int i = i0 - b + 1; i <= i1 + b; i++)
         Y[i] = Y[i - 1] + ((j1 - j0) + 1 + 2 * b);
 }
+
+void tools_linear_2d_nrc_f32matrix(const float* X, const int i0, const int i1, const int j0, const int j1, const int b, 
+                                   const float** Y) {
+    Y[i0 - b] = X - (j0 - b);
+    for (int i = i0 - b + 1; i <= i1 + b; i++)
+        Y[i] = Y[i - 1] + ((j1 - j0) + 1 + 2 * b);
+}

@@ -41,12 +41,10 @@ Logger_KNN::Logger_KNN(const std::string KNN_path, const size_t i0, const int i1
 
         const uint32_t* m_in_data_nearest = static_cast<const uint32_t*>(t[ps_in_data_nearest].get_dataptr());
         const float* m_in_data_distances = static_cast<const float*>(t[ps_in_data_distances].get_dataptr());
-        lgr_knn.in_data_nearest[lgr_knn.i0] = m_in_data_nearest - lgr_knn.j0;
-        lgr_knn.in_data_distances[lgr_knn.i0] = m_in_data_distances - lgr_knn.j0;
-        for (int i = lgr_knn.i0 + 1; i <= lgr_knn.i1; i++) {
-            lgr_knn.in_data_nearest[i] = lgr_knn.in_data_nearest[i - 1] + ((lgr_knn.j1 - lgr_knn.j0) + 1);
-            lgr_knn.in_data_distances[i] = lgr_knn.in_data_distances[i - 1] + ((lgr_knn.j1 - lgr_knn.j0) + 1);
-        }
+        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_in_data_nearest, lgr_knn.i0, lgr_knn.i1, lgr_knn.j0, 
+                                       lgr_knn.j1, 0, (const uint32_t**)lgr_knn.in_data_nearest);        
+        tools_linear_2d_nrc_f32matrix((const float*)m_in_data_distances, lgr_knn.i0, lgr_knn.i1, lgr_knn.j0, lgr_knn.j1,
+                                      0, (const float**)lgr_knn.in_data_distances);   
 
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
         if (frame && !lgr_knn.KNN_path.empty()) {

@@ -1,4 +1,5 @@
 #include "fmdt/KPPV.h"
+#include "fmdt/tools.h"
 
 #include "fmdt/KNN_matcher/KNN_matcher.hpp"
 
@@ -44,12 +45,11 @@ KNN_matcher::KNN_matcher(const size_t i0, const int i1, const int j0, const int 
 
         uint32_t* m_out_data_nearest = static_cast<uint32_t*>(t[ps_out_data_nearest].get_dataptr());
         float* m_out_data_distances = static_cast<float*>(t[ps_out_data_distances].get_dataptr());
-        knn.out_data_nearest[knn.i0] = m_out_data_nearest - knn.j0;
-        knn.out_data_distances[knn.i0] = m_out_data_distances - knn.j0;
-        for (int i = knn.i0 + 1; i <= knn.i1; i++) {
-            knn.out_data_nearest[i] = knn.out_data_nearest[i - 1] + ((knn.j1 - knn.j0) + 1);
-            knn.out_data_distances[i] = knn.out_data_distances[i - 1] + ((knn.j1 - knn.j0) + 1);
-        }
+        
+        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_data_nearest, knn.i0, knn.i1, knn.j0, knn.j1, 0,  
+                                       (const uint32_t**)knn.out_data_nearest);        
+        tools_linear_2d_nrc_f32matrix((const float*)m_out_data_distances, knn.i0, knn.i1, knn.j0, knn.j1, 0,  
+                                       (const float**)knn.out_data_distances);     
 
         std::fill_n(static_cast<int32_t*>(t[ps_out_ROI0_next_id].get_dataptr()), n_ROI0, 0);
         std::fill_n(static_cast<int32_t*>(t[ps_out_ROI1_prev_id].get_dataptr()), n_ROI1, 0);

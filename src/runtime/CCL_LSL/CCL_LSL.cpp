@@ -39,20 +39,12 @@ CCL_LSL::CCL_LSL(const int i0, const int i1, const int j0, const int j1, const i
         tools_linear_2d_nrc_ui8matrix(m_in_img, lsl.i0, lsl.i1, lsl.j0, lsl.j1, lsl.b,  lsl.in_img);
         tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_img, lsl.i0, lsl.i1, lsl.j0, lsl.j1, lsl.b,  
                                        (const uint32_t**)lsl.out_img);
-
-        for (int i = lsl.i0 - lsl.b + 1; i <= lsl.i1 + lsl.b; i++) {
-            lsl.out_data_er[i] = lsl.out_data_er[i - 1] + ((lsl.j1 - lsl.j0) + 1);
-            lsl.out_data_era[i] = lsl.out_data_era[i - 1] + ((lsl.j1 - lsl.j0) + 1);
-            lsl.out_data_rlc[i] = lsl.out_data_rlc[i - 1] + ((lsl.j1 - lsl.j0) + 1);
-        }
-        lsl.out_data_er[lsl.i0] = m_out_data_er - lsl.j0;
-        lsl.out_data_era[lsl.i0] = m_out_data_era - lsl.j0;
-        lsl.out_data_rlc[lsl.i0] = m_out_data_rlc - lsl.j0;
-        for (int i = lsl.i0 + 1; i <= lsl.i1; i++) {
-            lsl.out_data_er[i] = lsl.out_data_er[i - 1] + ((lsl.j1 - lsl.j0) + 1);
-            lsl.out_data_era[i] = lsl.out_data_era[i - 1] + ((lsl.j1 - lsl.j0) + 1);
-            lsl.out_data_rlc[i] = lsl.out_data_rlc[i - 1] + ((lsl.j1 - lsl.j0) + 1);
-        }
+        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_data_er, lsl.i0, lsl.i1, lsl.j0, lsl.j1, 0,  
+                                       (const uint32_t**)lsl.out_data_er);
+        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_data_era, lsl.i0, lsl.i1, lsl.j0, lsl.j1, 0,  
+                                       (const uint32_t**)lsl.out_data_era);
+        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_data_rlc, lsl.i0, lsl.i1, lsl.j0, lsl.j1, 0,  
+                                       (const uint32_t**)lsl.out_data_rlc);
 
         uint32_t* m_out_n_ROI = static_cast<uint32_t*>(t[ps_out_n_ROI].get_dataptr());
         *m_out_n_ROI = _CCL_LSL_apply(lsl.out_data_er,
