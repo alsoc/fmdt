@@ -27,7 +27,8 @@ Logger_frame::Logger_frame(const std::string frames_path, const int i0, const in
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
         const uint8_t* m_in_img = static_cast<const uint8_t*>(t[ps_in_img].get_dataptr());
         
-        tools_linear_2d_nrc_ui8matrix(m_in_img, lgr_fra.i0, lgr_fra.i1, lgr_fra.j0, lgr_fra.j1, lgr_fra.b,  lgr_fra.in_img);
+        tools_linear_2d_nrc_ui8matrix(m_in_img, lgr_fra.i0 - lgr_fra.b, lgr_fra.i1 + lgr_fra.b, lgr_fra.j0 - lgr_fra.b, 
+                                      lgr_fra.j1 + lgr_fra.b,  lgr_fra.in_img);
 
         if (!lgr_fra.frames_path.empty()) {
             char file_path[256];

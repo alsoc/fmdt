@@ -27,8 +27,8 @@ Video::Video(const std::string filename, const size_t frame_start, const size_t 
         auto &vid = static_cast<Video&>(m);
         
         uint8_t* m_out_img = static_cast<uint8_t*>(t[ps_out_img].get_dataptr());
-        tools_linear_2d_nrc_ui8matrix((const uint8_t*)m_out_img, vid.i0, vid.i1, vid.j0, vid.j1, vid.b,  
-                            (const uint8_t**)vid.out_img);
+        tools_linear_2d_nrc_ui8matrix((const uint8_t*)m_out_img, vid.i0 - vid.b, vid.i1 + vid.b, vid.j0 - vid.b, 
+                                      vid.j1 + vid.b, (const uint8_t**)vid.out_img);
  
         *static_cast<uint32_t*>(t[ps_out_frame].get_dataptr()) = vid.video->frame_current;
         int ret = video_get_next_frame(vid.video, vid.out_img);

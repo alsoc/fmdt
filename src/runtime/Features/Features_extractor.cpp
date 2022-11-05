@@ -34,7 +34,8 @@ Features_extractor::Features_extractor(const int i0, const int i1, const int j0,
         auto &ext = static_cast<Features_extractor&>(m);
         
         const uint32_t* m_in_img = static_cast<const uint32_t*>(t[ps_in_img].get_dataptr());
-        tools_linear_2d_nrc_ui32matrix(m_in_img, ext.i0, ext.i1, ext.j0, ext.j1, ext.b, ext.in_img);
+        tools_linear_2d_nrc_ui32matrix(m_in_img, ext.i0 - ext.b, ext.i1 + ext.b, ext.j0 - ext.b, ext.j1 + ext.b, 
+                                       ext.in_img);
 
         uint32_t n_ROI = *static_cast<uint32_t*>(t[ps_in_n_ROI].get_dataptr());
 

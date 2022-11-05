@@ -56,10 +56,12 @@ Features_merger::Features_merger(const int i0, const int i1, const int j0, const
         const uint8_t* m_in_img2 = static_cast<const uint8_t*>(t[ps_in_img2].get_dataptr());
         uint8_t* m_out_img = static_cast<uint8_t*>(t[ps_out_img].get_dataptr());
 
-        tools_linear_2d_nrc_ui32matrix(m_in_img1, mrg.i0, mrg.i1, mrg.j0, mrg.j1, mrg.b, mrg.in_img1);
-        tools_linear_2d_nrc_ui8matrix(m_in_img2, mrg.i0, mrg.i1, mrg.j0, mrg.j1, mrg.b, mrg.in_img2);
-        tools_linear_2d_nrc_ui8matrix((const uint8_t*)m_out_img, mrg.i0, mrg.i1, mrg.j0, mrg.j1, mrg.b,
-                                      (const uint8_t**)mrg.out_img);
+        tools_linear_2d_nrc_ui32matrix(m_in_img1, mrg.i0 - mrg.b, mrg.i1 + mrg.b, mrg.j0 - mrg.b, mrg.j1 + mrg.b, 
+                                       mrg.in_img1);
+        tools_linear_2d_nrc_ui8matrix(m_in_img2, mrg.i0 - mrg.b, mrg.i1 + mrg.b, mrg.j0 - mrg.b, mrg.j1 + mrg.b, 
+                                      mrg.in_img2);
+        tools_linear_2d_nrc_ui8matrix((const uint8_t*)m_out_img, mrg.i0 - mrg.b, mrg.i1 + mrg.b, mrg.j0 - mrg.b, 
+                                      mrg.j1 + mrg.b, (const uint8_t**)mrg.out_img);
 
         const uint32_t in_n_ROI = *static_cast<const uint32_t*>(t[ps_in_n_ROI].get_dataptr());
 

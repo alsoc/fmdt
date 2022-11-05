@@ -36,14 +36,15 @@ CCL_LSL::CCL_LSL(const int i0, const int i1, const int j0, const int j1, const i
         uint32_t* m_out_data_era = static_cast<uint32_t*>(t[ps_out_data_era].get_dataptr());
         uint32_t* m_out_data_rlc = static_cast<uint32_t*>(t[ps_out_data_rlc].get_dataptr());
 
-        tools_linear_2d_nrc_ui8matrix(m_in_img, lsl.i0, lsl.i1, lsl.j0, lsl.j1, lsl.b,  lsl.in_img);
-        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_img, lsl.i0, lsl.i1, lsl.j0, lsl.j1, lsl.b,  
-                                       (const uint32_t**)lsl.out_img);
-        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_data_er, lsl.i0, lsl.i1, lsl.j0, lsl.j1, 0,  
+        tools_linear_2d_nrc_ui8matrix(m_in_img, lsl.i0 - lsl.b, lsl.i1 + lsl.b, lsl.j0 - lsl.b, lsl.j1 + lsl.b, 
+                                      lsl.in_img);
+        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_img, lsl.i0 - lsl.b, lsl.i1 + lsl.b, lsl.j0 - lsl.b, 
+                                       lsl.j1 + lsl.b, (const uint32_t**)lsl.out_img);
+        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_data_er, lsl.i0, lsl.i1, lsl.j0, lsl.j1,
                                        (const uint32_t**)lsl.out_data_er);
-        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_data_era, lsl.i0, lsl.i1, lsl.j0, lsl.j1, 0,  
+        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_data_era, lsl.i0, lsl.i1, lsl.j0, lsl.j1,   
                                        (const uint32_t**)lsl.out_data_era);
-        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_data_rlc, lsl.i0, lsl.i1, lsl.j0, lsl.j1, 0,  
+        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_data_rlc, lsl.i0, lsl.i1, lsl.j0, lsl.j1,   
                                        (const uint32_t**)lsl.out_data_rlc);
 
         uint32_t* m_out_n_ROI = static_cast<uint32_t*>(t[ps_out_n_ROI].get_dataptr());

@@ -46,9 +46,9 @@ KNN_matcher::KNN_matcher(const size_t i0, const int i1, const int j0, const int 
         uint32_t* m_out_data_nearest = static_cast<uint32_t*>(t[ps_out_data_nearest].get_dataptr());
         float* m_out_data_distances = static_cast<float*>(t[ps_out_data_distances].get_dataptr());
         
-        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_data_nearest, knn.i0, knn.i1, knn.j0, knn.j1, 0,  
+        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_data_nearest, knn.i0, knn.i1, knn.j0, knn.j1,
                                        (const uint32_t**)knn.out_data_nearest);        
-        tools_linear_2d_nrc_f32matrix((const float*)m_out_data_distances, knn.i0, knn.i1, knn.j0, knn.j1, 0,  
+        tools_linear_2d_nrc_f32matrix((const float*)m_out_data_distances, knn.i0, knn.i1, knn.j0, knn.j1, 
                                        (const float**)knn.out_data_distances);     
 
         std::fill_n(static_cast<int32_t*>(t[ps_out_ROI0_next_id].get_dataptr()), n_ROI0, 0);
