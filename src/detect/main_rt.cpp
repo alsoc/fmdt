@@ -579,13 +579,13 @@ int main(int argc, char** argv) {
 
     // display the statistics of the tasks (if enabled)
 #ifdef ENABLE_PIPELINE
-        auto stages = sequence_or_pipeline.get_stages();
-        for (size_t s = 0; s < stages.size(); s++)
-        {
-            const int n_threads = stages[s]->get_n_threads();
-            std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
-            aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true);
-        }
+    auto stages = sequence_or_pipeline.get_stages();
+    for (size_t s = 0; s < stages.size(); s++)
+    {
+        const int n_threads = stages[s]->get_n_threads();
+        std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
+        aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true);
+    }
 #else
         std::cout << "#" << std::endl;
         aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true);

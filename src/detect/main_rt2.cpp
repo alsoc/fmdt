@@ -31,6 +31,8 @@
 #include "fmdt/Logger/Logger_track.hpp"
 #include "fmdt/Logger/Logger_frame.hpp"
 
+#define ENABLE_PIPELINE
+
 int main(int argc, char** argv) {
     // default values
     int def_p_fra_start = 0;
@@ -170,9 +172,11 @@ int main(int argc, char** argv) {
     printf("#  * diff-dev       = %4.2f\n", p_diff_dev);
     printf("#  * track-all      = %d\n", p_track_all);
     printf("#  * task-stats     = %d\n", p_task_stats);
-    printf("#\n");
+#ifdef ENABLE_PIPELINE
+    printf("#  * Runtime mode   = Pipeline\n");
+#else
     printf("#  * Runtime mode   = Sequence\n");
-    printf("#\n");
+#endif
 
     // arguments checking
     if (!p_in_video) {
@@ -419,7 +423,63 @@ int main(int argc, char** argv) {
     // -- CREATE SEQUENCE -- //
     // --------------------- //
 
+#ifdef ENABLE_PIPELINE
+    // pipeline definition with separation stages
+    std::vector<std::tuple<std::vector<aff3ct::runtime::Task*>,
+                           std::vector<aff3ct::runtime::Task*>,
+                           std::vector<aff3ct::runtime::Task*>>> sep_stages =
+    { // pipeline stage 0
+      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                      std::vector<aff3ct::runtime::Task*>>(
+        { &video[vid2::tsk::generate],},
+        { &video[vid2::tsk::generate],},
+        { /* no exclusions in this stage */ } ),
+      // pipeline stage 1
+      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                      std::vector<aff3ct::runtime::Task*>>(
+        { &threshold_min0[thr::tsk::apply], &threshold_max0[thr::tsk::apply],  &threshold_min1[thr::tsk::apply], 
+          &threshold_max1[thr::tsk::apply] },
+        { &merger0[ftr_mrg::tsk::merge],&merger1[ftr_mrg::tsk::merge], },
+        { } ),
+      // pipeline stage 2
+      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                      std::vector<aff3ct::runtime::Task*>>(
+        { 
+          &matcher[knn::tsk::match],
+          &motion[ftr_mtn::tsk::compute],
+          &tracking[trk::tsk::perform],
+          },
+        { },
+        { /* no exclusions in this stage */ } ),
+    };
+
+    if (p_out_stats) {
+        std::get<0>(sep_stages[2]).push_back(&log_ROI[lgr_roi::tsk::write]);
+        std::get<0>(sep_stages[2]).push_back(&log_KNN[lgr_knn::tsk::write]);
+        std::get<0>(sep_stages[2]).push_back(&log_motion[lgr_mtn::tsk::write]);
+        std::get<0>(sep_stages[2]).push_back(&log_track[lgr_trk::tsk::write]);
+    }
+
+    if (p_out_frames) {
+        std::get<0>(sep_stages[2]).push_back(&log_frame[lgr_fra::tsk::write]);
+    }
+
+    aff3ct::runtime::Pipeline sequence_or_pipeline({ &video[vid2::tsk::generate] }, // first task of the sequence
+                                                   sep_stages,
+                                                   {
+                                                     1, // number of threads in the stage 0
+                                                     4, // number of threads in the stage 1
+                                                     1, // number of threads in the stage 2
+                                                   }, {
+                                                     16, // synchronization buffer size between stages 0 and 1
+                                                     16, // synchronization buffer size between stages 1 and 2
+                                                   }, {
+                                                     false, // type of waiting between stages 0 and 1 (true = active, false = passive)
+                                                     false, // type of waiting between stages 1 and 2 (true = active, false = passive)
+                                                   });
+#else
     aff3ct::runtime::Sequence sequence_or_pipeline(video[vid2::tsk::generate], 1);
+#endif
 
     // configuration of the sequence tasks
     for (auto& mod : sequence_or_pipeline.get_modules<aff3ct::module::Module>(false))
@@ -454,7 +514,14 @@ int main(int argc, char** argv) {
 
     printf("# The program is running...\n");
 
+#ifdef ENABLE_PIPELINE
+    sequence_or_pipeline.exec({
+        stop_condition,                                                   // stop condition stage 0
+        [] (const std::vector<const int*>& statuses) { return false; },   // stop condition stage 1
+        [] (const std::vector<const int*>& statuses) { return false; }}); // stop condition stage 2
+#else
     sequence_or_pipeline.exec(stop_condition);
+#endif
 
     // ------------------- //
     // -- PRINT RESULTS -- //
@@ -474,8 +541,18 @@ int main(int argc, char** argv) {
            n_noise, real_n_tracks);
 
     // display the statistics of the tasks (if enabled)
+#ifdef ENABLE_PIPELINE
+    auto stages = sequence_or_pipeline.get_stages();
+    for (size_t s = 0; s < stages.size(); s++)
+    {
+        const int n_threads = stages[s]->get_n_threads();
+        std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
+        aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true);
+    }
+#else
     std::cout << "#" << std::endl;
     aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true);
+#endif
 
     printf("# End of the program, exiting.\n");
 
