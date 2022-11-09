@@ -272,7 +272,7 @@ int main(int argc, char** argv) {
     int cur_fra;
     while ((cur_fra = get_next_frame(video, images, I)) != -1) {
         assert(n_frames < MAX_N_FRAMES);
-        fprintf(stderr, "(II) Frame n°%4lu", cur_fra);
+        fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         // Step 1 : seuillage low/high
         tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0, i1, j0, j1, SH_0);
@@ -308,7 +308,7 @@ int main(int argc, char** argv) {
         if (p_out_frames) {
             tools_create_folder(p_out_frames);
             char filename[1024];
-            sprintf(filename, "%s/%05lu.pgm", p_out_frames, cur_fra);
+            sprintf(filename, "%s/%05d.pgm", p_out_frames, cur_fra);
             tools_save_frame_ui8matrix(filename, (const uint8_t**)SH_2, i0, i1, j0, j1);
         }
 
@@ -316,7 +316,7 @@ int main(int argc, char** argv) {
         if (p_out_stats && n_frames) {
             tools_create_folder(p_out_stats);
             char filename[1024];
-            sprintf(filename, "%s/%05lu_%05lu.txt", p_out_stats, cur_fra - 1, cur_fra);
+            sprintf(filename, "%s/%05d_%05d.txt", p_out_stats, cur_fra - 1, cur_fra);
             FILE* f = fopen(filename, "w");
             if (f) {
                 features_ROI0_ROI1_write(f, cur_fra, ROI_array0, ROI_array1, track_array);
