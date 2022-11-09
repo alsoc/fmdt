@@ -199,10 +199,6 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
-    if (!p_out_frames)
-        fprintf(stderr, "(II) '--out-frames' is missing -> no frames will be saved\n");
-    if (!p_out_stats)
-        fprintf(stderr, "(II) '--out-stats' is missing -> no stats will be saved\n");
 
     // -------------------------------- //
     // -- INITIALISATION GLOBAL DATA -- //
