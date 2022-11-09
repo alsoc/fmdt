@@ -29,12 +29,14 @@ Video::Video(const std::string filename, const size_t frame_start, const size_t 
         for (int i = vid.i0 - vid.b + 1; i <= vid.i1 + vid.b; i++)
             vid.out_img[i] = vid.out_img[i - 1] + ((vid.j1 - vid.j0) + 1 + 2 * vid.b);
 
-        *static_cast<uint32_t*>(t[ps_out_frame].get_dataptr()) = vid.video->frame_current;
-        int ret = video_get_next_frame(vid.video, vid.out_img);
-        vid.done = ret ? false : true;
+        int cur_fra = video_get_next_frame(vid.video, vid.out_img);
+        vid.done = cur_fra == -1 ? true : false;
         if (vid.done)
             throw aff3ct::tools::processing_aborted(__FILE__, __LINE__, __func__);
-        return ret ? aff3ct::runtime::status_t::SUCCESS : aff3ct::runtime::status_t::FAILURE_STOP;
+
+        *static_cast<uint32_t*>(t[ps_out_frame].get_dataptr()) = (uint32_t)cur_fra;
+
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 

@@ -12,6 +12,8 @@ typedef struct {
     char** path_files;
     uint8_t*** buffer_files;
     size_t files_count;
+    size_t loop_size;
+    size_t cur_loop;
 } images_t;
 
 images_t* images_init_from_path(const char* path, const size_t start, const size_t end, const size_t skip,

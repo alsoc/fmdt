@@ -26,6 +26,10 @@ int Images::get_b() {
     return this->b;
 }
 
+void Images::set_loop_size(size_t loop_size) {
+    this->images->loop_size = loop_size;
+}
+
 aff3ct::runtime::Task& Images::operator[](const img::tsk t) {
     return aff3ct::module::Module::operator[]((size_t)t);
 }

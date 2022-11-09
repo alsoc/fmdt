@@ -130,6 +130,8 @@ images_t* images_init_from_path(const char* path, const size_t start, const size
     images->frame_skip = skip;
     images->frame_current = 0;
     images->buffer_files = NULL;
+    images->cur_loop = 1;
+    images->loop_size = 1;
 
     int count = count_files(path);
     images->files_count = (size_t)count < (end + 1) ? (size_t)count - start : (size_t)(end + 1) - start;
@@ -165,7 +167,11 @@ images_t* images_init_from_path(const char* path, const size_t start, const size
 }
 
 int images_get_next_frame(images_t* images, uint8_t** I) {
-    if (images->frame_current < images->files_count) {
+    if (images->frame_current < images->files_count || images->cur_loop < images->loop_size) {
+        if (images->frame_current == images->files_count) {
+            images->cur_loop++;
+            images->frame_current = 0;
+        }
         if (images->buffer_files) {
             for (int l = 0; l < images->i1; l++)
                 memcpy(I[l], images->buffer_files[images->frame_current][l], images->j1);
@@ -173,11 +179,12 @@ int images_get_next_frame(images_t* images, uint8_t** I) {
         else
             MLoadPGM_ui8matrix(images->path_files[images->frame_current], images->i0, images->i1, images->j0,
                                images->j1, I);
+        int cur_fra = images->frame_start + images->frame_current + (images->cur_loop -1) * images->files_count;
         images->frame_current += 1 + images->frame_skip;
-        return images->frame_start + images->frame_current;
+        return cur_fra;
     }
     else
-        return 0;
+        return -1;
 }
 
 void images_free(images_t* images) {

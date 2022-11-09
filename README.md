@@ -92,6 +92,7 @@ The list of available arguments:
 | `--fra-meteor-min` | int      | 3           | No      | Minimum number of frames required to track a meteor. |
 | `--fra-meteor-max` | int      | 100         | No      | Maximum number of frames required to track a meteor. |
 | `--video-buff`     | bool     | -           | No      | Bufferize all the video in global memory before executing the chain (for now it only works with `--in-video` as a folder of PGM images). |
+| `--video-loop`     | int      | 1           | No      | Number of times the video is read in loop  (for now it only works with `--in-video` as a folder of PGM images). |
 
 Output text formats are detailed in the [Input and Output Text Formats](#input-and-output-text-formats) section.
 

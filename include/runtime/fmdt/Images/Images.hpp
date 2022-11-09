@@ -29,6 +29,7 @@ public:
     inline int get_j0();
     inline int get_j1();
     inline int get_b();
+    inline void set_loop_size(size_t loop_size);
     inline aff3ct::runtime::Task& operator[](const img::tsk t);
     inline aff3ct::runtime::Socket& operator[](const img::sck::generate s);
 };

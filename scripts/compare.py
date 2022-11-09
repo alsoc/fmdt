@@ -6,7 +6,7 @@ PATH_BUILD = PATH_HEAD+"/build"
 PATH_EXE = PATH_BUILD+"/exe"
 
 EXE_REF = "fmdt-detect"
-L_EXE_CMP = ["fmdt-detect-rt", "fmdt-detect-rt2"]
+L_EXE_CMP = ["fmdt-detect-rt-seq", "fmdt-detect-rt-pip", "fmdt-detect-rt2"]
 # L_EXE_CMP = ["fmdt-detect-rt"]
 LIST_EXE = L_EXE_CMP + [EXE_REF]
 

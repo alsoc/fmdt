@@ -44,6 +44,7 @@ int main(int argc, char** argv) {
     char* def_p_out_frames = NULL;
     char* def_p_out_bb = NULL;
     char* def_p_out_stats = NULL;
+    int def_p_video_loop = 1;
 
     // Help
     if (args_find(argc, argv, "-h")) {
@@ -108,6 +109,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --video-buff        Bufferize all the video in global memory before executing the chain        \n");
         fprintf(stderr,
+                "  --video-loop        Number of times the video is read in loop                              [%d]\n",
+                def_p_video_loop);
+        fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
     }
@@ -133,6 +137,7 @@ int main(int argc, char** argv) {
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
     const int p_track_all = args_find(argc, argv, "--track-all");
     const int p_video_buff = args_find(argc, argv, "--video-buff");
+    const int p_video_loop = args_find_int(argc, argv, "--video-loop", def_p_video_loop);
 
     // heading display
     printf("#  ---------------------\n");
@@ -163,6 +168,7 @@ int main(int argc, char** argv) {
     printf("#  * diff-dev       = %4.2f\n", p_diff_dev);
     printf("#  * track-all      = %d\n", p_track_all);
     printf("#  * video-buff     = %d\n", p_video_buff);
+    printf("#  * video-loop     = %d\n", p_video_loop);
     printf("#\n");
 
     // arguments checking
@@ -190,8 +196,13 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
-    if (!tools_is_dir(p_in_video) && p_video_buff) {
+    if (!tools_is_dir(p_in_video) && p_video_buff)
         fprintf(stderr, "(WW) '--video-buff' has not effect when '--in-video' is a video file.\n");
+    if (!tools_is_dir(p_in_video) && p_video_loop)
+        fprintf(stderr, "(WW) '--video-loop' has not effect when '--in-video' is a video file.\n");
+    if (p_video_loop <= 0) {
+        fprintf(stderr, "(EE) '--video-loop' has to be bigger than 0\n");
+        exit(1);
     }
 
     // -------------------------- //
@@ -208,6 +219,7 @@ int main(int argc, char** argv) {
     } else {
         images = images_init_from_path(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_video_buff);
         i0 = images->i0; i1 = images->i1; j0 = images->j0; j1 = images->j1;
+        images->loop_size = (size_t)(p_video_loop);
     }
 
     // ---------------- //
@@ -257,10 +269,10 @@ int main(int argc, char** argv) {
     printf("# The program is running...\n");
     size_t real_n_tracks = 0;
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
-    while (get_next_frame(video, images, I)) {
-        size_t frame = video ? video->frame_current - 1 : images->frame_current - (images->frame_skip + 1);
-        assert(frame < MAX_N_FRAMES);
-        fprintf(stderr, "(II) Frame n°%4lu", frame);
+    int cur_fra;
+    while ((cur_fra = get_next_frame(video, images, I)) != -1) {
+        assert(n_frames < MAX_N_FRAMES);
+        fprintf(stderr, "(II) Frame n°%4lu", cur_fra);
 
         // Step 1 : seuillage low/high
         tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0, i1, j0, j1, SH_0);
@@ -288,7 +300,7 @@ int main(int argc, char** argv) {
                                 &first_mean_error, &first_std_deviation, &theta, &tx, &ty, &mean_error, &std_deviation);
 
         // Step 6: tracking
-        tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, track_array, BB_array, frame, theta, tx,
+        tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, track_array, BB_array, cur_fra, theta, tx,
                          ty, mean_error, std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all,
                          p_fra_star_min, p_fra_meteor_min, p_fra_meteor_max);
 
@@ -296,7 +308,7 @@ int main(int argc, char** argv) {
         if (p_out_frames) {
             tools_create_folder(p_out_frames);
             char filename[1024];
-            sprintf(filename, "%s/%05lu.pgm", p_out_frames, frame);
+            sprintf(filename, "%s/%05lu.pgm", p_out_frames, cur_fra);
             tools_save_frame_ui8matrix(filename, (const uint8_t**)SH_2, i0, i1, j0, j1);
         }
 
@@ -304,10 +316,10 @@ int main(int argc, char** argv) {
         if (p_out_stats && n_frames) {
             tools_create_folder(p_out_stats);
             char filename[1024];
-            sprintf(filename, "%s/%05lu_%05lu.txt", p_out_stats, frame - 1, frame);
+            sprintf(filename, "%s/%05lu_%05lu.txt", p_out_stats, cur_fra - 1, cur_fra);
             FILE* f = fopen(filename, "w");
             if (f) {
-                features_ROI0_ROI1_write(f, frame, ROI_array0, ROI_array1, track_array);
+                features_ROI0_ROI1_write(f, cur_fra, ROI_array0, ROI_array1, track_array);
                 fprintf(f, "#\n");
                 KPPV_asso_conflicts_write(f, kppv_data, ROI_array0);
                 fprintf(f, "#\n");

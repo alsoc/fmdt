@@ -55,6 +55,7 @@ int main(int argc, char** argv) {
     char* def_p_out_frames = NULL;
     char* def_p_out_bb = NULL;
     char* def_p_out_stats = NULL;
+    int def_p_video_loop = 1;
 
     // Help
     if (args_find(argc, argv, "-h")) {
@@ -121,6 +122,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --video-buff        Bufferize all the video in global memory before executing the chain        \n");
         fprintf(stderr,
+                "  --video-loop        Number of times the video is read in loop                              [%d]\n",
+                def_p_video_loop);
+        fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
     }
@@ -147,6 +151,7 @@ int main(int argc, char** argv) {
     const int p_track_all = args_find(argc, argv, "--track-all");
     const int p_task_stats = args_find(argc, argv, "--task-stats");
     const int p_video_buff = args_find(argc, argv, "--video-buff");
+    const int p_video_loop = args_find_int(argc, argv, "--video-loop", def_p_video_loop);
 
     // heading display
     printf("#  ---------------------\n");
@@ -178,6 +183,7 @@ int main(int argc, char** argv) {
     printf("#  * track-all      = %d\n", p_track_all);
     printf("#  * task-stats     = %d\n", p_task_stats);
     printf("#  * video-buff     = %d\n", p_video_buff);
+    printf("#  * video-loop     = %d\n", p_video_loop);
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
     printf("#  * Runtime mode   = Pipeline\n");
@@ -211,8 +217,13 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
-    if (!tools_is_dir(p_in_video) && p_video_buff) {
+    if (!tools_is_dir(p_in_video) && p_video_buff)
         fprintf(stderr, "(WW) '--video-buff' has not effect when '--in-video' is a video file.\n");
+    if (!tools_is_dir(p_in_video) && p_video_loop)
+        fprintf(stderr, "(WW) '--video-loop' has not effect when '--in-video' is a video file.\n");
+    if (p_video_loop <= 0) {
+        fprintf(stderr, "(EE) '--video-loop' has to be bigger than 0\n");
+        exit(1);
     }
 
     // -------------------------------- //
@@ -243,6 +254,7 @@ int main(int argc, char** argv) {
         i1 = images->get_i1();
         j0 = images->get_j0();
         j1 = images->get_j1();
+        images->set_loop_size(p_video_loop);
     }
 
     Threshold threshold_min(i0, i1, j0, j1, b, p_light_min);

@@ -29,12 +29,14 @@ Images::Images(const std::string path, const size_t frame_start, const size_t fr
         for (int i = (int)img.images->i0 - img.b + 1; i <= (int)img.images->i1 + img.b; i++)
             img.out_img[i] = img.out_img[i - 1] + ((img.images->j1 - img.images->j0) + 1 + 2 * img.b);
 
-        *static_cast<uint32_t*>(t[ps_out_frame].get_dataptr()) = img.images->frame_current + img.images->frame_start;
-        int ret = images_get_next_frame(img.images, img.out_img);
-        img.done = ret ? false : true;
+        int cur_fra = images_get_next_frame(img.images, img.out_img);
+        img.done = cur_fra == -1 ? true : false;
         if (img.done)
             throw aff3ct::tools::processing_aborted(__FILE__, __LINE__, __func__);
-        return ret ? aff3ct::runtime::status_t::SUCCESS : aff3ct::runtime::status_t::FAILURE_STOP;
+
+        *static_cast<uint32_t*>(t[ps_out_frame].get_dataptr()) = (uint32_t)cur_fra;
+
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 
