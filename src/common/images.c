@@ -83,7 +83,7 @@ static void fill_path_files(const char *dir, const size_t start, const size_t en
             int n = atoi(entry->d_name);
             if (n >= (int)start && n < (int)count && n < ((int)end + 1)) {
                 char path[2048];
-                sprintf(path, "%s/%s", dir, entry->d_name);
+                snprintf(path, 2048, "%s/%s", dir, entry->d_name);
                 path_files[n - start] = (char*)malloc((strlen(path) +1) * sizeof(char));
                 strcpy(path_files[n - start], path);
             }

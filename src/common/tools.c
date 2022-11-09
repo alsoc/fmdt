@@ -255,7 +255,7 @@ void tools_save_frame(const char* filename, const rgb8_t** I_bb, int w, int h) {
     }
 
     /* enregistrement de l'image au format rpgm */
-    sprintf(buffer, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
+    snprintf(buffer, 80, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i < h; i++)
         tools_write_PNM_row((uint8*)I_bb[i], w - 1, file);
@@ -361,7 +361,7 @@ void tools_save_frame_threshold(const char* filename, uint8** I0, uint8** I1, in
 
     /* enregistrement de l'image au format rpgm */
 
-    sprintf(buffer, "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(h - 1));
+    snprintf(buffer, 80, "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= h - 1; i++)
         tools_write_PNM_row((uint8*)img[i], 2 * w - 1, file);
@@ -401,7 +401,7 @@ void tools_save_frame_ui32matrix(const char* filename, const uint32** I, int i0,
 
     /* enregistrement de l'image au format rpgm */
 
-    sprintf(buffer, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
+    snprintf(buffer, 80, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= h - 1; i++)
         tools_write_PNM_row((uint8*)img[i], w - 1, file);
@@ -439,7 +439,7 @@ void tools_save_frame_ui8matrix(const char* filename, const uint8** I, int i0, i
     }
 
     /* enregistrement de l'image au format rpgm */
-    sprintf(buffer, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
+    snprintf(buffer, 80, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= h - 1; i++)
         tools_write_PNM_row((uint8*)img[i], w - 1, file);
@@ -584,7 +584,7 @@ void tools_save_frame_quad(const char* filename, uint8** I0, uint8** I1, uint32*
 
     /* enregistrement de l'image au format rpgm */
 
-    sprintf(buffer, "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(2 * h - 1));
+    snprintf(buffer, 80, "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(2 * h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= 2 * h - 1; i++)
         tools_write_PNM_row((uint8*)img[i], 2 * w - 1, file);
@@ -655,7 +655,7 @@ void tools_save_frame_quad_hysteresis(const char* filename, uint8** I0, uint32**
 
     /* enregistrement de l'image au format rpgm */
 
-    sprintf(buffer, "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(2 * h - 1));
+    snprintf(buffer, 80, "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(2 * h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= 2 * h - 1; i++)
         tools_write_PNM_row((uint8*)img[i], 2 * w - 1, file);

@@ -35,7 +35,7 @@ Logger_track::Logger_track(const std::string tracks_path, const size_t max_track
 
         if (frame && !lgr_trk.tracks_path.empty()) {
             char file_path[256];
-            sprintf(file_path, "%s/%05u_%05u.txt", lgr_trk.tracks_path.c_str(), frame -1, frame);
+            snprintf(file_path, 256, "%s/%05u_%05u.txt", lgr_trk.tracks_path.c_str(), frame -1, frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
             _tracking_track_array_write(file, track_id, track_begin, track_end, track_obj_type, n_tracks);

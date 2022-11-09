@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
         const unsigned frame = video->frame_current - 1;
         fprintf(stderr, "(II) Frame n°%4d\r", frame);
         char filename[1024];
-        sprintf(filename, "%s/%05u.pgm", p_out_frames, frame);
+        snprintf(filename, 1024, "%s/%05u.pgm", p_out_frames, frame);
         SavePGM_ui8matrix(img, i0, i1, j0, j1, filename);
     }
     fprintf(stderr, "\n");

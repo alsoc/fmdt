@@ -682,12 +682,12 @@ void _features_ROI_write(FILE* f, const uint16_t* ROI_id, const uint16_t* ROI_xm
             if (t == -1)
                 strcpy(task_id_str, "   -");
             else
-                sprintf(task_id_str, "%4d", track_id[t]);
+                snprintf(task_id_str, 16, "%4d", track_id[t]);
             char task_obj_type[64];
             if (t == -1)
                 strcpy(task_obj_type, "      -");
             else
-                sprintf(task_obj_type, "%s", g_obj_to_string_with_spaces[track_obj_type[t]]);
+                snprintf(task_obj_type, 64, "%s", g_obj_to_string_with_spaces[track_obj_type[t]]);
             fprintf(f, "   %4d || %s | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f \n",
                     ROI_id[i], task_id_str, task_obj_type, ROI_xmin[i], ROI_xmax[i], ROI_ymin[i], ROI_ymax[i], ROI_S[i],
                     ROI_Sx[i], ROI_Sy[i], ROI_x[i], ROI_y[i]);

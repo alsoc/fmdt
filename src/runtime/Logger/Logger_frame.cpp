@@ -32,7 +32,7 @@ Logger_frame::Logger_frame(const std::string frames_path, const int i0, const in
 
         if (!lgr_fra.frames_path.empty()) {
             char file_path[256];
-            sprintf(file_path, "%s/%05u.pgm", lgr_fra.frames_path.c_str(), frame);
+            snprintf(file_path, 256, "%s/%05u.pgm", lgr_fra.frames_path.c_str(), frame);
             tools_save_frame_ui8matrix(file_path, lgr_fra.in_img, lgr_fra.i0, lgr_fra.i1, lgr_fra.j0, lgr_fra.j1);
         }
 
