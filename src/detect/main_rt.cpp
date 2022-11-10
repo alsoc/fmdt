@@ -270,7 +270,7 @@ int main(int argc, char** argv) {
     Features_motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
-                      p_fra_meteor_max, p_out_bb, MAX_ROI_SIZE, MAX_TRACKS_SIZE, MAX_N_FRAMES);
+                      p_fra_meteor_max, p_out_bb, MAX_ROI_SIZE, MAX_TRACKS_SIZE, MAX_BB_LIST_SIZE);
     aff3ct::module::Delayer<uint16_t> delayer_ROI_id(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint16_t> delayer_ROI_xmin(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint16_t> delayer_ROI_xmax(MAX_ROI_SIZE, 0);

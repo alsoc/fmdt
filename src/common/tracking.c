@@ -140,7 +140,7 @@ void tracking_free_track_array(track_t* track_array) {
 }
 
 void tracking_init_BB_array(BB_t** BB_array) {
-    for (int i = 0; i < MAX_N_FRAMES; i++)
+    for (int i = 0; i < MAX_BB_LIST_SIZE; i++)
         BB_array[i] = NULL;
 }
 
@@ -160,7 +160,7 @@ void tracking_free_BB_array(BB_t** BB_array) {
 
 void add_to_BB_array(BB_t** BB_array, uint16_t rx, uint16_t ry, uint16_t bb_x, uint16_t bb_y, uint16_t track_id,
                      int frame) {
-    assert(frame < MAX_N_FRAMES);
+    assert(frame < MAX_BB_LIST_SIZE);
     BB_t* newE = (BB_t*)malloc(sizeof(BB_t));
     newE->rx = rx;
     newE->ry = ry;

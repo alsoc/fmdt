@@ -29,7 +29,7 @@ protected:
     const size_t fra_meteor_max;
     const size_t max_ROI_size;
     const size_t max_tracks_size;
-    const size_t max_n_frames;
+    const size_t max_bb_list_size;
     int32_t* ROI0_prev_id;
     tracking_data_t* tracking_data;
     track_t* track_array;
@@ -37,7 +37,7 @@ protected:
 public:
     Tracking(const size_t r_extrapol, const float angle_max, const float diff_dev, const int track_all,
              const size_t fra_star_min, const size_t fra_meteor_min, const size_t fra_meteor_max,
-             const bool out_bb, const size_t max_ROI_size, const size_t max_tracks_size, const size_t max_n_frames);
+             const bool out_bb, const size_t max_ROI_size, const size_t max_tracks_size, const size_t max_bb_list_size);
     virtual ~Tracking();
     inline track_t* get_track_array();
     inline BB_t** get_BB_array();

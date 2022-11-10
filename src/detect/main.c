@@ -232,7 +232,7 @@ int main(int argc, char** argv) {
     track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
     BB_t** BB_array = NULL;
     if (p_out_bb)
-        BB_array = (BB_t**)malloc(MAX_N_FRAMES * sizeof(BB_t*));
+        BB_array = (BB_t**)malloc(MAX_BB_LIST_SIZE * sizeof(BB_t*));
     tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_fra_star_min, p_fra_meteor_min), MAX_ROI_SIZE);
     int b = 1; // image border
     uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // frame
@@ -348,7 +348,7 @@ int main(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (BB_array)
-        tracking_save_array_BB(p_out_bb, BB_array, track_array, MAX_N_FRAMES, p_track_all);
+        tracking_save_array_BB(p_out_bb, BB_array, track_array, MAX_BB_LIST_SIZE, p_track_all);
     tracking_track_array_write(stdout, track_array);
 
     printf("# Tracks statistics:\n");
