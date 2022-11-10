@@ -80,7 +80,7 @@ size_t _tracking_count_objects(const uint16_t* track_id, const enum obj_e* track
                 break;
             default:
                 fprintf(stderr, "(EE) This should never happen ('track_obj_type[i] = %d', 'i = %lu')\n",
-                        track_obj_type[i], i);
+                        track_obj_type[i], (unsigned long)i);
                 exit(1);
             }
     return (*n_stars) + (*n_meteors) + (*n_noise);
@@ -604,7 +604,7 @@ void _tracking_track_array_write(FILE* f, const uint16_t* track_id, const ROI_li
         if (track_id[i])
             real_n_tracks++;
 
-    fprintf(f, "# Tracks [%lu]:\n", real_n_tracks);
+    fprintf(f, "# Tracks [%lu]:\n", (unsigned long)real_n_tracks);
     fprintf(f, "# -------||---------------------------||---------------------------||---------\n");
     fprintf(f, "#  Track ||           Begin           ||            End            ||  Object \n");
     fprintf(f, "# -------||---------------------------||---------------------------||---------\n");

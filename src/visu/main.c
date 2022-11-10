@@ -173,7 +173,7 @@ int main(int argc, char** argv) {
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
     tracking_count_objects(track_array, &n_stars, &n_meteors, &n_noise);
     printf("# Tracks read from file = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
-           n_noise, track_array->_size);
+           n_noise, (unsigned long)track_array->_size);
 
     // init
     const size_t n_ffmpeg_threads = 0; // 0 = use all the threads available

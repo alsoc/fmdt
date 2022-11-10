@@ -188,7 +188,7 @@ int main(int argc, char** argv) {
                     listBB[m].color = g_obj_to_color[track_array->obj_type[t]];
                 else {
                     fprintf(stderr, "(EE) This should never happen... ('t' = %lu, 'track_array->obj_type[t]' = %d)\n",
-                            t, track_array->obj_type[t]);
+                            (unsigned long)t, track_array->obj_type[t]);
                     exit(-1);
                 }
 

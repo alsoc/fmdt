@@ -442,7 +442,7 @@ int main(int argc, char** argv) {
             unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
             size_t n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
             fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
-                    n_stars, n_noise, n_tracks);
+                    n_stars, n_noise, (unsigned long)n_tracks);
             fflush(stderr);
             n_frames++;
             return false;
@@ -467,7 +467,7 @@ int main(int argc, char** argv) {
     printf("# Tracks statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames -1);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
-           n_noise, real_n_tracks);
+           n_noise, (unsigned long)real_n_tracks);
 
     // display the statistics of the tasks (if enabled)
     std::cout << "#" << std::endl;

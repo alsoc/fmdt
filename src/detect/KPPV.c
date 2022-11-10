@@ -167,11 +167,11 @@ void KPPV_save_asso(const char* filename, const uint32_t** data_nearest, const f
         for (size_t i = 0; i < ROI_array->_size; i++) {
             if (!ROI_array->next_id[i]) {
                 if (ROI_array->S[i] > 0)
-                    fprintf(f, "%4lu \t ->   pas d'association\n", i);
+                    fprintf(f, "%4lu \t ->   pas d'association\n", (unsigned long)i);
             } else {
                 j = (size_t)(ROI_array->next_id[i] - 1);
-                fprintf(f, "%4lu \t -> %4lu \t  : distance = %10.2f \t ; %4d-voisin\n", i, j, data_distances[i][j],
-                        data_nearest[i][j]);
+                fprintf(f, "%4lu \t -> %4lu \t  : distance = %10.2f \t ; %4d-voisin\n", (unsigned long)i,
+                        (unsigned long)j, data_distances[i][j], data_nearest[i][j]);
             }
         }
     }
@@ -190,10 +190,10 @@ void KPPV_save_asso_VT(const char* filename, int nc0, ROI_t* ROI_array, int fram
     for (size_t i = 0; i <= ROI_array->_size; i++) {
         if (!ROI_array->next_id[i]) {
             if (ROI_array->S[i] > 0)
-                fprintf(f, "%4lu \t ->   pas d'association\n", i);
+                fprintf(f, "%4lu \t ->   pas d'association\n", (unsigned long)i);
         } else {
             j = (size_t)(ROI_array->next_id[i] - 1);
-            fprintf(f, "%4lu \t -> %4lu \n", i, j);
+            fprintf(f, "%4lu \t -> %4lu \n", (unsigned long)i, (unsigned long)j);
         }
     }
     fprintf(f, "-------------------------------------------------------------------------------------------------------"

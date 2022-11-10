@@ -338,7 +338,7 @@ int main(int argc, char** argv) {
         n_frames++;
         real_n_tracks = tracking_count_objects(track_array, &n_stars, &n_meteors, &n_noise);
         fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors, n_stars,
-                n_noise, real_n_tracks);
+                n_noise, (unsigned long)real_n_tracks);
         fflush(stderr);
 
         ROI_t* tmp = ROI_array0;
@@ -354,7 +354,7 @@ int main(int argc, char** argv) {
     printf("# Tracks statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
-           n_noise, real_n_tracks);
+           n_noise, (unsigned long)real_n_tracks);
 
     // ----------
     // -- FREE --
