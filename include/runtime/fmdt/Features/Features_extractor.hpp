@@ -25,6 +25,7 @@ public:
     inline aff3ct::runtime::Socket& operator[](const ftr_ext::sck::extract s);
 protected:
     void init_data();
+    using Module::deep_copy;
     void deep_copy(const Features_extractor &m);
 };
 

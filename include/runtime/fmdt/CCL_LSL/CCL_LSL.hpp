@@ -31,6 +31,7 @@ public:
 
 protected:
     void init_data();
+    using Module::deep_copy;
     void deep_copy(const CCL_LSL &m);
 };
 
