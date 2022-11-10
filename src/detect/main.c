@@ -230,7 +230,9 @@ int main(int argc, char** argv) {
     ROI_t* ROI_array0 = features_alloc_ROI_array(MAX_ROI_SIZE);
     ROI_t* ROI_array1 = features_alloc_ROI_array(MAX_ROI_SIZE);
     track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
-    BB_t** BB_array = (BB_t**)malloc(MAX_N_FRAMES * sizeof(BB_t*));
+    BB_t** BB_array = NULL;
+    if (p_out_bb)
+        BB_array = (BB_t**)malloc(MAX_N_FRAMES * sizeof(BB_t*));
     tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_fra_star_min, p_fra_meteor_min), MAX_ROI_SIZE);
     int b = 1; // image border
     uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // frame
@@ -251,7 +253,8 @@ int main(int argc, char** argv) {
     features_init_ROI_array(ROI_array0);
     features_init_ROI_array(ROI_array1);
     tracking_init_track_array(track_array);
-    tracking_init_BB_array(BB_array);
+    if (BB_array)
+        tracking_init_BB_array(BB_array);
     tracking_init_data(tracking_data);
     CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
     zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -271,7 +274,6 @@ int main(int argc, char** argv) {
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     int cur_fra;
     while ((cur_fra = get_next_frame(video, images, I)) != -1) {
-        assert(n_frames < MAX_N_FRAMES);
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         // Step 1 : seuillage low/high
@@ -345,7 +347,7 @@ int main(int argc, char** argv) {
     }
     fprintf(stderr, "\n");
 
-    if (p_out_bb)
+    if (BB_array)
         tracking_save_array_BB(p_out_bb, BB_array, track_array, MAX_N_FRAMES, p_track_all);
     tracking_track_array_write(stdout, track_array);
 
@@ -374,10 +376,12 @@ int main(int argc, char** argv) {
         images_free(images);
     CCL_LSL_free_data(ccl_data);
     KPPV_free_data(kppv_data);
-    tracking_free_BB_array(BB_array);
+    if (BB_array) {
+        tracking_free_BB_array(BB_array);
+        free(BB_array);
+    }
     tracking_free_track_array(track_array);
     tracking_free_data(tracking_data);
-    free(BB_array);
 
     printf("# End of the program, exiting.\n");
 

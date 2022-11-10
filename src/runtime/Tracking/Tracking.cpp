@@ -4,7 +4,8 @@
 
 Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float diff_dev, const int track_all,
                    const size_t fra_star_min, const size_t fra_meteor_min, const size_t fra_meteor_max,
-                   const size_t max_ROI_size, const size_t max_tracks_size, const size_t max_n_frames)
+                   const bool out_bb, const size_t max_ROI_size, const size_t max_tracks_size,
+                   const size_t max_n_frames)
 : Module(), r_extrapol(r_extrapol), angle_max(angle_max), diff_dev(diff_dev), track_all(track_all),
   fra_star_min(fra_star_min), fra_meteor_min(fra_meteor_min), fra_meteor_max(fra_meteor_max), 
   max_ROI_size(max_ROI_size), max_tracks_size(max_tracks_size), max_n_frames(max_n_frames), ROI0_prev_id(nullptr),
@@ -16,12 +17,15 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
     this->ROI0_prev_id = (int32_t*)malloc(max_ROI_size * sizeof(uint32_t));
     this->tracking_data = tracking_alloc_data(std::max(fra_star_min, fra_meteor_min), max_ROI_size);
     this->track_array = tracking_alloc_track_array(max_tracks_size);
-    this->BB_array = (BB_t**)malloc(max_n_frames * sizeof(BB_t*));
+
+    if (out_bb)
+      this->BB_array = (BB_t**)malloc(max_n_frames * sizeof(BB_t*));
     
     memset(this->ROI0_prev_id, 0, max_ROI_size * sizeof(int32_t));
     tracking_init_data(this->tracking_data);
     tracking_init_track_array(this->track_array);
-    tracking_init_BB_array(this->BB_array);
+    if (this->BB_array)
+      tracking_init_BB_array(this->BB_array);
 
     auto &p = this->create_task("perform");
 
@@ -156,6 +160,8 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
 Tracking::~Tracking() {
     tracking_free_data(this->tracking_data);
     tracking_free_track_array(this->track_array);
-    tracking_free_BB_array(this->BB_array);
-    free(this->BB_array);
+    if (this->BB_array) {
+      tracking_free_BB_array(this->BB_array);
+      free(this->BB_array);
+    }
 }

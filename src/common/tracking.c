@@ -239,6 +239,7 @@ void track_extrapolate(track_t* track_array, const size_t t, double theta, doubl
 void _update_bounding_box(BB_t** BB_array, const int track_id, const uint16_t ROI_xmin, const uint16_t ROI_xmax,
                           const uint16_t ROI_ymin, const uint16_t ROI_ymax, int frame) {
     assert(ROI_xmin || ROI_xmax || ROI_ymin || ROI_ymax);
+    assert(BB_array != NULL);
 
     uint16_t bb_x = (uint16_t)ceil((double)((ROI_xmin + ROI_xmax)) / 2);
     uint16_t bb_y = (uint16_t)ceil((double)((ROI_ymin + ROI_ymax)) / 2);
@@ -309,8 +310,9 @@ void _update_existing_tracks(ROI_light_t** ROI_hist, const uint16_t* ROI0_id, co
                                                    ROI0_x, ROI0_y, ROI0_prev_id, ROI0_next_id, j, track_end, i);
                         track_state[i] = TRACK_UPDATED;
                         // update_bounding_box(BB_array, track_id[i], ROI_array0, j, frame - 1);
-                        _update_bounding_box(BB_array, track_id[i], ROI0_xmin[j], ROI0_xmax[j], ROI0_ymin[j],
-                                             ROI0_ymax[j], frame - 1);
+                        if (BB_array != NULL)
+                            _update_bounding_box(BB_array, track_id[i], ROI0_xmin[j], ROI0_xmax[j], ROI0_ymin[j],
+                                                 ROI0_ymax[j], frame - 1);
                     }
                 }
             }
@@ -365,8 +367,9 @@ void _update_existing_tracks(ROI_light_t** ROI_hist, const uint16_t* ROI0_id, co
                     if (track_state[i] == TRACK_NEW) // because the right time has been set in 'insert_new_track'
                         track_state[i] = TRACK_UPDATED;
                     // update_bounding_box(BB_array, track_id[i], ROI_array1, next_id - 1, frame + 1);
-                    _update_bounding_box(BB_array, track_id[i], ROI1_xmin[next_id - 1], ROI1_xmax[next_id - 1],
-                                         ROI1_ymin[next_id - 1], ROI1_ymax[next_id - 1], frame + 1);
+                    if (BB_array != NULL)
+                        _update_bounding_box(BB_array, track_id[i], ROI1_xmin[next_id - 1], ROI1_xmax[next_id - 1],
+                                             ROI1_ymin[next_id - 1], ROI1_ymax[next_id - 1], frame + 1);
                 } else {
                     // on extrapole si pas finished
                     _track_extrapolate(&track_end[i], &track_extrapol_x[i], &track_extrapol_y[i], theta, tx, ty);
@@ -411,9 +414,10 @@ void _insert_new_track(const ROI_light_t* ROI_list, unsigned n_ROI, uint16_t* tr
     memcpy(&track_end[cur_track], &ROI_list[0], sizeof(ROI_light_t));
     track_state[cur_track] = TRACK_NEW;
     track_obj_type[cur_track] = type;
-    for (unsigned n = 0; n < n_ROI; n++)
-        _update_bounding_box(BB_array, track_id[cur_track], ROI_list[n].xmin, ROI_list[n].xmax, ROI_list[n].ymin,
-                             ROI_list[n].ymax, frame - n);
+    if (BB_array != NULL)
+        for (unsigned n = 0; n < n_ROI; n++)
+            _update_bounding_box(BB_array, track_id[cur_track], ROI_list[n].xmin, ROI_list[n].xmax, ROI_list[n].ymin,
+                                 ROI_list[n].ymax, frame - n);
     (*n_tracks)++;
 }
 
