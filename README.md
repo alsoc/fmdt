@@ -154,6 +154,8 @@ The list of available arguments:
 ### Examples of use
 
 Download a video sequence containing meteors here: https://lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4.
+These video sequence comes from IMCCE (*l'Observatoire de Paris*) and is the result of an airborne observation of the 2022 τ-Herculids.
+More information about the 2022 τ-Herculids is available here: https://www.imcce.fr/recherche/campagnes-observations/meteors/2022the.
 
 #### Step 1: Meteors detection
 
