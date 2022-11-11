@@ -33,7 +33,7 @@ Logger_motion::Logger_motion(const std::string motion_path)
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
         if (frame && !lgr_mtn.motion_path.empty()) {
             char file_path[256];
-            snprintf(file_path, 256, "%s/%05u_%05u.txt", lgr_mtn.motion_path.c_str(), frame -1, frame);
+            snprintf(file_path, sizeof(file_path), "%s/%05u_%05u.txt", lgr_mtn.motion_path.c_str(), frame -1, frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
             features_motion_write(file,

@@ -55,7 +55,7 @@ Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, co
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
         if (frame && !lgr_roi.ROI_path.empty()) {
             char file_path[256];
-            snprintf(file_path, 256, "%s/%05u_%05u.txt", lgr_roi.ROI_path.c_str(), frame -1, frame);
+            snprintf(file_path, sizeof(file_path), "%s/%05u_%05u.txt", lgr_roi.ROI_path.c_str(), frame -1, frame);
             FILE* file = fopen(file_path, "w");
             _features_ROI0_ROI1_write(file, frame,
                                       static_cast<const uint16_t*>(t[ps_in_ROI0_id].get_dataptr()),

@@ -22,13 +22,13 @@ void tracking_init_global_data() {
     g_obj_to_color[NOISE] = NOISE_COLOR;
 
     char str_unknown[64] = UNKNOWN_STR;
-    snprintf(g_obj_to_string[UNKNOWN], 64, "%s", str_unknown);
+    snprintf(g_obj_to_string[UNKNOWN], sizeof(g_obj_to_string[UNKNOWN]), "%s", str_unknown);
     char str_star[64] = STAR_STR;
-    snprintf(g_obj_to_string[STAR], 64, "%s", str_star);
+    snprintf(g_obj_to_string[STAR], sizeof(g_obj_to_string[STAR]), "%s", str_star);
     char str_meteor[64] = METEOR_STR;
-    snprintf(g_obj_to_string[METEOR], 64, "%s", str_meteor);
+    snprintf(g_obj_to_string[METEOR], sizeof(g_obj_to_string[METEOR]), "%s", str_meteor);
     char str_noise[64] = NOISE_STR;
-    snprintf(g_obj_to_string[NOISE], 64, "%s", str_noise);
+    snprintf(g_obj_to_string[NOISE], sizeof(g_obj_to_string[NOISE]), "%s", str_noise);
 
     unsigned max = 0;
     for (int i = 0; i < N_OBJECTS; i++)

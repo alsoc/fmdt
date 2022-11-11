@@ -51,7 +51,7 @@ Logger_KNN::Logger_KNN(const std::string KNN_path, const size_t i0, const int i1
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
         if (frame && !lgr_knn.KNN_path.empty()) {
             char file_path[256];
-            snprintf(file_path, 256, "%s/%05u_%05u.txt", lgr_knn.KNN_path.c_str(), frame -1, frame);
+            snprintf(file_path, sizeof(file_path), "%s/%05u_%05u.txt", lgr_knn.KNN_path.c_str(), frame -1, frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
             _KPPV_asso_conflicts_write(file, lgr_knn.in_data_nearest, lgr_knn.in_data_distances,
