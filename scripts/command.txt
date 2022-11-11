@@ -1,0 +1,9 @@
+# Choose a directory as refereces
+
+python3 compare.py --in-video ../build/2022_05_31_tauh_34_meteors.mp4 --refs-path ../build/refs
+
+#-----------------------------------------------------------------------------------------------------------------------
+
+# Choose an executable as referece
+
+python3 compare.py --in-video ../build/2022_05_31_tauh_34_meteors.mp4 --new-ref-exe fmdt-detect
