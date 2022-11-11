@@ -198,7 +198,7 @@ int main(int argc, char** argv) {
     }
     if (!tools_is_dir(p_in_video) && p_video_buff)
         fprintf(stderr, "(WW) '--video-buff' has not effect when '--in-video' is a video file.\n");
-    if (!tools_is_dir(p_in_video) && p_video_loop)
+    if (!tools_is_dir(p_in_video) && p_video_loop > 1)
         fprintf(stderr, "(WW) '--video-loop' has not effect when '--in-video' is a video file.\n");
     if (p_video_loop <= 0) {
         fprintf(stderr, "(EE) '--video-loop' has to be bigger than 0\n");
