@@ -5,6 +5,7 @@
 #include <string.h>
 #include <nrc2.h>
 #include <algorithm>
+#include <memory>
 
 #include "fmdt/args.h"
 #include "fmdt/defines.h"
@@ -55,6 +56,7 @@ int main(int argc, char** argv) {
     char* def_p_out_frames = NULL;
     char* def_p_out_bb = NULL;
     char* def_p_out_stats = NULL;
+    char* def_p_out_probes = NULL;
     int def_p_video_loop = 1;
 
     // Help
@@ -71,6 +73,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --out-stats         Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_out_stats ? def_p_out_stats : "NULL");
+        fprintf(stderr,
+                "  --out-probes        Path of the output probe vales, only required for benchmarking purpose [%s]\n",
+                def_p_out_probes ? def_p_out_probes : "NULL");
         fprintf(stderr,
                 "  --fra-start         Starting point of the video                                            [%d]\n",
                 def_p_fra_start);
@@ -148,6 +153,7 @@ int main(int argc, char** argv) {
     const char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
+    const char* p_out_probes = args_find_char(argc, argv, "--out-probes", def_p_out_probes);
     const int p_track_all = args_find(argc, argv, "--track-all");
     const int p_task_stats = args_find(argc, argv, "--task-stats");
     const int p_video_buff = args_find(argc, argv, "--video-buff");
@@ -166,6 +172,7 @@ int main(int argc, char** argv) {
     printf("#  * out-bb         = %s\n", p_out_bb);
     printf("#  * out-frames     = %s\n", p_out_frames);
     printf("#  * out-stats      = %s\n", p_out_stats);
+    printf("#  * out-probes     = %s\n", p_out_probes);
     printf("#  * fra-start      = %d\n", p_fra_start);
     printf("#  * fra-end        = %d\n", p_fra_end);
     printf("#  * fra-skip       = %d\n", p_fra_skip);
@@ -464,6 +471,49 @@ int main(int argc, char** argv) {
         log_frame[lgr_fra::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
     }
 
+    // create reporters and probes for the statistics file
+    size_t inter_frame_lvl = 1;
+    aff3ct::tools::Reporter_probe rep_fra_stats("Frame Counter", inter_frame_lvl);
+    std::unique_ptr<aff3ct::module::Probe<>> prb_fra_id(rep_fra_stats.create_probe_occurrence("ID"));
+
+    aff3ct::tools::Reporter_probe rep_thr_stats("Throughput, latency", "and time", inter_frame_lvl);
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_thr  (rep_thr_stats.create_probe_throughput("FPS"));
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_lat  (rep_thr_stats.create_probe_latency   ("LAT")); // only valid for sequence, invalid for pipeline
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_time (rep_thr_stats.create_probe_time      ("TIME"));
+    const uint64_t mod = 1000000ul * 60ul * 10; // limit to 10 minutes timestamp
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_tstab(rep_thr_stats.create_probe_timestamp ("TSTAB", mod)); // timestamp begin
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_tstae(rep_thr_stats.create_probe_timestamp ("TSTAE", mod)); // timestamp end
+
+    const std::vector<aff3ct::tools::Reporter*>& reporters = { &rep_fra_stats, &rep_thr_stats };
+    aff3ct::tools::Terminal_dump terminal_probes(reporters);
+
+    std::ofstream rt_probes_file;
+    if (p_out_probes) {
+        rt_probes_file.open(p_out_probes);
+        rt_probes_file << "####################" << std::endl;
+        rt_probes_file << "# Real-time probes #" << std::endl;
+        rt_probes_file << "####################" << std::endl;
+        terminal_probes.legend(rt_probes_file);
+
+        // bind probes
+        if (video)
+            (*video)[vid::tsk::generate] = (*prb_thr_tstab)[aff3ct::module::prb::sck::probe_noin::status];
+        else
+            (*images)[img::tsk::generate] = (*prb_thr_tstab)[aff3ct::module::prb::sck::probe_noin::status];
+        (*prb_fra_id   )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_thr_thr  )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_thr_lat  )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_thr_time )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_thr_tstae)[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+    }
+
+    // determine the first task in the tasks graph depending on the command line parameters
+    aff3ct::runtime::Task* first_task = nullptr;
+    if (p_out_probes)
+        first_task = &(*prb_thr_tstab)[aff3ct::module::prb::tsk::probe];
+    else
+        first_task = video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate];
+
     // --------------------- //
     // -- CREATE SEQUENCE -- //
     // --------------------- //
@@ -476,7 +526,7 @@ int main(int argc, char** argv) {
     { // pipeline stage 0
       std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                       std::vector<aff3ct::runtime::Task*>>(
-        { video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate], },
+        { first_task, },
         { video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate], },
         { /* no exclusions in this stage */ } ),
       // pipeline stage 1
@@ -529,7 +579,7 @@ int main(int argc, char** argv) {
         std::get<0>(sep_stages[2]).push_back(&log_frame[lgr_fra::tsk::write]);
     }
 
-    aff3ct::runtime::Pipeline sequence_or_pipeline({ video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate] }, // first task of the sequence
+    aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
                                                    sep_stages,
                                                    {
                                                      1, // number of threads in the stage 0
@@ -543,7 +593,7 @@ int main(int argc, char** argv) {
                                                      false, // type of waiting between stages 1 and 2 (true = active, false = passive)
                                                    });
 #else
-    aff3ct::runtime::Sequence sequence_or_pipeline(video ? (*video)[vid::tsk::generate] : (*images)[img::tsk::generate], 1);
+    aff3ct::runtime::Sequence sequence_or_pipeline(*first_task, 1);
 #endif
 
     // configuration of the sequence tasks
@@ -566,14 +616,18 @@ int main(int argc, char** argv) {
 
     unsigned n_frames = 0;
     std::function<bool(const std::vector<const int*>&)> stop_condition =
-        [&tracking, &n_frames] (const std::vector<const int*>& statuses) {
-            fprintf(stderr, "(II) Frame n°%4u", n_frames);
-            unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
-            size_t n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
-            fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
-                    n_stars, n_noise, (unsigned long)n_tracks);
-            fflush(stderr);
-            n_frames++;
+        [&tracking, &n_frames, &terminal_probes, &rt_probes_file] (const std::vector<const int*>& statuses) {
+            if (statuses.back() != nullptr) {
+                fprintf(stderr, "(II) Frame n°%4u", n_frames);
+                unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
+                size_t n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
+                fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
+                        n_stars, n_noise, (unsigned long)n_tracks);
+                fflush(stderr);
+                n_frames++;
+                if (rt_probes_file.is_open())
+                    terminal_probes.temp_report(rt_probes_file);
+            }
             return false;
         };
 
@@ -581,9 +635,9 @@ int main(int argc, char** argv) {
 
 #ifdef FMDT_ENABLE_PIPELINE
     sequence_or_pipeline.exec({
-        stop_condition,                                                   // stop condition stage 0
-        [] (const std::vector<const int*>& statuses) { return false; },   // stop condition stage 1
-        [] (const std::vector<const int*>& statuses) { return false; }}); // stop condition stage 2
+        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 0
+        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 1
+        stop_condition});                                               // stop condition stage 2
 #else
     sequence_or_pipeline.exec(stop_condition);
 #endif
@@ -591,6 +645,9 @@ int main(int argc, char** argv) {
     // ------------------- //
     // -- PRINT RESULTS -- //
     // ------------------- //
+
+    if (rt_probes_file.is_open())
+        terminal_probes.final_report(rt_probes_file);
 
     fprintf(stderr, "\n");
     if (p_out_bb)
@@ -601,22 +658,22 @@ int main(int argc, char** argv) {
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
     size_t real_n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
     printf("# Tracks statistics:\n");
-    printf("# -> Processed frames = %4d\n", n_frames -1);
+    printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, (unsigned long)real_n_tracks);
 
     // display the statistics of the tasks (if enabled)
 #ifdef FMDT_ENABLE_PIPELINE
-        auto stages = sequence_or_pipeline.get_stages();
-        for (size_t s = 0; s < stages.size(); s++)
-        {
-            const int n_threads = stages[s]->get_n_threads();
-            std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
-            aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true, false);
-        }
+    auto stages = sequence_or_pipeline.get_stages();
+    for (size_t s = 0; s < stages.size(); s++)
+    {
+        const int n_threads = stages[s]->get_n_threads();
+        std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
+        aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true, false);
+    }
 #else
-        std::cout << "#" << std::endl;
-        aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
+    std::cout << "#" << std::endl;
+    aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
 #endif
 
     printf("# End of the program, exiting.\n");
