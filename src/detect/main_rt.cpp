@@ -674,21 +674,23 @@ int main(int argc, char** argv) {
            n_noise, (unsigned long)real_n_tracks);
     auto time_duration = (int64_t)std::chrono::duration_cast<std::chrono::microseconds>(t_stop - t_start).count();
     auto time_duration_sec = time_duration * 1e-6;
-    printf("# -> Took %f seconds (avg %d FPS)\n", time_duration_sec, (int)(n_frames / time_duration_sec));
+    printf("# -> Took %6.3f seconds (avg %d FPS)\n", time_duration_sec, (int)(n_frames / time_duration_sec));
 
     // display the statistics of the tasks (if enabled)
+    if (p_task_stats) {
 #ifdef FMDT_ENABLE_PIPELINE
-    auto stages = sequence_or_pipeline.get_stages();
-    for (size_t s = 0; s < stages.size(); s++)
-    {
-        const int n_threads = stages[s]->get_n_threads();
-        std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
-        aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true, false);
-    }
+        auto stages = sequence_or_pipeline.get_stages();
+        for (size_t s = 0; s < stages.size(); s++)
+        {
+            const int n_threads = stages[s]->get_n_threads();
+            std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
+            aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true, false);
+        }
 #else
-    std::cout << "#" << std::endl;
-    aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
+        std::cout << "#" << std::endl;
+        aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
 #endif
+    }
 
     printf("# End of the program, exiting.\n");
 
