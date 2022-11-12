@@ -246,17 +246,17 @@ int main(int argc, char** argv) {
     // objects allocation
     const size_t b = 1; // image border
     const size_t n_ffmpeg_threads = 4; // 0 = use all the threads available
-    Video* video = nullptr;
-    Images* images = nullptr;
+    std::unique_ptr<Video> video;
+    std::unique_ptr<Images> images;
     size_t i0, i1, j0, j1;
     if (!tools_is_dir(p_in_video)) {
-        video = new Video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, n_ffmpeg_threads, b);
+        video.reset(new Video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, n_ffmpeg_threads, b));
         i0 = video->get_i0();
         i1 = video->get_i1();
         j0 = video->get_j0();
         j1 = video->get_j1();
     } else {
-        images = new Images(p_in_video, p_fra_start, p_fra_end, p_fra_skip, b, p_video_buff);
+        images.reset(new Images(p_in_video, p_fra_start, p_fra_end, p_fra_skip, b, p_video_buff));
         i0 = images->get_i0();
         i1 = images->get_i1();
         j0 = images->get_j0();
@@ -471,7 +471,7 @@ int main(int argc, char** argv) {
         log_frame[lgr_fra::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
     }
 
-    // create reporters and probes for the statistics file
+    // create reporters and probes for the real-time probes file
     size_t inter_frame_lvl = 1;
     aff3ct::tools::Reporter_probe rep_fra_stats("Frame Counter", inter_frame_lvl);
     std::unique_ptr<aff3ct::module::Probe<>> prb_fra_id(rep_fra_stats.create_probe_occurrence("ID"));
@@ -614,13 +614,21 @@ int main(int argc, char** argv) {
     // -- EXECUTE SEQUENCE -- //
     // ---------------------- //
 
+    std::chrono::time_point<std::chrono::steady_clock> t_start;
     unsigned n_frames = 0;
     std::function<bool(const std::vector<const int*>&)> stop_condition =
-        [&tracking, &n_frames, &terminal_probes, &rt_probes_file] (const std::vector<const int*>& statuses) {
+        [&tracking, &n_frames, &terminal_probes, &rt_probes_file, &t_start] (const std::vector<const int*>& statuses) {
             if (statuses.back() != nullptr) {
                 fprintf(stderr, "(II) Frame n°%4u", n_frames);
                 unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
                 size_t n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
+
+                auto t_stop = std::chrono::steady_clock::now();
+                auto time_duration = (int64_t)std::chrono::duration_cast<std::chrono::microseconds>(t_stop - t_start).count();
+                auto time_duration_sec = time_duration * 1e-6;
+
+                fprintf(stderr, " -- Time = %6.3f sec", time_duration_sec);
+                fprintf(stderr, " -- FPS = %4d", (int)(n_frames / time_duration_sec));
                 fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
                         n_stars, n_noise, (unsigned long)n_tracks);
                 fflush(stderr);
@@ -633,6 +641,7 @@ int main(int argc, char** argv) {
 
     printf("# The program is running...\n");
 
+    t_start = std::chrono::steady_clock::now();
 #ifdef FMDT_ENABLE_PIPELINE
     sequence_or_pipeline.exec({
         [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 0
@@ -641,6 +650,9 @@ int main(int argc, char** argv) {
 #else
     sequence_or_pipeline.exec(stop_condition);
 #endif
+    auto t_stop = std::chrono::steady_clock::now();
+    auto time_duration = (int64_t)std::chrono::duration_cast<std::chrono::microseconds>(t_stop - t_start).count();
+    auto time_duration_sec = time_duration * 1e-6;
 
     // ------------------- //
     // -- PRINT RESULTS -- //
@@ -661,6 +673,7 @@ int main(int argc, char** argv) {
     printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, (unsigned long)real_n_tracks);
+    printf("# -> Took %f seconds (avg %d FPS)\n", time_duration_sec, (int)(n_frames / time_duration_sec));
 
     // display the statistics of the tasks (if enabled)
 #ifdef FMDT_ENABLE_PIPELINE
@@ -681,11 +694,6 @@ int main(int argc, char** argv) {
 #ifdef FMDT_ENABLE_PIPELINE
     sequence_or_pipeline.unbind_adaptors();
 #endif
-
-    if (video)
-        delete video;
-    if (images)
-        delete images;
 
     return EXIT_SUCCESS;
 }
