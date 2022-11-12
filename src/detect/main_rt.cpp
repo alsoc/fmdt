@@ -308,9 +308,41 @@ int main(int argc, char** argv) {
     Logger_frame log_frame(p_out_frames ? p_out_frames : "", i0, i1, j0, j1, b);
     log_motion.set_custom_name("Logger_motio");
 
+    // create reporters and probes for the real-time probes file
+    size_t inter_frame_lvl = 1;
+    aff3ct::tools::Reporter_probe rep_fra_stats("Frame Counter", inter_frame_lvl);
+    std::unique_ptr<aff3ct::module::Probe<>> prb_fra_id(rep_fra_stats.create_probe_occurrence("ID"));
+
+    aff3ct::tools::Reporter_probe rep_thr_stats("Throughput, latency", "and time", inter_frame_lvl);
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_thr  (rep_thr_stats.create_probe_throughput("FPS"));
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_lat  (rep_thr_stats.create_probe_latency   ("LAT")); // only valid for sequence, invalid for pipeline
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_time (rep_thr_stats.create_probe_time      ("TIME"));
+    const uint64_t mod = 1000000ul * 60ul * 10; // limit to 10 minutes timestamp
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_tstab(rep_thr_stats.create_probe_timestamp ("TSTAB", mod, 200)); // timestamp begin
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_tstae(rep_thr_stats.create_probe_timestamp ("TSTAE", mod, 200)); // timestamp end
+
+    const std::vector<aff3ct::tools::Reporter*>& reporters = { &rep_fra_stats, &rep_thr_stats };
+    aff3ct::tools::Terminal_dump terminal_probes(reporters);
+
+    std::ofstream rt_probes_file;
+    if (p_out_probes) {
+        rt_probes_file.open(p_out_probes);
+        rt_probes_file << "####################" << std::endl;
+        rt_probes_file << "# Real-time probes #" << std::endl;
+        rt_probes_file << "####################" << std::endl;
+        terminal_probes.legend(rt_probes_file);
+    }
+
     // ------------------- //
     // -- TASKS BINDING -- //
     // ------------------- //
+
+    if (p_out_probes) {
+        if (video)
+            (*video)[vid::tsk::generate] = (*prb_thr_tstab)[aff3ct::module::prb::sck::probe_noin::status];
+        else
+            (*images)[img::tsk::generate] = (*prb_thr_tstab)[aff3ct::module::prb::sck::probe_noin::status];
+    }
 
     // Step 0 : delais => caractéristiques des ROIs à t - 1
     delayer_ROI_id[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
@@ -472,35 +504,7 @@ int main(int argc, char** argv) {
         log_frame[lgr_fra::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
     }
 
-    // create reporters and probes for the real-time probes file
-    size_t inter_frame_lvl = 1;
-    aff3ct::tools::Reporter_probe rep_fra_stats("Frame Counter", inter_frame_lvl);
-    std::unique_ptr<aff3ct::module::Probe<>> prb_fra_id(rep_fra_stats.create_probe_occurrence("ID"));
-
-    aff3ct::tools::Reporter_probe rep_thr_stats("Throughput, latency", "and time", inter_frame_lvl);
-    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_thr  (rep_thr_stats.create_probe_throughput("FPS"));
-    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_lat  (rep_thr_stats.create_probe_latency   ("LAT")); // only valid for sequence, invalid for pipeline
-    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_time (rep_thr_stats.create_probe_time      ("TIME"));
-    const uint64_t mod = 1000000ul * 60ul * 10; // limit to 10 minutes timestamp
-    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_tstab(rep_thr_stats.create_probe_timestamp ("TSTAB", mod)); // timestamp begin
-    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_tstae(rep_thr_stats.create_probe_timestamp ("TSTAE", mod)); // timestamp end
-
-    const std::vector<aff3ct::tools::Reporter*>& reporters = { &rep_fra_stats, &rep_thr_stats };
-    aff3ct::tools::Terminal_dump terminal_probes(reporters);
-
-    std::ofstream rt_probes_file;
     if (p_out_probes) {
-        rt_probes_file.open(p_out_probes);
-        rt_probes_file << "####################" << std::endl;
-        rt_probes_file << "# Real-time probes #" << std::endl;
-        rt_probes_file << "####################" << std::endl;
-        terminal_probes.legend(rt_probes_file);
-
-        // bind probes
-        if (video)
-            (*video)[vid::tsk::generate] = (*prb_thr_tstab)[aff3ct::module::prb::sck::probe_noin::status];
-        else
-            (*images)[img::tsk::generate] = (*prb_thr_tstab)[aff3ct::module::prb::sck::probe_noin::status];
         (*prb_fra_id   )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
         (*prb_thr_thr  )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
         (*prb_thr_lat  )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
@@ -642,6 +646,13 @@ int main(int argc, char** argv) {
         };
 
     printf("# The program is running...\n");
+
+    if (p_out_probes) {
+        // reset start time to NOW!
+        prb_thr_thr->reset();
+        prb_thr_lat->reset();
+        prb_thr_time->reset();
+    }
 
     t_start = std::chrono::steady_clock::now();
 #ifdef FMDT_ENABLE_PIPELINE
