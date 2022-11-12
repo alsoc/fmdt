@@ -233,6 +233,10 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--video-loop' has to be bigger than 0\n");
         exit(1);
     }
+#ifndef FMDT_ENABLE_PIPELINE
+    if (p_out_probes)
+        fprintf(stderr, "(WW) Using '--out-probes' without pipeline is not very useful...\n");
+#endif
 
     // -------------------------------- //
     // -- INITIALISATION GLOBAL DATA -- //
@@ -317,11 +321,18 @@ int main(int argc, char** argv) {
     std::unique_ptr<aff3ct::module::Probe<>> prb_thr_thr  (rep_thr_stats.create_probe_throughput("FPS"));
     std::unique_ptr<aff3ct::module::Probe<>> prb_thr_lat  (rep_thr_stats.create_probe_latency   ("LAT")); // only valid for sequence, invalid for pipeline
     std::unique_ptr<aff3ct::module::Probe<>> prb_thr_time (rep_thr_stats.create_probe_time      ("TIME"));
-    const uint64_t mod = 1000000ul * 60ul * 10; // limit to 10 minutes timestamp
-    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_tstab(rep_thr_stats.create_probe_timestamp ("TSTAB", mod, 200)); // timestamp begin
-    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_tstae(rep_thr_stats.create_probe_timestamp ("TSTAE", mod, 200)); // timestamp end
 
-    const std::vector<aff3ct::tools::Reporter*>& reporters = { &rep_fra_stats, &rep_thr_stats };
+    aff3ct::tools::Reporter_probe rep_timestamp_stats("Timestamps", "(in microseconds) [SX = stage X, B = begin, E = end]", inter_frame_lvl);
+    const uint64_t mod = 1000000ul * 60ul * 10; // limit to 10 minutes timestamp
+    const size_t probe_buff = 200; // size of the buffer used by the probes to record values
+    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s1b(rep_timestamp_stats.create_probe_timestamp      ("S1_B", mod,    probe_buff   )); // timestamp stage 1 begin
+    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s1e(rep_timestamp_stats.create_probe_timestamp      ("S1_E", mod,    probe_buff   )); // timestamp stage 1 end
+    std::unique_ptr<aff3ct::module::Probe<uint64_t>> prb_ts_s2b(rep_timestamp_stats.create_probe_value<uint64_t>("S2_B", "(us)", probe_buff, 1)); // timestamp stage 2 begin
+    std::unique_ptr<aff3ct::module::Probe<uint64_t>> prb_ts_s2e(rep_timestamp_stats.create_probe_value<uint64_t>("S2_E", "(us)", probe_buff, 1)); // timestamp stage 2 end
+    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s3b(rep_timestamp_stats.create_probe_timestamp      ("S3_B", mod,    probe_buff   )); // timestamp stage 3 begin
+    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s3e(rep_timestamp_stats.create_probe_timestamp      ("S3_E", mod,    probe_buff   )); // timestamp stage 3 end
+
+    const std::vector<aff3ct::tools::Reporter*>& reporters = { &rep_fra_stats, &rep_thr_stats, &rep_timestamp_stats };
     aff3ct::tools::Terminal_dump terminal_probes(reporters);
 
     std::ofstream rt_probes_file;
@@ -333,15 +344,34 @@ int main(int argc, char** argv) {
         terminal_probes.legend(rt_probes_file);
     }
 
+    // create on-the-fly stateless modules to collect timestamps in the stage 2 (parallel) of the pipeline
+    std::unique_ptr<aff3ct::module::Stateless> ts_s2b(new aff3ct::module::Stateless());
+    ts_s2b->set_name("Timestamper");
+    ts_s2b->set_short_name("Timestamper");
+    auto &tsk = ts_s2b->create_task("exec");
+    auto ts_out_val = ts_s2b->create_socket_out<uint64_t>(tsk, "out", 1);
+    ts_s2b->create_codelet(tsk, [ts_out_val, mod](aff3ct::module::Module &m, aff3ct::runtime::Task &t,
+        const size_t frame_id) -> int {
+        std::chrono::microseconds us = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()
+        );
+        static_cast<uint64_t*>(t[ts_out_val].get_dataptr())[frame_id] =
+            mod ? (uint64_t)us.count() % mod : (uint64_t)us.count();
+        return aff3ct::runtime::status_t::SUCCESS;
+    });
+    std::unique_ptr<aff3ct::module::Stateless> ts_s2e(ts_s2b->clone());
+    ts_s2b->set_custom_name("Tsta<S2_B>");
+    ts_s2e->set_custom_name("Tsta<S2_E>");
+
     // ------------------- //
     // -- TASKS BINDING -- //
     // ------------------- //
 
     if (p_out_probes) {
         if (video)
-            (*video)[vid::tsk::generate] = (*prb_thr_tstab)[aff3ct::module::prb::sck::probe_noin::status];
+            (*video)[vid::tsk::generate] = (*prb_ts_s1b)[aff3ct::module::prb::sck::probe_noin::status];
         else
-            (*images)[img::tsk::generate] = (*prb_thr_tstab)[aff3ct::module::prb::sck::probe_noin::status];
+            (*images)[img::tsk::generate] = (*prb_ts_s1b)[aff3ct::module::prb::sck::probe_noin::status];
     }
 
     // Step 0 : delais => caractéristiques des ROIs à t - 1
@@ -356,6 +386,11 @@ int main(int argc, char** argv) {
     delayer_ROI_x[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
     delayer_ROI_y[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
     delayer_n_ROI[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
+
+    if (p_out_probes) {
+        (*prb_ts_s1e)[aff3ct::module::prb::tsk::probe] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
+        (*ts_s2b)("exec") = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
+    }
 
     // Step 1 : seuillage low/high
     threshold_min[thr::sck::apply::in_img] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
@@ -381,6 +416,11 @@ int main(int argc, char** argv) {
     merger[ftr_mrg::sck::merge::in_ROI_x] = extractor[ftr_ext::sck::extract::out_ROI_x];
     merger[ftr_mrg::sck::merge::in_ROI_y] = extractor[ftr_ext::sck::extract::out_ROI_y];
     merger[ftr_mrg::sck::merge::in_n_ROI] = lsl[ccl::sck::apply::out_n_ROI];
+
+    if (p_out_probes) {
+        (*ts_s2e)("exec") = merger[ftr_mrg::sck::merge::status];
+        (*prb_ts_s3b)[aff3ct::module::prb::tsk::probe] = merger[ftr_mrg::sck::merge::status];
+    }
 
     // Step 4 : mise en correspondance
     matcher[knn::sck::match::in_ROI0_id] = delayer_ROI_id[aff3ct::module::dly::sck::produce::out];
@@ -505,73 +545,129 @@ int main(int argc, char** argv) {
     }
 
     if (p_out_probes) {
-        (*prb_fra_id   )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
-        (*prb_thr_thr  )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
-        (*prb_thr_lat  )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
-        (*prb_thr_time )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
-        (*prb_thr_tstae)[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_fra_id  )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_thr_thr )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_thr_lat )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_thr_time)[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_ts_s2b  )[aff3ct::module::prb::sck::probe::in] = (*ts_s2b)["exec::out"];
+        (*prb_ts_s2e  )[aff3ct::module::prb::sck::probe::in] = (*ts_s2e)["exec::out"];
+        (*prb_ts_s3e  )[aff3ct::module::prb::tsk::probe] = (*prb_ts_s2e)[aff3ct::module::prb::sck::probe::status];
     }
-
-    // determine the first task in the tasks graph depending on the command line parameters
-    aff3ct::runtime::Task* first_task = nullptr;
-    if (p_out_probes)
-        first_task = &(*prb_thr_tstab)[aff3ct::module::prb::tsk::probe];
-    else
-        first_task = video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate];
 
     // --------------------- //
     // -- CREATE SEQUENCE -- //
     // --------------------- //
 
+    // determine the first task in the tasks graph
+    aff3ct::runtime::Task* first_task = nullptr;
+    if (p_out_probes)
+        first_task = &(*prb_ts_s1b)[aff3ct::module::prb::tsk::probe];
+    else
+        first_task = video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate];
+
 #ifdef FMDT_ENABLE_PIPELINE
     // pipeline definition with separation stages
     std::vector<std::tuple<std::vector<aff3ct::runtime::Task*>,
                            std::vector<aff3ct::runtime::Task*>,
-                           std::vector<aff3ct::runtime::Task*>>> sep_stages =
-    { // pipeline stage 1
-      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                      std::vector<aff3ct::runtime::Task*>>(
-        { first_task, },
-        { video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate], },
-        { /* no exclusions in this stage */ } ),
-      // pipeline stage 2
-      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                      std::vector<aff3ct::runtime::Task*>>(
-        { &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply] },
-        { &merger[ftr_mrg::tsk::merge], },
-        { /* no exclusions in this stage */ } ),
-      // pipeline stage 3
-      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                      std::vector<aff3ct::runtime::Task*>>(
-        { &delayer_ROI_id[aff3ct::module::dly::tsk::produce],
-          &delayer_ROI_xmin[aff3ct::module::dly::tsk::produce],
-          &delayer_ROI_xmax[aff3ct::module::dly::tsk::produce],
-          &delayer_ROI_ymin[aff3ct::module::dly::tsk::produce],
-          &delayer_ROI_ymax[aff3ct::module::dly::tsk::produce],
-          &delayer_ROI_S[aff3ct::module::dly::tsk::produce],
-          &delayer_ROI_Sx[aff3ct::module::dly::tsk::produce],
-          &delayer_ROI_Sy[aff3ct::module::dly::tsk::produce],
-          &delayer_ROI_x[aff3ct::module::dly::tsk::produce],
-          &delayer_ROI_y[aff3ct::module::dly::tsk::produce],
-          &delayer_n_ROI[aff3ct::module::dly::tsk::produce],
-          &matcher[knn::tsk::match],
-          &motion[ftr_mtn::tsk::compute],
-          &tracking[trk::tsk::perform],
-          &delayer_ROI_id[aff3ct::module::dly::tsk::memorize],
-          &delayer_ROI_xmin[aff3ct::module::dly::tsk::memorize],
-          &delayer_ROI_xmax[aff3ct::module::dly::tsk::memorize],
-          &delayer_ROI_ymin[aff3ct::module::dly::tsk::memorize],
-          &delayer_ROI_ymax[aff3ct::module::dly::tsk::memorize],
-          &delayer_ROI_S[aff3ct::module::dly::tsk::memorize],
-          &delayer_ROI_Sx[aff3ct::module::dly::tsk::memorize],
-          &delayer_ROI_Sy[aff3ct::module::dly::tsk::memorize],
-          &delayer_ROI_x[aff3ct::module::dly::tsk::memorize],
-          &delayer_ROI_y[aff3ct::module::dly::tsk::memorize],
-          &delayer_n_ROI[aff3ct::module::dly::tsk::memorize],
-          },
-        { },
-        { /* no exclusions in this stage */ } ),
-    };
+                           std::vector<aff3ct::runtime::Task*>>> sep_stages;
+
+    if (!p_out_probes) {
+        sep_stages =
+        { // pipeline stage 1
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate], },
+            { video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate], },
+            { /* no exclusions in this stage */ } ),
+          // pipeline stage 2
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply] },
+            { &merger[ftr_mrg::tsk::merge], },
+            { /* no exclusions in this stage */ } ),
+          // pipeline stage 3
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &delayer_ROI_id[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_xmin[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_xmax[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_ymin[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_ymax[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_S[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_Sx[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_Sy[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_x[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_y[aff3ct::module::dly::tsk::produce],
+              &delayer_n_ROI[aff3ct::module::dly::tsk::produce],
+              &matcher[knn::tsk::match],
+              &motion[ftr_mtn::tsk::compute],
+              &tracking[trk::tsk::perform],
+              &delayer_ROI_id[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_xmin[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_xmax[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_ymin[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_ymax[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_S[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_Sx[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_Sy[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_x[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_y[aff3ct::module::dly::tsk::memorize],
+              &delayer_n_ROI[aff3ct::module::dly::tsk::memorize],
+              },
+            { },
+            { /* no exclusions in this stage */ } ),
+        };
+    } else {
+        sep_stages =
+        { // pipeline stage 1
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &(*prb_ts_s1b)[aff3ct::module::prb::tsk::probe], &(*prb_ts_s1e)[aff3ct::module::prb::tsk::probe] },
+            { video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate], },
+            { /* no exclusions in this stage */ } ),
+          // pipeline stage 2
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &(*ts_s2b)("exec"), &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply], &(*ts_s2e)("exec") },
+            { &merger[ftr_mrg::tsk::merge], },
+            { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe], &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe],
+              &(*prb_ts_s3b)[aff3ct::module::prb::tsk::probe] } ),
+          // pipeline stage 3
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &(*prb_ts_s3b)[aff3ct::module::prb::tsk::probe],
+              &delayer_ROI_id[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_xmin[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_xmax[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_ymin[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_ymax[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_S[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_Sx[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_Sy[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_x[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_y[aff3ct::module::dly::tsk::produce],
+              &delayer_n_ROI[aff3ct::module::dly::tsk::produce],
+              &matcher[knn::tsk::match],
+              &motion[ftr_mtn::tsk::compute],
+              &tracking[trk::tsk::perform],
+              &delayer_ROI_id[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_xmin[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_xmax[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_ymin[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_ymax[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_S[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_Sx[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_Sy[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_x[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_y[aff3ct::module::dly::tsk::memorize],
+              &delayer_n_ROI[aff3ct::module::dly::tsk::memorize],
+              &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe],
+              &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe],
+              },
+            { },
+            { /* no exclusions in this stage */ } ),
+        };
+    }
 
     if (p_out_stats) {
         std::get<0>(sep_stages[2]).push_back(&log_ROI[lgr_roi::tsk::write]);
