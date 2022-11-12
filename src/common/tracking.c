@@ -406,6 +406,7 @@ void _insert_new_track(const ROI_light_t* ROI_list, unsigned n_ROI, uint16_t* tr
                        ROI_light_t* track_end, enum state_e* track_state, enum obj_e* track_obj_type, size_t* n_tracks,
                        BB_t** BB_array, int frame, enum obj_e type) {
     assert(n_ROI >= 1);
+    assert((*n_tracks) + 1 < MAX_TRACKS_SIZE);
     size_t cur_track = *n_tracks;
     track_id[cur_track] = cur_track + 1;
     // light_copy_elmt_ROI_array(ROI_list, track_begin, n_ROI - 1, cur_track);
