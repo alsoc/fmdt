@@ -3,9 +3,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <nrc2.h>
 #include <algorithm>
 #include <memory>
+#include <nrc2.h>
+#include <aff3ct-core.hpp>
 
 #include "fmdt/args.h"
 #include "fmdt/defines.h"
@@ -523,19 +524,19 @@ int main(int argc, char** argv) {
     std::vector<std::tuple<std::vector<aff3ct::runtime::Task*>,
                            std::vector<aff3ct::runtime::Task*>,
                            std::vector<aff3ct::runtime::Task*>>> sep_stages =
-    { // pipeline stage 0
+    { // pipeline stage 1
       std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                       std::vector<aff3ct::runtime::Task*>>(
         { first_task, },
         { video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate], },
         { /* no exclusions in this stage */ } ),
-      // pipeline stage 1
+      // pipeline stage 2
       std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                       std::vector<aff3ct::runtime::Task*>>(
         { &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply] },
         { &merger[ftr_mrg::tsk::merge], },
-        { } ),
-      // pipeline stage 2
+        { /* no exclusions in this stage */ } ),
+      // pipeline stage 3
       std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                       std::vector<aff3ct::runtime::Task*>>(
         { &delayer_ROI_id[aff3ct::module::dly::tsk::produce],
@@ -582,15 +583,15 @@ int main(int argc, char** argv) {
     aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
                                                    sep_stages,
                                                    {
-                                                     1, // number of threads in the stage 0
-                                                     4, // number of threads in the stage 1
-                                                     1, // number of threads in the stage 2
+                                                     1, // number of threads in the stage 1
+                                                     4, // number of threads in the stage 2
+                                                     1, // number of threads in the stage 3
                                                    }, {
-                                                     16, // synchronization buffer size between stages 0 and 1
                                                      16, // synchronization buffer size between stages 1 and 2
+                                                     16, // synchronization buffer size between stages 2 and 3
                                                    }, {
-                                                     false, // type of waiting between stages 0 and 1 (true = active, false = passive)
                                                      false, // type of waiting between stages 1 and 2 (true = active, false = passive)
+                                                     false, // type of waiting between stages 2 and 3 (true = active, false = passive)
                                                    });
 #else
     aff3ct::runtime::Sequence sequence_or_pipeline(*first_task, 1);
@@ -645,9 +646,9 @@ int main(int argc, char** argv) {
     t_start = std::chrono::steady_clock::now();
 #ifdef FMDT_ENABLE_PIPELINE
     sequence_or_pipeline.exec({
-        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 0
         [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 1
-        stop_condition});                                               // stop condition stage 2
+        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 2
+        stop_condition});                                               // stop condition stage 3
 #else
     sequence_or_pipeline.exec(stop_condition);
 #endif
@@ -683,7 +684,8 @@ int main(int argc, char** argv) {
         for (size_t s = 0; s < stages.size(); s++)
         {
             const int n_threads = stages[s]->get_n_threads();
-            std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
+            std::cout << "#" << std::endl << "# Pipeline stage " << (s + 1) << " (" << n_threads << " thread(s)): "
+                      << std::endl;
             aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true, false);
         }
 #else
