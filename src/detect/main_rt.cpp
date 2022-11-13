@@ -372,24 +372,10 @@ int main(int argc, char** argv) {
             (*video)[vid::tsk::generate] = (*prb_ts_s1b)[aff3ct::module::prb::sck::probe_noin::status];
         else
             (*images)[img::tsk::generate] = (*prb_ts_s1b)[aff3ct::module::prb::sck::probe_noin::status];
-    }
 
-    // Step 0 : delais => caractéristiques des ROIs à t - 1
-    delayer_ROI_id[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-    delayer_ROI_xmin[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-    delayer_ROI_xmax[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-    delayer_ROI_ymin[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-    delayer_ROI_ymax[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-    delayer_ROI_S[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-    delayer_ROI_Sx[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-    delayer_ROI_Sy[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-    delayer_ROI_x[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-    delayer_ROI_y[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-    delayer_n_ROI[aff3ct::module::dly::tsk::produce] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-
-    if (p_out_probes) {
         (*prb_ts_s1e)[aff3ct::module::prb::tsk::probe] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
         (*ts_s2b)("exec") = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
+        (*prb_ts_s2b)[aff3ct::module::prb::sck::probe::in] = (*ts_s2b)["exec::out"];
     }
 
     // Step 1 : seuillage low/high
@@ -418,9 +404,23 @@ int main(int argc, char** argv) {
     merger[ftr_mrg::sck::merge::in_n_ROI] = lsl[ccl::sck::apply::out_n_ROI];
 
     if (p_out_probes) {
-        (*ts_s2e)("exec") = merger[ftr_mrg::sck::merge::status];
-        (*prb_ts_s3b)[aff3ct::module::prb::tsk::probe] = merger[ftr_mrg::sck::merge::status];
+        (*ts_s2e)("exec") = merger[ftr_mrg::sck::merge::out_ROI_id];
+        (*prb_ts_s2e)[aff3ct::module::prb::sck::probe::in] = (*ts_s2e)["exec::out"];
+        (*prb_ts_s3b)[aff3ct::module::prb::tsk::probe] = (*prb_ts_s2e)[aff3ct::module::prb::sck::probe::status];
     }
+
+    // Step 3.5 : delais => caractéristiques des ROIs à t - 1
+    delayer_ROI_id[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_xmin[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_xmax[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_ymin[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_ymax[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_S[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_Sx[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_Sy[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_x[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_y[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_n_ROI[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
 
     // Step 4 : mise en correspondance
     matcher[knn::sck::match::in_ROI0_id] = delayer_ROI_id[aff3ct::module::dly::sck::produce::out];
@@ -549,9 +549,7 @@ int main(int argc, char** argv) {
         (*prb_thr_thr )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
         (*prb_thr_lat )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
         (*prb_thr_time)[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
-        (*prb_ts_s2b  )[aff3ct::module::prb::sck::probe::in] = (*ts_s2b)["exec::out"];
-        (*prb_ts_s2e  )[aff3ct::module::prb::sck::probe::in] = (*ts_s2e)["exec::out"];
-        (*prb_ts_s3e  )[aff3ct::module::prb::tsk::probe] = (*prb_ts_s2e)[aff3ct::module::prb::sck::probe::status];
+        (*prb_ts_s3e  )[aff3ct::module::prb::tsk::probe] = (*prb_thr_time)[aff3ct::module::prb::sck::probe_noin::status];
     }
 
     // --------------------- //
@@ -630,12 +628,12 @@ int main(int argc, char** argv) {
                           std::vector<aff3ct::runtime::Task*>>(
             { &(*ts_s2b)("exec"), &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply], &(*ts_s2e)("exec") },
             { &merger[ftr_mrg::tsk::merge], },
-            { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe], &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe],
-              &(*prb_ts_s3b)[aff3ct::module::prb::tsk::probe] } ),
+            { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe], &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe], } ),
           // pipeline stage 3
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                           std::vector<aff3ct::runtime::Task*>>(
-            { &(*prb_ts_s3b)[aff3ct::module::prb::tsk::probe],
+            { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe],
+              &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe],
               &delayer_ROI_id[aff3ct::module::dly::tsk::produce],
               &delayer_ROI_xmin[aff3ct::module::dly::tsk::produce],
               &delayer_ROI_xmax[aff3ct::module::dly::tsk::produce],
@@ -661,8 +659,6 @@ int main(int argc, char** argv) {
               &delayer_ROI_x[aff3ct::module::dly::tsk::memorize],
               &delayer_ROI_y[aff3ct::module::dly::tsk::memorize],
               &delayer_n_ROI[aff3ct::module::dly::tsk::memorize],
-              &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe],
-              &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe],
               },
             { },
             { /* no exclusions in this stage */ } ),
