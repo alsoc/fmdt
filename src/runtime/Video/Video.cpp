@@ -25,19 +25,12 @@ Video::Video(const std::string filename, const size_t frame_start, const size_t 
     this->create_codelet(p, [ps_out_img, ps_out_frame]
                             (aff3ct::module::Module &m, aff3ct::runtime::Task &t,const size_t frame_id) -> int {
         auto &vid = static_cast<Video&>(m);
-        
-        uint8_t* m_out_img = static_cast<uint8_t*>(t[ps_out_img].get_dataptr());      
- 
-        *static_cast<uint32_t*>(t[ps_out_frame].get_dataptr()) = vid.video->frame_current;
-        int ret = video_get_next_frame(vid.video, vid.out_img);
-        vid.done = ret ? false : true;
-
+        uint8_t* m_out_img = static_cast<uint8_t*>(t[ps_out_img].get_dataptr());
         tools_linear_2d_nrc_ui8matrix((const uint8_t*)m_out_img, vid.i0 - vid.b, vid.i1 + vid.b, vid.j0 - vid.b, 
                                       vid.j1 + vid.b, (const uint8_t**)vid.out_img);
 
         int cur_fra = video_get_next_frame(vid.video, vid.out_img);
         vid.done = cur_fra == -1 ? true : false;
-
         if (vid.done)
             throw aff3ct::tools::processing_aborted(__FILE__, __LINE__, __func__);
 
