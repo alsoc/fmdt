@@ -7,10 +7,11 @@ PATH_BUILD = PATH_HEAD+"/build"
 PATH_EXE = PATH_BUILD+"/exe"
 
 # List of executable to compare
-L_EXE = ["fmdt-detect", "fmdt-detect-rt", "fmdt-detect-rt2"]
+# L_EXE = ["fmdt-detect", "fmdt-detect-rt", "fmdt-detect-rt2"]
+L_EXE = ["fmdt-detect", "fmdt-detect-rt-pip", "fmdt-detect-rt-seq"]
 
 parser = argparse.ArgumentParser(prog='compare.py', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--in-video',      action='store', dest='inVideo',      type=str,   default=PATH_BUILD + "/2022_05_31_tauh_34_meteors.mp4", help='Path to the input video.')
+parser.add_argument('--in-video',      action='store', dest='inVideo',      type=str,   default="",                                             help='Path to the input video.')
 parser.add_argument('--refs-path',     action='store', dest='refsPath',     type=str,   default=PATH_BUILD + "/refs",                           help='Path to the references to compare.')
 parser.add_argument('--new-ref-exe',   action='store', dest='newRefExe',    type=str,   default="",                                             help='Executable considered for ref.')
 
@@ -110,9 +111,9 @@ def diff_txt(filename, p_v1, p_v2):
 
 def display_res(res, exe_name):
     if res == [] :
-        print("# ---------------------------------")
-        print("# ---- {:>15s} checked ----".format(exe_name))
-        print("# ---------------------------------")
+        print("# -------------------------------------------")
+        print("# ---- {:>25s} checked ----".format(exe_name))
+        print("# -------------------------------------------")
         print("#")
         return 0    
 
@@ -162,9 +163,16 @@ def main_diff(path_ref, exe_name):
 
 
 def main():
+    print("#")
+    print("#         SCRIPT COMPARE.PY IS STARTING")
+    print("#")
 
     # execute and save all the data in ../build/name_executable
     main_exec()  
+
+    print("#")
+    print("#         END OF THE DATA GENERATION")
+    print("#")
 
     # choose the references
     if args.newRefExe == "" :
@@ -180,6 +188,10 @@ def main():
     for exe_cmp in L_EXE :
         main_diff(ref, exe_cmp)
 
+
+    print("#")
+    print("#         END OF THE SCRIPT")
+    print("#")
     return 0
 
 args = parser.parse_args()
