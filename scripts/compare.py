@@ -1,4 +1,7 @@
+#!/usr/bin/env python3
+
 import os
+import sys
 import hashlib
 import argparse
 
@@ -7,65 +10,61 @@ PATH_BUILD = PATH_HEAD+"/build"
 PATH_EXE = PATH_BUILD+"/exe"
 
 # List of executable to compare
-# L_EXE = ["fmdt-detect", "fmdt-detect-rt", "fmdt-detect-rt2"]
-L_EXE = ["fmdt-detect", "fmdt-detect-rt-pip", "fmdt-detect-rt-seq"]
+L_EXE = ["fmdt-detect", "fmdt-detect-rt-pip", "fmdt-detect-rt-seq", "fmdt-detect-rt2"]
 
 parser = argparse.ArgumentParser(prog='compare.py', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--in-video',      action='store', dest='inVideo',      type=str,   default="",                                             help='Path to the input video.')
-parser.add_argument('--refs-path',     action='store', dest='refsPath',     type=str,   default=PATH_BUILD + "/refs",                           help='Path to the references to compare.')
-parser.add_argument('--new-ref-exe',   action='store', dest='newRefExe',    type=str,   default="",                                             help='Executable considered for ref.')
+parser.add_argument('--in-video',      action='store', dest='inVideo',      type=str,   default="",                   help='Path to the input video.')
+parser.add_argument('--refs-path',     action='store', dest='refsPath',     type=str,   default=PATH_BUILD + "/refs", help='Path to the references to compare.')
+parser.add_argument('--new-ref-exe',   action='store', dest='newRefExe',    type=str,   default="",                   help='Executable considered for ref.')
 
-
-def main_exec(): 
-
-    in_video       = " --in-video       " + args.inVideo
-    fra_start      = " --fra-start      " + str(0) 
-    fra_end        = " --fra-end        " + str(10000) 
-    skip_fra       = " --skip-fra       " + str(0) 
-    light_min      = " --light-min      " + str(55)  
-    light_max      = " --light-max      " + str(80)  
-    surface_min    = " --surface-min    " + str(3)  
-    surface_max    = " --surface-max    " + str(1000)  
-    k              = " --k              " + str(3)  
-    r_extrapol     = " --r-extrapol     " + str(5)  
-    angle_max      = " --angle-max      " + str(20)  
-    fra_star_min   = " --fra-star-min   " + str(15)  
-    fra_meteor_min = " --fra-meteor-min " + str(3)  
-    fra_meteor_max = " --fra-meteor-max " + str(100)  
-    diff_dev       = " --diff-dev       " + str(4.0) 
-    track_all      = " --track-all      " 
+def main_exec():
+    in_video       = " --in-video "       + args.inVideo
+    fra_start      = " --fra-start "      + str(0)
+    fra_end        = " --fra-end "        + str(10000)
+    fra_skip       = " --fra-skip "       + str(0)
+    light_min      = " --light-min "      + str(55)
+    light_max      = " --light-max "      + str(80)
+    surface_min    = " --surface-min "    + str(3)
+    surface_max    = " --surface-max "    + str(1000)
+    k              = " --k "              + str(3)
+    r_extrapol     = " --r-extrapol "     + str(5)
+    angle_max      = " --angle-max "      + str(20)
+    fra_star_min   = " --fra-star-min "   + str(15)
+    fra_meteor_min = " --fra-meteor-min " + str(3)
+    fra_meteor_max = " --fra-meteor-max " + str(100)
+    diff_dev       = " --diff-dev "       + str(4.0)
+    track_all      = " --track-all "
 
     print("#")
-    print("# OPTIONS  :")
-    print("# \t"+in_video       )
-    print("# \t"+fra_start      )
-    print("# \t"+fra_end        )
-    print("# \t"+skip_fra       )
-    print("# \t"+light_min      )
-    print("# \t"+light_max      )
-    print("# \t"+surface_min    )
-    print("# \t"+surface_max    )
-    print("# \t"+k              )
-    print("# \t"+r_extrapol     )
-    print("# \t"+angle_max      )
-    print("# \t"+fra_star_min   )
-    print("# \t"+fra_meteor_min )
-    print("# \t"+fra_meteor_max )
-    print("# \t"+diff_dev       )
-    print("# \t"+track_all      )
-
+    print("# OPTIONS:")
+    print("# \t" + in_video      )
+    print("# \t" + fra_start     )
+    print("# \t" + fra_end       )
+    print("# \t" + fra_skip      )
+    print("# \t" + light_min     )
+    print("# \t" + light_max     )
+    print("# \t" + surface_min   )
+    print("# \t" + surface_max   )
+    print("# \t" + k             )
+    print("# \t" + r_extrapol    )
+    print("# \t" + angle_max     )
+    print("# \t" + fra_star_min  )
+    print("# \t" + fra_meteor_min)
+    print("# \t" + fra_meteor_max)
+    print("# \t" + diff_dev      )
+    print("# \t" + track_all     )
 
     for i in L_EXE: 
-        out_bb         = " --out-bb        " + PATH_BUILD + "/" + i +  "/" + "bb.txt" 
-        out_frames     = " --out-frames    " + PATH_BUILD + "/" + i  
-        out_stats      = " --out-stats     " + PATH_BUILD + "/" + i  
-        bin            = PATH_EXE + "/" + i 
+        out_bb     = " --out-bb "     + PATH_BUILD + "/" + i + "/" + "bb.txt"
+        out_frames = " --out-frames " + PATH_BUILD + "/" + i
+        out_stats  = " --out-stats "  + PATH_BUILD + "/" + i
+        bin        = PATH_EXE + "/" + i
         print("# "+ out_bb)
         print("# "+ out_frames)
         print("# "+ out_stats)
         print("# "+ bin)
 
-        exec = bin + in_video + fra_start + fra_end + skip_fra + light_min + light_max + surface_min + surface_max + k + r_extrapol + angle_max + fra_star_min + fra_meteor_min + fra_meteor_max + diff_dev + track_all + out_bb + out_frames + out_stats 
+        exec = bin + in_video + fra_start + fra_end + fra_skip + light_min + light_max + surface_min + surface_max + k + r_extrapol + angle_max + fra_star_min + fra_meteor_min + fra_meteor_max + diff_dev + track_all + out_bb + out_frames + out_stats
 
         print("# "+ exec)
         os.system(exec)
@@ -77,7 +76,6 @@ def diff_pgm(filename, p_v1, p_v2):
     md5_hash1 = hashlib.md5()
     md5_hash2 = hashlib.md5()
     
-
     f_v1 = open(p_v1, "rb")
     f_v2 = open(p_v2, "rb")
 
@@ -121,14 +119,12 @@ def display_res(res, exe_name):
     print("#            FILE |                       EXE ||      LINE |                                                  refs  |                          diff for txt/checksum for pgm ")
     print("# ----------------|---------------------------||-----------|--------------------------------------------------------|--------------------------------------------------------")
 
-
     size = len(res)
     for i in range (size):
         (file,line,txt0,txt1) = res[i] 
         print("# {:>15s} |{:>26s} ||{:>10s} |{:>55s} |{:>56s}".format(file, exe_name, str(line), str(txt0, errors='replace')[:51], str(txt1, errors='replace')[:51]))
     print("#")
     return 1
-
 
 def main_diff(path_ref, exe_name):
     res = []
@@ -157,10 +153,7 @@ def main_diff(path_ref, exe_name):
             if r != []:
                 res = res + r
 
-    display_res(res, exe_name)
-
-    return 0
-
+    return display_res(res, exe_name)
 
 def main():
     print("#")
@@ -185,16 +178,17 @@ def main():
     print("#")
 
     # compare all the data with refs
+    errors = 0;
     for exe_cmp in L_EXE :
-        main_diff(ref, exe_cmp)
-
+        errors = errors + main_diff(ref, exe_cmp)
 
     print("#")
     print("#         END OF THE SCRIPT")
     print("#")
-    return 0
+    return errors
 
 args = parser.parse_args()
 parser.print_help()
 
-main()
+errors = main()
+sys.exit(errors);
