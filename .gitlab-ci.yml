@@ -1,0 +1,217 @@
+variables:
+  GIT_SUBMODULE_STRATEGY: none
+
+stages:
+  - build
+  - test
+  - coverage
+  - deploy
+
+before_script:
+  - hostname
+  - whoami
+# - pwd
+
+build-linux-gcc-c:
+  image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_gcc:v9.3.0
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - schedules
+  tags:
+    - linux
+    - docker
+  artifacts:
+    name: build-linux-gcc-c
+    paths:
+      - build_linux_gcc_c
+  script:
+    - export CC="gcc"
+    - export CXX="g++"
+    - export CFLAGS="-Wall -funroll-loops"
+    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=OFF"
+    - export NAME="build_linux_gcc_c"
+    - source ./ci/tools/threads.sh
+    - ./ci/build-linux-macos.sh
+
+build-linux-gcc-x64-avx2:
+  image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_gcc:v9.3.0
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - schedules
+  tags:
+    - x86_64
+    - linux
+    - docker
+  artifacts:
+    name: build-linux-gcc-x64-avx2
+    paths:
+      - build_linux_gcc_x64_avx2
+  script:
+    - export CC="gcc"
+    - export CXX="g++"
+    - export CFLAGS="-Wall -funroll-loops -m64 -mavx2 -mfma"
+    - export LFLAGS="-static -static-libgcc -static-libstdc++ -Wl,--whole-archive -lrt -lpthread -Wl,--no-whole-archive"
+    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON"
+    - export NAME="build_linux_gcc_x64_avx2"
+    - source ./ci/tools/threads.sh
+    - ./ci/build-linux-macos.sh
+
+build-linux-gcc-coverage:
+  image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_gcc:v9.3.0
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  tags:
+    - x86_64
+    - linux
+    - docker
+  artifacts:
+    name: build
+    paths:
+      - build
+  script:
+    - export CC="gcc"
+    - export CXX="g++"
+    - export CFLAGS="-Wall -funroll-loops -msse4.2 --coverage"
+    - export LFLAGS="--coverage"
+    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON"
+    - source ./ci/tools/threads.sh
+    - ./ci/build-linux-macos.sh
+
+build-linux-clang:
+  image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_clang:v10.0.0
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - schedules
+  tags:
+    - x86_64
+    - linux
+    - docker
+  artifacts:
+    name: build-linux-clang
+    paths:
+      - build_linux_clang
+  script:
+    - export CC="clang"
+    - export CXX="clang++"
+    - export CFLAGS="-Wall -funroll-loops"
+    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON"
+    - export NAME="build_linux_clang"
+    - source ./ci/tools/threads.sh
+    - ./ci/build-linux-macos.sh
+
+build-linux-clang-c:
+  image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_clang:v10.0.0
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - schedules
+  tags:
+    - x86_64
+    - linux
+    - docker
+  artifacts:
+    name: build-linux-clang-c
+    paths:
+      - build_linux_clang_c
+  script:
+    - export CC="clang"
+    - export CXX="clang++"
+    - export CFLAGS="-Wall -funroll-loops"
+    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=OFF"
+    - export NAME="build_linux_clang_c"
+    - source ./ci/tools/threads.sh
+    - ./ci/build-linux-macos.sh
+
+build-linux-icpc:
+  image: intel/oneapi-hpckit
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - schedules
+  tags:
+    - x86_64
+    - linux
+    - docker
+  artifacts:
+    name: build-linux-icpc
+    paths:
+      - build_linux_icpc
+  script:
+    - export CC="icc"
+    - export CXX="icpc"
+    - export CFLAGS="-Wall -funroll-loops -march=native -std=c++11"
+    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON"
+    - export NAME="build_linux_icpc"
+    - source ./ci/tools/threads.sh
+    - ./ci/build-linux-macos.sh
+
+test-coverage-regression:
+  image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_coverage
+  stage: test
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - schedules
+  needs:
+    - job: build-linux-gcc-coverage
+      artifacts: true
+  tags:
+    - x86_64
+    - sse4.2
+    - linux
+    - docker
+  artifacts:
+     name: code-coverage-files
+     when: always
+     paths:
+      - code_coverage_files/
+  script:
+    - ./ci/test-coverage-regression.sh
+
+coverage-linux:
+  image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_coverage
+  stage: coverage
+  except:
+    - schedules
+  needs:
+    - job: test-coverage-regression
+      artifacts: true
+  tags:
+    - x86_64
+    - linux
+    - docker
+  coverage: '/.*lines\.*: (\d+.\d+\%)/'
+  artifacts:
+     name: code-coverage-report
+     when: always
+     paths:
+       - code_coverage_report/
+  script:
+    - ./ci/coverage-linux.sh
+
+pages:
+  stage: deploy
+  except:
+    - schedules
+  tags:
+    - linux
+  dependencies:
+    - coverage-linux
+  allow_failure: true
+  script:
+    - mv code_coverage_report/ public/
+  artifacts:
+    paths:
+      - public
+    expire_in: 30 days
+  only:
+    - develop

@@ -108,8 +108,8 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/runtime/Threshold/Threshold.cpp
 		    ${src_dir}/runtime/Tracking/Tracking.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt_common_files})
-        add_library(fmdt-detectrt-common-obj OBJECT ${src_detectrt_common_files})
-        list(APPEND fmdt_targets_list fmdt-detectrt-common-obj)
+        add_library(fmdt-detect-rt-common-obj OBJECT ${src_detectrt_common_files})
+        list(APPEND fmdt_targets_list fmdt-detect-rt-common-obj)
 
         set(src_detectrt1_files
             ${src_dir}/runtime/Video/Video.cpp
@@ -119,7 +119,7 @@ if(FMDT_DETECT_EXE)
         add_executable(fmdt-detect-rt-seq-exe
             $<TARGET_OBJECTS:fmdt-common-obj>
             $<TARGET_OBJECTS:fmdt-detect-common-obj>
-            $<TARGET_OBJECTS:fmdt-detectrt-common-obj>
+            $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
             ${src_detectrt1_files})
         list(APPEND fmdt_targets_list fmdt-detect-rt-seq-exe)
         set_target_properties(fmdt-detect-rt-seq-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-seq)
@@ -127,7 +127,7 @@ if(FMDT_DETECT_EXE)
         add_executable(fmdt-detect-rt-pip-exe
             $<TARGET_OBJECTS:fmdt-common-obj> 
             $<TARGET_OBJECTS:fmdt-detect-common-obj> 
-            $<TARGET_OBJECTS:fmdt-detectrt-common-obj> 
+            $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
             ${src_detectrt1_files})
         list(APPEND fmdt_targets_list fmdt-detect-rt-pip-exe)
         set_target_properties(fmdt-detect-rt-pip-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-pip)
@@ -140,7 +140,7 @@ if(FMDT_DETECT_EXE)
         add_executable(fmdt-detect-rt2-exe 
             $<TARGET_OBJECTS:fmdt-common-obj> 
             $<TARGET_OBJECTS:fmdt-detect-common-obj> 
-            $<TARGET_OBJECTS:fmdt-detectrt-common-obj> 
+            $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
             ${src_detectrt2_files})
 		list(APPEND fmdt_targets_list fmdt-detect-rt2-exe)
 		set_target_properties(fmdt-detect-rt2-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2)
