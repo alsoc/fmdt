@@ -26,6 +26,7 @@ public:
     inline aff3ct::runtime::Socket& operator[](const thr::sck::apply s);
 protected:
     void init_data();
+    using Module::deep_copy;
     void deep_copy(const Threshold &m);
 };
 

@@ -38,15 +38,17 @@ Video2::Video2(const std::string filename, const size_t frame_start, const size_
         tools_linear_2d_nrc_ui8matrix((const uint8_t*)m_out_img1, vid2.i0 - vid2.b, vid2.i1 + vid2.b, vid2.j0 - vid2.b, 
                                       vid2.j1 + vid2.b, (const uint8_t**)vid2.out_img0);
 
-        *static_cast<uint32_t*>(t[ps_out_frame].get_dataptr()) = vid2.video->frame_current;
-        int ret = video_get_next_frame(vid2.video, vid2.out_img0);
-        vid2.done = ret ? false : true;
+        int cur_fra = video_get_next_frame(vid2.video, vid2.out_img0);
+        vid2.done = cur_fra == -1 ? true : false;
 
         memcpy(vid2.img_buf, &(vid2.out_img0[vid2.i0 - vid2.b][vid2.j0 - vid2.b]), vid2.size_image);
 
         if (vid2.done)
             throw aff3ct::tools::processing_aborted(__FILE__, __LINE__, __func__);
-        return ret ? aff3ct::runtime::status_t::SUCCESS : aff3ct::runtime::status_t::FAILURE_STOP;
+
+        *static_cast<uint32_t*>(t[ps_out_frame].get_dataptr()) = (uint32_t)cur_fra;
+
+        return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 

@@ -52,3 +52,4 @@ void tools_linear_2d_nrc_ui32matrix(const uint32_t* X, const int i0, const int i
                                     const uint32_t** Y);
 void tools_linear_2d_nrc_f32matrix(const float* X, const int i0, const int i1, const int j0, const int j1,
                                    const float** Y);
+int tools_is_dir(const char *path);

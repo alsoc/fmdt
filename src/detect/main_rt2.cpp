@@ -37,7 +37,7 @@ int main(int argc, char** argv) {
     // default values
     int def_p_fra_start = 0;
     int def_p_fra_end = MAX_N_FRAMES;
-    int def_p_skip_fra = 0;
+    int def_p_fra_skip = 0;
     int def_p_light_min = 55;
     int def_p_light_max = 80;
     int def_p_surface_min = 3;
@@ -75,8 +75,8 @@ int main(int argc, char** argv) {
                 "  --fra-end           Ending point of the video                                              [%d]\n",
                 def_p_fra_end);
         fprintf(stderr,
-                "  --skip-fra          Number of skipped frames                                               [%d]\n",
-                def_p_skip_fra);
+                "  --fra-skip          Number of skipped frames                                               [%d]\n",
+                def_p_fra_skip);
         fprintf(stderr,
                 "  --light-min         Low hysteresis threshold (grayscale [0;255])                           [%d]\n",
                 def_p_light_min);
@@ -124,7 +124,7 @@ int main(int argc, char** argv) {
     // Parsing Arguments
     const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
     const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
-    const int p_skip_fra = args_find_int(argc, argv, "--skip-fra", def_p_skip_fra);
+    const int p_fra_skip = args_find_int(argc, argv, "--fra-skip", def_p_fra_skip);
     const int p_light_min = args_find_int(argc, argv, "--light-min", def_p_light_min);
     const int p_light_max = args_find_int(argc, argv, "--light-max", def_p_light_max);
     const int p_surface_min = args_find_int(argc, argv, "--surface-min", def_p_surface_min);
@@ -158,7 +158,7 @@ int main(int argc, char** argv) {
     printf("#  * out-stats      = %s\n", p_out_stats);
     printf("#  * fra-start      = %d\n", p_fra_start);
     printf("#  * fra-end        = %d\n", p_fra_end);
-    printf("#  * skip-fra       = %d\n", p_skip_fra);
+    printf("#  * fra-skip       = %d\n", p_fra_skip);
     printf("#  * light-min      = %d\n", p_light_min);
     printf("#  * light-max      = %d\n", p_light_max);
     printf("#  * surface-min    = %d\n", p_surface_min);
@@ -203,10 +203,6 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
-    if (!p_out_frames)
-        fprintf(stderr, "(II) '--out-frames' is missing -> no frames will be saved\n");
-    if (!p_out_stats)
-        fprintf(stderr, "(II) '--out-stats' is missing -> no stats will be saved\n");
 
     // -------------------------------- //
     // -- INITIALISATION GLOBAL DATA -- //
@@ -221,7 +217,7 @@ int main(int argc, char** argv) {
     // objects allocation
     const size_t b = 1; // image border
     const size_t n_ffmpeg_threads = 4; // 0 = use all the threads available
-    Video2 video(p_in_video, p_fra_start, p_fra_end, p_skip_fra, n_ffmpeg_threads, b);
+    Video2 video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, n_ffmpeg_threads, b);
     const size_t i0 = video.get_i0();
     const size_t i1 = video.get_i1();
     const size_t j0 = video.get_j0();
@@ -253,7 +249,7 @@ int main(int argc, char** argv) {
     Features_motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
-                      p_fra_meteor_max, MAX_ROI_SIZE, MAX_TRACKS_SIZE, MAX_N_FRAMES);
+                      p_fra_meteor_max, p_out_bb, MAX_ROI_SIZE, MAX_TRACKS_SIZE, MAX_BB_LIST_SIZE);
     Logger_ROI log_ROI(p_out_stats ? p_out_stats : "", MAX_ROI_SIZE, MAX_TRACKS_SIZE);
     Logger_KNN log_KNN(p_out_stats ? p_out_stats : "", i0, i1, j0, j1, MAX_ROI_SIZE);
     Logger_motion log_motion(p_out_stats ? p_out_stats : "");
@@ -506,7 +502,7 @@ int main(int argc, char** argv) {
             unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
             size_t n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
             fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
-                    n_stars, n_noise, n_tracks);
+                    n_stars, n_noise, (unsigned long)n_tracks);
             fflush(stderr);
             n_frames++;
             return false;
@@ -538,7 +534,7 @@ int main(int argc, char** argv) {
     printf("# Tracks statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames -1);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
-           n_noise, real_n_tracks);
+           n_noise, (unsigned long)real_n_tracks);
 
     // display the statistics of the tasks (if enabled)
 #ifdef ENABLE_PIPELINE
@@ -547,11 +543,11 @@ int main(int argc, char** argv) {
     {
         const int n_threads = stages[s]->get_n_threads();
         std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
-        aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true);
+        aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true, false);
     }
 #else
     std::cout << "#" << std::endl;
-    aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true);
+    aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
 #endif
 
     printf("# End of the program, exiting.\n");

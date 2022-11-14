@@ -47,10 +47,11 @@ static int video_get_frame(video_t* video, uint8_t** I) {
     if (video->frame_current > video->frame_end || video->ffmpeg.error || !ffmpeg_read2d(&video->ffmpeg, I)) {
         if (video->ffmpeg.error != 22) // 22 == EOF
             fprintf(stderr, "(EE) %s\n", ffmpeg_error2str(video->ffmpeg.error));
-        return 0;
+        return -1;
     }
+    int cur_fra = video->frame_current;
     video->frame_current++;
-    return video->frame_current <= video->frame_end;
+    return video->frame_current <= video->frame_end ? cur_fra : -1;
 }
 
 int video_get_next_frame(video_t* video, uint8_t** I) {
@@ -58,7 +59,7 @@ int video_get_next_frame(video_t* video, uint8_t** I) {
     int skip = ((video->frame_current < video->frame_start) ? video->frame_start - 1 : video->frame_skip);
     do {
         r = video_get_frame(video, I);
-    } while (r && skip--);
+    } while ((r != -1) && skip--);
     return r;
 }
 

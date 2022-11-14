@@ -13,13 +13,22 @@
 #include "fmdt/threshold.h"
 #include "fmdt/tracking.h"
 #include "fmdt/video.h"
+#include "fmdt/images.h"
 #include "fmdt/macros.h"
+
+int get_next_frame(video_t* video, images_t* images, uint8_t** I) {
+    if (video)
+        return video_get_next_frame(video, I);
+    else if (images)
+        return images_get_next_frame(images, I);
+    return 0;
+}
 
 int main(int argc, char** argv) {
     // default values
     int def_p_fra_start = 0;
     int def_p_fra_end = MAX_N_FRAMES;
-    int def_p_skip_fra = 0;
+    int def_p_fra_skip = 0;
     int def_p_light_min = 55;
     int def_p_light_max = 80;
     int def_p_surface_min = 3;
@@ -35,11 +44,12 @@ int main(int argc, char** argv) {
     char* def_p_out_frames = NULL;
     char* def_p_out_bb = NULL;
     char* def_p_out_stats = NULL;
+    int def_p_video_loop = 1;
 
     // Help
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr,
-                "  --in-video          Path to video file                                                     [%s]\n",
+                "  --in-video          Path to video file or to a folder of PGM images                        [%s]\n",
                 def_p_in_video ? def_p_in_video : "NULL");
         fprintf(stderr,
                 "  --out-frames        Path to frames output folder                                           [%s]\n",
@@ -57,8 +67,8 @@ int main(int argc, char** argv) {
                 "  --fra-end           Ending point of the video                                              [%d]\n",
                 def_p_fra_end);
         fprintf(stderr,
-                "  --skip-fra          Number of skipped frames                                               [%d]\n",
-                def_p_skip_fra);
+                "  --fra-skip          Number of skipped frames                                               [%d]\n",
+                def_p_fra_skip);
         fprintf(stderr,
                 "  --light-min         Low hysteresis threshold (grayscale [0;255])                           [%d]\n",
                 def_p_light_min);
@@ -97,6 +107,11 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --track-all         Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
+                "  --video-buff        Bufferize all the video in global memory before executing the chain        \n");
+        fprintf(stderr,
+                "  --video-loop        Number of times the video is read in loop                              [%d]\n",
+                def_p_video_loop);
+        fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
     }
@@ -104,7 +119,7 @@ int main(int argc, char** argv) {
     // Parsing Arguments
     const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
     const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
-    const int p_skip_fra = args_find_int(argc, argv, "--skip-fra", def_p_skip_fra);
+    const int p_fra_skip = args_find_int(argc, argv, "--fra-skip", def_p_fra_skip);
     const int p_light_min = args_find_int(argc, argv, "--light-min", def_p_light_min);
     const int p_light_max = args_find_int(argc, argv, "--light-max", def_p_light_max);
     const int p_surface_min = args_find_int(argc, argv, "--surface-min", def_p_surface_min);
@@ -121,6 +136,8 @@ int main(int argc, char** argv) {
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
     const int p_track_all = args_find(argc, argv, "--track-all");
+    const int p_video_buff = args_find(argc, argv, "--video-buff");
+    const int p_video_loop = args_find_int(argc, argv, "--video-loop", def_p_video_loop);
 
     // heading display
     printf("#  ---------------------\n");
@@ -137,7 +154,7 @@ int main(int argc, char** argv) {
     printf("#  * out-stats      = %s\n", p_out_stats);
     printf("#  * fra-start      = %d\n", p_fra_start);
     printf("#  * fra-end        = %d\n", p_fra_end);
-    printf("#  * skip-fra       = %d\n", p_skip_fra);
+    printf("#  * fra-skip       = %d\n", p_fra_skip);
     printf("#  * light-min      = %d\n", p_light_min);
     printf("#  * light-max      = %d\n", p_light_max);
     printf("#  * surface-min    = %d\n", p_surface_min);
@@ -150,6 +167,8 @@ int main(int argc, char** argv) {
     printf("#  * fra-meteor-max = %d\n", p_fra_meteor_max);
     printf("#  * diff-dev       = %4.2f\n", p_diff_dev);
     printf("#  * track-all      = %d\n", p_track_all);
+    printf("#  * video-buff     = %d\n", p_video_buff);
+    printf("#  * video-loop     = %d\n", p_video_loop);
     printf("#\n");
 
     // arguments checking
@@ -177,19 +196,31 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
-    if (!p_out_frames)
-        fprintf(stderr, "(II) '--out-frames' is missing -> no frames will be saved\n");
-    if (!p_out_stats)
-        fprintf(stderr, "(II) '--out-stats' is missing -> no stats will be saved\n");
+    if (!tools_is_dir(p_in_video) && p_video_buff)
+        fprintf(stderr, "(WW) '--video-buff' has not effect when '--in-video' is a video file.\n");
+    if (!tools_is_dir(p_in_video) && p_video_loop > 1)
+        fprintf(stderr, "(WW) '--video-loop' has not effect when '--in-video' is a video file.\n");
+    if (p_video_loop <= 0) {
+        fprintf(stderr, "(EE) '--video-loop' has to be bigger than 0\n");
+        exit(1);
+    }
 
     // -------------------------- //
     // -- INITIALISATION VIDEO -- //
     // -------------------------- //
 
     int i0, i1, j0, j1; // image dimension (y_min, y_max, x_min, x_max)
-    const size_t n_ffmpeg_threads = 0; // 0 = use all the threads available
-    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_skip_fra, n_ffmpeg_threads, &i0, &i1,
-                                          &j0, &j1);
+    video_t* video = NULL;
+    images_t* images = NULL;
+    if (!tools_is_dir(p_in_video)) {
+        const size_t n_ffmpeg_threads = 0; // 0 = use all the threads available
+        video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_fra_skip, n_ffmpeg_threads, &i0, &i1, &j0,
+                                     &j1);
+    } else {
+        images = images_init_from_path(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_video_buff);
+        i0 = images->i0; i1 = images->i1; j0 = images->j0; j1 = images->j1;
+        images->loop_size = (size_t)(p_video_loop);
+    }
 
     // ---------------- //
     // -- ALLOCATION -- //
@@ -199,7 +230,9 @@ int main(int argc, char** argv) {
     ROI_t* ROI_array0 = features_alloc_ROI_array(MAX_ROI_SIZE);
     ROI_t* ROI_array1 = features_alloc_ROI_array(MAX_ROI_SIZE);
     track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
-    BB_t** BB_array = (BB_t**)malloc(MAX_N_FRAMES * sizeof(BB_t*));
+    BB_t** BB_array = NULL;
+    if (p_out_bb)
+        BB_array = (BB_t**)malloc(MAX_BB_LIST_SIZE * sizeof(BB_t*));
     tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_fra_star_min, p_fra_meteor_min), MAX_ROI_SIZE);
     int b = 1; // image border
     uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // frame
@@ -220,7 +253,8 @@ int main(int argc, char** argv) {
     features_init_ROI_array(ROI_array0);
     features_init_ROI_array(ROI_array1);
     tracking_init_track_array(track_array);
-    tracking_init_BB_array(BB_array);
+    if (BB_array)
+        tracking_init_BB_array(BB_array);
     tracking_init_data(tracking_data);
     CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
     zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -236,12 +270,11 @@ int main(int argc, char** argv) {
     // ----------------//
 
     printf("# The program is running...\n");
-    size_t real_n_tracks;
+    size_t real_n_tracks = 0;
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
-    while (video_get_next_frame(video, I)) {
-        size_t frame = video->frame_current - 1;
-        assert(frame < MAX_N_FRAMES);
-        fprintf(stderr, "(II) Frame n°%4lu", frame);
+    int cur_fra;
+    while ((cur_fra = get_next_frame(video, images, I)) != -1) {
+        fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         // Step 1 : seuillage low/high
         tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0, i1, j0, j1, SH_0);
@@ -269,7 +302,7 @@ int main(int argc, char** argv) {
                                 &first_mean_error, &first_std_deviation, &theta, &tx, &ty, &mean_error, &std_deviation);
 
         // Step 6: tracking
-        tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, track_array, BB_array, frame, theta, tx,
+        tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, track_array, BB_array, cur_fra, theta, tx,
                          ty, mean_error, std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all,
                          p_fra_star_min, p_fra_meteor_min, p_fra_meteor_max);
 
@@ -277,7 +310,7 @@ int main(int argc, char** argv) {
         if (p_out_frames) {
             tools_create_folder(p_out_frames);
             char filename[1024];
-            sprintf(filename, "%s/%05lu.pgm", p_out_frames, frame);
+            snprintf(filename, sizeof(filename), "%s/%05d.pgm", p_out_frames, cur_fra);
             tools_save_frame_ui8matrix(filename, (const uint8_t**)SH_2, i0, i1, j0, j1);
         }
 
@@ -285,10 +318,10 @@ int main(int argc, char** argv) {
         if (p_out_stats && n_frames) {
             tools_create_folder(p_out_stats);
             char filename[1024];
-            sprintf(filename, "%s/%05lu_%05lu.txt", p_out_stats, frame - 1, frame);
+            snprintf(filename, sizeof(filename), "%s/%05d_%05d.txt", p_out_stats, cur_fra - 1, cur_fra);
             FILE* f = fopen(filename, "w");
             if (f) {
-                features_ROI0_ROI1_write(f, frame, ROI_array0, ROI_array1, track_array);
+                features_ROI0_ROI1_write(f, cur_fra, ROI_array0, ROI_array1, track_array);
                 fprintf(f, "#\n");
                 KPPV_asso_conflicts_write(f, kppv_data, ROI_array0);
                 fprintf(f, "#\n");
@@ -305,7 +338,7 @@ int main(int argc, char** argv) {
         n_frames++;
         real_n_tracks = tracking_count_objects(track_array, &n_stars, &n_meteors, &n_noise);
         fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors, n_stars,
-                n_noise, real_n_tracks);
+                n_noise, (unsigned long)real_n_tracks);
         fflush(stderr);
 
         ROI_t* tmp = ROI_array0;
@@ -314,14 +347,14 @@ int main(int argc, char** argv) {
     }
     fprintf(stderr, "\n");
 
-    if (p_out_bb)
-        tracking_save_array_BB(p_out_bb, BB_array, track_array, MAX_N_FRAMES, p_track_all);
+    if (BB_array)
+        tracking_save_array_BB(p_out_bb, BB_array, track_array, MAX_BB_LIST_SIZE, p_track_all);
     tracking_track_array_write(stdout, track_array);
 
     printf("# Tracks statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
-           n_noise, real_n_tracks);
+           n_noise, (unsigned long)real_n_tracks);
 
     // ----------
     // -- FREE --
@@ -337,13 +370,18 @@ int main(int argc, char** argv) {
     features_free_ROI_array(ROI_array_tmp);
     features_free_ROI_array(ROI_array0);
     features_free_ROI_array(ROI_array1);
-    video_free(video);
+    if (video)
+        video_free(video);
+    if (images)
+        images_free(images);
     CCL_LSL_free_data(ccl_data);
     KPPV_free_data(kppv_data);
-    tracking_free_BB_array(BB_array);
+    if (BB_array) {
+        tracking_free_BB_array(BB_array);
+        free(BB_array);
+    }
     tracking_free_track_array(track_array);
     tracking_free_data(tracking_data);
-    free(BB_array);
 
     printf("# End of the program, exiting.\n");
 

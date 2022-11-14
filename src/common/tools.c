@@ -2,6 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 #include <stdlib.h>
+#include <unistd.h>
+#include <sys/types.h>
 #include <sys/stat.h>
 #ifdef OPENCV_LINK
 #include <tuple>
@@ -253,7 +255,7 @@ void tools_save_frame(const char* filename, const rgb8_t** I_bb, int w, int h) {
     }
 
     /* enregistrement de l'image au format rpgm */
-    sprintf(buffer, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
+    snprintf(buffer, sizeof(buffer), "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i < h; i++)
         tools_write_PNM_row((uint8*)I_bb[i], w - 1, file);
@@ -359,7 +361,7 @@ void tools_save_frame_threshold(const char* filename, uint8** I0, uint8** I1, in
 
     /* enregistrement de l'image au format rpgm */
 
-    sprintf(buffer, "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(h - 1));
+    snprintf(buffer, sizeof(buffer), "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= h - 1; i++)
         tools_write_PNM_row((uint8*)img[i], 2 * w - 1, file);
@@ -399,7 +401,7 @@ void tools_save_frame_ui32matrix(const char* filename, const uint32** I, int i0,
 
     /* enregistrement de l'image au format rpgm */
 
-    sprintf(buffer, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
+    snprintf(buffer, sizeof(buffer), "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= h - 1; i++)
         tools_write_PNM_row((uint8*)img[i], w - 1, file);
@@ -437,7 +439,7 @@ void tools_save_frame_ui8matrix(const char* filename, const uint8** I, int i0, i
     }
 
     /* enregistrement de l'image au format rpgm */
-    sprintf(buffer, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
+    snprintf(buffer, sizeof(buffer), "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= h - 1; i++)
         tools_write_PNM_row((uint8*)img[i], w - 1, file);
@@ -582,7 +584,7 @@ void tools_save_frame_quad(const char* filename, uint8** I0, uint8** I1, uint32*
 
     /* enregistrement de l'image au format rpgm */
 
-    sprintf(buffer, "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(2 * h - 1));
+    snprintf(buffer, sizeof(buffer), "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(2 * h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= 2 * h - 1; i++)
         tools_write_PNM_row((uint8*)img[i], 2 * w - 1, file);
@@ -653,7 +655,7 @@ void tools_save_frame_quad_hysteresis(const char* filename, uint8** I0, uint32**
 
     /* enregistrement de l'image au format rpgm */
 
-    sprintf(buffer, "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(2 * h - 1));
+    snprintf(buffer, sizeof(buffer), "P6\n%d %d\n255\n", (int)(2 * w - 1), (int)(2 * h - 1));
     fwrite(buffer, strlen(buffer), 1, file);
     for (int i = 0; i <= 2 * h - 1; i++)
         tools_write_PNM_row((uint8*)img[i], 2 * w - 1, file);
@@ -744,4 +746,9 @@ void tools_linear_2d_nrc_f32matrix(const float* X, const int i0, const int i1, c
     Y[i0] = X - j0;
     for (int i = i0 + 1; i <= i1 ; i++)
         Y[i] = Y[i - 1] + ((j1 - j0) + 1);
+int tools_is_dir(const char *path)
+{
+    struct stat path_stat;
+    stat(path, &path_stat);
+    return S_ISDIR(path_stat.st_mode);
 }

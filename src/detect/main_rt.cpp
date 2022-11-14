@@ -3,8 +3,10 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <nrc2.h>
 #include <algorithm>
+#include <memory>
+#include <nrc2.h>
+#include <aff3ct-core.hpp>
 
 #include "fmdt/args.h"
 #include "fmdt/defines.h"
@@ -18,7 +20,6 @@
 #include "fmdt/macros.h"
 
 #include "fmdt/CCL_LSL/CCL_LSL.hpp"
-#include "fmdt/Delayer/Delayer.hpp"
 #include "fmdt/Features/Features_extractor.hpp"
 #include "fmdt/Features/Features_merger.hpp"
 #include "fmdt/Features/Features_motion.hpp"
@@ -26,19 +27,21 @@
 #include "fmdt/Threshold/Threshold.hpp"
 #include "fmdt/Tracking/Tracking.hpp"
 #include "fmdt/Video/Video.hpp"
+#include "fmdt/Images/Images.hpp"
 #include "fmdt/Logger/Logger_ROI.hpp"
 #include "fmdt/Logger/Logger_KNN.hpp"
 #include "fmdt/Logger/Logger_motion.hpp"
 #include "fmdt/Logger/Logger_track.hpp"
 #include "fmdt/Logger/Logger_frame.hpp"
 
-#define ENABLE_PIPELINE
+// Do not use this define anymore!! NOW it is set in the CMakeFile :-)
+// #define FMDT_ENABLE_PIPELINE
 
 int main(int argc, char** argv) {
     // default values
     int def_p_fra_start = 0;
     int def_p_fra_end = MAX_N_FRAMES;
-    int def_p_skip_fra = 0;
+    int def_p_fra_skip = 0;
     int def_p_light_min = 55;
     int def_p_light_max = 80;
     int def_p_surface_min = 3;
@@ -54,6 +57,8 @@ int main(int argc, char** argv) {
     char* def_p_out_frames = NULL;
     char* def_p_out_bb = NULL;
     char* def_p_out_stats = NULL;
+    char* def_p_out_probes = NULL;
+    int def_p_video_loop = 1;
 
     // Help
     if (args_find(argc, argv, "-h")) {
@@ -70,14 +75,17 @@ int main(int argc, char** argv) {
                 "  --out-stats         Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_out_stats ? def_p_out_stats : "NULL");
         fprintf(stderr,
+                "  --out-probes        Path of the output probe vales, only required for benchmarking purpose [%s]\n",
+                def_p_out_probes ? def_p_out_probes : "NULL");
+        fprintf(stderr,
                 "  --fra-start         Starting point of the video                                            [%d]\n",
                 def_p_fra_start);
         fprintf(stderr,
                 "  --fra-end           Ending point of the video                                              [%d]\n",
                 def_p_fra_end);
         fprintf(stderr,
-                "  --skip-fra          Number of skipped frames                                               [%d]\n",
-                def_p_skip_fra);
+                "  --fra-skip          Number of skipped frames                                               [%d]\n",
+                def_p_fra_skip);
         fprintf(stderr,
                 "  --light-min         Low hysteresis threshold (grayscale [0;255])                           [%d]\n",
                 def_p_light_min);
@@ -118,6 +126,11 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --task-stats        Display the statistics of tasks                                            \n");
         fprintf(stderr,
+                "  --video-buff        Bufferize all the video in global memory before executing the chain        \n");
+        fprintf(stderr,
+                "  --video-loop        Number of times the video is read in loop                              [%d]\n",
+                def_p_video_loop);
+        fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
     }
@@ -125,7 +138,7 @@ int main(int argc, char** argv) {
     // Parsing Arguments
     const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
     const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
-    const int p_skip_fra = args_find_int(argc, argv, "--skip-fra", def_p_skip_fra);
+    const int p_fra_skip = args_find_int(argc, argv, "--fra-skip", def_p_fra_skip);
     const int p_light_min = args_find_int(argc, argv, "--light-min", def_p_light_min);
     const int p_light_max = args_find_int(argc, argv, "--light-max", def_p_light_max);
     const int p_surface_min = args_find_int(argc, argv, "--surface-min", def_p_surface_min);
@@ -141,8 +154,11 @@ int main(int argc, char** argv) {
     const char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
+    const char* p_out_probes = args_find_char(argc, argv, "--out-probes", def_p_out_probes);
     const int p_track_all = args_find(argc, argv, "--track-all");
     const int p_task_stats = args_find(argc, argv, "--task-stats");
+    const int p_video_buff = args_find(argc, argv, "--video-buff");
+    const int p_video_loop = args_find_int(argc, argv, "--video-loop", def_p_video_loop);
 
     // heading display
     printf("#  ---------------------\n");
@@ -157,9 +173,10 @@ int main(int argc, char** argv) {
     printf("#  * out-bb         = %s\n", p_out_bb);
     printf("#  * out-frames     = %s\n", p_out_frames);
     printf("#  * out-stats      = %s\n", p_out_stats);
+    printf("#  * out-probes     = %s\n", p_out_probes);
     printf("#  * fra-start      = %d\n", p_fra_start);
     printf("#  * fra-end        = %d\n", p_fra_end);
-    printf("#  * skip-fra       = %d\n", p_skip_fra);
+    printf("#  * fra-skip       = %d\n", p_fra_skip);
     printf("#  * light-min      = %d\n", p_light_min);
     printf("#  * light-max      = %d\n", p_light_max);
     printf("#  * surface-min    = %d\n", p_surface_min);
@@ -173,8 +190,10 @@ int main(int argc, char** argv) {
     printf("#  * diff-dev       = %4.2f\n", p_diff_dev);
     printf("#  * track-all      = %d\n", p_track_all);
     printf("#  * task-stats     = %d\n", p_task_stats);
+    printf("#  * video-buff     = %d\n", p_video_buff);
+    printf("#  * video-loop     = %d\n", p_video_loop);
     printf("#\n");
-#ifdef ENABLE_PIPELINE
+#ifdef FMDT_ENABLE_PIPELINE
     printf("#  * Runtime mode   = Pipeline\n");
 #else
     printf("#  * Runtime mode   = Sequence\n");
@@ -206,10 +225,18 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
-    if (!p_out_frames)
-        fprintf(stderr, "(II) '--out-frames' is missing -> no frames will be saved\n");
-    if (!p_out_stats)
-        fprintf(stderr, "(II) '--out-stats' is missing -> no stats will be saved\n");
+    if (!tools_is_dir(p_in_video) && p_video_buff)
+        fprintf(stderr, "(WW) '--video-buff' has not effect when '--in-video' is a video file.\n");
+    if (!tools_is_dir(p_in_video) && p_video_loop > 1)
+        fprintf(stderr, "(WW) '--video-loop' has not effect when '--in-video' is a video file.\n");
+    if (p_video_loop <= 0) {
+        fprintf(stderr, "(EE) '--video-loop' has to be bigger than 0\n");
+        exit(1);
+    }
+#ifndef FMDT_ENABLE_PIPELINE
+    if (p_out_probes)
+        fprintf(stderr, "(WW) Using '--out-probes' without pipeline is not very useful...\n");
+#endif
 
     // -------------------------------- //
     // -- INITIALISATION GLOBAL DATA -- //
@@ -224,11 +251,24 @@ int main(int argc, char** argv) {
     // objects allocation
     const size_t b = 1; // image border
     const size_t n_ffmpeg_threads = 4; // 0 = use all the threads available
-    Video video(p_in_video, p_fra_start, p_fra_end, p_skip_fra, n_ffmpeg_threads, b);
-    const size_t i0 = video.get_i0();
-    const size_t i1 = video.get_i1();
-    const size_t j0 = video.get_j0();
-    const size_t j1 = video.get_j1();
+    std::unique_ptr<Video> video;
+    std::unique_ptr<Images> images;
+    size_t i0, i1, j0, j1;
+    if (!tools_is_dir(p_in_video)) {
+        video.reset(new Video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, n_ffmpeg_threads, b));
+        i0 = video->get_i0();
+        i1 = video->get_i1();
+        j0 = video->get_j0();
+        j1 = video->get_j1();
+    } else {
+        images.reset(new Images(p_in_video, p_fra_start, p_fra_end, p_fra_skip, b, p_video_buff));
+        i0 = images->get_i0();
+        i1 = images->get_i1();
+        j0 = images->get_j0();
+        j1 = images->get_j1();
+        images->set_loop_size(p_video_loop);
+    }
+
     Threshold threshold_min(i0, i1, j0, j1, b, p_light_min);
     Threshold threshold_max(i0, i1, j0, j1, b, p_light_max);
     threshold_min.set_custom_name("Thr<min>");
@@ -242,18 +282,18 @@ int main(int argc, char** argv) {
     Features_motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
-                      p_fra_meteor_max, MAX_ROI_SIZE, MAX_TRACKS_SIZE, MAX_N_FRAMES);
-    Delayer<uint16_t> delayer_ROI_id(MAX_ROI_SIZE, 0);
-    Delayer<uint16_t> delayer_ROI_xmin(MAX_ROI_SIZE, 0);
-    Delayer<uint16_t> delayer_ROI_xmax(MAX_ROI_SIZE, 0);
-    Delayer<uint16_t> delayer_ROI_ymin(MAX_ROI_SIZE, 0);
-    Delayer<uint16_t> delayer_ROI_ymax(MAX_ROI_SIZE, 0);
-    Delayer<uint32_t> delayer_ROI_S(MAX_ROI_SIZE, 0);
-    Delayer<uint32_t> delayer_ROI_Sx(MAX_ROI_SIZE, 0);
-    Delayer<uint32_t> delayer_ROI_Sy(MAX_ROI_SIZE, 0);
-    Delayer<float> delayer_ROI_x(MAX_ROI_SIZE, 0.f);
-    Delayer<float> delayer_ROI_y(MAX_ROI_SIZE, 0.f);
-    Delayer<uint32_t> delayer_n_ROI(1, 0);
+                      p_fra_meteor_max, p_out_bb, MAX_ROI_SIZE, MAX_TRACKS_SIZE, MAX_BB_LIST_SIZE);
+    aff3ct::module::Delayer<uint16_t> delayer_ROI_id(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint16_t> delayer_ROI_xmin(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint16_t> delayer_ROI_xmax(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint16_t> delayer_ROI_ymin(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint16_t> delayer_ROI_ymax(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_ROI_S(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_ROI_Sx(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_ROI_Sy(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<float> delayer_ROI_x(MAX_ROI_SIZE, 0.f);
+    aff3ct::module::Delayer<float> delayer_ROI_y(MAX_ROI_SIZE, 0.f);
+    aff3ct::module::Delayer<uint32_t> delayer_n_ROI(1, 0);
     delayer_ROI_id.set_custom_name("D<ROI_id>");
     delayer_ROI_xmin.set_custom_name("D<ROI_xmin>");
     delayer_ROI_xmax.set_custom_name("D<ROI_xmax>");
@@ -272,26 +312,75 @@ int main(int argc, char** argv) {
     Logger_frame log_frame(p_out_frames ? p_out_frames : "", i0, i1, j0, j1, b);
     log_motion.set_custom_name("Logger_motio");
 
+    // create reporters and probes for the real-time probes file
+    size_t inter_frame_lvl = 1;
+    aff3ct::tools::Reporter_probe rep_fra_stats("Frame Counter", inter_frame_lvl);
+    std::unique_ptr<aff3ct::module::Probe<>> prb_fra_id(rep_fra_stats.create_probe_occurrence("ID"));
+
+    aff3ct::tools::Reporter_probe rep_thr_stats("Throughput, latency", "and time", inter_frame_lvl);
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_thr  (rep_thr_stats.create_probe_throughput("FPS"));
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_lat  (rep_thr_stats.create_probe_latency   ("LAT")); // only valid for sequence, invalid for pipeline
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_time (rep_thr_stats.create_probe_time      ("TIME"));
+
+    aff3ct::tools::Reporter_probe rep_timestamp_stats("Timestamps", "(in microseconds) [SX = stage X, B = begin, E = end]", inter_frame_lvl);
+    const uint64_t mod = 1000000ul * 60ul * 10; // limit to 10 minutes timestamp
+    const size_t probe_buff = 200; // size of the buffer used by the probes to record values
+    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s1b(rep_timestamp_stats.create_probe_timestamp      ("S1_B", mod,    probe_buff   )); // timestamp stage 1 begin
+    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s1e(rep_timestamp_stats.create_probe_timestamp      ("S1_E", mod,    probe_buff   )); // timestamp stage 1 end
+    std::unique_ptr<aff3ct::module::Probe<uint64_t>> prb_ts_s2b(rep_timestamp_stats.create_probe_value<uint64_t>("S2_B", "(us)", probe_buff, 1)); // timestamp stage 2 begin
+    std::unique_ptr<aff3ct::module::Probe<uint64_t>> prb_ts_s2e(rep_timestamp_stats.create_probe_value<uint64_t>("S2_E", "(us)", probe_buff, 1)); // timestamp stage 2 end
+    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s3b(rep_timestamp_stats.create_probe_timestamp      ("S3_B", mod,    probe_buff   )); // timestamp stage 3 begin
+    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s3e(rep_timestamp_stats.create_probe_timestamp      ("S3_E", mod,    probe_buff   )); // timestamp stage 3 end
+
+    const std::vector<aff3ct::tools::Reporter*>& reporters = { &rep_fra_stats, &rep_thr_stats, &rep_timestamp_stats };
+    aff3ct::tools::Terminal_dump terminal_probes(reporters);
+
+    std::ofstream rt_probes_file;
+    if (p_out_probes) {
+        rt_probes_file.open(p_out_probes);
+        rt_probes_file << "####################" << std::endl;
+        rt_probes_file << "# Real-time probes #" << std::endl;
+        rt_probes_file << "####################" << std::endl;
+        terminal_probes.legend(rt_probes_file);
+    }
+
+    // create on-the-fly stateless modules to collect timestamps in the stage 2 (parallel) of the pipeline
+    std::unique_ptr<aff3ct::module::Stateless> ts_s2b(new aff3ct::module::Stateless());
+    ts_s2b->set_name("Timestamper");
+    ts_s2b->set_short_name("Timestamper");
+    auto &tsk = ts_s2b->create_task("exec");
+    auto ts_out_val = ts_s2b->create_socket_out<uint64_t>(tsk, "out", 1);
+    ts_s2b->create_codelet(tsk, [ts_out_val, mod](aff3ct::module::Module &m, aff3ct::runtime::Task &t,
+        const size_t frame_id) -> int {
+        std::chrono::microseconds us = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()
+        );
+        static_cast<uint64_t*>(t[ts_out_val].get_dataptr())[frame_id] =
+            mod ? (uint64_t)us.count() % mod : (uint64_t)us.count();
+        return aff3ct::runtime::status_t::SUCCESS;
+    });
+    std::unique_ptr<aff3ct::module::Stateless> ts_s2e(ts_s2b->clone());
+    ts_s2b->set_custom_name("Tsta<S2_B>");
+    ts_s2e->set_custom_name("Tsta<S2_E>");
+
     // ------------------- //
     // -- TASKS BINDING -- //
     // ------------------- //
 
-    // Step 0 : delais => caractéristiques des ROIs à t - 1
-    delayer_ROI_id[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_xmin[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_xmax[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_ymin[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_ymax[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_S[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_Sx[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_Sy[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_x[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_ROI_y[dly::tsk::produce] = video[vid::sck::generate::out_img];
-    delayer_n_ROI[dly::tsk::produce] = video[vid::sck::generate::out_img];
+    if (p_out_probes) {
+        if (video)
+            (*video)[vid::tsk::generate] = (*prb_ts_s1b)[aff3ct::module::prb::sck::probe_noin::status];
+        else
+            (*images)[img::tsk::generate] = (*prb_ts_s1b)[aff3ct::module::prb::sck::probe_noin::status];
+
+        (*prb_ts_s1e)[aff3ct::module::prb::tsk::probe] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
+        (*ts_s2b)("exec") = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
+        (*prb_ts_s2b)[aff3ct::module::prb::sck::probe::in] = (*ts_s2b)["exec::out"];
+    }
 
     // Step 1 : seuillage low/high
-    threshold_min[thr::sck::apply::in_img] = video[vid::sck::generate::out_img];
-    threshold_max[thr::sck::apply::in_img] = video[vid::sck::generate::out_img];
+    threshold_min[thr::sck::apply::in_img] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
+    threshold_max[thr::sck::apply::in_img] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
 
     // Step 2 : ECC/ACC
     lsl[ccl::sck::apply::in_img] = threshold_min[thr::sck::apply::out_img];
@@ -314,11 +403,30 @@ int main(int argc, char** argv) {
     merger[ftr_mrg::sck::merge::in_ROI_y] = extractor[ftr_ext::sck::extract::out_ROI_y];
     merger[ftr_mrg::sck::merge::in_n_ROI] = lsl[ccl::sck::apply::out_n_ROI];
 
+    if (p_out_probes) {
+        (*ts_s2e)("exec") = merger[ftr_mrg::sck::merge::out_ROI_id];
+        (*prb_ts_s2e)[aff3ct::module::prb::sck::probe::in] = (*ts_s2e)["exec::out"];
+        (*prb_ts_s3b)[aff3ct::module::prb::tsk::probe] = (*prb_ts_s2e)[aff3ct::module::prb::sck::probe::status];
+    }
+
+    // Step 3.5 : delais => caractéristiques des ROIs à t - 1
+    delayer_ROI_id[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_xmin[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_xmax[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_ymin[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_ymax[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_S[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_Sx[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_Sy[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_x[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_y[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_n_ROI[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+
     // Step 4 : mise en correspondance
-    matcher[knn::sck::match::in_ROI0_id] = delayer_ROI_id[dly::sck::produce::out];
-    matcher[knn::sck::match::in_ROI0_x] = delayer_ROI_x[dly::sck::produce::out];
-    matcher[knn::sck::match::in_ROI0_y] = delayer_ROI_y[dly::sck::produce::out];
-    matcher[knn::sck::match::in_n_ROI0] = delayer_n_ROI[dly::sck::produce::out];
+    matcher[knn::sck::match::in_ROI0_id] = delayer_ROI_id[aff3ct::module::dly::sck::produce::out];
+    matcher[knn::sck::match::in_ROI0_x] = delayer_ROI_x[aff3ct::module::dly::sck::produce::out];
+    matcher[knn::sck::match::in_ROI0_y] = delayer_ROI_y[aff3ct::module::dly::sck::produce::out];
+    matcher[knn::sck::match::in_n_ROI0] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
     matcher[knn::sck::match::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
     matcher[knn::sck::match::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
     matcher[knn::sck::match::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
@@ -326,24 +434,24 @@ int main(int argc, char** argv) {
 
     // Step 5 : recalage
     motion[ftr_mtn::sck::compute::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
-    motion[ftr_mtn::sck::compute::in_ROI0_x] = delayer_ROI_x[dly::sck::produce::out];
-    motion[ftr_mtn::sck::compute::in_ROI0_y] = delayer_ROI_y[dly::sck::produce::out];
-    motion[ftr_mtn::sck::compute::in_n_ROI0] = delayer_n_ROI[dly::sck::produce::out];
+    motion[ftr_mtn::sck::compute::in_ROI0_x] = delayer_ROI_x[aff3ct::module::dly::sck::produce::out];
+    motion[ftr_mtn::sck::compute::in_ROI0_y] = delayer_ROI_y[aff3ct::module::dly::sck::produce::out];
+    motion[ftr_mtn::sck::compute::in_n_ROI0] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
     motion[ftr_mtn::sck::compute::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
     motion[ftr_mtn::sck::compute::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
 
     // Step 6 : tracking
-    tracking[trk::sck::perform::in_frame] = video[vid::sck::generate::out_frame];
-    tracking[trk::sck::perform::in_ROI0_id] = delayer_ROI_id[dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_xmin] = delayer_ROI_xmin[dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_xmax] = delayer_ROI_xmax[dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_ymin] = delayer_ROI_ymin[dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_ymax] = delayer_ROI_ymax[dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_x] = delayer_ROI_x[dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_y] = delayer_ROI_y[dly::sck::produce::out];
+    tracking[trk::sck::perform::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
+    tracking[trk::sck::perform::in_ROI0_id] = delayer_ROI_id[aff3ct::module::dly::sck::produce::out];
+    tracking[trk::sck::perform::in_ROI0_xmin] = delayer_ROI_xmin[aff3ct::module::dly::sck::produce::out];
+    tracking[trk::sck::perform::in_ROI0_xmax] = delayer_ROI_xmax[aff3ct::module::dly::sck::produce::out];
+    tracking[trk::sck::perform::in_ROI0_ymin] = delayer_ROI_ymin[aff3ct::module::dly::sck::produce::out];
+    tracking[trk::sck::perform::in_ROI0_ymax] = delayer_ROI_ymax[aff3ct::module::dly::sck::produce::out];
+    tracking[trk::sck::perform::in_ROI0_x] = delayer_ROI_x[aff3ct::module::dly::sck::produce::out];
+    tracking[trk::sck::perform::in_ROI0_y] = delayer_ROI_y[aff3ct::module::dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI0_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
     tracking[trk::sck::perform::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
-    tracking[trk::sck::perform::in_n_ROI0] = delayer_n_ROI[dly::sck::produce::out];
+    tracking[trk::sck::perform::in_n_ROI0] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
     tracking[trk::sck::perform::in_ROI1_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
     tracking[trk::sck::perform::in_ROI1_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
@@ -359,30 +467,30 @@ int main(int argc, char** argv) {
     tracking[trk::sck::perform::in_mean_error] = motion[ftr_mtn::sck::compute::out_mean_error];
     tracking[trk::sck::perform::in_std_deviation] = motion[ftr_mtn::sck::compute::out_std_deviation];
 
-    delayer_ROI_id[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_id];
-    delayer_ROI_xmin[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
-    delayer_ROI_xmax[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
-    delayer_ROI_ymin[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_ymin];
-    delayer_ROI_ymax[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_ymax];
-    delayer_ROI_S[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_S];
-    delayer_ROI_Sx[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_Sx];
-    delayer_ROI_Sy[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_Sy];
-    delayer_ROI_x[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_x];
-    delayer_ROI_y[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_y];
-    delayer_n_ROI[dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_n_ROI];
+    delayer_ROI_id[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_xmin[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
+    delayer_ROI_xmax[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
+    delayer_ROI_ymin[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_ymin];
+    delayer_ROI_ymax[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_ymax];
+    delayer_ROI_S[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_S];
+    delayer_ROI_Sx[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_Sx];
+    delayer_ROI_Sy[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_Sy];
+    delayer_ROI_x[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_x];
+    delayer_ROI_y[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_y];
+    delayer_n_ROI[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_n_ROI];
 
     if (p_out_stats) {
-        log_ROI[lgr_roi::sck::write::in_ROI0_id] = delayer_ROI_id[dly::sck::produce::out];
-        log_ROI[lgr_roi::sck::write::in_ROI0_xmin] = delayer_ROI_xmin[dly::sck::produce::out];
-        log_ROI[lgr_roi::sck::write::in_ROI0_xmax] = delayer_ROI_xmax[dly::sck::produce::out];
-        log_ROI[lgr_roi::sck::write::in_ROI0_ymin] = delayer_ROI_ymin[dly::sck::produce::out];
-        log_ROI[lgr_roi::sck::write::in_ROI0_ymax] = delayer_ROI_ymax[dly::sck::produce::out];
-        log_ROI[lgr_roi::sck::write::in_ROI0_S] = delayer_ROI_S[dly::sck::produce::out];
-        log_ROI[lgr_roi::sck::write::in_ROI0_Sx] = delayer_ROI_Sx[dly::sck::produce::out];
-        log_ROI[lgr_roi::sck::write::in_ROI0_Sy] = delayer_ROI_Sy[dly::sck::produce::out];
-        log_ROI[lgr_roi::sck::write::in_ROI0_x] = delayer_ROI_x[dly::sck::produce::out];
-        log_ROI[lgr_roi::sck::write::in_ROI0_y] = delayer_ROI_y[dly::sck::produce::out];
-        log_ROI[lgr_roi::sck::write::in_n_ROI0] = delayer_n_ROI[dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_id] = delayer_ROI_id[aff3ct::module::dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_xmin] = delayer_ROI_xmin[aff3ct::module::dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_xmax] = delayer_ROI_xmax[aff3ct::module::dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_ymin] = delayer_ROI_ymin[aff3ct::module::dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_ymax] = delayer_ROI_ymax[aff3ct::module::dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_S] = delayer_ROI_S[aff3ct::module::dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_Sx] = delayer_ROI_Sx[aff3ct::module::dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_Sy] = delayer_ROI_Sy[aff3ct::module::dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_x] = delayer_ROI_x[aff3ct::module::dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_y] = delayer_ROI_y[aff3ct::module::dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_n_ROI0] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
         log_ROI[lgr_roi::sck::write::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
         log_ROI[lgr_roi::sck::write::in_ROI1_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
         log_ROI[lgr_roi::sck::write::in_ROI1_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
@@ -398,18 +506,18 @@ int main(int argc, char** argv) {
         log_ROI[lgr_roi::sck::write::in_track_end] = tracking[trk::sck::perform::out_track_end];
         log_ROI[lgr_roi::sck::write::in_track_obj_type] = tracking[trk::sck::perform::out_track_obj_type];
         log_ROI[lgr_roi::sck::write::in_n_tracks] = tracking[trk::sck::perform::out_n_tracks];
-        log_ROI[lgr_roi::sck::write::in_frame] = video[vid::sck::generate::out_frame];
+        log_ROI[lgr_roi::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
 
         log_KNN[lgr_knn::sck::write::in_data_nearest] = matcher[knn::sck::match::out_data_nearest];
         log_KNN[lgr_knn::sck::write::in_data_distances] = matcher[knn::sck::match::out_data_distances];
-        log_KNN[lgr_knn::sck::write::in_ROI_id] = delayer_ROI_id[dly::sck::produce::out];
-        log_KNN[lgr_knn::sck::write::in_ROI_S] = delayer_ROI_S[dly::sck::produce::out];
+        log_KNN[lgr_knn::sck::write::in_ROI_id] = delayer_ROI_id[aff3ct::module::dly::sck::produce::out];
+        log_KNN[lgr_knn::sck::write::in_ROI_S] = delayer_ROI_S[aff3ct::module::dly::sck::produce::out];
         log_KNN[lgr_knn::sck::write::in_ROI_dx] = motion[ftr_mtn::sck::compute::out_ROI0_dx];
         log_KNN[lgr_knn::sck::write::in_ROI_dy] = motion[ftr_mtn::sck::compute::out_ROI0_dy];
         log_KNN[lgr_knn::sck::write::in_ROI_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
         log_KNN[lgr_knn::sck::write::in_ROI_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
-        log_KNN[lgr_knn::sck::write::in_n_ROI] = delayer_n_ROI[dly::sck::produce::out];
-        log_KNN[lgr_knn::sck::write::in_frame] = video[vid::sck::generate::out_frame];
+        log_KNN[lgr_knn::sck::write::in_n_ROI] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
+        log_KNN[lgr_knn::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
 
         log_motion[lgr_mtn::sck::write::in_first_theta] = motion[ftr_mtn::sck::compute::out_first_theta];
         log_motion[lgr_mtn::sck::write::in_first_tx] = motion[ftr_mtn::sck::compute::out_first_tx];
@@ -421,74 +529,141 @@ int main(int argc, char** argv) {
         log_motion[lgr_mtn::sck::write::in_ty] = motion[ftr_mtn::sck::compute::out_ty];
         log_motion[lgr_mtn::sck::write::in_mean_error] = motion[ftr_mtn::sck::compute::out_mean_error];
         log_motion[lgr_mtn::sck::write::in_std_deviation] = motion[ftr_mtn::sck::compute::out_std_deviation];
-        log_motion[lgr_mtn::sck::write::in_frame] = video[vid::sck::generate::out_frame];
+        log_motion[lgr_mtn::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
 
         log_track[lgr_trk::sck::write::in_track_id] = tracking[trk::sck::perform::out_track_id];
         log_track[lgr_trk::sck::write::in_track_begin] = tracking[trk::sck::perform::out_track_begin];
         log_track[lgr_trk::sck::write::in_track_end] = tracking[trk::sck::perform::out_track_end];
         log_track[lgr_trk::sck::write::in_track_obj_type] = tracking[trk::sck::perform::out_track_obj_type];
         log_track[lgr_trk::sck::write::in_n_tracks] = tracking[trk::sck::perform::out_n_tracks];
-        log_track[lgr_trk::sck::write::in_frame] = video[vid::sck::generate::out_frame];
+        log_track[lgr_trk::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
     }
 
     if (p_out_frames) {
         log_frame[lgr_fra::sck::write::in_img] = merger[ftr_mrg::sck::merge::out_img];
-        log_frame[lgr_fra::sck::write::in_frame] = video[vid::sck::generate::out_frame];
+        log_frame[lgr_fra::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
+    }
+
+    if (p_out_probes) {
+        (*prb_fra_id  )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_thr_thr )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_thr_lat )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_thr_time)[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_ts_s3e  )[aff3ct::module::prb::tsk::probe] = (*prb_thr_time)[aff3ct::module::prb::sck::probe_noin::status];
     }
 
     // --------------------- //
     // -- CREATE SEQUENCE -- //
     // --------------------- //
 
-#ifdef ENABLE_PIPELINE
+    // determine the first task in the tasks graph
+    aff3ct::runtime::Task* first_task = nullptr;
+    if (p_out_probes)
+        first_task = &(*prb_ts_s1b)[aff3ct::module::prb::tsk::probe];
+    else
+        first_task = video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate];
+
+#ifdef FMDT_ENABLE_PIPELINE
     // pipeline definition with separation stages
     std::vector<std::tuple<std::vector<aff3ct::runtime::Task*>,
                            std::vector<aff3ct::runtime::Task*>,
-                           std::vector<aff3ct::runtime::Task*>>> sep_stages =
-    { // pipeline stage 0
-      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                      std::vector<aff3ct::runtime::Task*>>(
-        { &video[vid::tsk::generate],},
-        { &video[vid::tsk::generate], },
-        { /* no exclusions in this stage */ } ),
-      // pipeline stage 1
-      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                      std::vector<aff3ct::runtime::Task*>>(
-        { &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply] },
-        { &merger[ftr_mrg::tsk::merge], },
-        { } ),
-      // pipeline stage 2
-      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                      std::vector<aff3ct::runtime::Task*>>(
-        { &delayer_ROI_id[dly::tsk::produce],
-          &delayer_ROI_xmin[dly::tsk::produce],
-          &delayer_ROI_xmax[dly::tsk::produce],
-          &delayer_ROI_ymin[dly::tsk::produce],
-          &delayer_ROI_ymax[dly::tsk::produce],
-          &delayer_ROI_S[dly::tsk::produce],
-          &delayer_ROI_Sx[dly::tsk::produce],
-          &delayer_ROI_Sy[dly::tsk::produce],
-          &delayer_ROI_x[dly::tsk::produce],
-          &delayer_ROI_y[dly::tsk::produce],
-          &delayer_n_ROI[dly::tsk::produce],
-          &matcher[knn::tsk::match],
-          &motion[ftr_mtn::tsk::compute],
-          &tracking[trk::tsk::perform],
-          &delayer_ROI_id[dly::tsk::memorize],
-          &delayer_ROI_xmin[dly::tsk::memorize],
-          &delayer_ROI_xmax[dly::tsk::memorize],
-          &delayer_ROI_ymin[dly::tsk::memorize],
-          &delayer_ROI_ymax[dly::tsk::memorize],
-          &delayer_ROI_S[dly::tsk::memorize],
-          &delayer_ROI_Sx[dly::tsk::memorize],
-          &delayer_ROI_Sy[dly::tsk::memorize],
-          &delayer_ROI_x[dly::tsk::memorize],
-          &delayer_ROI_y[dly::tsk::memorize],
-          &delayer_n_ROI[dly::tsk::memorize],
-          },
-        { },
-        { /* no exclusions in this stage */ } ),
-    };
+                           std::vector<aff3ct::runtime::Task*>>> sep_stages;
+
+    if (!p_out_probes) {
+        sep_stages =
+        { // pipeline stage 1
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate], },
+            { video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate], },
+            { /* no exclusions in this stage */ } ),
+          // pipeline stage 2
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply] },
+            { &merger[ftr_mrg::tsk::merge], },
+            { /* no exclusions in this stage */ } ),
+          // pipeline stage 3
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &delayer_ROI_id[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_xmin[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_xmax[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_ymin[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_ymax[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_S[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_Sx[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_Sy[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_x[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_y[aff3ct::module::dly::tsk::produce],
+              &delayer_n_ROI[aff3ct::module::dly::tsk::produce],
+              &matcher[knn::tsk::match],
+              &motion[ftr_mtn::tsk::compute],
+              &tracking[trk::tsk::perform],
+              &delayer_ROI_id[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_xmin[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_xmax[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_ymin[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_ymax[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_S[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_Sx[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_Sy[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_x[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_y[aff3ct::module::dly::tsk::memorize],
+              &delayer_n_ROI[aff3ct::module::dly::tsk::memorize],
+              },
+            { },
+            { /* no exclusions in this stage */ } ),
+        };
+    } else {
+        sep_stages =
+        { // pipeline stage 1
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &(*prb_ts_s1b)[aff3ct::module::prb::tsk::probe], &(*prb_ts_s1e)[aff3ct::module::prb::tsk::probe] },
+            { video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate], },
+            { /* no exclusions in this stage */ } ),
+          // pipeline stage 2
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &(*ts_s2b)("exec"), &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply], &(*ts_s2e)("exec") },
+            { &merger[ftr_mrg::tsk::merge], },
+            { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe], &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe], } ),
+          // pipeline stage 3
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe],
+              &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe],
+              &delayer_ROI_id[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_xmin[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_xmax[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_ymin[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_ymax[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_S[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_Sx[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_Sy[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_x[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_y[aff3ct::module::dly::tsk::produce],
+              &delayer_n_ROI[aff3ct::module::dly::tsk::produce],
+              &matcher[knn::tsk::match],
+              &motion[ftr_mtn::tsk::compute],
+              &tracking[trk::tsk::perform],
+              &delayer_ROI_id[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_xmin[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_xmax[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_ymin[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_ymax[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_S[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_Sx[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_Sy[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_x[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_y[aff3ct::module::dly::tsk::memorize],
+              &delayer_n_ROI[aff3ct::module::dly::tsk::memorize],
+              },
+            { },
+            { /* no exclusions in this stage */ } ),
+        };
+    }
 
     if (p_out_stats) {
         std::get<0>(sep_stages[2]).push_back(&log_ROI[lgr_roi::tsk::write]);
@@ -501,21 +676,21 @@ int main(int argc, char** argv) {
         std::get<0>(sep_stages[2]).push_back(&log_frame[lgr_fra::tsk::write]);
     }
 
-    aff3ct::runtime::Pipeline sequence_or_pipeline({ &video[vid::tsk::generate] }, // first task of the sequence
+    aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
                                                    sep_stages,
                                                    {
-                                                     1, // number of threads in the stage 0
-                                                     4, // number of threads in the stage 1
-                                                     1, // number of threads in the stage 2
+                                                     1, // number of threads in the stage 1
+                                                     4, // number of threads in the stage 2
+                                                     1, // number of threads in the stage 3
                                                    }, {
-                                                     16, // synchronization buffer size between stages 0 and 1
                                                      16, // synchronization buffer size between stages 1 and 2
+                                                     16, // synchronization buffer size between stages 2 and 3
                                                    }, {
-                                                     false, // type of waiting between stages 0 and 1 (true = active, false = passive)
                                                      false, // type of waiting between stages 1 and 2 (true = active, false = passive)
+                                                     false, // type of waiting between stages 2 and 3 (true = active, false = passive)
                                                    });
 #else
-    aff3ct::runtime::Sequence sequence_or_pipeline(video[vid::tsk::generate], 1);
+    aff3ct::runtime::Sequence sequence_or_pipeline(*first_task, 1);
 #endif
 
     // configuration of the sequence tasks
@@ -536,33 +711,58 @@ int main(int argc, char** argv) {
     // -- EXECUTE SEQUENCE -- //
     // ---------------------- //
 
+    std::chrono::time_point<std::chrono::steady_clock> t_start;
     unsigned n_frames = 0;
     std::function<bool(const std::vector<const int*>&)> stop_condition =
-        [&tracking, &n_frames] (const std::vector<const int*>& statuses) {
-            fprintf(stderr, "(II) Frame n°%4u", n_frames);
-            unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
-            size_t n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
-            fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
-                    n_stars, n_noise, n_tracks);
-            fflush(stderr);
-            n_frames++;
-            return false;
+        [&tracking, &n_frames, &terminal_probes, &rt_probes_file, &t_start] (const std::vector<const int*>& statuses) {
+            if (statuses.back() != nullptr) {
+                fprintf(stderr, "(II) Frame n°%4u", n_frames);
+                unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
+                size_t n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
+
+                auto t_stop = std::chrono::steady_clock::now();
+                auto time_duration =
+                    (int64_t)std::chrono::duration_cast<std::chrono::microseconds>(t_stop - t_start).count();
+                auto time_duration_sec = time_duration * 1e-6;
+
+                fprintf(stderr, " -- Time = %6.3f sec", time_duration_sec);
+                fprintf(stderr, " -- FPS = %4d", (int)(n_frames / time_duration_sec));
+                fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
+                        n_stars, n_noise, (unsigned long)n_tracks);
+                fflush(stderr);
+                n_frames++;
+                if (rt_probes_file.is_open())
+                    terminal_probes.temp_report(rt_probes_file);
+            }
+            return aff3ct::tools::Terminal::is_interrupt(); // catch "Ctrl+c" signal interruption
         };
 
     printf("# The program is running...\n");
 
-#ifdef ENABLE_PIPELINE
+    if (p_out_probes) {
+        // reset start time to NOW!
+        prb_thr_thr->reset();
+        prb_thr_lat->reset();
+        prb_thr_time->reset();
+    }
+
+    t_start = std::chrono::steady_clock::now();
+#ifdef FMDT_ENABLE_PIPELINE
     sequence_or_pipeline.exec({
-        stop_condition,                                                   // stop condition stage 0
-        [] (const std::vector<const int*>& statuses) { return false; },   // stop condition stage 1
-        [] (const std::vector<const int*>& statuses) { return false; }}); // stop condition stage 2
+        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 1
+        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 2
+        stop_condition});                                               // stop condition stage 3
 #else
     sequence_or_pipeline.exec(stop_condition);
 #endif
+    auto t_stop = std::chrono::steady_clock::now();
 
     // ------------------- //
     // -- PRINT RESULTS -- //
     // ------------------- //
+
+    if (rt_probes_file.is_open())
+        terminal_probes.final_report(rt_probes_file);
 
     fprintf(stderr, "\n");
     if (p_out_bb)
@@ -573,25 +773,35 @@ int main(int argc, char** argv) {
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
     size_t real_n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
     printf("# Tracks statistics:\n");
-    printf("# -> Processed frames = %4d\n", n_frames -1);
+    printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
-           n_noise, real_n_tracks);
+           n_noise, (unsigned long)real_n_tracks);
+    auto time_duration = (int64_t)std::chrono::duration_cast<std::chrono::microseconds>(t_stop - t_start).count();
+    auto time_duration_sec = time_duration * 1e-6;
+    printf("# -> Took %6.3f seconds (avg %d FPS)\n", time_duration_sec, (int)(n_frames / time_duration_sec));
 
     // display the statistics of the tasks (if enabled)
-#ifdef ENABLE_PIPELINE
-    auto stages = sequence_or_pipeline.get_stages();
-    for (size_t s = 0; s < stages.size(); s++)
-    {
-        const int n_threads = stages[s]->get_n_threads();
-        std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
-        aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true);
-    }
+    if (p_task_stats) {
+#ifdef FMDT_ENABLE_PIPELINE
+        auto stages = sequence_or_pipeline.get_stages();
+        for (size_t s = 0; s < stages.size(); s++)
+        {
+            const int n_threads = stages[s]->get_n_threads();
+            std::cout << "#" << std::endl << "# Pipeline stage " << (s + 1) << " (" << n_threads << " thread(s)): "
+                      << std::endl;
+            aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true, false);
+        }
 #else
         std::cout << "#" << std::endl;
-        aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true);
+        aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
 #endif
+    }
 
     printf("# End of the program, exiting.\n");
+
+#ifdef FMDT_ENABLE_PIPELINE
+    sequence_or_pipeline.unbind_adaptors();
+#endif
 
     return EXIT_SUCCESS;
 }

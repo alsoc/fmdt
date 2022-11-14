@@ -9,6 +9,7 @@ option(FMDT_DETECT_EXE "compile the detection chain executable." ON)
 option(FMDT_VISU_EXE "compile the visualization executable." ON)
 option(FMDT_CHECK_EXE "compile the checking executable." ON)
 option(FMDT_MAXRED_EXE "compile the max reduction executable." ON)
+option(FMDT_VID2IMG_EXE "compile the video to images executable." ON)
 option(FMDT_DEBUG "build the project using debugging code" OFF)
 option(FMDT_OPENCV_LINK "link with OpenCV library." OFF)
 option(FMDT_AFF3CT_RUNTIME "link with AFF3CT for execution runtime." OFF)
@@ -26,6 +27,7 @@ message(STATUS "  * FMDT_DETECT_EXE: '${FMDT_DETECT_EXE}'")
 message(STATUS "  * FMDT_VISU_EXE: '${FMDT_VISU_EXE}'")
 message(STATUS "  * FMDT_CHECK_EXE: '${FMDT_CHECK_EXE}'")
 message(STATUS "  * FMDT_MAXRED_EXE: '${FMDT_MAXRED_EXE}'")
+message(STATUS "  * FMDT_VID2IMG_EXE: '${FMDT_VID2IMG_EXE}'")
 message(STATUS "  * FMDT_DEBUG: '${FMDT_DEBUG}'")
 message(STATUS "  * FMDT_OPENCV_LINK: '${FMDT_OPENCV_LINK}'")
 message(STATUS "  * FMDT_AFF3CT_RUNTIME: '${FMDT_AFF3CT_RUNTIME}'")
@@ -66,7 +68,8 @@ set(src_common_files
     ${src_dir}/common/tools.c
     ${src_dir}/common/tracking.c
     ${src_dir}/common/validation.c
-    ${src_dir}/common/video.c)
+    ${src_dir}/common/video.c
+    ${src_dir}/common/images.c)
 list(APPEND fmdt_src_list ${src_common_files})
 
 # Create binaries -------------------------------------------------------------
@@ -110,15 +113,25 @@ if(FMDT_DETECT_EXE)
 
         set(src_detectrt1_files
             ${src_dir}/runtime/Video/Video.cpp
+            ${src_dir}/runtime/Images/Images.cpp
             ${src_dir}/detect/main_rt.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt1_files})
-        add_executable(fmdt-detect-rt-exe 
+        add_executable(fmdt-detect-rt-seq-exe
+            $<TARGET_OBJECTS:fmdt-common-obj>
+            $<TARGET_OBJECTS:fmdt-detect-common-obj>
+            $<TARGET_OBJECTS:fmdt-detectrt-common-obj>
+            ${src_detectrt1_files})
+        list(APPEND fmdt_targets_list fmdt-detect-rt-seq-exe)
+        set_target_properties(fmdt-detect-rt-seq-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-seq)
+
+        add_executable(fmdt-detect-rt-pip-exe
             $<TARGET_OBJECTS:fmdt-common-obj> 
             $<TARGET_OBJECTS:fmdt-detect-common-obj> 
             $<TARGET_OBJECTS:fmdt-detectrt-common-obj> 
             ${src_detectrt1_files})
-        list(APPEND fmdt_targets_list fmdt-detect-rt-exe)
-        set_target_properties(fmdt-detect-rt-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt)
+        list(APPEND fmdt_targets_list fmdt-detect-rt-pip-exe)
+        set_target_properties(fmdt-detect-rt-pip-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-pip)
+        target_compile_definitions(fmdt-detect-rt-pip-exe PUBLIC FMDT_ENABLE_PIPELINE)
         
         set(src_detectrt2_files
             ${src_dir}/runtime/Video/Video2.cpp
@@ -156,6 +169,14 @@ if(FMDT_MAXRED_EXE)
 	add_executable(fmdt-maxred-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_maxred_files})
 	list(APPEND fmdt_targets_list fmdt-maxred-exe)
 	set_target_properties(fmdt-maxred-exe PROPERTIES OUTPUT_NAME fmdt-maxred)
+endif()
+if(FMDT_VID2IMG_EXE)
+	set(src_vid2img_files
+	    ${src_dir}/vid2img/main.c)
+	list(APPEND fmdt_src_list ${src_vid2img_files})
+	add_executable(fmdt-vid2img-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_vid2img_files})
+	list(APPEND fmdt_targets_list fmdt-vid2img-exe)
+	set_target_properties(fmdt-vid2img-exe PROPERTIES OUTPUT_NAME fmdt-vid2img)
 endif()
 
 macro(fmdt_set_source_files_properties files key value)
@@ -197,6 +218,7 @@ if (FMDT_AFF3CT_RUNTIME)
 	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct-core/include/aff3ct-core.hpp")
 		option(AFF3CT_CORE_COMPILE_STATIC_LIB "" ON)
 		option(AFF3CT_CORE_COMPILE_SHARED_LIB "" OFF)
+		option(AFF3CT_CORE_TESTS "" OFF)
 		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct-core/)
 	else()
 		message(FATAL_ERROR "'aff3ct-core' can't be found, try to init the submodule with the following cmd:\n"
@@ -212,7 +234,7 @@ endif()
 # -----------------------------------------------------------------------------
 macro(fmdt_target_compile_definitions targets privacy dir)
 	foreach(_target IN ITEMS ${targets})
-		target_compile_definitions(${_target} ${privacy} ${dir} )
+		target_compile_definitions(${_target} ${privacy} ${dir})
 	endforeach()
 endmacro()
 

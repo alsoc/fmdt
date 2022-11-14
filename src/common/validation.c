@@ -234,7 +234,7 @@ void validation_print(const track_t* track_array) {
     printf("  - Number of GT objs = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", n_val_meteors,
            n_val_stars, n_gt_noise, n_val_objects);
     printf("  - Number of tracks  = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4lu]\n", n_track_meteors,
-           n_track_stars, n_track_noise, track_array->_size);
+           n_track_stars, n_track_noise, (unsigned long)track_array->_size);
     printf("  - True positives    = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", g_true_positive[METEOR],
            g_true_positive[STAR], g_true_positive[NOISE], allPositiveTrue);
     printf("  - False positives   = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", g_false_positive[METEOR],
