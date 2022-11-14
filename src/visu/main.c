@@ -221,8 +221,7 @@ int main(int argc, char** argv) {
     rgb8_t** img_bb = (rgb8_t**)rgb8matrix(0, i1, 0, j1);
 
     // parcours de la video
-    while (video_get_next_frame(video, I0)) {
-        frame = video->frame_current - 1;
+    while ((frame = video_get_next_frame(video, I0)) != -1) {
         fprintf(stderr, "(II) Frame n°%-4d\r", frame);
         fflush(stderr);
         int cpt = 0;
