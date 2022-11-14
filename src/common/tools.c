@@ -746,6 +746,8 @@ void tools_linear_2d_nrc_f32matrix(const float* X, const int i0, const int i1, c
     Y[i0] = X - j0;
     for (int i = i0 + 1; i <= i1 ; i++)
         Y[i] = Y[i - 1] + ((j1 - j0) + 1);
+}
+
 int tools_is_dir(const char *path)
 {
     struct stat path_stat;
