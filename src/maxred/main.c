@@ -147,8 +147,7 @@ int main(int argc, char** argv) {
     // -- TRAITEMENT --//
     // ----------------//
     PUTS("LOOP");
-    while (video_get_next_frame(video, img)) {
-        frame = video->frame_current - 1;
+    while ((frame = video_get_next_frame(video, img)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d\r", frame);
         max_reduce(Max, i0, i1, j0, j1, img);
     }

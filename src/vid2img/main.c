@@ -90,8 +90,8 @@ int main(int argc, char** argv) {
     // -- TRAITEMENT --//
     // ----------------//
     tools_create_folder(p_out_frames);
-    while (video_get_next_frame(video, img)) {
-        const unsigned frame = video->frame_current - 1;
+    int frame;
+    while ((frame = video_get_next_frame(video, img)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d\r", frame);
         char filename[1024];
         snprintf(filename, sizeof(filename), "%s/%05u.pgm", p_out_frames, frame);
