@@ -729,6 +729,13 @@ void tools_write_PNM_row(const uint8* line, const int width, FILE* file) {
 
 void tools_linear_2d_nrc_ui8matrix(const uint8_t* X, const int i0, const int i1, const int j0, const int j1, 
                          const uint8_t** Y) {
+    assert(X != NULL);
+    assert(Y != NULL);
+    assert(i0 <= 0);
+    assert(j0 <= 0);
+    assert(i1 > i0 && i1 > 0); // i1 > 0
+    assert(j1 > j0 && j1 > 0); // j1 > 0
+    
     Y[i0] = X - j0;
     for (int i = i0 + 1; i <= i1 ; i++)
         Y[i] = Y[i - 1] + ((j1 - j0) + 1);
@@ -736,6 +743,13 @@ void tools_linear_2d_nrc_ui8matrix(const uint8_t* X, const int i0, const int i1,
 
 void tools_linear_2d_nrc_ui32matrix(const uint32_t* X, const int i0, const int i1, const int j0, const int j1, 
                          const uint32_t** Y) {
+    assert(X != NULL);
+    assert(Y != NULL);
+    assert(i0 <= 0);
+    assert(j0 <= 0);
+    assert(i1 > i0 && i1 > 0); // i1 > 0
+    assert(j1 > j0 && j1 > 0); // j1 > 0
+    
     Y[i0] = X - j0;
     for (int i = i0 + 1; i <= i1 ; i++)
         Y[i] = Y[i - 1] + ((j1 - j0) + 1);
@@ -743,11 +757,17 @@ void tools_linear_2d_nrc_ui32matrix(const uint32_t* X, const int i0, const int i
 
 void tools_linear_2d_nrc_f32matrix(const float* X, const int i0, const int i1, const int j0, const int j1, 
                                    const float** Y) {
+    assert(X != NULL);
+    assert(Y != NULL);
+    assert(i0 <= 0);
+    assert(j0 <= 0);
+    assert(i1 > i0 && i1 > 0); // i1 > 0
+    assert(j1 > j0 && j1 > 0); // j1 > 0
+    
     Y[i0] = X - j0;
     for (int i = i0 + 1; i <= i1 ; i++)
         Y[i] = Y[i - 1] + ((j1 - j0) + 1);
 }
-
 int tools_is_dir(const char *path)
 {
     struct stat path_stat;
