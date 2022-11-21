@@ -16,10 +16,12 @@ class KNN_matcher : public aff3ct::module::Module {
 protected:
     const int i0, i1, j0, j1;
     const size_t k;
+    const uint32_t max_dist_square;
     uint32_t** out_data_nearest;
     float** out_data_distances;
 public:
-    KNN_matcher(const size_t i0, const int i1, const int j0, const int j1, const size_t k, const size_t max_ROI_size);
+    KNN_matcher(const size_t i0, const int i1, const int j0, const int j1, const size_t k,
+                const uint32_t max_dist, const size_t max_ROI_size);
     virtual ~KNN_matcher();
     inline aff3ct::runtime::Task& operator[](const knn::tsk t);
     inline aff3ct::runtime::Socket& operator[](const knn::sck::match s);

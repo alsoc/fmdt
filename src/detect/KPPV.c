@@ -8,7 +8,6 @@
 #include "fmdt/KPPV.h"
 
 #define INF32 0xFFFFFFFF
-#define MAX_DIST 100
 
 KKPV_data_t* KPPV_alloc_and_init_data(int i0, int i1, int j0, int j1) {
     KKPV_data_t* data = (KKPV_data_t*)malloc(sizeof(KKPV_data_t));
@@ -60,7 +59,7 @@ void compute_distance(float** distances, const ROI_t* ROI_array0, const ROI_t* R
 
 void KPPV_match1(const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, const float* ROI1_x,
                  const float* ROI1_y, const size_t n_ROI1, uint32_t** data_nearest, float** distances,
-                 uint32_t* data_conflicts, const int k) {
+                 uint32_t* data_conflicts, const int k, const uint32_t max_dist_square) {
     int k_index, val, cpt = 0;
 
     // vecteur de conflits pour debug
@@ -77,7 +76,7 @@ void KPPV_match1(const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, 
         for (size_t i = 0; i < n_ROI0; i++) {
             for (size_t j = 0; j < n_ROI1; j++) {
                 // if une distance est calculée et ne fait pas pas déjà parti du tab data_nearest
-                if ((distances[i][j] != INF32) && (data_nearest[i][j] == 0) && (distances[i][j] < MAX_DIST)) {
+                if ((distances[i][j] != INF32) && (data_nearest[i][j] == 0) && (distances[i][j] < max_dist_square)) {
                     val = distances[i][j];
                     cpt = 0;
                     // // compte le nombre de distances < val
@@ -133,16 +132,17 @@ void KPPV_match2(const uint32_t** data_nearest, const float** distances, const u
 void _KPPV_match(uint32_t** data_nearest, float** data_distances, uint32_t* data_conflicts, const uint16_t* ROI0_id,
                  const float* ROI0_x, const float* ROI0_y, int32_t* ROI0_next_id, const size_t n_ROI0,
                  const uint16_t* ROI1_id, const float* ROI1_x, const float* ROI1_y, int32_t* ROI1_prev_id, const
-                 size_t n_ROI1, const int k) {
-    KPPV_match1(ROI0_x, ROI0_y, n_ROI0, ROI1_x, ROI1_y, n_ROI1, data_nearest, data_distances, data_conflicts, k);
+                 size_t n_ROI1, const int k, const uint32_t max_dist_square) {
+    KPPV_match1(ROI0_x, ROI0_y, n_ROI0, ROI1_x, ROI1_y, n_ROI1, data_nearest, data_distances, data_conflicts, k,
+                max_dist_square);
     KPPV_match2((const uint32_t**)data_nearest, (const float**)data_distances, ROI0_id, ROI0_next_id, n_ROI0, ROI1_id,
                 ROI1_prev_id, n_ROI1);
 }
 
-void KPPV_match(KKPV_data_t* data, ROI_t* ROI_array0, ROI_t* ROI_array1, const int k) {
+void KPPV_match(KKPV_data_t* data, ROI_t* ROI_array0, ROI_t* ROI_array1, const int k, const uint32_t max_dist_square) {
     _KPPV_match(data->nearest, data->distances, data->conflicts, ROI_array0->id, ROI_array0->x, ROI_array0->y,
                 ROI_array0->next_id, ROI_array0->_size, ROI_array1->id, ROI_array1->x, ROI_array1->y,
-                ROI_array1->prev_id, ROI_array1->_size, k);
+                ROI_array1->prev_id, ROI_array1->_size, k, max_dist_square);
 }
 
 void KPPV_save_asso(const char* filename, const uint32_t** data_nearest, const float** data_distances,

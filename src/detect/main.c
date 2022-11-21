@@ -34,6 +34,7 @@ int main(int argc, char** argv) {
     int def_p_surface_min = 3;
     int def_p_surface_max = 1000;
     int def_p_k = 3;
+    int def_p_max_dist = 10;
     int def_p_r_extrapol = 5;
     float def_p_angle_max = 20;
     int def_p_fra_star_min = 15;
@@ -85,6 +86,9 @@ int main(int argc, char** argv) {
                 "  -k                  Number of neighbours                                                   [%d]\n",
                 def_p_k);
         fprintf(stderr,
+                "  --max-dist          Maximum number of pixels between two images (in k-NN)                  [%d]\n",
+                def_p_max_dist);
+        fprintf(stderr,
                 "  --r-extrapol        Search radius for the next CC in case of extrapolation                 [%d]\n",
                 def_p_r_extrapol);
         fprintf(stderr,
@@ -125,6 +129,7 @@ int main(int argc, char** argv) {
     const int p_surface_min = args_find_int(argc, argv, "--surface-min", def_p_surface_min);
     const int p_surface_max = args_find_int(argc, argv, "--surface-max", def_p_surface_max);
     const int p_k = args_find_int(argc, argv, "-k", def_p_k);
+    const int p_max_dist = args_find_int(argc, argv, "--max-dist", def_p_max_dist);
     const int p_r_extrapol = args_find_int(argc, argv, "--r-extrapol", def_p_r_extrapol);
     const float p_angle_max = args_find_float(argc, argv, "--angle-max", def_p_angle_max);
     const int p_fra_star_min = args_find_int(argc, argv, "--fra-star-min", def_p_fra_star_min);
@@ -160,6 +165,7 @@ int main(int argc, char** argv) {
     printf("#  * surface-min    = %d\n", p_surface_min);
     printf("#  * surface-max    = %d\n", p_surface_max);
     printf("#  * k              = %d\n", p_k);
+    printf("#  * max-dist       = %d\n", p_max_dist);
     printf("#  * r-extrapol     = %d\n", p_r_extrapol);
     printf("#  * angle-max      = %f\n", p_angle_max);
     printf("#  * fra-star-min   = %d\n", p_fra_star_min);
@@ -293,7 +299,7 @@ int main(int argc, char** argv) {
         features_shrink_ROI_array((const ROI_t*)ROI_array_tmp, ROI_array1);
 
         // Step 4 : mise en correspondance
-        KPPV_match(kppv_data, ROI_array0, ROI_array1, p_k);
+        KPPV_match(kppv_data, ROI_array0, ROI_array1, p_k, p_max_dist * p_max_dist);
 
         // Step 5 : recalage
         double first_theta, first_tx, first_ty, first_mean_error, first_std_deviation;

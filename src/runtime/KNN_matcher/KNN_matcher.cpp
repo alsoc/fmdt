@@ -4,9 +4,9 @@
 #include "fmdt/KNN_matcher/KNN_matcher.hpp"
 
 KNN_matcher::KNN_matcher(const size_t i0, const int i1, const int j0, const int j1, const size_t k,
-                         const size_t max_ROI_size)
-: Module(), i0(i0), i1(i1), j0(j0), j1(j1), k(k), /* data(nullptr), */ out_data_nearest(nullptr),
-  out_data_distances(nullptr) {
+                         const uint32_t max_dist, const size_t max_ROI_size)
+: Module(), i0(i0), i1(i1), j0(j0), j1(j1), k(k), max_dist_square(max_dist * max_dist), /* data(nullptr), */
+  out_data_nearest(nullptr), out_data_distances(nullptr) {
     const std::string name = "KNN_matcher";
     this->set_name(name);
     this->set_short_name(name);
@@ -65,7 +65,7 @@ KNN_matcher::KNN_matcher(const size_t i0, const int i1, const int j0, const int 
                     static_cast<const float*>(t[ps_in_ROI1_x].get_dataptr()),
                     static_cast<const float*>(t[ps_in_ROI1_y].get_dataptr()),
                     static_cast<int32_t*>(t[ps_out_ROI1_prev_id].get_dataptr()),
-                    n_ROI1, knn.k);
+                    n_ROI1, knn.k, knn.max_dist_square);
 
         return aff3ct::runtime::status_t::SUCCESS;
     });
