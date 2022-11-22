@@ -5,6 +5,7 @@
 #include <nrc2.h>
 
 #include "fmdt/tools.h"
+#include "fmdt/defines.h"
 #include "fmdt/KPPV.h"
 
 #define INF32 0xFFFFFFFF
@@ -133,6 +134,8 @@ void _KPPV_match(uint32_t** data_nearest, float** data_distances, uint32_t* data
                  const float* ROI0_x, const float* ROI0_y, int32_t* ROI0_next_id, const size_t n_ROI0,
                  const uint16_t* ROI1_id, const float* ROI1_x, const float* ROI1_y, int32_t* ROI1_prev_id, const
                  size_t n_ROI1, const int k, const uint32_t max_dist_square) {
+    assert(n_ROI0 < MAX_KPPV_SIZE);
+    assert(n_ROI1 < MAX_KPPV_SIZE);
     KPPV_match1(ROI0_x, ROI0_y, n_ROI0, ROI1_x, ROI1_y, n_ROI1, data_nearest, data_distances, data_conflicts, k,
                 max_dist_square);
     KPPV_match2((const uint32_t**)data_nearest, (const float**)data_distances, ROI0_id, ROI0_next_id, n_ROI0, ROI1_id,
