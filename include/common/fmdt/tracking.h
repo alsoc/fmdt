@@ -49,7 +49,7 @@ typedef struct track {
     enum state_e* state;
     enum obj_e* obj_type;
     enum change_state_reason_e* change_state_reason;
-    uint32_t** magnitude;
+    int64_t** magnitude;
 
     size_t _size; // current size/utilization of the fields
     size_t _max_size; // maximum amount of data that can be contained in the fields
@@ -104,7 +104,7 @@ void _tracking_perform(tracking_data_t* tracking_data, const uint16_t* ROI0_id, 
                        const int32_t* ROI1_prev_id, const uint32_t* ROI1_magnitude, const size_t n_ROI1,
                        uint16_t* track_id, ROI_light_t* track_begin, ROI_light_t* track_end, float* track_extrapol_x,
                        float* track_extrapol_y, enum state_e* track_state, enum obj_e* track_obj_type,
-                       enum change_state_reason_e* track_change_state_reason, uint32_t** track_magnitude,
+                       enum change_state_reason_e* track_change_state_reason, int64_t** track_magnitude,
                        size_t* offset_tracks, size_t* n_tracks, BB_t** BB_array, size_t frame, double theta, double tx,
                        double ty, double mean_error, double std_deviation, size_t r_extrapol, float angle_max,
                        float diff_dev, int track_all, size_t fra_star_min, size_t fra_meteor_min,
@@ -124,7 +124,7 @@ void _tracking_track_array_write(FILE* f, const uint16_t* track_id, const ROI_li
 void tracking_track_array_write(FILE* f, const track_t* track_array);
 
 void _tracking_track_array_magnitude_write(FILE* f, const uint16_t* track_id, const enum obj_e* track_obj_type,
-                                           const uint32_t** track_magnitude, const size_t n_tracks);
+                                           const int64_t** track_magnitude, const size_t n_tracks);
 void tracking_track_array_magnitude_write(FILE* f, const track_t* track_array);
 // void tracking_print_buffer(ROIx2_t* buffer, int n);
 void tracking_parse_tracks(const char* filename, track_t* track_array);
