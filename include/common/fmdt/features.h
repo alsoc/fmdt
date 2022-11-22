@@ -23,6 +23,7 @@ typedef struct {
     int32_t* prev_id; // associated CC from t-1 -> t -> t+1
     int32_t* next_id; // associated CC from t-1 -> t -> t+1
     uint8_t* is_moving;
+    uint32_t* magnitude;
 
     size_t _size; // current size/utilization of the fields
     size_t _max_size; // maximum amount of data that can be contained in the fields
@@ -55,10 +56,11 @@ size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* RO
                                   const uint16_t* ROI_src_xmax, const uint16_t* ROI_src_ymin,
                                   const uint16_t* ROI_src_ymax, const uint32_t* ROI_src_S, const uint32_t* ROI_src_Sx,
                                   const uint32_t* ROI_src_Sy, const float* ROI_src_x, const float* ROI_src_y,
-                                  const size_t n_ROI_src, uint16_t* ROI_dest_id, uint16_t* ROI_dest_xmin,
-                                  uint16_t* ROI_dest_xmax, uint16_t* ROI_dest_ymin, uint16_t* ROI_dest_ymax,
-                                  uint32_t* ROI_dest_S, uint32_t* ROI_dest_Sx, uint32_t* ROI_dest_Sy, float* ROI_dest_x,
-                                  float* ROI_dest_y);
+                                  const uint32_t* ROI_src_magnitude, const size_t n_ROI_src, uint16_t* ROI_dest_id,
+                                  uint16_t* ROI_dest_xmin, uint16_t* ROI_dest_xmax, uint16_t* ROI_dest_ymin,
+                                  uint16_t* ROI_dest_ymax, uint32_t* ROI_dest_S, uint32_t* ROI_dest_Sx,
+                                  uint32_t* ROI_dest_Sy, float* ROI_dest_x, float* ROI_dest_y,
+                                  uint32_t* ROI_dest_magnitude);
 void features_shrink_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest);
 double features_compute_mean_error(const ROI_t* stats);
 double features_compute_std_deviation(const ROI_t* stats, const double mean_error);
@@ -73,20 +75,29 @@ void features_compute_motion(const ROI_t* ROI_array1, ROI_t* ROI_array0, double*
 void _features_ROI_write(FILE* f, const uint16_t* ROI_id, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
                          const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
                          const uint32_t* ROI_Sx, const uint32_t* ROI_Sy, const float* ROI_x, const float* ROI_y,
-                         const size_t n_ROI, const uint16_t* track_id, const ROI_light_t* track_end, 
-                         const enum obj_e* track_obj_type, const size_t n_tracks, const unsigned age);
+                         const uint32_t* ROI_magnitude, const size_t n_ROI, const uint16_t* track_id,
+                         const ROI_light_t* track_end, const enum obj_e* track_obj_type, const size_t n_tracks,
+                         const unsigned age);
 void features_ROI_write(FILE* f, const ROI_t* ROI_array, const track_t* track_array, const unsigned age);
 void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id, const uint16_t* ROI0_xmin,
                                const uint16_t* ROI0_xmax, const uint16_t* ROI0_ymin, const uint16_t* ROI0_ymax,
                                const uint32_t* ROI0_S, const uint32_t* ROI0_Sx, const uint32_t* ROI0_Sy,
-                               const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, const uint16_t* ROI1_id,
-                               const uint16_t* ROI1_xmin, const uint16_t* ROI1_xmax, const uint16_t* ROI1_ymin,
-                               const uint16_t* ROI1_ymax, const uint32_t* ROI1_S, const uint32_t* ROI1_Sx,
-                               const uint32_t* ROI1_Sy, const float* ROI1_x, const float* ROI1_y, const size_t n_ROI1, 
-                               const uint16_t* track_id, const ROI_light_t* track_end, 
+                               const float* ROI0_x, const float* ROI0_y, const uint32_t* ROI0_magnitude,
+                               const size_t n_ROI0, const uint16_t* ROI1_id, const uint16_t* ROI1_xmin,
+                               const uint16_t* ROI1_xmax, const uint16_t* ROI1_ymin, const uint16_t* ROI1_ymax,
+                               const uint32_t* ROI1_S, const uint32_t* ROI1_Sx, const uint32_t* ROI1_Sy,
+                               const float* ROI1_x, const float* ROI1_y, const uint32_t* ROI1_magnitude,
+                               const size_t n_ROI1, const uint16_t* track_id, const ROI_light_t* track_end,
                                const enum obj_e* track_obj_type, const size_t n_tracks);
 void features_ROI0_ROI1_write(FILE* f, const int frame, const ROI_t* ROI_array0, const ROI_t* ROI_array1,
                               const track_t* track_array);
 void features_motion_write(FILE* f, const double first_theta, const double first_tx, const double first_ty,
                            const double first_mean_error, const double first_std_deviation, const double theta,
                            const double tx, const double ty, const double mean_error, const double std_deviation);
+
+void _features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
+                                 const uint32_t** E, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
+                                 const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
+                                 uint32_t* ROI_magnitude, const size_t n_ROI);
+void features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
+                                const uint32_t** E, ROI_t* ROI_array);

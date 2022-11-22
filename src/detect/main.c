@@ -44,6 +44,7 @@ int main(int argc, char** argv) {
     char* def_p_in_video = NULL;
     char* def_p_out_frames = NULL;
     char* def_p_out_bb = NULL;
+    char* def_p_out_mag = NULL;
     char* def_p_out_stats = NULL;
     int def_p_video_loop = 1;
 
@@ -58,6 +59,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --out-bb            Path to the file containing the bounding boxes (frame by frame)        [%s]\n",
                 def_p_out_bb ? def_p_out_bb : "NULL");
+        fprintf(stderr,
+                "  --out-mag            Path to the file containing tracnking magnitudes                      [%s]\n",
+                def_p_out_mag ? def_p_out_mag : "NULL");
         fprintf(stderr,
                 "  --out-stats         Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_out_stats ? def_p_out_stats : "NULL");
@@ -139,6 +143,7 @@ int main(int argc, char** argv) {
     const char* p_in_video = args_find_char(argc, argv, "--in-video", def_p_in_video);
     const char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
+    const char* p_out_mag = args_find_char(argc, argv, "--out-mag", def_p_out_mag);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
     const int p_track_all = args_find(argc, argv, "--track-all");
     const int p_video_buff = args_find(argc, argv, "--video-buff");
@@ -155,6 +160,7 @@ int main(int argc, char** argv) {
     printf("# -----------\n");
     printf("#  * in-video       = %s\n", p_in_video);
     printf("#  * out-bb         = %s\n", p_out_bb);
+    printf("#  * out-mag        = %s\n", p_out_mag);
     printf("#  * out-frames     = %s\n", p_out_frames);
     printf("#  * out-stats      = %s\n", p_out_stats);
     printf("#  * fra-start      = %d\n", p_fra_start);
@@ -291,6 +297,7 @@ int main(int argc, char** argv) {
         // Step 2 : ECC/ACC
         const int n_ROI = CCL_LSL_apply(ccl_data, (const uint8_t**)SM_1, SM_2);
         features_extract((const uint32_t**)SM_2, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
+        features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)SM_2, ROI_array_tmp);
 
         // Step 3 : seuillage hysteresis && filter surface
         features_merge_HI_CCL_v2((const uint32_t**)SM_2, (const uint8_t**)SH_1, SH_2, i0, i1, j0, j1, ROI_array_tmp,
@@ -355,6 +362,10 @@ int main(int argc, char** argv) {
 
     if (BB_array)
         tracking_save_array_BB(p_out_bb, BB_array, track_array, MAX_BB_LIST_SIZE, p_track_all);
+    if (p_out_mag) {
+        FILE* f = fopen(p_out_mag, "w");
+        tracking_track_array_magnitude_write(f, track_array);
+    }
     tracking_track_array_write(stdout, track_array);
 
     printf("# Tracks statistics:\n");
