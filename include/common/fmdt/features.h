@@ -96,8 +96,8 @@ void features_motion_write(FILE* f, const double first_theta, const double first
                            const double tx, const double ty, const double mean_error, const double std_deviation);
 
 void _features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
-                                 const uint32_t** E, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
+                                 const uint32_t** labels, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
                                  const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
                                  uint32_t* ROI_magnitude, const size_t n_ROI);
 void features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
-                                const uint32_t** E, ROI_t* ROI_array);
+                                const uint32_t** labels, ROI_t* ROI_array);

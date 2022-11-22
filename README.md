@@ -76,6 +76,7 @@ The list of available arguments:
 | `--out-bb`         | str      | None        | No      | Path to the bounding boxes file required by `fmdt-visu` to draw detection rectangles. |
 | `--out-frames`     | str      | None        | No      | Path of the output frames for debug (PGM format). |
 | `--out-stats`      | str      | None        | No      | Path of the output statistics, only required for debugging purpose. |
+| `--out-mag`        | str      | None        | No      | Path to the output file containing magnitudes of the tracked objects. |
 | `--fra-start`      | int      | 0           | No      | First frame id to start the detection in the video sequence. |
 | `--fra-end`        | int      | 10000       | No      | Last frame id to stop the detection in the video sequence. |
 | `--fra-skip`       | int      | 0           | No      | Number of frames to skip. |

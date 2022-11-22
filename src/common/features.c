@@ -788,45 +788,53 @@ void features_save_motion_extraction(const char* filename, const ROI_t* ROI_arra
 }
 
 void _features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
-                                 const uint32_t** E, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
+                                 const uint32_t** labels, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
                                  const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
                                  uint32_t* ROI_magnitude, const size_t n_ROI) {
+    // set all ROIs (Regions of Interest) magnitudes to 0
     memset(ROI_magnitude, 0, n_ROI * sizeof(uint32_t));
+    // for each ROI (= Region of Interest = object)
     for (uint32_t r = 0; r < n_ROI; r++) {
-        // width and height of the current connected-component
+        // width and height of the current ROI
         uint16_t w = (ROI_xmax[r] - ROI_xmin[r]) + 1;
         uint16_t h = (ROI_ymax[r] - ROI_ymin[r]) + 1;
 
-        // bounding box around the connected-component + extra to subtract local noise level to magnitude
+        // bounding box around the ROI + extra space to consider local noise level
         uint16_t ymin = ROI_ymin[r] - h >          0 ? ROI_ymin[r] - h :          0;
         uint16_t ymax = ROI_ymax[r] + h < img_height ? ROI_ymax[r] + h : img_height;
         uint16_t xmin = ROI_xmin[r] - w >          0 ? ROI_xmin[r] - w :          0;
         uint16_t xmax = ROI_xmax[r] + w <  img_width ? ROI_xmax[r] + w :  img_width;
 
-        uint32_t acc_noise = 0;
-        uint32_t count_noise = 0;
-        uint32_t count_px = 0;
+        uint32_t acc_noise = 0; // accumulate noisy pixels (= dark pixels)
+        uint32_t count_noise = 0; // count the number of noisy pixels
+        uint32_t count_px = 0; // count the number of pixels for the current ROI (= bright pixels)
 
+        // moving in a square (bigger that the real bounding box) around the current ROI
         for (uint16_t i = ymin; i <= ymax; i++) {
             for (uint16_t j = xmin; j <= xmax; j++) {
-                uint32_t e = E[i][j];
-                if (e == r + 1) {
+                // get the label from the current pixel position
+                // if l != 0 then it is a ROI, else it is a dark / noisy pixel
+                uint32_t l = labels[i][j];
+                // check if the current pixel belong to the current ROI (same bounding box can share multiple ROIs)
+                if (l == r + 1) {
                     ROI_magnitude[r] += (uint32_t)img[i][j];
                     count_px++;
-                } else if (e == 0) {
+                } else if (l == 0) {
                     acc_noise += (uint32_t)img[i][j];
                     count_noise++;
                 }
             }
         }
         assert(count_px == ROI_S[r]); // useless check, only for debugging purpose
+        // compute mean noise value
         uint32_t noise = acc_noise / count_noise;
+        // subtract mean noise to the current ROI (Region of Interest) magnitude
         ROI_magnitude[r] -= noise * ROI_S[r];
     }
 }
 
 void features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
-                                const uint32_t** E, ROI_t* ROI_array) {
-    _features_compute_magnitude(img, img_width, img_height, E, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin,
+                                const uint32_t** labels, ROI_t* ROI_array) {
+    _features_compute_magnitude(img, img_width, img_height, labels, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin,
                                 ROI_array->ymax, ROI_array->S, ROI_array->magnitude, ROI_array->_size);
 }
