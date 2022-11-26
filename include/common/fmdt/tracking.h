@@ -9,7 +9,7 @@
 enum color_e { MISC = 0, GRAY, GREEN, RED, PURPLE, ORANGE, BLUE, YELLOW, N_COLORS };
 enum state_e { TRACK_NEW = 1, TRACK_UPDATED, TRACK_EXTRAPOLATED, TRACK_LOST, TRACK_FINISHED };
 // to remember why a 'meteor' object became a 'noise' object
-enum change_state_reason_e { REASON_TOO_BIG_ANGLE = 1, REASON_WRONG_DIRECTION, REASON_TOO_LONG_DURATION };
+enum change_state_reason_e { REASON_TOO_BIG_ANGLE = 1, REASON_WRONG_DIRECTION, REASON_TOO_LONG_DURATION, N_REASONS };
 
 #define METEOR_COLOR GREEN
 #define STAR_COLOR PURPLE
@@ -20,6 +20,10 @@ enum change_state_reason_e { REASON_TOO_BIG_ANGLE = 1, REASON_WRONG_DIRECTION, R
 #define STAR_STR "star"
 #define NOISE_STR "noise"
 #define UNKNOWN_STR "unknown"
+
+#define TOO_BIG_ANGLE_STR "too big angle"
+#define WRONG_DIRECTION_STR "wrong direction"
+#define TOO_LONG_DURATION_STR "too long duration"
 
 typedef struct ROI_light {
     uint16_t id;
@@ -81,6 +85,8 @@ typedef struct {
 extern enum color_e g_obj_to_color[N_OBJECTS];
 extern char g_obj_to_string[N_OBJECTS][64];
 extern char g_obj_to_string_with_spaces[N_OBJECTS][64];
+extern char g_change_state_to_string[N_REASONS][64];
+extern char g_change_state_to_string_with_spaces[N_REASONS][64];
 
 tracking_data_t* tracking_alloc_data(const size_t max_history_size, const size_t max_ROI_size);
 void tracking_init_data(tracking_data_t* tracking_data);
@@ -122,7 +128,11 @@ void _tracking_track_array_write(FILE* f, const uint16_t* track_id, const ROI_li
                                  const ROI_light_t* track_end, const enum obj_e* track_obj_type,
                                  const size_t n_tracks);
 void tracking_track_array_write(FILE* f, const track_t* track_array);
-
+void _tracking_track_array_write_full(FILE* f, const uint16_t* track_id, const ROI_light_t* track_begin,
+                                      const ROI_light_t* track_end, const enum obj_e* track_obj_type,
+                                      const enum change_state_reason_e* track_change_state_reason,
+                                      const size_t n_tracks);
+void tracking_track_array_write_full(FILE* f, const track_t* track_array);
 void _tracking_track_array_magnitude_write(FILE* f, const uint16_t* track_id, const enum obj_e* track_obj_type,
                                            const int64_t** track_magnitude, const size_t n_tracks);
 void tracking_track_array_magnitude_write(FILE* f, const track_t* track_array);

@@ -15,6 +15,8 @@
 enum color_e g_obj_to_color[N_OBJECTS];
 char g_obj_to_string[N_OBJECTS][64];
 char g_obj_to_string_with_spaces[N_OBJECTS][64];
+char g_change_state_to_string[N_REASONS][64];
+char g_change_state_to_string_with_spaces[N_REASONS][64];
 
 void tracking_init_global_data() {
     g_obj_to_color[UNKNOWN] = UNKNOWN_COLOR;
@@ -43,6 +45,28 @@ void tracking_init_global_data() {
             g_obj_to_string_with_spaces[i][diff + c] = g_obj_to_string[i][c];
         for (int c = 0; c < diff; c++)
             g_obj_to_string_with_spaces[i][c] = ' ';
+    }
+
+    snprintf(g_change_state_to_string[UNKNOWN], sizeof(g_change_state_to_string[UNKNOWN]), "%s", str_unknown);
+    char str_too_big_angle[64] = TOO_BIG_ANGLE_STR;
+    snprintf(g_change_state_to_string[REASON_TOO_BIG_ANGLE], sizeof(g_change_state_to_string[REASON_TOO_BIG_ANGLE]), "%s", str_too_big_angle);
+    char str_wrong_direction[64] = WRONG_DIRECTION_STR;
+    snprintf(g_change_state_to_string[REASON_WRONG_DIRECTION], sizeof(g_change_state_to_string[REASON_WRONG_DIRECTION]), "%s", str_wrong_direction);
+    char str_too_long_duration[64] = TOO_LONG_DURATION_STR;
+    snprintf(g_change_state_to_string[REASON_TOO_LONG_DURATION], sizeof(g_change_state_to_string[REASON_TOO_LONG_DURATION]), "%s", str_too_long_duration);
+
+    max = 0;
+    for (int i = 0; i < N_REASONS; i++)
+        if (strlen(g_change_state_to_string[i]) > max)
+            max = strlen(g_change_state_to_string[i]);
+
+    for (int i = 0; i < N_REASONS; i++) {
+        int len = strlen(g_change_state_to_string[i]);
+        int diff = max - len;
+        for (int c = len; c >= 0; c--)
+            g_change_state_to_string_with_spaces[i][diff + c] = g_change_state_to_string[i][c];
+        for (int c = 0; c < diff; c++)
+            g_change_state_to_string_with_spaces[i][c] = ' ';
     }
 }
 
@@ -673,6 +697,39 @@ void _tracking_track_array_write(FILE* f, const uint16_t* track_id, const ROI_li
 void tracking_track_array_write(FILE* f, const track_t* track_array) {
     _tracking_track_array_write(f, track_array->id, track_array->begin, track_array->end, track_array->obj_type,
                                 track_array->_size);
+}
+
+void _tracking_track_array_write_full(FILE* f, const uint16_t* track_id, const ROI_light_t* track_begin,
+                                      const ROI_light_t* track_end, const enum obj_e* track_obj_type,
+                                      const enum change_state_reason_e* track_change_state_reason,
+                                      const size_t n_tracks) {
+    size_t real_n_tracks = 0;
+    for (size_t i = 0; i < n_tracks; i++)
+        if (track_id[i])
+            real_n_tracks++;
+    fprintf(f, "# Tracks [%lu]:\n", (unsigned long)real_n_tracks);
+    fprintf(f, "# -------||---------------------------||---------------------------||---------||-------------------\n");
+    fprintf(f, "#  Track ||           Begin           ||            End            ||  Object || Reason of changed \n");
+    fprintf(f, "# -------||---------------------------||---------------------------||---------||    state (from    \n");
+    fprintf(f, "# -------||---------|--------|--------||---------|--------|--------||---------||  meteor to noise  \n");
+    fprintf(f, "#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type ||    object only)   \n");
+    fprintf(f, "# -------||---------|--------|--------||---------|--------|--------||---------||-------------------\n");
+
+    for (size_t i = 0; i < n_tracks; i++)
+        if (track_id[i]) {
+            char reason[64] = "               --";
+            if (track_obj_type[i] == NOISE)
+                snprintf(reason, sizeof(reason), "%s",
+                    g_change_state_to_string_with_spaces[track_change_state_reason[i]]);
+            fprintf(f, "   %5d || %7u | %6.1f | %6.1f || %7u | %6.1f | %6.1f || %s || %s \n", track_id[i],
+                    track_begin[i].frame, track_begin[i].x, track_begin[i].y, track_end[i].frame, track_end[i].x,
+                    track_end[i].y, g_obj_to_string_with_spaces[track_obj_type[i]], reason);
+        }
+}
+
+void tracking_track_array_write_full(FILE* f, const track_t* track_array) {
+    _tracking_track_array_write_full(f, track_array->id, track_array->begin, track_array->end, track_array->obj_type,
+                                     track_array->change_state_reason, track_array->_size);
 }
 
 void _tracking_track_array_magnitude_write(FILE* f, const uint16_t* track_id, const enum obj_e* track_obj_type,

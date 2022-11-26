@@ -341,7 +341,7 @@ int main(int argc, char** argv) {
                 features_motion_write(f, first_theta, first_tx, first_ty, first_mean_error, first_std_deviation, theta,
                                       tx, ty, mean_error, std_deviation);
                 fprintf(f, "#\n");
-                tracking_track_array_write(f, track_array);
+                tracking_track_array_write_full(f, track_array);
                 fclose(f);
             } else {
                 fprintf(stderr, "(WW) cannot open '%s' file.", filename);

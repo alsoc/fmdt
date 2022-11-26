@@ -5,3 +5,4 @@ TODO list:
 - [ ] Improve magnitudes management in the tracking (keep array sizes per 
       objects + memory reallocations => like in C++ `std::vector`. What about
       creating a `vector` module in C for this?)
+- [ ] Add CI tests with `fmdt-check` 
