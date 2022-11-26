@@ -14,6 +14,7 @@ Logger_track::Logger_track(const std::string tracks_path, const size_t max_track
     auto ps_in_track_begin = this->template create_socket_in<uint8_t>(p, "in_track_begin", max_tracks_size * sizeof(ROI_light_t));
     auto ps_in_track_end = this->template create_socket_in<uint8_t>(p, "in_track_end", max_tracks_size * sizeof(ROI_light_t));
     auto ps_in_track_obj_type = this->template create_socket_in<uint8_t>(p, "in_track_obj_type", max_tracks_size * sizeof(enum obj_e));
+    auto ps_in_track_change_state_reason = this->template create_socket_in<uint8_t>(p, "in_track_change_state_reason", max_tracks_size * sizeof(enum change_state_reason_e));
     auto ps_in_n_tracks = this->template create_socket_in<uint32_t>(p, "in_n_tracks", 1);
     auto ps_in_frame = this->template create_socket_in<uint32_t>(p, "in_frame", 1);
 
@@ -21,7 +22,7 @@ Logger_track::Logger_track(const std::string tracks_path, const size_t max_track
         tools_create_folder(tracks_path.c_str());
 
     this->create_codelet(p, [ps_in_track_id, ps_in_track_begin, ps_in_track_end, ps_in_track_obj_type,
-                             ps_in_n_tracks, ps_in_frame]
+                             ps_in_track_change_state_reason, ps_in_n_tracks, ps_in_frame]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_trk = static_cast<Logger_track&>(m);
 
@@ -31,6 +32,7 @@ Logger_track::Logger_track(const std::string tracks_path, const size_t max_track
         const ROI_light_t* track_begin = static_cast<const ROI_light_t*>(t[ps_in_track_begin].get_dataptr());
         const ROI_light_t* track_end = static_cast<const ROI_light_t*>(t[ps_in_track_end].get_dataptr());
         const enum obj_e* track_obj_type = static_cast<const enum obj_e*>(t[ps_in_track_obj_type].get_dataptr());
+        const enum change_state_reason_e* track_change_state_reason = static_cast<const enum change_state_reason_e*>(t[ps_in_track_change_state_reason].get_dataptr());
         const uint32_t n_tracks = *static_cast<const uint32_t*>(t[ps_in_n_tracks].get_dataptr());
 
         if (frame && !lgr_trk.tracks_path.empty()) {
@@ -38,7 +40,8 @@ Logger_track::Logger_track(const std::string tracks_path, const size_t max_track
             snprintf(file_path, sizeof(file_path), "%s/%05u_%05u.txt", lgr_trk.tracks_path.c_str(), frame -1, frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
-            _tracking_track_array_write(file, track_id, track_begin, track_end, track_obj_type, n_tracks);
+            _tracking_track_array_write_full(file, track_id, track_begin, track_end, track_obj_type,
+                                             track_change_state_reason, n_tracks);
             fclose(file);
         }
 

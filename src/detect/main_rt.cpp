@@ -23,6 +23,7 @@
 #include "fmdt/Features/Features_extractor.hpp"
 #include "fmdt/Features/Features_merger.hpp"
 #include "fmdt/Features/Features_motion.hpp"
+#include "fmdt/Features/Features_magnitude.hpp"
 #include "fmdt/KNN_matcher/KNN_matcher.hpp"
 #include "fmdt/Threshold/Threshold.hpp"
 #include "fmdt/Tracking/Tracking.hpp"
@@ -282,6 +283,8 @@ int main(int argc, char** argv) {
     CCL_LSL lsl(i0, i1, j0, j1, b);
     Features_extractor extractor(i0, i1, j0, j1, b, MAX_ROI_SIZE);
     extractor.set_custom_name("Extractor");
+    Features_magnitude magnitude(i0, i1, j0, j1, b, MAX_ROI_SIZE);
+    magnitude.set_custom_name("Magnitude");
     Features_merger merger(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE);
     merger.set_custom_name("Merger");
     KNN_matcher matcher(i0, i1, j0, j1, p_k, p_max_dist, MAX_ROI_SIZE);
@@ -299,6 +302,7 @@ int main(int argc, char** argv) {
     aff3ct::module::Delayer<uint32_t> delayer_ROI_Sy(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<float> delayer_ROI_x(MAX_ROI_SIZE, 0.f);
     aff3ct::module::Delayer<float> delayer_ROI_y(MAX_ROI_SIZE, 0.f);
+    aff3ct::module::Delayer<uint32_t> delayer_ROI_magnitude(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_n_ROI(1, 0);
     delayer_ROI_id.set_custom_name("D<ROI_id>");
     delayer_ROI_xmin.set_custom_name("D<ROI_xmin>");
@@ -310,6 +314,7 @@ int main(int argc, char** argv) {
     delayer_ROI_Sy.set_custom_name("D<ROI_Sy>");
     delayer_ROI_x.set_custom_name("D<ROI_x>");
     delayer_ROI_y.set_custom_name("D<ROI_y>");
+    delayer_ROI_magnitude.set_custom_name("D<ROI_mag>");
     delayer_n_ROI.set_custom_name("D<n_ROI>");
     Logger_ROI log_ROI(p_out_stats ? p_out_stats : "", MAX_ROI_SIZE, MAX_TRACKS_SIZE);
     Logger_KNN log_KNN(p_out_stats ? p_out_stats : "", i0, i1, j0, j1, MAX_ROI_SIZE);
@@ -356,7 +361,7 @@ int main(int argc, char** argv) {
     ts_s2b->set_short_name("Timestamper");
     auto &tsk = ts_s2b->create_task("exec");
     auto ts_out_val = ts_s2b->create_socket_out<uint64_t>(tsk, "out", 1);
-    ts_s2b->create_codelet(tsk, [ts_out_val, mod](aff3ct::module::Module &m, aff3ct::runtime::Task &t,
+    ts_s2b->create_codelet(tsk, [ts_out_val](aff3ct::module::Module &m, aff3ct::runtime::Task &t,
         const size_t frame_id) -> int {
         std::chrono::microseconds us = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now().time_since_epoch()
@@ -394,6 +399,16 @@ int main(int argc, char** argv) {
     extractor[ftr_ext::sck::extract::in_img] = lsl[ccl::sck::apply::out_img];
     extractor[ftr_ext::sck::extract::in_n_ROI] = lsl[ccl::sck::apply::out_n_ROI];
 
+    // Step 2.5 : calcul de la magnitude pour chaque ROI
+    magnitude[ftr_mgn::sck::compute::in_img] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
+    magnitude[ftr_mgn::sck::compute::in_labels] = lsl[ccl::sck::apply::out_img];
+    magnitude[ftr_mgn::sck::compute::in_ROI_xmin] = extractor[ftr_ext::sck::extract::out_ROI_xmin];
+    magnitude[ftr_mgn::sck::compute::in_ROI_xmax] = extractor[ftr_ext::sck::extract::out_ROI_xmax];
+    magnitude[ftr_mgn::sck::compute::in_ROI_ymin] = extractor[ftr_ext::sck::extract::out_ROI_ymin];
+    magnitude[ftr_mgn::sck::compute::in_ROI_ymax] = extractor[ftr_ext::sck::extract::out_ROI_ymax];
+    magnitude[ftr_mgn::sck::compute::in_ROI_S] = extractor[ftr_ext::sck::extract::out_ROI_S];
+    magnitude[ftr_mgn::sck::compute::in_n_ROI] = lsl[ccl::sck::apply::out_n_ROI];
+
     // Step 3 : seuillage hysteresis && filter surface
     merger[ftr_mrg::sck::merge::in_img1] = lsl[ccl::sck::apply::out_img];
     merger[ftr_mrg::sck::merge::in_img2] = threshold_max[thr::sck::apply::out_img];
@@ -407,6 +422,7 @@ int main(int argc, char** argv) {
     merger[ftr_mrg::sck::merge::in_ROI_Sy] = extractor[ftr_ext::sck::extract::out_ROI_Sy];
     merger[ftr_mrg::sck::merge::in_ROI_x] = extractor[ftr_ext::sck::extract::out_ROI_x];
     merger[ftr_mrg::sck::merge::in_ROI_y] = extractor[ftr_ext::sck::extract::out_ROI_y];
+    merger[ftr_mrg::sck::merge::in_ROI_magnitude] = magnitude[ftr_mgn::sck::compute::out_ROI_magnitude];
     merger[ftr_mrg::sck::merge::in_n_ROI] = lsl[ccl::sck::apply::out_n_ROI];
 
     if (p_out_probes) {
@@ -426,6 +442,7 @@ int main(int argc, char** argv) {
     delayer_ROI_Sy[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
     delayer_ROI_x[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
     delayer_ROI_y[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    delayer_ROI_magnitude[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_magnitude];
     delayer_n_ROI[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
 
     // Step 4 : mise en correspondance
@@ -457,6 +474,7 @@ int main(int argc, char** argv) {
     tracking[trk::sck::perform::in_ROI0_y] = delayer_ROI_y[aff3ct::module::dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI0_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
     tracking[trk::sck::perform::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
+    tracking[trk::sck::perform::in_ROI0_magnitude] = delayer_ROI_magnitude[aff3ct::module::dly::sck::produce::out];
     tracking[trk::sck::perform::in_n_ROI0] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
     tracking[trk::sck::perform::in_ROI1_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
@@ -466,6 +484,7 @@ int main(int argc, char** argv) {
     tracking[trk::sck::perform::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
     tracking[trk::sck::perform::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
     tracking[trk::sck::perform::in_ROI1_prev_id] = matcher[knn::sck::match::out_ROI1_prev_id];
+    tracking[trk::sck::perform::in_ROI1_magnitude] = merger[ftr_mrg::sck::merge::out_ROI_magnitude];
     tracking[trk::sck::perform::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
     tracking[trk::sck::perform::in_theta] = motion[ftr_mtn::sck::compute::out_theta];
     tracking[trk::sck::perform::in_tx] = motion[ftr_mtn::sck::compute::out_tx];
@@ -483,6 +502,7 @@ int main(int argc, char** argv) {
     delayer_ROI_Sy[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_Sy];
     delayer_ROI_x[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_x];
     delayer_ROI_y[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_y];
+    delayer_ROI_magnitude[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_ROI_magnitude];
     delayer_n_ROI[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_n_ROI];
 
     if (p_out_stats) {
@@ -496,6 +516,7 @@ int main(int argc, char** argv) {
         log_ROI[lgr_roi::sck::write::in_ROI0_Sy] = delayer_ROI_Sy[aff3ct::module::dly::sck::produce::out];
         log_ROI[lgr_roi::sck::write::in_ROI0_x] = delayer_ROI_x[aff3ct::module::dly::sck::produce::out];
         log_ROI[lgr_roi::sck::write::in_ROI0_y] = delayer_ROI_y[aff3ct::module::dly::sck::produce::out];
+        log_ROI[lgr_roi::sck::write::in_ROI0_magnitude] = delayer_ROI_magnitude[aff3ct::module::dly::sck::produce::out];
         log_ROI[lgr_roi::sck::write::in_n_ROI0] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
         log_ROI[lgr_roi::sck::write::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
         log_ROI[lgr_roi::sck::write::in_ROI1_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
@@ -507,6 +528,7 @@ int main(int argc, char** argv) {
         log_ROI[lgr_roi::sck::write::in_ROI1_Sy] = merger[ftr_mrg::sck::merge::out_ROI_Sy];
         log_ROI[lgr_roi::sck::write::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
         log_ROI[lgr_roi::sck::write::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
+        log_ROI[lgr_roi::sck::write::in_ROI1_magnitude] = merger[ftr_mrg::sck::merge::out_ROI_magnitude];
         log_ROI[lgr_roi::sck::write::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
         log_ROI[lgr_roi::sck::write::in_track_id] = tracking[trk::sck::perform::out_track_id];
         log_ROI[lgr_roi::sck::write::in_track_end] = tracking[trk::sck::perform::out_track_end];
@@ -541,6 +563,7 @@ int main(int argc, char** argv) {
         log_track[lgr_trk::sck::write::in_track_begin] = tracking[trk::sck::perform::out_track_begin];
         log_track[lgr_trk::sck::write::in_track_end] = tracking[trk::sck::perform::out_track_end];
         log_track[lgr_trk::sck::write::in_track_obj_type] = tracking[trk::sck::perform::out_track_obj_type];
+        log_track[lgr_trk::sck::write::in_track_change_state_reason] = tracking[trk::sck::perform::out_track_change_state_reason];
         log_track[lgr_trk::sck::write::in_n_tracks] = tracking[trk::sck::perform::out_n_tracks];
         log_track[lgr_trk::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
     }
@@ -555,7 +578,12 @@ int main(int argc, char** argv) {
         (*prb_thr_thr )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
         (*prb_thr_lat )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
         (*prb_thr_time)[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
-        (*prb_ts_s3e  )[aff3ct::module::prb::tsk::probe] = (*prb_thr_time)[aff3ct::module::prb::sck::probe_noin::status];
+        if (p_out_frames)
+            (*prb_ts_s3e)[aff3ct::module::prb::tsk::probe] = log_frame[lgr_fra::sck::write::status];
+        else if (p_out_stats)
+            (*prb_ts_s3e)[aff3ct::module::prb::tsk::probe] = log_track[lgr_trk::sck::write::status];
+        else
+            (*prb_ts_s3e)[aff3ct::module::prb::tsk::probe] = (*prb_thr_time)[aff3ct::module::prb::sck::probe_noin::status];
     }
 
     // --------------------- //
@@ -586,7 +614,7 @@ int main(int argc, char** argv) {
           // pipeline stage 2
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                           std::vector<aff3ct::runtime::Task*>>(
-            { &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply] },
+            { &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply], &magnitude[ftr_mgn::tsk::compute] },
             { &merger[ftr_mrg::tsk::merge], },
             { /* no exclusions in this stage */ } ),
           // pipeline stage 3
@@ -602,6 +630,7 @@ int main(int argc, char** argv) {
               &delayer_ROI_Sy[aff3ct::module::dly::tsk::produce],
               &delayer_ROI_x[aff3ct::module::dly::tsk::produce],
               &delayer_ROI_y[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_magnitude[aff3ct::module::dly::tsk::produce],
               &delayer_n_ROI[aff3ct::module::dly::tsk::produce],
               &matcher[knn::tsk::match],
               &motion[ftr_mtn::tsk::compute],
@@ -616,6 +645,7 @@ int main(int argc, char** argv) {
               &delayer_ROI_Sy[aff3ct::module::dly::tsk::memorize],
               &delayer_ROI_x[aff3ct::module::dly::tsk::memorize],
               &delayer_ROI_y[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_magnitude[aff3ct::module::dly::tsk::memorize],
               &delayer_n_ROI[aff3ct::module::dly::tsk::memorize],
               },
             { },
@@ -632,7 +662,7 @@ int main(int argc, char** argv) {
           // pipeline stage 2
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                           std::vector<aff3ct::runtime::Task*>>(
-            { &(*ts_s2b)("exec"), &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply], &(*ts_s2e)("exec") },
+            { &(*ts_s2b)("exec"), &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply], &magnitude[ftr_mgn::tsk::compute], &(*ts_s2e)("exec") },
             { &merger[ftr_mrg::tsk::merge], },
             { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe], &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe], } ),
           // pipeline stage 3
@@ -650,6 +680,7 @@ int main(int argc, char** argv) {
               &delayer_ROI_Sy[aff3ct::module::dly::tsk::produce],
               &delayer_ROI_x[aff3ct::module::dly::tsk::produce],
               &delayer_ROI_y[aff3ct::module::dly::tsk::produce],
+              &delayer_ROI_magnitude[aff3ct::module::dly::tsk::produce],
               &delayer_n_ROI[aff3ct::module::dly::tsk::produce],
               &matcher[knn::tsk::match],
               &motion[ftr_mtn::tsk::compute],
@@ -664,6 +695,7 @@ int main(int argc, char** argv) {
               &delayer_ROI_Sy[aff3ct::module::dly::tsk::memorize],
               &delayer_ROI_x[aff3ct::module::dly::tsk::memorize],
               &delayer_ROI_y[aff3ct::module::dly::tsk::memorize],
+              &delayer_ROI_magnitude[aff3ct::module::dly::tsk::memorize],
               &delayer_n_ROI[aff3ct::module::dly::tsk::memorize],
               },
             { },

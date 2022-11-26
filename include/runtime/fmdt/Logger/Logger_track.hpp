@@ -6,8 +6,8 @@
 namespace lgr_trk {
     enum class tsk : size_t { write, SIZE };
     namespace sck {
-        enum class write : size_t { in_track_id, in_track_begin, in_track_end, in_track_obj_type, in_n_tracks, in_frame,
-                                    status };
+        enum class write : size_t { in_track_id, in_track_begin, in_track_end, in_track_obj_type,
+                                    in_track_change_state_reason, in_n_tracks, in_frame, status };
     }
 }
 

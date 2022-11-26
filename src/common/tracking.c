@@ -557,7 +557,6 @@ void _create_new_tracks(ROI_light_t** ROI_hist, ROI_light_t* ROI_list, const uin
                         j++;
 
                     if (j == *n_tracks || *n_tracks == 0) {
-                        // ROI_list->_size = fra_min - 1;
                         _fill_ROI_list((const ROI_light_t**)(&ROI_hist[2]), ROI_list, ROI0_id, frame - 1, ROI0_xmin, 
                                        ROI0_xmax, ROI0_ymin,ROI0_ymax, ROI0_x, ROI0_y, ROI0_prev_id, ROI0_next_id, 
                                        ROI0_magnitude, fra_min - 1, i);

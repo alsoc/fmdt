@@ -99,6 +99,7 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/runtime/Features/Features_extractor.cpp
 		    ${src_dir}/runtime/Features/Features_merger.cpp
 		    ${src_dir}/runtime/Features/Features_motion.cpp
+		    ${src_dir}/runtime/Features/Features_magnitude.cpp
 		    ${src_dir}/runtime/KNN_matcher/KNN_matcher.cpp
 		    ${src_dir}/runtime/Logger/Logger_frame.cpp
 		    ${src_dir}/runtime/Logger/Logger_KNN.cpp
