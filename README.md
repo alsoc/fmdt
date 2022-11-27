@@ -238,7 +238,7 @@ Each bounding box defines the area of an object, frame by frame.
 
 Here is the corresponding line format:
 ```
-{frame_id} {x_radius} {y_radius} {center_x} {center_y} {track_id}
+{frame_id} {x_radius} {y_radius} {center_x} {center_y} {track_id} {is_extrapolated}
 ```
 Each line corresponds to a frame and to an object, each value is separated by a space character.
 

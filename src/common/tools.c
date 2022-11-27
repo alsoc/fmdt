@@ -106,7 +106,7 @@ void tools_draw_legend_squares(rgb8_t** img, unsigned box_size, unsigned h_space
 
     for (auto& box : box_list)
         tools_plot_bounding_box(img, std::get<0>(box), std::get<1>(box), std::get<2>(box), std::get<3>(box), 2,
-                                std::get<4>(box));
+                                std::get<4>(box), /* is_dashed = */ 0);
 }
 
 void tools_draw_legend_text(cv::Mat& cv_img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
@@ -240,7 +240,8 @@ void tools_draw_BB(rgb8_t** I_bb, const BB_coord_t* listBB, int n_BB, int w, int
         int ymax = CLAMP(listBB[i].ymax, border + 1, h - (border + 2));
         int xmin = CLAMP(listBB[i].xmin, border + 1, w - (border + 2));
         int xmax = CLAMP(listBB[i].xmax, border + 1, w - (border + 2));
-        tools_plot_bounding_box(I_bb, ymin, ymax, xmin, xmax, border, tools_get_color(listBB[i].color));
+        tools_plot_bounding_box(I_bb, ymin, ymax, xmin, xmax, border, tools_get_color(listBB[i].color),
+                                listBB[i].is_extrapolated);
     }
 }
 
@@ -274,19 +275,48 @@ void tools_save_bounding_box(const char* filename, uint16 rx, uint16 ry, uint16 
     fclose(f);
 }
 
-void tools_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8_t color) {
+void tools_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8_t color,
+                             int is_dashed) {
     for (int b = 0; b < border; b++) {
         ymin++;
         ymax--;
         xmin++;
         xmax--;
+
+        const int limit = 3;
+        int counter = b % limit;
+        int draw = 1;
+
         for (int i = ymin; i <= ymax; i++) {
-            img[i][xmin] = color;
-            img[i][xmax] = color;
+            if (draw) {
+                img[i][xmin] = color;
+                img[i][xmax] = color;
+            }
+
+            if (is_dashed) {
+                counter++;
+                int draw_before = draw;
+                draw = counter == limit ? !draw : draw;
+                if (draw != draw_before)
+                    counter = 0;
+            }
         }
+
+        counter = b % limit;
+        draw = 1;
         for (int j = xmin; j <= xmax; j++) {
-            img[ymin][j] = color;
-            img[ymax][j] = color;
+            if (draw) {
+                img[ymin][j] = color;
+                img[ymax][j] = color;
+            }
+
+            if (is_dashed) {
+                counter++;
+                int draw_before = draw;
+                draw = counter == limit ? !draw : draw;
+                if (draw != draw_before)
+                    counter = 0;
+            }
         }
     }
 }

@@ -13,6 +13,7 @@ typedef struct BB_coord_t {
     int xmax;
     int ymin;
     int ymax;
+    int is_extrapolated;
     enum color_e color;
 } BB_coord_t;
 
@@ -25,7 +26,8 @@ void tools_draw_text(rgb8_t** img, const int img_width, const int img_height, co
 void tools_draw_BB(rgb8_t** I_bb, const BB_coord_t* listBB, int n_BB, int w, int h);
 void tools_save_frame(const char* filename, const rgb8_t** I_bb, int w, int h);
 // void tools_save_bounding_box(const char* filename, uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, int frame);
-void tools_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8_t color);
+void tools_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8_t color,
+                             int is_dashed);
 // Analysing
 // void tools_filter_speed_binarize(uint32_t** in, int i0, int i1, int j0, int j1, uint8_t** out, ROI_t* stats);
 // Image

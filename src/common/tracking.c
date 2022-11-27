@@ -201,7 +201,7 @@ void tracking_free_BB_array(BB_t** BB_array) {
 }
 
 void add_to_BB_array(BB_t** BB_array, uint16_t rx, uint16_t ry, uint16_t bb_x, uint16_t bb_y, uint16_t track_id,
-                     int frame) {
+                     int frame, int is_extrapolated) {
     assert(frame < MAX_BB_LIST_SIZE);
     BB_t* newE = (BB_t*)malloc(sizeof(BB_t));
     newE->rx = rx;
@@ -209,6 +209,7 @@ void add_to_BB_array(BB_t** BB_array, uint16_t rx, uint16_t ry, uint16_t bb_x, u
     newE->bb_x = bb_x;
     newE->bb_y = bb_y;
     newE->track_id = track_id;
+    newE->is_extrapolated = is_extrapolated;
     newE->next = BB_array[frame];
     BB_array[frame] = newE;
 }
@@ -279,7 +280,7 @@ void track_extrapolate(track_t* track_array, const size_t t, double theta, doubl
 }
 
 void _update_bounding_box(BB_t** BB_array, const int track_id, const uint16_t ROI_xmin, const uint16_t ROI_xmax,
-                          const uint16_t ROI_ymin, const uint16_t ROI_ymax, int frame) {
+                          const uint16_t ROI_ymin, const uint16_t ROI_ymax, int frame, int is_extrapolated) {
     assert(ROI_xmin || ROI_xmax || ROI_ymin || ROI_ymax);
     assert(BB_array != NULL);
 
@@ -288,12 +289,13 @@ void _update_bounding_box(BB_t** BB_array, const int track_id, const uint16_t RO
     uint16_t rx = (bb_x - ROI_xmin);
     uint16_t ry = (bb_y - ROI_ymin);
 
-    add_to_BB_array(BB_array, rx, ry, bb_x, bb_y, track_id, frame);
+    add_to_BB_array(BB_array, rx, ry, bb_x, bb_y, track_id, frame, is_extrapolated);
 }
 
-void update_bounding_box(BB_t** BB_array, const int track_id, const ROI_t* ROI_array, const size_t r, int frame) {
+void update_bounding_box(BB_t** BB_array, const int track_id, const ROI_t* ROI_array, const size_t r, int frame,
+                         int is_extrapolated) {
     _update_bounding_box(BB_array, track_id, ROI_array->xmin[r], ROI_array->xmax[r], ROI_array->ymin[r],
-                         ROI_array->ymax[r], frame);
+                         ROI_array->ymax[r], frame, is_extrapolated);
 }
 
 void _light_copy_elmt_ROI_array(const uint16_t* ROI_src_id, const uint32_t ROI_src_frame, const uint16_t* ROI_src_xmin,
@@ -368,7 +370,7 @@ void _update_existing_tracks(ROI_light_t** ROI_hist, const uint16_t* ROI0_id, co
 
                         if (BB_array != NULL)
                             _update_bounding_box(BB_array, track_id[i], ROI0_xmin[j], ROI0_xmax[j], ROI0_ymin[j],
-                                                 ROI0_ymax[j], frame - 1);
+                                                 ROI0_ymax[j], frame - 1, /* is_extrapolated = */ 1);
 
                         // in the current implementation, the first ROI that matches is used for extrapolation
                         break;
@@ -384,6 +386,9 @@ void _update_existing_tracks(ROI_light_t** ROI_hist, const uint16_t* ROI0_id, co
                             (ROI1_y[j] > track_extrapol_y[i] - r_extrapol)) {
                             track_state[i] = TRACK_EXTRAPOLATED;
                             ROI_hist[0][j].is_extrapolated = 1;
+
+                            // in the current implementation, the first ROI that matches is used for extrapolation
+                            break;
                         }
                     }
                 }
@@ -432,7 +437,8 @@ void _update_existing_tracks(ROI_light_t** ROI_hist, const uint16_t* ROI0_id, co
                     track_magnitude[i][frame - track_begin[i].frame] = ROI1_magnitude[next_id - 1];
                     if (BB_array != NULL)
                         _update_bounding_box(BB_array, track_id[i], ROI1_xmin[next_id - 1], ROI1_xmax[next_id - 1],
-                                             ROI1_ymin[next_id - 1], ROI1_ymax[next_id - 1], frame);
+                                             ROI1_ymin[next_id - 1], ROI1_ymax[next_id - 1], frame,
+                                             /* is_extrapolated = */ 0);
                 } else {
                     // on extrapole si pas finished
                     _track_extrapolate(&track_end[i], &track_extrapol_x[i], &track_extrapol_y[i], theta, tx, ty);
@@ -485,7 +491,7 @@ void _insert_new_track(const ROI_light_t* ROI_list, unsigned n_ROI, uint16_t* tr
     if (BB_array != NULL)
         for (unsigned n = 0; n < n_ROI; n++)
             _update_bounding_box(BB_array, track_id[cur_track], ROI_list[n].xmin, ROI_list[n].xmax, ROI_list[n].ymin,
-                                 ROI_list[n].ymax, (frame - n) - 1);
+                                 ROI_list[n].ymax, (frame - n) - 1, /* is_extrapolated = */ 0);
     (*n_tracks)++;
 }
 
@@ -662,8 +668,8 @@ void tracking_print_array_BB(BB_t** BB_array, int n) {
     for (int i = 0; i < n; i++) {
         if (BB_array[i] != NULL) {
             for (BB_t* current = BB_array[i]; current != NULL; current = current->next) {
-                printf("%d %d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y,
-                       current->track_id);
+                printf("%d %d %d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y,
+                       current->track_id, current->is_extrapolated);
             }
         }
     }
@@ -801,8 +807,8 @@ void tracking_save_array_BB(const char* filename, BB_t** tabBB, track_t* track_a
         if (tabBB[i] != NULL) {
             for (BB_t* current = tabBB[i]; current != NULL; current = current->next) {
                 if (track_all || (!track_all && track_array->obj_type[(current->track_id) - 1] == METEOR))
-                    fprintf(f, "%d %d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y,
-                            current->track_id);
+                    fprintf(f, "%d %d %d %d %d %d %d \n", i, current->rx, current->ry, current->bb_x, current->bb_y,
+                            current->track_id, current->is_extrapolated);
             }
         }
     }

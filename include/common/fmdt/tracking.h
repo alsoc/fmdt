@@ -66,6 +66,7 @@ typedef struct BB_t {
     uint16_t rx;
     uint16_t ry;
     uint16_t track_id;
+    int is_extrapolated;
     struct BB_t* next;
 } BB_t;
 

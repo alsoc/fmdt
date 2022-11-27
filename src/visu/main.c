@@ -15,13 +15,15 @@
 
 #define DELTA_BB 5 // extra pixel size for bounding boxes
 
-void add_to_BB_coord_list(BB_coord_t* coord, int rx, int ry, int bb_x, int bb_y, int track_id, enum color_e color) {
+void add_to_BB_coord_list(BB_coord_t* coord, int rx, int ry, int bb_x, int bb_y, int track_id, int is_extrapolated,
+                          enum color_e color) {
     coord->track_id = track_id;
     coord->ymin = bb_y - (ry + DELTA_BB);
     coord->ymax = bb_y + (ry + DELTA_BB);
     coord->xmin = bb_x - (rx + DELTA_BB);
     coord->xmax = bb_x + (rx + DELTA_BB);
     coord->color = color;
+    coord->is_extrapolated = is_extrapolated;
 }
 
 int main(int argc, char** argv) {
@@ -119,7 +121,7 @@ int main(int argc, char** argv) {
     int i0, i1, j0, j1;
     enum color_e color = MISC;
     int frame, frame_bb;
-    int rx, ry, bb_x, bb_y, track_id;
+    int rx, ry, bb_x, bb_y, track_id, is_extrapolated;
     int start = 0;
     int end = 100000;
 
@@ -200,7 +202,7 @@ int main(int argc, char** argv) {
     if (fgets(lines, 100, file_bb) == NULL) {
         fprintf(stderr, "(EE) something went wrong when reading '%s'\n", p_in_bb);
     }
-    sscanf(lines, "%d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id);
+    sscanf(lines, "%d %d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id, &is_extrapolated);
     printf("# The program is running...\n");
 
     ffmpeg_handle writer_video_out;
@@ -249,7 +251,7 @@ int main(int argc, char** argv) {
                 int display_track_id = track_id;
 #endif
                 assert(cpt < MAX_BB_LIST_SIZE);
-                add_to_BB_coord_list(BB_list + cpt, rx, ry, bb_x, bb_y, display_track_id, color);
+                add_to_BB_coord_list(BB_list + cpt, rx, ry, bb_x, bb_y, display_track_id, is_extrapolated, color);
                 cpt++;
             }
 
@@ -258,7 +260,7 @@ int main(int argc, char** argv) {
                 break;
             }
             // cherche prochain BB à afficher
-            sscanf(lines, "%d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id);
+            sscanf(lines, "%d %d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id, &is_extrapolated);
         }
 
         tools_convert_img_grayscale_to_rgb((const uint8_t**)I0, img_bb, i0, i1, j0, j1);
