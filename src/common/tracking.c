@@ -348,35 +348,6 @@ void _update_existing_tracks(ROI_light_t** ROI_hist, const uint16_t* ROI0_id, co
     }
     for (size_t i = *offset_tracks; i < n_tracks; i++) {
         if (track_id[i] && track_state[i] != TRACK_FINISHED) {
-            if (track_state[i] == TRACK_EXTRAPOLATED) {
-                for (size_t j = 0; j < n_ROI0; j++) {
-                    if ((ROI0_x[j] > track_extrapol_x[i] - r_extrapol) &&
-                        (ROI0_x[j] < track_extrapol_x[i] + r_extrapol) &&
-                        (ROI0_y[j] < track_extrapol_y[i] + r_extrapol) &&
-                        (ROI0_y[j] > track_extrapol_y[i] - r_extrapol)) {
-                        _light_copy_elmt_ROI_array(ROI0_id, frame - 1, ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax,
-                                                   ROI0_x, ROI0_y, ROI0_prev_id, ROI0_next_id, ROI0_magnitude, j,
-                                                   track_end, i);
-                        track_state[i] = TRACK_UPDATED;
-
-                        assert(track_magnitude[i][(frame - 1) - track_begin[i].frame] == -1);
-                        track_magnitude[i][(frame - 1) - track_begin[i].frame] = ROI0_magnitude[j];
-
-                        int m = (frame - 2) - track_begin[i].frame;
-                        while (m >= 0 && track_magnitude[i][m] == -1) {
-                            track_magnitude[i][m] = 0;
-                            m--;
-                        }
-
-                        if (BB_array != NULL)
-                            _update_bounding_box(BB_array, track_id[i], ROI0_xmin[j], ROI0_xmax[j], ROI0_ymin[j],
-                                                 ROI0_ymax[j], frame - 1, /* is_extrapolated = */ 1);
-
-                        // in the current implementation, the first ROI that matches is used for extrapolation
-                        break;
-                    }
-                }
-            }
             if (track_state[i] == TRACK_LOST) {
                 for (size_t j = 0; j < n_ROI1; j++) {
                     if (!ROI1_prev_id[j]) {
@@ -384,18 +355,36 @@ void _update_existing_tracks(ROI_light_t** ROI_hist, const uint16_t* ROI0_id, co
                             (ROI1_x[j] < track_extrapol_x[i] + r_extrapol) &&
                             (ROI1_y[j] < track_extrapol_y[i] + r_extrapol) &&
                             (ROI1_y[j] > track_extrapol_y[i] - r_extrapol)) {
-                            track_state[i] = TRACK_EXTRAPOLATED;
+                            track_state[i] = TRACK_UPDATED;
                             ROI_hist[0][j].is_extrapolated = 1;
+
+                            int32_t* ROI1_next_id = NULL;
+                            _light_copy_elmt_ROI_array(ROI1_id, frame, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax,
+                                                       ROI1_x, ROI1_y, ROI1_prev_id, ROI1_next_id, ROI1_magnitude, j,
+                                                       track_end, i);
+
+                            assert(track_magnitude[i][frame - track_begin[i].frame] == -1);
+                            track_magnitude[i][frame - track_begin[i].frame] = ROI1_magnitude[j];
+
+                            int m = (frame - 1) - track_begin[i].frame;
+                            while (m >= 0 && track_magnitude[i][m] == -1) {
+                                track_magnitude[i][m] = 0;
+                                m--;
+                            }
+
+                            if (BB_array != NULL)
+                                _update_bounding_box(BB_array, track_id[i], ROI1_xmin[j], ROI1_xmax[j], ROI1_ymin[j],
+                                                     ROI1_ymax[j], frame, /* is_extrapolated = */ 1);
 
                             // in the current implementation, the first ROI that matches is used for extrapolation
                             break;
                         }
                     }
                 }
-                if (track_state[i] != TRACK_EXTRAPOLATED)
+                if (track_state[i] != TRACK_UPDATED)
                     track_state[i] = TRACK_FINISHED;
             }
-            if (track_state[i] == TRACK_UPDATED || track_state[i] == TRACK_NEW) {
+            else if (track_state[i] == TRACK_UPDATED || track_state[i] == TRACK_NEW) {
                 int next_id = ROI0_next_id[track_end[i].id - 1];
                 if (next_id) {
                     if (track_obj_type[i] == METEOR) {
