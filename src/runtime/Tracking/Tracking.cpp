@@ -9,19 +9,17 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
 : Module(), r_extrapol(r_extrapol), angle_max(angle_max), diff_dev(diff_dev), track_all(track_all),
   fra_star_min(fra_star_min), fra_meteor_min(fra_meteor_min), fra_meteor_max(fra_meteor_max), 
   max_ROI_size(max_ROI_size), max_tracks_size(max_tracks_size), max_bb_list_size(max_bb_list_size),
-  ROI0_prev_id(nullptr), tracking_data(nullptr), track_array(nullptr), BB_array(nullptr) {
+  tracking_data(nullptr), track_array(nullptr), BB_array(nullptr) {
     const std::string name = "Tracking";
     this->set_name(name);
     this->set_short_name(name);
 
-    this->ROI0_prev_id = (int32_t*)malloc(max_ROI_size * sizeof(uint32_t));
     this->tracking_data = tracking_alloc_data(std::max(fra_star_min, fra_meteor_min), max_ROI_size);
     this->track_array = tracking_alloc_track_array(max_tracks_size);
 
     if (out_bb)
       this->BB_array = (BB_t**)malloc(max_bb_list_size * sizeof(BB_t*));
     
-    memset(this->ROI0_prev_id, 0, max_ROI_size * sizeof(int32_t));
     tracking_init_data(this->tracking_data);
     tracking_init_track_array(this->track_array);
     if (this->BB_array)
@@ -31,17 +29,8 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
 
     auto ps_in_frame = this->template create_socket_in<uint32_t>(p, "in_frame", 1);
 
-    auto ps_in_ROI0_id = this->template create_socket_in<uint16_t>(p, "in_ROI0_id", max_ROI_size);
-    auto ps_in_ROI0_xmin = this->template create_socket_in<uint16_t>(p, "in_ROI0_xmin", max_ROI_size);
-    auto ps_in_ROI0_xmax = this->template create_socket_in<uint16_t>(p, "in_ROI0_xmax", max_ROI_size);
-    auto ps_in_ROI0_ymin = this->template create_socket_in<uint16_t>(p, "in_ROI0_ymin", max_ROI_size);
-    auto ps_in_ROI0_ymax = this->template create_socket_in<uint16_t>(p, "in_ROI0_ymax", max_ROI_size);
-    auto ps_in_ROI0_x = this->template create_socket_in<float>(p, "in_ROI0_x", max_ROI_size);
-    auto ps_in_ROI0_y = this->template create_socket_in<float>(p, "in_ROI0_y", max_ROI_size);
     auto ps_in_ROI0_error = this->template create_socket_in<float>(p, "in_ROI0_error", max_ROI_size);
     auto ps_in_ROI0_next_id = this->template create_socket_in<int32_t>(p, "in_ROI0_next_id", max_ROI_size);
-    auto ps_in_ROI0_magnitude = this->template create_socket_in<uint32_t>(p, "in_ROI0_magnitude", max_ROI_size);
-    auto ps_in_n_ROI0 = this->template create_socket_in<uint32_t>(p, "in_n_ROI0", 1);
 
     auto ps_in_ROI1_id = this->template create_socket_in<uint16_t>(p, "in_ROI1_id", max_ROI_size);
     auto ps_in_ROI1_xmin = this->template create_socket_in<uint16_t>(p, "in_ROI1_xmin", max_ROI_size);
@@ -70,35 +59,21 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
     auto ps_out_track_change_state_reason = this->template create_socket_out<uint8_t>(p, "out_track_change_state_reason", max_tracks_size * sizeof(enum change_state_reason_e));
     auto ps_out_n_tracks = this->template create_socket_out<uint32_t>(p, "out_n_tracks", 1);
 
-    this->create_codelet(p, [ps_in_frame, ps_in_ROI0_id, ps_in_ROI0_xmin, ps_in_ROI0_xmax, ps_in_ROI0_ymin,
-                             ps_in_ROI0_ymax, ps_in_ROI0_x, ps_in_ROI0_y, ps_in_ROI0_error, ps_in_ROI0_next_id,
-                             ps_in_ROI0_magnitude, ps_in_n_ROI0, ps_in_ROI1_id, ps_in_ROI1_xmin, ps_in_ROI1_xmax,
-                             ps_in_ROI1_ymin, ps_in_ROI1_ymax, ps_in_ROI1_x, ps_in_ROI1_y, ps_in_ROI1_prev_id,
-                             ps_in_ROI1_magnitude, ps_in_n_ROI1, ps_in_theta, ps_in_tx, ps_in_ty, ps_in_mean_error,
-                             ps_in_std_deviation, ps_out_track_id, ps_out_track_begin, ps_out_track_end,
-                             ps_out_track_extrapol_x, ps_out_track_extrapol_y, ps_out_track_state,
+    this->create_codelet(p, [ps_in_frame, ps_in_ROI0_error, ps_in_ROI0_next_id, ps_in_ROI1_id, ps_in_ROI1_xmin,
+                             ps_in_ROI1_xmax, ps_in_ROI1_ymin, ps_in_ROI1_ymax, ps_in_ROI1_x, ps_in_ROI1_y,
+                             ps_in_ROI1_prev_id, ps_in_ROI1_magnitude, ps_in_n_ROI1, ps_in_theta, ps_in_tx, ps_in_ty,
+                             ps_in_mean_error, ps_in_std_deviation, ps_out_track_id, ps_out_track_begin,
+                             ps_out_track_end, ps_out_track_extrapol_x, ps_out_track_extrapol_y, ps_out_track_state,
                              ps_out_track_obj_type, ps_out_track_change_state_reason, ps_out_n_tracks]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &trk = static_cast<Tracking&>(m);
 
-        const uint32_t n_ROI0 = *static_cast<const uint32_t*>(t[ps_in_n_ROI0].get_dataptr());
         const uint32_t n_ROI1 = *static_cast<const uint32_t*>(t[ps_in_n_ROI1].get_dataptr());
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
-        const int32_t* ROI1_prev_id = static_cast<const int32_t*>(t[ps_in_ROI1_prev_id].get_dataptr());
 
         _tracking_perform(trk.tracking_data,
-                          static_cast<const uint16_t*>(t[ps_in_ROI0_id].get_dataptr()),
-                          static_cast<const uint16_t*>(t[ps_in_ROI0_xmin].get_dataptr()),
-                          static_cast<const uint16_t*>(t[ps_in_ROI0_xmax].get_dataptr()),
-                          static_cast<const uint16_t*>(t[ps_in_ROI0_ymin].get_dataptr()),
-                          static_cast<const uint16_t*>(t[ps_in_ROI0_ymax].get_dataptr()),
-                          static_cast<const float*>(t[ps_in_ROI0_x].get_dataptr()),
-                          static_cast<const float*>(t[ps_in_ROI0_y].get_dataptr()),
                           static_cast<const float*>(t[ps_in_ROI0_error].get_dataptr()),
-                          trk.ROI0_prev_id,
                           static_cast<const int32_t*>(t[ps_in_ROI0_next_id].get_dataptr()),
-                          static_cast<const uint32_t*>(t[ps_in_ROI0_magnitude].get_dataptr()),
-                          n_ROI0,
                           static_cast<const uint16_t*>(t[ps_in_ROI1_id].get_dataptr()),
                           static_cast<const uint16_t*>(t[ps_in_ROI1_xmin].get_dataptr()),
                           static_cast<const uint16_t*>(t[ps_in_ROI1_xmax].get_dataptr()),
@@ -106,7 +81,7 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                           static_cast<const uint16_t*>(t[ps_in_ROI1_ymax].get_dataptr()),
                           static_cast<const float*>(t[ps_in_ROI1_x].get_dataptr()),
                           static_cast<const float*>(t[ps_in_ROI1_y].get_dataptr()),
-                          ROI1_prev_id,
+                          static_cast<const int32_t*>(t[ps_in_ROI1_prev_id].get_dataptr()),
                           static_cast<const uint32_t*>(t[ps_in_ROI1_magnitude].get_dataptr()),
                           n_ROI1,
                           trk.track_array->id,
@@ -129,8 +104,6 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                           *static_cast<double*>(t[ps_in_std_deviation].get_dataptr()),
                           trk.r_extrapol, trk.angle_max, trk.diff_dev, trk.track_all, trk.fra_star_min,
                           trk.fra_meteor_min, trk.fra_meteor_max);
-
-        memcpy(trk.ROI0_prev_id, ROI1_prev_id, trk.max_ROI_size * sizeof(int32_t));
 
         uint16_t* out_track_id = static_cast<uint16_t*>(t[ps_out_track_id].get_dataptr());
         ROI_light_t* out_track_begin = static_cast<ROI_light_t*>(t[ps_out_track_begin].get_dataptr());

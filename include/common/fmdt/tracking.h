@@ -36,6 +36,7 @@ typedef struct ROI_light {
     float y;
     float dx;
     float dy;
+    float error;
     int32_t time;
     int32_t time_motion;
     int32_t prev_id;
@@ -102,10 +103,7 @@ void tracking_clear_index_track_array(track_t* track_array, const size_t t);
 // void tracking_init_tracks(track_t* tracks, int n);
 void tracking_init_BB_array(BB_t** BB_array);
 void tracking_free_BB_array(BB_t** BB_array);
-void _tracking_perform(tracking_data_t* tracking_data, const uint16_t* ROI0_id, const uint16_t* ROI0_xmin,
-                       const uint16_t* ROI0_xmax, const uint16_t* ROI0_ymin, const uint16_t* ROI0_ymax,
-                       const float* ROI0_x, const float* ROI0_y, const float* ROI0_error, const int32_t* ROI0_prev_id, 
-                       const int32_t* ROI0_next_id, const uint32_t* ROI0_magnitude, const size_t n_ROI0,
+void _tracking_perform(tracking_data_t* tracking_data, const float* ROI0_error, const int32_t* ROI0_next_id,
                        const uint16_t* ROI1_id, const uint16_t* ROI1_xmin, const uint16_t* ROI1_xmax,
                        const uint16_t* ROI1_ymin, const uint16_t* ROI1_ymax, const float* ROI1_x, const float* ROI1_y,
                        const int32_t* ROI1_prev_id, const uint32_t* ROI1_magnitude, const size_t n_ROI1,

@@ -10,7 +10,7 @@
 #include "fmdt/tracking.h"
 
 #define INF 9999999
-#define MAX_MAGNITUDE 100000
+#define MAX_MAGNITUDE_SIZE 100000
 
 enum color_e g_obj_to_color[N_OBJECTS];
 char g_obj_to_string[N_OBJECTS][64];
@@ -130,7 +130,7 @@ track_t* tracking_alloc_track_array(const size_t max_size) {
 
     track_array->magnitude = (int64_t**)malloc(max_size * sizeof(int64_t*));
     for (size_t i = 0; i < max_size; i++)
-        track_array->magnitude[i] = (int64_t*)malloc(MAX_MAGNITUDE * sizeof(int64_t));
+        track_array->magnitude[i] = (int64_t*)malloc(MAX_MAGNITUDE_SIZE * sizeof(int64_t));
 
     track_array->_max_size = max_size;
     return track_array;
@@ -147,9 +147,9 @@ void tracking_init_track_array(track_t* track_array) {
     memset(track_array->change_state_reason, 0, track_array->_max_size * sizeof(enum change_state_reason_e));
 
     for (size_t i = 0; i < track_array->_max_size; i++) {
-        for (size_t j = 0; j < MAX_MAGNITUDE - 1; j++)
+        for (size_t j = 0; j < MAX_MAGNITUDE_SIZE - 1; j++)
             track_array->magnitude[i][j] = -1;
-        track_array->magnitude[i][MAX_MAGNITUDE - 1] = -2;
+        track_array->magnitude[i][MAX_MAGNITUDE_SIZE - 1] = -2;
     }
 
     track_array->_size = 0;
@@ -229,14 +229,19 @@ void free_ROI_history(ROI_history_t* ROI_hist) {
     for (size_t i = 0; i < ROI_hist->_max_size; i++)
         free(ROI_hist->array[i]);
     free(ROI_hist->array);
+    free(ROI_hist->n_ROI);
     free(ROI_hist);
 }
 
 void rotate_ROI_history(ROI_history_t* ROI_hist) {
     ROI_light_t* last_ROI_tmp = ROI_hist->array[ROI_hist->_max_size -1];
-    for (int i = (int)(ROI_hist->_max_size -2); i >= 0; i--)
+    uint32_t last_n_ROI_tmp = ROI_hist->n_ROI[ROI_hist->_max_size -1];
+    for (int i = (int)(ROI_hist->_max_size -2); i >= 0; i--) {
         ROI_hist->array[i + 1] = ROI_hist->array[i];
+        ROI_hist->n_ROI[i + 1] = ROI_hist->n_ROI[i];
+    }
     ROI_hist->array[0] = last_ROI_tmp;
+    ROI_hist->n_ROI[0] = last_n_ROI_tmp;
 }
 
 
@@ -298,41 +303,7 @@ void update_bounding_box(BB_t** BB_array, const int track_id, const ROI_t* ROI_a
                          ROI_array->ymax[r], frame, is_extrapolated);
 }
 
-void _light_copy_elmt_ROI_array(const uint16_t* ROI_src_id, const uint32_t ROI_src_frame, const uint16_t* ROI_src_xmin,
-                                const uint16_t* ROI_src_xmax, const uint16_t* ROI_src_ymin,
-                                const uint16_t* ROI_src_ymax, const float* ROI_src_x, const float* ROI_src_y,
-                                const int32_t* ROI_src_prev_id, const int32_t* ROI_src_next_id,
-                                const uint32_t* ROI_src_magnitude, const size_t i_src, ROI_light_t* ROI_array_dest,
-                                const size_t i_dest) {
-    ROI_array_dest[i_dest].id = ROI_src_id[i_src];
-    ROI_array_dest[i_dest].frame = ROI_src_frame;
-    ROI_array_dest[i_dest].xmin = ROI_src_xmin[i_src];
-    ROI_array_dest[i_dest].xmax = ROI_src_xmax[i_src];
-    ROI_array_dest[i_dest].ymin = ROI_src_ymin[i_src];
-    ROI_array_dest[i_dest].ymax = ROI_src_ymax[i_src];
-    ROI_array_dest[i_dest].x = ROI_src_x[i_src];
-    ROI_array_dest[i_dest].y = ROI_src_y[i_src];
-    ROI_array_dest[i_dest].prev_id = ROI_src_prev_id[i_src];
-    ROI_array_dest[i_dest].next_id = (ROI_src_next_id) ? ROI_src_next_id[i_src] : 0;
-    ROI_array_dest[i_dest].magnitude = ROI_src_magnitude[i_src];
-}
-
-void light_copy_elmt_ROI_array(const ROI_t* ROI_array_src, const uint32_t ROI_src_frame, ROI_light_t* ROI_array_dest,
-                               const int i_src, const int i_dest) {
-    _light_copy_elmt_ROI_array(ROI_array_src->id, ROI_src_frame, ROI_array_src->xmin, ROI_array_src->xmax,
-                               ROI_array_src->ymin, ROI_array_src->ymax, ROI_array_src->x, ROI_array_src->y,
-                               ROI_array_src->prev_id, ROI_array_src->next_id, ROI_array_src->magnitude, i_src,
-                               ROI_array_dest, i_dest);
-}
-
-void _update_existing_tracks(ROI_light_t** ROI_hist, const uint16_t* ROI0_id, const uint16_t* ROI0_xmin,
-                             const uint16_t* ROI0_xmax, const uint16_t* ROI0_ymin, const uint16_t* ROI0_ymax,
-                             const float* ROI0_x, const float* ROI0_y, const int32_t* ROI0_prev_id,
-                             const int32_t* ROI0_next_id, const uint32_t* ROI0_magnitude, const size_t n_ROI0,
-                             const uint16_t* ROI1_id, const uint16_t* ROI1_xmin, const uint16_t* ROI1_xmax,
-                             const uint16_t* ROI1_ymin, const uint16_t* ROI1_ymax, const float* ROI1_x,
-                             const float* ROI1_y, const int32_t* ROI1_prev_id, const uint32_t* ROI1_magnitude,
-                             const size_t n_ROI1, uint16_t* track_id, const ROI_light_t* track_begin,
+void _update_existing_tracks(ROI_history_t* ROI_history, uint16_t* track_id, const ROI_light_t* track_begin,
                              ROI_light_t* track_end, float* track_extrapol_x, float* track_extrapol_y,
                              enum state_e* track_state, enum obj_e* track_obj_type,
                              enum change_state_reason_e* track_change_state_reason, int64_t** track_magnitude,
@@ -349,22 +320,19 @@ void _update_existing_tracks(ROI_light_t** ROI_hist, const uint16_t* ROI0_id, co
     for (size_t i = *offset_tracks; i < n_tracks; i++) {
         if (track_id[i] && track_state[i] != TRACK_FINISHED) {
             if (track_state[i] == TRACK_LOST) {
-                for (size_t j = 0; j < n_ROI1; j++) {
-                    if (!ROI1_prev_id[j]) {
-                        if ((ROI1_x[j] > track_extrapol_x[i] - r_extrapol) &&
-                            (ROI1_x[j] < track_extrapol_x[i] + r_extrapol) &&
-                            (ROI1_y[j] < track_extrapol_y[i] + r_extrapol) &&
-                            (ROI1_y[j] > track_extrapol_y[i] - r_extrapol)) {
-                            track_state[i] = TRACK_UPDATED;
-                            ROI_hist[0][j].is_extrapolated = 1;
+                for (size_t j = 0; j < ROI_history->n_ROI[0]; j++) {
+                    if (!ROI_history->array[0][j].prev_id) {
+                        if ((ROI_history->array[0][j].x > track_extrapol_x[i] - r_extrapol) &&
+                            (ROI_history->array[0][j].x < track_extrapol_x[i] + r_extrapol) &&
+                            (ROI_history->array[0][j].y < track_extrapol_y[i] + r_extrapol) &&
+                            (ROI_history->array[0][j].y > track_extrapol_y[i] - r_extrapol)) {
 
-                            int32_t* ROI1_next_id = NULL;
-                            _light_copy_elmt_ROI_array(ROI1_id, frame, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax,
-                                                       ROI1_x, ROI1_y, ROI1_prev_id, ROI1_next_id, ROI1_magnitude, j,
-                                                       track_end, i);
+                            track_state[i] = TRACK_UPDATED;
+                            ROI_history->array[0][j].is_extrapolated = 1;
+                            memcpy(&track_end[i], &ROI_history->array[0][j], sizeof(ROI_light_t));
 
                             assert(track_magnitude[i][frame - track_begin[i].frame] == -1);
-                            track_magnitude[i][frame - track_begin[i].frame] = ROI1_magnitude[j];
+                            track_magnitude[i][frame - track_begin[i].frame] = ROI_history->array[0][j].magnitude;
 
                             int m = (frame - 1) - track_begin[i].frame;
                             while (m >= 0 && track_magnitude[i][m] == -1) {
@@ -373,8 +341,9 @@ void _update_existing_tracks(ROI_light_t** ROI_hist, const uint16_t* ROI0_id, co
                             }
 
                             if (BB_array != NULL)
-                                _update_bounding_box(BB_array, track_id[i], ROI1_xmin[j], ROI1_xmax[j], ROI1_ymin[j],
-                                                     ROI1_ymax[j], frame, /* is_extrapolated = */ 1);
+                                _update_bounding_box(BB_array, track_id[i], ROI_history->array[0][j].xmin,
+                                                     ROI_history->array[0][j].xmax, ROI_history->array[0][j].ymin,
+                                                     ROI_history->array[0][j].ymax, frame, /* is_extrapolated = */ 1);
 
                             // in the current implementation, the first ROI that matches is used for extrapolation
                             break;
@@ -385,15 +354,15 @@ void _update_existing_tracks(ROI_light_t** ROI_hist, const uint16_t* ROI0_id, co
                     track_state[i] = TRACK_FINISHED;
             }
             else if (track_state[i] == TRACK_UPDATED || track_state[i] == TRACK_NEW) {
-                int next_id = ROI0_next_id[track_end[i].id - 1];
+                int next_id = ROI_history->array[1][track_end[i].id - 1].next_id;
                 if (next_id) {
                     if (track_obj_type[i] == METEOR) {
-                        if (ROI0_prev_id[track_end[i].id - 1]) {
-                            int k = ROI0_prev_id[track_end[i].id - 1] - 1;
-                            float u_x = ROI0_x[track_end[i].id - 1] - ROI_hist[2][k].x;
-                            float u_y = ROI0_y[track_end[i].id - 1] - ROI_hist[2][k].y;
-                            float v_x = ROI1_x[next_id - 1] - ROI_hist[2][k].x;
-                            float v_y = ROI1_y[next_id - 1] - ROI_hist[2][k].y;
+                        if (ROI_history->array[1][track_end[i].id - 1].prev_id) {
+                            int k = ROI_history->array[1][track_end[i].id - 1].prev_id - 1;
+                            float u_x = ROI_history->array[1][track_end[i].id - 1].x - ROI_history->array[2][k].x;
+                            float u_y = ROI_history->array[1][track_end[i].id - 1].y - ROI_history->array[2][k].y;
+                            float v_x = ROI_history->array[0][next_id - 1].x - ROI_history->array[2][k].x;
+                            float v_y = ROI_history->array[0][next_id - 1].y - ROI_history->array[2][k].y;
                             float scalar_prod_uv = u_x * v_x + u_y * v_y;
                             float norm_u = sqrtf(u_x * u_x + u_y * u_y);
                             float norm_v = sqrtf(v_x * v_x + v_y * v_y);
@@ -414,20 +383,20 @@ void _update_existing_tracks(ROI_light_t** ROI_hist, const uint16_t* ROI0_id, co
                     }
                     track_extrapol_x[i] = track_end[i].x;
                     track_extrapol_y[i] = track_end[i].y;
-                    int32_t* ROI1_next_id = NULL;
-                    _light_copy_elmt_ROI_array(ROI1_id, frame, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_x,
-                                               ROI1_y, ROI1_prev_id, ROI1_next_id, ROI1_magnitude, next_id - 1,
-                                               track_end, i);
+
+                    memcpy(&track_end[i], &ROI_history->array[0][next_id - 1], sizeof(ROI_light_t));
+
                     if (track_state[i] == TRACK_NEW) // because the right time has been set in 'insert_new_track'
                         track_state[i] = TRACK_UPDATED;
 
                     assert(track_magnitude[i][frame - track_begin[i].frame] == -1);
                     assert(track_magnitude[i][(frame - 1) - track_begin[i].frame] != -1);
-                    track_magnitude[i][frame - track_begin[i].frame] = ROI1_magnitude[next_id - 1];
+                    track_magnitude[i][frame - track_begin[i].frame] = ROI_history->array[0][next_id - 1].magnitude;
                     if (BB_array != NULL)
-                        _update_bounding_box(BB_array, track_id[i], ROI1_xmin[next_id - 1], ROI1_xmax[next_id - 1],
-                                             ROI1_ymin[next_id - 1], ROI1_ymax[next_id - 1], frame,
-                                             /* is_extrapolated = */ 0);
+                        _update_bounding_box(BB_array, track_id[i], ROI_history->array[0][next_id - 1].xmin,
+                                             ROI_history->array[0][next_id - 1].xmax,
+                                             ROI_history->array[0][next_id - 1].ymin,
+                                             ROI_history->array[0][next_id - 1].ymax, frame, /* is_extrapolated = */ 0);
                 } else {
                     // on extrapole si pas finished
                     _track_extrapolate(&track_end[i], &track_extrapol_x[i], &track_extrapol_y[i], theta, tx, ty);
@@ -446,18 +415,14 @@ void _update_existing_tracks(ROI_light_t** ROI_hist, const uint16_t* ROI0_id, co
     }
 }
 
-void update_existing_tracks(ROI_light_t** ROI_hist, const ROI_t* ROI_array0, ROI_t* ROI_array1,
-                            track_t* track_array, BB_t** BB_array, size_t frame, double theta, double tx, double ty,
-                            size_t r_extrapol, float angle_max, int track_all, size_t fra_meteor_max) {
-    _update_existing_tracks(ROI_hist, ROI_array0->id, ROI_array0->xmin, ROI_array0->xmax, ROI_array0->ymin,
-                            ROI_array0->ymax, ROI_array0->x, ROI_array0->y, ROI_array0->prev_id, ROI_array0->next_id,
-                            ROI_array0->magnitude, ROI_array0->_size, ROI_array1->id, ROI_array1->xmin,
-                            ROI_array1->xmax, ROI_array1->ymin, ROI_array1->ymax, ROI_array1->x, ROI_array1->y,
-                            ROI_array1->prev_id, ROI_array1->magnitude, ROI_array1->_size, track_array->id,
-                            track_array->begin, track_array->end, track_array->extrapol_x, track_array->extrapol_y,
-                            track_array->state, track_array->obj_type, track_array->change_state_reason,
-                            track_array->magnitude, &track_array->_offset, track_array->_size, BB_array, frame, theta,
-                            tx, ty, r_extrapol, angle_max, track_all, fra_meteor_max);
+void update_existing_tracks(ROI_history_t* ROI_history, track_t* track_array, BB_t** BB_array, size_t frame,
+                            double theta, double tx, double ty, size_t r_extrapol, float angle_max, int track_all,
+                            size_t fra_meteor_max) {
+    _update_existing_tracks(ROI_history, track_array->id, track_array->begin, track_array->end, track_array->extrapol_x,
+                            track_array->extrapol_y, track_array->state, track_array->obj_type,
+                            track_array->change_state_reason, track_array->magnitude, &track_array->_offset,
+                            track_array->_size, BB_array, frame, theta, tx, ty, r_extrapol, angle_max, track_all,
+                            fra_meteor_max);
 }
 
 void _insert_new_track(const ROI_light_t* ROI_list, unsigned n_ROI, uint16_t* track_id, ROI_light_t* track_begin,
@@ -467,9 +432,7 @@ void _insert_new_track(const ROI_light_t* ROI_list, unsigned n_ROI, uint16_t* tr
     assert((*n_tracks) + 1 < MAX_TRACKS_SIZE);
     size_t cur_track = *n_tracks;
     track_id[cur_track] = cur_track + 1;
-    // light_copy_elmt_ROI_array(ROI_list, track_begin, n_ROI - 1, cur_track);
     memcpy(&track_begin[cur_track], &ROI_list[n_ROI - 1], sizeof(ROI_light_t));
-    // light_copy_elmt_ROI_array(ROI_list, track_end, 0, cur_track);
     memcpy(&track_end[cur_track], &ROI_list[0], sizeof(ROI_light_t));
     track_state[cur_track] = TRACK_NEW;
     track_obj_type[cur_track] = type;
@@ -491,42 +454,20 @@ void insert_new_track(const ROI_light_t* ROI_list, unsigned n_ROI, track_t* trac
                       track_array->obj_type, track_array->magnitude, &track_array->_size, BB_array, frame, type);
 }
 
-void _fill_ROI_list(const ROI_light_t** ROI_hist, ROI_light_t* ROI_list, const uint16_t* ROI_id,
-                    const uint32_t ROI_frame, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
-                    const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const float* ROI_x, const float* ROI_y,
-                    const int32_t* ROI_prev_id, const int32_t* ROI_next_id, const uint32_t* ROI_magnitude,
-                    const size_t n_ROI, const size_t r) {
-    _light_copy_elmt_ROI_array(ROI_id, ROI_frame, ROI_xmin, ROI_xmax, ROI_ymin, ROI_ymax, ROI_x, ROI_y, ROI_prev_id,
-                               ROI_next_id, ROI_magnitude, r, ROI_list, 0);
-    for (size_t i = 1; i < n_ROI; i++)
-        // light_copy_elmt_ROI_array(ROI_hist[i - 1], ROI_list, ROI_list->prev_id[i - 1] - 1, i);
-        memcpy(&ROI_list[i], &ROI_hist[i - 1][ROI_list[i - 1].prev_id - 1], sizeof(ROI_light_t));
-}
-
-void fill_ROI_list(const ROI_light_t** ROI_hist, const uint32_t ROI_frame, ROI_light_t* ROI_list,
-                   const ROI_t* ROI_array, const size_t n_ROI, const size_t r) {
-    _fill_ROI_list(ROI_hist, ROI_list, ROI_array->id, ROI_frame, ROI_array->xmin, ROI_array->xmax,
-                   ROI_array->ymin, ROI_array->ymax, ROI_array->x, ROI_array->y, ROI_array->prev_id, ROI_array->next_id,
-                   ROI_array->magnitude, n_ROI, r);
-}
-
-void _create_new_tracks(ROI_light_t** ROI_hist, ROI_light_t* ROI_list, const uint16_t* ROI0_id,
-                        const uint16_t* ROI0_xmin, const uint16_t* ROI0_xmax, const uint16_t* ROI0_ymin,
-                        const uint16_t* ROI0_ymax, const float* ROI0_x, const float* ROI0_y, const float* ROI0_error,
-                        const int32_t* ROI0_prev_id, const int32_t* ROI0_next_id, const uint32_t* ROI0_magnitude,
-                        const size_t n_ROI0, uint16_t* track_id, ROI_light_t* track_begin, ROI_light_t* track_end,
-                        enum state_e* track_state, enum obj_e* track_obj_type, int64_t** track_magnitude,
-                        const size_t offset_tracks, size_t* n_tracks, BB_t** BB_array, size_t frame, double mean_error,
-                        double std_deviation, float diff_dev, int track_all, size_t fra_star_min, size_t fra_meteor_min)
+void _create_new_tracks(ROI_history_t* ROI_history, ROI_light_t* ROI_list, uint16_t* track_id, ROI_light_t* track_begin,
+                        ROI_light_t* track_end, enum state_e* track_state, enum obj_e* track_obj_type,
+                        int64_t** track_magnitude, const size_t offset_tracks, size_t* n_tracks, BB_t** BB_array,
+                        size_t frame, double mean_error, double std_deviation, float diff_dev, int track_all,
+                        size_t fra_star_min, size_t fra_meteor_min)
 {
-    for (size_t i = 0; i < n_ROI0; i++) {
-        float e = ROI0_error[i];
-        int asso = ROI0_next_id[i];
+    for (size_t i = 0; i < ROI_history->n_ROI[1]; i++) {
+        float e = ROI_history->array[1][i].error;
+        int asso = ROI_history->array[1][i].next_id;
         if (asso) {
             int is_new_meteor = 0;
             // if motion detected
             if (fabs(e - mean_error) > diff_dev * std_deviation) {
-                if (ROI_hist[1][i].is_extrapolated)
+                if (ROI_history->array[1][i].is_extrapolated)
                     continue; // Extrapolated
                 is_new_meteor = 1;
             } // else it is a new star
@@ -534,27 +475,29 @@ void _create_new_tracks(ROI_light_t** ROI_hist, ROI_light_t* ROI_list, const uin
             int fra_min;
             int time;
             if (is_new_meteor) {
-                time = ROI_hist[1][i].time_motion + 1;
-                ROI_hist[0][asso - 1].time_motion = time;
+                time = ROI_history->array[1][i].time_motion + 1;
+                ROI_history->array[0][asso - 1].time_motion = time;
                 fra_min = fra_meteor_min;
             }
             else if (track_all) {
-                time = ROI_hist[1][i].time + 1;
-                ROI_hist[0][asso - 1].time = time;
+                time = ROI_history->array[1][i].time + 1;
+                ROI_history->array[0][asso - 1].time = time;
                 fra_min = fra_star_min;
             }
             if (is_new_meteor || track_all) {
                 if (time == fra_min - 1) {
                     // this loop prevent adding duplicated tracks
                     size_t j = offset_tracks;
-                    while (j < *n_tracks && (track_end[j].id != ROI0_id[i] ||
-                           track_end[j].x != ROI0_x[i] || track_end[j].y != ROI0_y[i]))
+                    while (j < *n_tracks && (track_end[j].id != ROI_history->array[1][i].id ||
+                           track_end[j].x != ROI_history->array[1][i].x ||
+                           track_end[j].y != ROI_history->array[1][i].y))
                         j++;
 
                     if (j == *n_tracks || *n_tracks == 0) {
-                        _fill_ROI_list((const ROI_light_t**)(&ROI_hist[2]), ROI_list, ROI0_id, frame - 1, ROI0_xmin, 
-                                       ROI0_xmax, ROI0_ymin,ROI0_ymax, ROI0_x, ROI0_y, ROI0_prev_id, ROI0_next_id, 
-                                       ROI0_magnitude, fra_min - 1, i);
+                        memcpy(&ROI_list[0], &ROI_history->array[1][i], sizeof(ROI_light_t));
+                        for (size_t ii = 1; ii < fra_min - 1; ii++)
+                            memcpy(&ROI_list[ii], &ROI_history->array[ii + 1][ROI_list[ii - 1].prev_id - 1],
+                                   sizeof(ROI_light_t));
                         _insert_new_track(ROI_list, fra_min - 1, track_id, track_begin, track_end, track_state,
                                           track_obj_type, track_magnitude, n_tracks, BB_array, frame,
                                           is_new_meteor ? METEOR : STAR);
@@ -565,15 +508,12 @@ void _create_new_tracks(ROI_light_t** ROI_hist, ROI_light_t* ROI_list, const uin
     }
 }
 
-void create_new_tracks(ROI_light_t** ROI_hist, ROI_light_t* ROI_list, const ROI_t* ROI_array0, ROI_t* ROI_array1,
-                       track_t* track_array, BB_t** BB_array, size_t frame, double mean_error, double std_deviation,
-                       float diff_dev, int track_all, size_t fra_star_min, size_t fra_meteor_min) {
-    _create_new_tracks(ROI_hist, ROI_list, ROI_array0->id, ROI_array0->xmin, ROI_array0->xmax, ROI_array0->ymin,
-                       ROI_array0->ymax, ROI_array0->x, ROI_array0->y, ROI_array0->error, ROI_array0->prev_id,
-                       ROI_array0->next_id, ROI_array0->magnitude, ROI_array0->_size, track_array->id,
-                       track_array->begin, track_array->end, track_array->state, track_array->obj_type,
-                       track_array->magnitude, track_array->_offset, &track_array->_size, BB_array, frame, mean_error,
-                       std_deviation, diff_dev, track_all, fra_star_min, fra_meteor_min);
+void create_new_tracks(ROI_history_t* ROI_history, ROI_light_t* ROI_list, track_t* track_array, BB_t** BB_array,
+                       size_t frame, double mean_error, double std_deviation, float diff_dev, int track_all,
+                       size_t fra_star_min, size_t fra_meteor_min) {
+    _create_new_tracks(ROI_history, ROI_list, track_array->id, track_array->begin, track_array->end, track_array->state,
+                       track_array->obj_type, track_array->magnitude, track_array->_offset, &track_array->_size,
+                       BB_array, frame, mean_error, std_deviation, diff_dev, track_all, fra_star_min, fra_meteor_min);
 }
 
 void _light_copy_ROI_array(const uint16_t* ROI_src_id, const uint32_t ROI_src_frame, const uint16_t* ROI_src_xmin,
@@ -603,10 +543,15 @@ void light_copy_ROI_array(const ROI_t* ROI_array_src, const uint32_t ROI_src_fra
                           ROI_array_src->prev_id, ROI_array_src->magnitude, ROI_array_src->_size, ROI_array_dest);
 }
 
-void _tracking_perform(tracking_data_t* tracking_data, const uint16_t* ROI0_id, const uint16_t* ROI0_xmin,
-                       const uint16_t* ROI0_xmax, const uint16_t* ROI0_ymin, const uint16_t* ROI0_ymax,
-                       const float* ROI0_x, const float* ROI0_y, const float* ROI0_error, const int32_t* ROI0_prev_id, 
-                       const int32_t* ROI0_next_id, const uint32_t* ROI0_magnitude, const size_t n_ROI0,
+void _update_ROI_array(const float* ROI_src_error, const int32_t* ROI_src_next_id, ROI_light_t* ROI_dest,
+                       const size_t n_ROI_dest) {
+    for (size_t i = 0; i < n_ROI_dest; i++) {
+        ROI_dest[i].next_id = ROI_src_next_id[i];
+        ROI_dest[i].error = ROI_src_error[i];
+    }
+}
+
+void _tracking_perform(tracking_data_t* tracking_data, const float* ROI0_error, const int32_t* ROI0_next_id,
                        const uint16_t* ROI1_id, const uint16_t* ROI1_xmin, const uint16_t* ROI1_xmax,
                        const uint16_t* ROI1_ymin, const uint16_t* ROI1_ymax, const float* ROI1_x, const float* ROI1_y,
                        const int32_t* ROI1_prev_id, const uint32_t* ROI1_magnitude, const size_t n_ROI1,
@@ -620,30 +565,28 @@ void _tracking_perform(tracking_data_t* tracking_data, const uint16_t* ROI0_id, 
     tracking_data->ROI_history->n_ROI[0] = n_ROI1;
     _light_copy_ROI_array(ROI1_id, frame, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_x, ROI1_y, ROI1_prev_id, 
                           ROI1_magnitude, n_ROI1, tracking_data->ROI_history->array[0]);
+    if (tracking_data->ROI_history->_size > 0)
+        _update_ROI_array(ROI0_error, ROI0_next_id, tracking_data->ROI_history->array[1],
+                          tracking_data->ROI_history->n_ROI[1]);
     if (tracking_data->ROI_history->_size < tracking_data->ROI_history->_max_size)
         tracking_data->ROI_history->_size++;
-    _create_new_tracks(&tracking_data->ROI_history->array[0], tracking_data->ROI_list, ROI0_id,
-                       ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax, ROI0_x, ROI0_y, ROI0_error, ROI0_prev_id,
-                       ROI0_next_id, ROI0_magnitude, n_ROI0, track_id, track_begin, track_end, track_state,
-                       track_obj_type, track_magnitude, *offset_tracks, n_tracks, BB_array, frame, mean_error,
-                       std_deviation, diff_dev, track_all, fra_star_min, fra_meteor_min);
-    _update_existing_tracks(&tracking_data->ROI_history->array[0], ROI0_id, ROI0_xmin, ROI0_xmax,
-                            ROI0_ymin, ROI0_ymax, ROI0_x, ROI0_y, ROI0_prev_id, ROI0_next_id, ROI0_magnitude, n_ROI0,
-                            ROI1_id, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_x, ROI1_y, ROI1_prev_id,
-                            ROI1_magnitude, n_ROI1, track_id, track_begin, track_end, track_extrapol_x,
+    _create_new_tracks(tracking_data->ROI_history, tracking_data->ROI_list, track_id, track_begin, track_end,
+                       track_state, track_obj_type, track_magnitude, *offset_tracks, n_tracks, BB_array, frame,
+                       mean_error, std_deviation, diff_dev, track_all, fra_star_min, fra_meteor_min);
+    _update_existing_tracks(tracking_data->ROI_history, track_id, track_begin, track_end, track_extrapol_x,
                             track_extrapol_y, track_state, track_obj_type, track_change_state_reason, track_magnitude,
                             offset_tracks, *n_tracks, BB_array, frame, theta, tx, ty, r_extrapol, angle_max, track_all,
                             fra_meteor_max);
     rotate_ROI_history(tracking_data->ROI_history);
+    memset(tracking_data->ROI_history->array[0], 0, tracking_data->ROI_history->n_ROI[0] * sizeof(ROI_light_t));
+    tracking_data->ROI_history->n_ROI[0] = 0;
 }
 
 void tracking_perform(tracking_data_t* tracking_data, const ROI_t* ROI_array0, ROI_t* ROI_array1, track_t* track_array,
                       BB_t** BB_array, size_t frame, double theta, double tx, double ty, double mean_error,
                       double std_deviation, size_t r_extrapol, float angle_max, float diff_dev, int track_all,
                       size_t fra_star_min, size_t fra_meteor_min, size_t fra_meteor_max) {
-    _tracking_perform(tracking_data, ROI_array0->id, ROI_array0->xmin, ROI_array0->xmax, ROI_array0->ymin,
-                      ROI_array0->ymax, ROI_array0->x, ROI_array0->y,  ROI_array0->error, ROI_array0->prev_id, 
-                      ROI_array0->next_id, ROI_array0->magnitude, ROI_array0->_size, ROI_array1->id, ROI_array1->xmin,
+    _tracking_perform(tracking_data, ROI_array0->error, ROI_array0->next_id, ROI_array1->id, ROI_array1->xmin,
                       ROI_array1->xmax, ROI_array1->ymin, ROI_array1->ymax, ROI_array1->x, ROI_array1->y,
                       ROI_array1->prev_id, ROI_array1->magnitude, ROI_array1->_size, track_array->id,
                       track_array->begin, track_array->end, track_array->extrapol_x, track_array->extrapol_y,

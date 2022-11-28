@@ -357,17 +357,8 @@ int main(int argc, char** argv) {
 
     // Step 6 : tracking
     tracking[trk::sck::perform::in_frame] = video[vid2::sck::generate::out_frame];
-    tracking[trk::sck::perform::in_ROI0_id] = merger0[ftr_mrg::sck::merge::out_ROI_id];
-    tracking[trk::sck::perform::in_ROI0_xmin] = merger0[ftr_mrg::sck::merge::out_ROI_xmin];
-    tracking[trk::sck::perform::in_ROI0_xmax] = merger0[ftr_mrg::sck::merge::out_ROI_xmax];
-    tracking[trk::sck::perform::in_ROI0_ymin] = merger0[ftr_mrg::sck::merge::out_ROI_ymin];
-    tracking[trk::sck::perform::in_ROI0_ymax] = merger0[ftr_mrg::sck::merge::out_ROI_ymax];
-    tracking[trk::sck::perform::in_ROI0_x] = merger0[ftr_mrg::sck::merge::out_ROI_x];
-    tracking[trk::sck::perform::in_ROI0_y] = merger0[ftr_mrg::sck::merge::out_ROI_y];
     tracking[trk::sck::perform::in_ROI0_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
     tracking[trk::sck::perform::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
-    tracking[trk::sck::perform::in_ROI0_magnitude] = merger0[ftr_mrg::sck::merge::out_ROI_magnitude];
-    tracking[trk::sck::perform::in_n_ROI0] = merger0[ftr_mrg::sck::merge::out_n_ROI];
     tracking[trk::sck::perform::in_ROI1_id] = merger1[ftr_mrg::sck::merge::out_ROI_id];
     tracking[trk::sck::perform::in_ROI1_xmin] = merger1[ftr_mrg::sck::merge::out_ROI_xmin];
     tracking[trk::sck::perform::in_ROI1_xmax] = merger1[ftr_mrg::sck::merge::out_ROI_xmax];

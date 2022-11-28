@@ -465,17 +465,8 @@ int main(int argc, char** argv) {
 
     // Step 6 : tracking
     tracking[trk::sck::perform::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
-    tracking[trk::sck::perform::in_ROI0_id] = delayer_ROI_id[aff3ct::module::dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_xmin] = delayer_ROI_xmin[aff3ct::module::dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_xmax] = delayer_ROI_xmax[aff3ct::module::dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_ymin] = delayer_ROI_ymin[aff3ct::module::dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_ymax] = delayer_ROI_ymax[aff3ct::module::dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_x] = delayer_ROI_x[aff3ct::module::dly::sck::produce::out];
-    tracking[trk::sck::perform::in_ROI0_y] = delayer_ROI_y[aff3ct::module::dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI0_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
     tracking[trk::sck::perform::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
-    tracking[trk::sck::perform::in_ROI0_magnitude] = delayer_ROI_magnitude[aff3ct::module::dly::sck::produce::out];
-    tracking[trk::sck::perform::in_n_ROI0] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
     tracking[trk::sck::perform::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
     tracking[trk::sck::perform::in_ROI1_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
     tracking[trk::sck::perform::in_ROI1_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];

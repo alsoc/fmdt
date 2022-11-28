@@ -10,10 +10,6 @@ BB_t** Tracking::get_BB_array() {
     return this->BB_array;
 }
 
-int32_t* Tracking::get_ROI0_prev_id() {
-    return this->ROI0_prev_id;
-}
-
 aff3ct::runtime::Task& Tracking::operator[](const trk::tsk t) {
     return aff3ct::module::Module::operator[]((size_t)t);
 }
