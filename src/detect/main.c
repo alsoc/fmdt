@@ -366,6 +366,7 @@ int main(int argc, char** argv) {
     if (p_out_mag) {
         FILE* f = fopen(p_out_mag, "w");
         tracking_track_array_magnitude_write(f, track_array);
+        fclose(f);
     }
     tracking_track_array_write(stdout, track_array);
 
