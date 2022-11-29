@@ -72,13 +72,14 @@ void _features_compute_motion(const int32_t* ROI0_next_id, const float* ROI0_x, 
 void features_compute_motion(const ROI_t* ROI_array1, ROI_t* ROI_array0, double* first_theta, double* first_tx,
                              double* first_ty, double* first_mean_error, double* first_std_deviation, double* theta,
                              double* tx, double* ty, double* mean_error, double* std_deviation);
-void _features_ROI_write(FILE* f, const uint16_t* ROI_id, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
-                         const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
-                         const uint32_t* ROI_Sx, const uint32_t* ROI_Sy, const float* ROI_x, const float* ROI_y,
-                         const uint32_t* ROI_magnitude, const size_t n_ROI, const uint16_t* track_id,
-                         const ROI_light_t* track_end, const enum obj_e* track_obj_type, const size_t n_tracks,
-                         const unsigned age);
-void features_ROI_write(FILE* f, const ROI_t* ROI_array, const track_t* track_array, const unsigned age);
+void _features_ROI_write(FILE* f, const int frame, const uint16_t* ROI_id, const uint16_t* ROI_xmin,
+                         const uint16_t* ROI_xmax, const uint16_t* ROI_ymin, const uint16_t* ROI_ymax,
+                         const uint32_t* ROI_S, const uint32_t* ROI_Sx, const uint32_t* ROI_Sy, const float* ROI_x,
+                         const float* ROI_y, const uint32_t* ROI_magnitude, const size_t n_ROI,
+                         const uint16_t* track_id, const ROI_light_t* track_end, const enum obj_e* track_obj_type,
+                         const size_t n_tracks, const unsigned age);
+void features_ROI_write(FILE* f, const int frame, const ROI_t* ROI_array, const track_t* track_array,
+                        const unsigned age);
 void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id, const uint16_t* ROI0_xmin,
                                const uint16_t* ROI0_xmax, const uint16_t* ROI0_ymin, const uint16_t* ROI0_ymax,
                                const uint32_t* ROI0_S, const uint32_t* ROI0_Sx, const uint32_t* ROI0_Sy,
