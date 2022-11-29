@@ -329,6 +329,17 @@ void _update_existing_tracks(ROI_history_t* ROI_history, uint16_t* track_id, con
                             (ROI_history->array[0][j].y < track_extrapol_y[i] + r_extrapol) &&
                             (ROI_history->array[0][j].y > track_extrapol_y[i] - r_extrapol)) {
 
+                            if (BB_array != NULL) {
+                                uint16_t height_extrapol = track_end[i].ymax - track_end[i].ymin;
+                                uint16_t width_extrapol = track_end[i].xmax - track_end[i].xmin;
+                                uint16_t xmin_extrapol = track_extrapol_x[i] - (width_extrapol / 2);
+                                uint16_t xmax_extrapol = track_extrapol_x[i] + (width_extrapol / 2);
+                                uint16_t ymin_extrapol = track_extrapol_y[i] - (height_extrapol / 2);
+                                uint16_t ymax_extrapol = track_extrapol_y[i] + (height_extrapol / 2);
+                                _update_bounding_box(BB_array, track_id[i], xmin_extrapol, xmax_extrapol, ymin_extrapol,
+                                                     ymax_extrapol, frame - 1, /* is_extrapolated = */ 1);
+                            }
+
                             track_state[i] = TRACK_UPDATED;
                             ROI_history->array[0][j].is_extrapolated = 1;
                             memcpy(&track_end[i], &ROI_history->array[0][j], sizeof(ROI_light_t));
@@ -345,7 +356,7 @@ void _update_existing_tracks(ROI_history_t* ROI_history, uint16_t* track_id, con
                             if (BB_array != NULL)
                                 _update_bounding_box(BB_array, track_id[i], ROI_history->array[0][j].xmin,
                                                      ROI_history->array[0][j].xmax, ROI_history->array[0][j].ymin,
-                                                     ROI_history->array[0][j].ymax, frame, /* is_extrapolated = */ 1);
+                                                     ROI_history->array[0][j].ymax, frame, /* is_extrapolated = */ 0);
 
                             // in the current implementation, the first ROI that matches is used for extrapolation
                             break;
