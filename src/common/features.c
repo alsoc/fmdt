@@ -649,7 +649,14 @@ int _find_corresponding_track(const int frame, const uint16_t* track_id, const R
     for (size_t t = 0; t < n_tracks; t++) {
         if (track_id[t]) {
             if (track_end[t].frame == frame + age) {
-                int cur_ROI_id = (age == 0) ? track_end[t].id : ROI_id[track_end[t].prev_id - 1];
+                int cur_ROI_id;
+                if (age == 0)
+                    cur_ROI_id = track_end[t].id;
+                else {
+                    if (track_end[t].prev_id == 0)
+                        continue;
+                    cur_ROI_id = ROI_id[track_end[t].prev_id - 1];
+                }
                 assert(cur_ROI_id <= n_ROI);
                 if (cur_ROI_id <= 0)
                     continue;
