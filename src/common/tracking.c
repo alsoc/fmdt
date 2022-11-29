@@ -255,8 +255,10 @@ tracking_data_t* tracking_alloc_data(const size_t max_history_size, const size_t
 
 void tracking_init_data(tracking_data_t* tracking_data) {
     memset(tracking_data->ROI_list, 0, tracking_data->ROI_history->_max_size * sizeof(ROI_light_t));
-    for (size_t i = 0; i < tracking_data->ROI_history->_max_size; i++)
+    for (size_t i = 0; i < tracking_data->ROI_history->_max_size; i++) {
         memset(tracking_data->ROI_history->array[i], 0, tracking_data->ROI_history->_max_n_ROI * sizeof(ROI_light_t));
+        tracking_data->ROI_history->n_ROI[i] = 0;
+    }
     tracking_data->ROI_history->_size = 0;
 }
 
@@ -570,13 +572,15 @@ void _tracking_perform(tracking_data_t* tracking_data, const float* ROI0_error, 
                           tracking_data->ROI_history->n_ROI[1]);
     if (tracking_data->ROI_history->_size < tracking_data->ROI_history->_max_size)
         tracking_data->ROI_history->_size++;
-    _create_new_tracks(tracking_data->ROI_history, tracking_data->ROI_list, track_id, track_begin, track_end,
-                       track_state, track_obj_type, track_magnitude, *offset_tracks, n_tracks, BB_array, frame,
-                       mean_error, std_deviation, diff_dev, track_all, fra_star_min, fra_meteor_min);
-    _update_existing_tracks(tracking_data->ROI_history, track_id, track_begin, track_end, track_extrapol_x,
-                            track_extrapol_y, track_state, track_obj_type, track_change_state_reason, track_magnitude,
-                            offset_tracks, *n_tracks, BB_array, frame, theta, tx, ty, r_extrapol, angle_max, track_all,
-                            fra_meteor_max);
+    if (tracking_data->ROI_history->_size >= 2) {
+        _create_new_tracks(tracking_data->ROI_history, tracking_data->ROI_list, track_id, track_begin, track_end,
+                           track_state, track_obj_type, track_magnitude, *offset_tracks, n_tracks, BB_array, frame,
+                           mean_error, std_deviation, diff_dev, track_all, fra_star_min, fra_meteor_min);
+        _update_existing_tracks(tracking_data->ROI_history, track_id, track_begin, track_end, track_extrapol_x,
+                                track_extrapol_y, track_state, track_obj_type, track_change_state_reason, track_magnitude,
+                                offset_tracks, *n_tracks, BB_array, frame, theta, tx, ty, r_extrapol, angle_max, track_all,
+                                fra_meteor_max);
+    }
     rotate_ROI_history(tracking_data->ROI_history);
     memset(tracking_data->ROI_history->array[0], 0, tracking_data->ROI_history->n_ROI[0] * sizeof(ROI_light_t));
     tracking_data->ROI_history->n_ROI[0] = 0;
