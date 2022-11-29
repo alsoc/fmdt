@@ -40,4 +40,6 @@ Logger_frame::Logger_frame(const std::string frames_path, const int i0, const in
     });
 }
 
-Logger_frame::~Logger_frame() {}
+Logger_frame::~Logger_frame() {
+    free(this->in_img + this->i0 - this->b);
+}
