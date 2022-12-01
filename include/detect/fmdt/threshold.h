@@ -4,6 +4,8 @@
 
 void threshold(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
                const uint8_t threshold);
+void threshold_255(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
+               const uint8_t threshold);
 void threshold_low(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
                    const uint8_t threshold);
 void threshold_high(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,

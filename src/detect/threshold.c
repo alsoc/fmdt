@@ -20,10 +20,20 @@ void threshold(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1
         memset(m_out[i], 0, ((j1 - j0) + 1) * sizeof(uint8_t));
         for (j = j0; j <= j1; j++)
             if (m_in[i][j] >= threshold)
-                m_out[i][j] = 255;
+                m_out[i][j] = 1;
     }
 }
 
+void threshold_255(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
+               const uint8_t threshold) {
+    int i, j;
+    for (i = i0; i <= i1; i++) {
+        memset(m_out[i], 0, ((j1 - j0) + 1) * sizeof(uint8_t));
+        for (j = j0; j <= j1; j++)
+            if (m_in[i][j] >= threshold)
+                m_out[i][j] = 255;
+    }
+}
 void threshold_high(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
                     const uint8_t th) {
     threshold(m_in, m_out, i0, i1, j0, j1, th);

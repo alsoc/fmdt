@@ -185,9 +185,17 @@ void _features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_
                                const int j0, const int j1, const uint16_t* ROI_id, const uint16_t* ROI_xmin,
                                const uint16_t* ROI_xmax, const uint16_t* ROI_ymin, const uint16_t* ROI_ymax,
                                uint32_t* ROI_S, const size_t n_ROI, const uint32_t S_min, const uint32_t S_max) {
+    // if ((void*)HI_in != (void*)HI_out)
+    //     for (int i = i0; i <= i1; i++)
+    //         memcpy(HI_out[i] + j0, HI_in[i] + j0, sizeof(uint8_t) * ((j1 - j0) + 1));
+    
+    // HI_in est maintenant en 0 et 1 a cause du CCL -> passer en 0 255
     if ((void*)HI_in != (void*)HI_out)
         for (int i = i0; i <= i1; i++)
-            memcpy(HI_out[i] + j0, HI_in[i] + j0, sizeof(uint8_t) * ((j1 - j0) + 1));
+            // memcpy(HI_out[i] + j0, HI_in[i] + j0, sizeof(uint8_t) * ((j1 - j0) + 1));
+            for (int j = j0; j <= j1; j++){
+                HI_out[i][j] = 255 * HI_in[i][j];
+            }
 
     int x0, x1, y0, y1, id;
     for (size_t i = 0; i < n_ROI; i++) {
