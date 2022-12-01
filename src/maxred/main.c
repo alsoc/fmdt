@@ -12,17 +12,7 @@
 #include "fmdt/validation.h"
 #include "fmdt/video.h"
 
-void max_reduce(uint8_t** M, int i0, int i1, int j0, int j1, uint8_t** I) {
-    for (int i = i0; i <= i1; i++) {
-        for (int j = j0; j <= j1; j++) {
-            uint8_t x = I[i][j];
-            uint8_t m = M[i][j];
-            if (x > m) {
-                M[i][j] = x;
-            }
-        }
-    }
-}
+
 
 int main(int argc, char** argv) {
     // default values
@@ -149,7 +139,7 @@ int main(int argc, char** argv) {
     PUTS("LOOP");
     while ((frame = video_get_next_frame(video, img)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d\r", frame);
-        max_reduce(Max, i0, i1, j0, j1, img);
+        tools_max_reduce(Max, i0, i1, j0, j1, img);
     }
     fprintf(stderr, "\n");
 

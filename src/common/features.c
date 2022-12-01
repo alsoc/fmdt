@@ -328,6 +328,78 @@ void features_filter_surface(ROI_t* ROI_array, uint32_t** img, uint32_t threshol
     }
 }
 
+void _calc_ellipse_status(uint32_t* ROI_S, float* ROI_a, float* ROI_b, uint32_t* ROI_Sx, uint32_t* ROI_Sy, uint32_t* ROI_Sx2, uint32_t* ROI_Sy2, uint32_t* ROI_Sxy, const size_t n_ROI)
+{
+
+    for(int e = 0; e < n_ROI; e++) {
+        
+        if(ROI_S[e]>0) {
+
+            double S = ROI_S[e];
+            
+            double Sx = ROI_Sx[e];
+            double Sy = ROI_Sy[e];
+            
+            // moments non centres
+            double Sxx = ROI_Sx2[e];
+            double Sxy = ROI_Sxy[e];
+            double Syy = ROI_Sy2[e];
+            
+            // moments centres
+            double m20 = S * Sxx - Sx * Sx;
+            double m11 = S * Sxy - Sx * Sy;
+            double m02 = S * Syy - Sy * Sy;
+            
+            // par construction a > b
+            double a2 = (m20 + m02 + sqrtf( (m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
+            double b2 = (m20 + m02 - sqrtf( (m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
+            
+            float a = sqrt(a2);
+            float b = sqrt(b2);
+            float ratio = a / b; // metrique plus simple a visualiser que l'applatissement
+            
+            
+            ROI_a[e] = a;
+            ROI_b[e] = b;
+            // fprintf(stderr, "# %2d   S = %f   m20 = %f a = %5.1f   b = %5.1f   ratio = %5.1f \n", e, S, m11, ROI_a[e], ROI_b[e], ratio);
+            
+            //putchar('\n');
+        }
+    }
+}
+
+void calc_ellipse_status(ROI_t* ROI_array) {
+    _calc_ellipse_status(ROI_array->S, ROI_array->a, ROI_array->b, ROI_array->Sx, ROI_array->Sy, ROI_array->Sx2, ROI_array->Sy2, ROI_array->Sxy, ROI_array->_size);
+}
+
+int _filter_features_ellipse_ratio_status(const float* ROI_a, const float* ROI_b, const size_t n_ROI, const float min_ratio, uint32_t* ROI_S)
+{
+    int c = 0;
+    for(int e = 0; e < n_ROI; e++) {
+        
+        if(ROI_S[e] >0) {
+            
+            float a = ROI_a[e];
+            float b = ROI_b[e];
+            float ratio = a / b;
+            
+            if(ratio < min_ratio) {
+                ROI_S[e] = 0;
+            } else {
+                c++;
+            }
+        }
+    }
+    return c;
+}
+
+int filter_features_ellipse_ratio_status(ROI_t* ROI_array, const float min_ratio) 
+{
+    _filter_features_ellipse_ratio_status((const float*)ROI_array->a, (const float*)ROI_array->b, ROI_array->_size, min_ratio, ROI_array->S);
+}
+
+
+
 
 
 size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* ROI_src_xmin,

@@ -16,6 +16,7 @@
 #include "fmdt/images.h"
 #include "fmdt/macros.h"
 
+
 int get_next_frame(video_t* video, images_t* images, uint8_t** I) {
     if (video)
         return video_get_next_frame(video, I);
@@ -35,11 +36,13 @@ int main(int argc, char** argv) {
     int def_p_surface_max = 1000;
     int def_p_k = 3;
     int def_p_max_dist = 10;
+    int def_p_ellipse_min = 5;
     int def_p_r_extrapol = 5;
     float def_p_angle_max = 20;
     int def_p_fra_star_min = 15;
     int def_p_fra_meteor_min = 3;
     int def_p_fra_meteor_max = 100;
+    int def_p_red_diam = 5;
     float def_p_diff_dev = 4.f;
     char* def_p_in_video = NULL;
     char* def_p_out_frames = NULL;
@@ -104,6 +107,13 @@ int main(int argc, char** argv) {
                 "  --fra-meteor-max    Maximum number of frames required to track a meteor                    [%d]\n",
                 def_p_fra_meteor_max);
         fprintf(stderr,
+                "  --red_diam         Number of frames for the Max Reduction                                  [%d]\n",
+                def_p_red_diam);
+        fprintf(stderr,
+                "  --ellipse-min      Minimum value of the ratio for the ellipse filter                       [%d]\n",
+                def_p_ellipse_min);
+        
+        fprintf(stderr,
                 "  --diff-dev          Differential deviation factor for motion detection (motion error of        \n");
         fprintf(stderr,
                 "                      one CC has to be superior to 'diff deviation' * 'standard deviation')  [%f]\n",
@@ -135,6 +145,8 @@ int main(int argc, char** argv) {
     const int p_fra_star_min = args_find_int(argc, argv, "--fra-star-min", def_p_fra_star_min);
     const int p_fra_meteor_min = args_find_int(argc, argv, "--fra-meteor-min", def_p_fra_meteor_min);
     const int p_fra_meteor_max = args_find_int(argc, argv, "--fra-meteor-max", def_p_fra_meteor_max);
+    const int p_red_diam = args_find_int(argc, argv, "--red_diam", def_p_red_diam);
+    const int p_ellipse_min = args_find_int(argc, argv, "--ellipse-max", def_p_ellipse_min);
     const float p_diff_dev = args_find_float(argc, argv, "--diff-dev", def_p_diff_dev);
     const char* p_in_video = args_find_char(argc, argv, "--in-video", def_p_in_video);
     const char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
@@ -171,6 +183,8 @@ int main(int argc, char** argv) {
     printf("#  * fra-star-min   = %d\n", p_fra_star_min);
     printf("#  * fra-meteor-min = %d\n", p_fra_meteor_min);
     printf("#  * fra-meteor-max = %d\n", p_fra_meteor_max);
+    printf("#  * red_diam       = %d\n", p_red_diam);
+    printf("#  * ellipse-max    = %d\n", p_ellipse_min);
     printf("#  * diff-dev       = %4.2f\n", p_diff_dev);
     printf("#  * track-all      = %d\n", p_track_all);
     printf("#  * video-buff     = %d\n", p_video_buff);
@@ -248,6 +262,16 @@ int main(int argc, char** argv) {
     uint8_t **SH_0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
     uint8_t **SH_1 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
     uint8_t **SH_2 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
+    // images de max-reduction temporelle
+    uint8** Max        = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
+    uint8** MaxDil     = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
+    uint8** MaxLight   = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
+
+      uint8** T[p_red_diam];
+     // allocation du buffer circulaires d'images
+    for(int t = 0; t < p_red_diam; t++) {
+        T[t] = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
+    }
 
     // -------------------------- //
     // -- INITIALISATION MATRIX-- //
@@ -263,13 +287,16 @@ int main(int argc, char** argv) {
         tracking_init_BB_array(BB_array);
     tracking_init_data(tracking_data);
     CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
-    zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(SM_0, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(SM_1, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui32matrix(SM_2, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(SH_0, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(SH_1, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(SH_2, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(I,        i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(SM_0,     i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(SM_1,     i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui32matrix(SM_2,    i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(SH_0,     i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(SH_1,     i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(SH_2,     i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(Max,      i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(MaxDil,   i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(MaxLight, i0 - b, i1 + b, j0 - b, j1 + b);
 
     // ----------------//
     // -- TRAITEMENT --//
@@ -282,9 +309,25 @@ int main(int argc, char** argv) {
     while ((cur_fra = get_next_frame(video, images, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
-        // Step 1 : seuillage low/high
-        tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0, i1, j0, j1, SH_0);
-        tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0, i1, j0, j1, SM_0);
+         //--------------------MAXRED-----------------------------//
+        tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0-b, i1+b, j0-b, j1+b, T[cur_fra % p_red_diam]);
+        zero_ui8matrix(Max, i0-b, i1+b, j0-b, j1+b);
+
+        for(int k = 0; k < p_red_diam; k++) {
+            // max temporel
+            tools_max_reduce(Max, i0, i1, j0, j1, T[k]);
+
+        }
+
+        //-----------------DILATATION---------------------------//
+        // tools_max3_ui8matrix((const uint8_t**)Max, MaxDil, i0, i1, j0, j1);
+        // tools_copy_ui8matrix_ui8matrix((const uint8_t**)MaxDil, i0, i1, j0, j1, SH_0);
+        // tools_copy_ui8matrix_ui8matrix((const uint8_t**)MaxDil, i0, i1, j0, j1, SM_0);
+
+        //-----------------sans DILATATION---------------------------//
+        tools_copy_ui8matrix_ui8matrix((const uint8_t**)Max, i0, i1, j0, j1, SH_0);
+        tools_copy_ui8matrix_ui8matrix((const uint8_t**)Max, i0, i1, j0, j1, SM_0);
+
         threshold_high((const uint8_t**)SM_0, SM_1, i0, i1, j0, j1, p_light_min);
         threshold_high((const uint8_t**)SH_0, SH_1, i0, i1, j0, j1, p_light_max);
 
@@ -296,6 +339,13 @@ int main(int argc, char** argv) {
         features_merge_HI_CCL_v2((const uint32_t**)SM_2, (const uint8_t**)SH_1, SH_2, i0, i1, j0, j1, ROI_array_tmp,
                                  p_surface_min, p_surface_max);
         features_init_ROI_array(ROI_array1); // TODO: this is overkill, need to understand why we need to do that
+        
+        //-----------------CALC ELLIPSE---------------------------//
+        calc_ellipse_status(ROI_array_tmp);
+        
+        //-----------------FILTER ELLIPSE---------------------------//
+        filter_features_ellipse_ratio_status(ROI_array_tmp, p_ellipse_min);
+
         features_shrink_ROI_array((const ROI_t*)ROI_array_tmp, ROI_array1);
 
         // Step 4 : mise en correspondance
@@ -317,7 +367,8 @@ int main(int argc, char** argv) {
             tools_create_folder(p_out_frames);
             char filename[1024];
             snprintf(filename, sizeof(filename), "%s/%05d.pgm", p_out_frames, cur_fra);
-            tools_save_frame_ui8matrix(filename, (const uint8_t**)SH_2, i0, i1, j0, j1);
+            // tools_save_frame_ui8matrix(filename, (const uint8_t**)SH_2, i0, i1, j0, j1);
+            tools_save_frame_from_ROI(filename, (const uint8_t**)SH_2, i0, i1, j0, j1, ROI_array1);
         }
 
         // Saving stats
@@ -365,7 +416,13 @@ int main(int argc, char** argv) {
     // ----------
     // -- FREE --
     // ----------
-
+    for(int t = 0; t < p_red_diam; t++) {
+        free_ui8matrix(T[t], i0 - b, i1 + b, j0 - b, j1 + b);
+    }
+    
+    free_ui8matrix(Max     , i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui8matrix(MaxDil  , i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui8matrix(MaxLight, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(SM_0, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(SM_1, i0 - b, i1 + b, j0 - b, j1 + b);

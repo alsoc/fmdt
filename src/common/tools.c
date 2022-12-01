@@ -223,6 +223,114 @@ void tools_draw_text(rgb8_t** img, const int img_width, const int img_height, co
 }
 #endif
 
+
+void tools_max_reduce(uint8_t** M, int i0, int i1, int j0, int j1, uint8_t** I) {
+    for (int i = i0; i <= i1; i++) {
+        for (int j = j0; j <= j1; j++) {
+            uint8_t x = I[i][j];
+            uint8_t m = M[i][j];
+            if (x > m) {
+                M[i][j] = x;
+            }
+        }
+    }
+}
+
+
+void tools_max3_ui8matrix(const uint8_t** X, uint8_t**Y, int i0, int i1, int j0, int j1) {
+    // dilatation 3x3 en niveau de gris (version rapide avec reduction)
+    for(int i = i0; i <= i1; i++) {
+        
+        uint8 a0 = X[i-1][j0-1]; uint8 b0 = X[i-1][j0];
+        uint8 a1 = X[i  ][j0-1]; uint8 b1 = X[i  ][j0];
+        uint8 a2 = X[i+1][j0-1]; uint8 b2 = X[i+1][j0];
+        
+        uint8 ra = ui8max3(a0, a1, a2);
+        uint8 rb = ui8max3(b0, b1, b2);
+        
+        for(int j = j0; j <= j1; j++) {
+            
+            uint8 c0 = X[i-1][j+1];
+            uint8 c1 = X[i  ][j+1];
+            uint8 c2 = X[i+1][j+1];
+            
+            uint8 rc = ui8max3(c0, c1, c2);
+            uint8 r  = ui8max3(ra, rb, rc);
+            
+            Y[i][j] = r;
+            
+            ra = rb; rb = rc;
+        }
+    }
+}
+
+void _tools_save_frame_from_ROI(const char* filename, const uint8_t** in, const int i0, const int i1,
+                               const int j0, const int j1, const uint16_t* ROI_xmin,
+                               const uint16_t* ROI_xmax, const uint16_t* ROI_ymin, const uint16_t* ROI_ymax,
+                               uint32_t* ROI_S, const size_t n_ROI) {
+    int x0, x1, y0, y1, id;
+    
+    int w = (j1 - j0 + 1);
+    int h = (i1 - i0 + 1);
+    rgb8_t** img = (rgb8_t**)rgb8matrix(0, h - 1, 0, w - 1);
+    
+    char buffer[80];
+
+
+    FILE* file;
+
+    if (img == NULL)
+        return;
+    
+    for (int i = i0; i <= i1; i++) {
+        for (int j = j0; j <= j1; j++) {
+            img[i][j].r = 0;
+            img[i][j].g = 0;
+            img[i][j].b = 0;
+        }
+    }
+    for (size_t i = 0; i < n_ROI; i++) {
+        if (ROI_S[i] != 0) {
+            x0 = ROI_ymin[i];
+            x1 = ROI_ymax[i];
+            y0 = ROI_xmin[i];
+            y1 = ROI_xmax[i];
+            for (int k = x0; k <= x1; k++) {
+                for (int l = y0; l <= y1; l++) {    
+                        img[k][l].r = (in[k][l] == 0) ? 0 : 255;
+                        img[k][l].g = (in[k][l] == 0) ? 0 : 255;
+                        img[k][l].b = (in[k][l] == 0) ? 0 : 255;
+
+                }
+            }
+        }
+    }
+
+    file = fopen(filename, "wb");
+    if (file == NULL) {
+        fprintf(stderr, "(EE) Failed opening '%s' file\n", filename);
+        exit(-1);
+    }
+
+    /* enregistrement de l'image au format rpgm */
+    sprintf(buffer, "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
+    fwrite(buffer, strlen(buffer), 1, file);
+    for (int i = 0; i <= h - 1; i++)
+        tools_write_PNM_row((uint8*)img[i], w - 1, file);
+
+    /* fermeture du fichier */
+    fclose(file);
+    free_rgb8matrix((rgb8**)img, 0, h - 1, 0, w - 1);
+}
+
+void tools_save_frame_from_ROI(const char* filename, const uint8_t** in, const int i0, const int i1,
+                               const int j0, const int j1, ROI_t* ROI_array) {
+    _tools_save_frame_from_ROI(filename, in, i0, i1, j0, j1, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin, ROI_array->ymax,
+                                ROI_array->S, ROI_array->_size);
+}
+
+
+
 void tools_convert_img_grayscale_to_rgb(const uint8** I, rgb8_t** I_bb, int i0, int i1, int j0, int j1) {
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
