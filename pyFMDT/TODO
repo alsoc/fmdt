@@ -1,0 +1,3 @@
+Check reading of data files for optimisation (FZ): partly done by JV: 'noise' is ignored in fmdt-reduce, but not in fmdt_read. The reason is that, sometimes, the noise is the early signal of the meteor, so we might take advantage of this in the future... To be explored...
+Check for doubly-identified stars and find a solution for this. JV: setting the match_tol_fct should do the trick, but still needs to be double-checked. Note that outliers in the photometry fit are now clearly identified thanks to the Ransac algorithm.
+Add a way to compute the magnitude uncertainties
