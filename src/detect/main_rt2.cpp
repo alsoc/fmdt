@@ -55,6 +55,7 @@ int main(int argc, char** argv) {
     char* def_p_out_frames = NULL;
     char* def_p_out_bb = NULL;
     char* def_p_out_stats = NULL;
+    char* def_p_out_mag = NULL;
 
     // Help
     if (args_find(argc, argv, "-h")) {
@@ -70,6 +71,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --out-stats         Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_out_stats ? def_p_out_stats : "NULL");
+        fprintf(stderr,
+                "  --out-mag           Path to the file containing magnitudes of the tracked objects          [%s]\n",
+                def_p_out_mag ? def_p_out_mag : "NULL");
         fprintf(stderr,
                 "  --fra-start         Starting point of the video                                            [%d]\n",
                 def_p_fra_start);
@@ -146,6 +150,7 @@ int main(int argc, char** argv) {
     const char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
+    const char* p_out_mag = args_find_char(argc, argv, "--out-mag", def_p_out_mag);
     const int p_track_all = args_find(argc, argv, "--track-all");
     const int p_task_stats = args_find(argc, argv, "--task-stats");
 
@@ -162,6 +167,7 @@ int main(int argc, char** argv) {
     printf("#  * out-bb         = %s\n", p_out_bb);
     printf("#  * out-frames     = %s\n", p_out_frames);
     printf("#  * out-stats      = %s\n", p_out_stats);
+    printf("#  * out-mag        = %s\n", p_out_mag);
     printf("#  * fra-start      = %d\n", p_fra_start);
     printf("#  * fra-end        = %d\n", p_fra_end);
     printf("#  * fra-skip       = %d\n", p_fra_skip);
@@ -555,6 +561,12 @@ int main(int argc, char** argv) {
     if (p_out_bb)
         tracking_save_array_BB(p_out_bb, tracking.get_BB_array(), tracking.get_track_array(), MAX_N_FRAMES,
                                p_track_all);
+
+    if (p_out_mag) {
+        FILE* f = fopen(p_out_mag, "w");
+        tracking_track_array_magnitude_write(f, tracking.get_track_array());
+        fclose(f);
+    }
     tracking_track_array_write(stdout, tracking.get_track_array());
 
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
