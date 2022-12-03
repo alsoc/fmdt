@@ -37,7 +37,7 @@
 int main(int argc, char** argv) {
     // default values
     int def_p_fra_start = 0;
-    int def_p_fra_end = MAX_N_FRAMES;
+    int def_p_fra_end = 0;
     int def_p_fra_skip = 0;
     int def_p_light_min = 55;
     int def_p_light_max = 80;
@@ -208,11 +208,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-meteor-max' has to be bigger than '--fra-meteor-min'\n");
         exit(1);
     }
-    if ((p_fra_end - p_fra_start) > MAX_N_FRAMES) {
-        fprintf(stderr, "(EE) '--fra-end' - '--fra-start' has to be lower than %d\n", MAX_N_FRAMES);
-        exit(1);
-    }
-    if (p_fra_end < p_fra_start) {
+    if (p_fra_end && p_fra_end < p_fra_start) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
@@ -559,7 +555,7 @@ int main(int argc, char** argv) {
 
     fprintf(stderr, "\n");
     if (p_out_bb)
-        tracking_save_array_BB(p_out_bb, tracking.get_BB_array(), tracking.get_track_array(), MAX_N_FRAMES,
+        tracking_save_array_BB(p_out_bb, tracking.get_BB_array(), tracking.get_track_array(), MAX_BB_LIST_SIZE,
                                p_track_all);
 
     if (p_out_mag) {

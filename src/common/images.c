@@ -91,7 +91,7 @@ static void fill_path_files(const char *dir, const size_t start, const size_t en
         lstat(entry->d_name,&statbuf);
         if (!S_ISDIR(statbuf.st_mode)) {
             int n = atoi(entry->d_name);
-            if (n >= (int)start && n < (int)count && n < ((int)end + 1)) {
+            if (n >= (int)start && n < (int)count && (!end || n < ((int)end + 1))) {
                 char path[2048];
                 snprintf(path, sizeof(path), "%s/%s", dir, entry->d_name);
                 path_files[n - start] = (char*)malloc((strlen(path) +1) * sizeof(char));
@@ -144,7 +144,7 @@ images_t* images_init_from_path(const char* path, const size_t start, const size
     images->loop_size = 1;
 
     int count = count_files(path);
-    images->files_count = (size_t)count < (end + 1) ? (size_t)count - start : (size_t)(end + 1) - start;
+    images->files_count = !end || (size_t)count < (end + 1) ? (size_t)count - start : (size_t)(end + 1) - start;
 
     images->path_files = (char**)malloc(images->files_count * sizeof(char**));
     if (bufferize)

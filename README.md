@@ -77,8 +77,8 @@ The list of available arguments:
 | `--out-frames`     | str      | None        | No      | Path of the output frames for debug (PGM format). |
 | `--out-stats`      | str      | None        | No      | Path of the output statistics, only required for debugging purpose. |
 | `--out-mag`        | str      | None        | No      | Path to the output file containing magnitudes of the tracked objects. |
-| `--fra-start`      | int      | 0           | No      | First frame id to start the detection in the video sequence. |
-| `--fra-end`        | int      | 10000       | No      | Last frame id to stop the detection in the video sequence. |
+| `--fra-start`      | int      | 0           | No      | First frame id (included) to start the detection in the video sequence. |
+| `--fra-end`        | int      | 0           | No      | Last frame id (included) to stop the detection in the video sequence. If set to 0, read entire video. |
 | `--fra-skip`       | int      | 0           | No      | Number of frames to skip. |
 | `--light-min`      | int      | 55          | No      | Minimum light intensity hysteresis threshold (grayscale [0;255]). |
 | `--light-max`      | int      | 80          | No      | Maximum light intensity hysteresis threshold (grayscale [0;255]). |

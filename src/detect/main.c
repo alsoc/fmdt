@@ -27,7 +27,7 @@ int get_next_frame(video_t* video, images_t* images, uint8_t** I) {
 int main(int argc, char** argv) {
     // default values
     int def_p_fra_start = 0;
-    int def_p_fra_end = MAX_N_FRAMES;
+    int def_p_fra_end = 0;
     int def_p_fra_skip = 0;
     int def_p_light_min = 55;
     int def_p_light_max = 80;
@@ -200,11 +200,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-meteor-max' has to be bigger than '--fra-meteor-min'\n");
         exit(1);
     }
-    if ((p_fra_end - p_fra_start) > MAX_N_FRAMES) {
-        fprintf(stderr, "(EE) '--fra-end' - '--fra-start' has to be lower than %d\n", MAX_N_FRAMES);
-        exit(1);
-    }
-    if (p_fra_end < p_fra_start) {
+    if (p_fra_end && p_fra_end < p_fra_start) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
