@@ -10,62 +10,29 @@ PATH_BUILD = PATH_HEAD+"/build"
 PATH_EXE = PATH_BUILD+"/exe"
 
 # List of executable to compare
-L_EXE = ["fmdt-detect", "fmdt-detect-rt-pip", "fmdt-detect-rt-seq", "fmdt-detect-rt2"]
+# L_EXE = ["fmdt-detect", "fmdt-detect-rt-pip", "fmdt-detect-rt-seq", "fmdt-detect-rt2"]
+# L_EXE = ["fmdt-detect", "fmdt-detect-rt-pip", "fmdt-detect-rt-seq"] # waiting to update fmdt-detect-rt2 
 
 parser = argparse.ArgumentParser(prog='compare.py', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--in-video',      action='store', dest='inVideo',      type=str,   default="",                   help='Path to the input video.')
-parser.add_argument('--refs-path',     action='store', dest='refsPath',     type=str,   default=PATH_BUILD + "/refs", help='Path to the references to compare.')
-parser.add_argument('--new-ref-exe',   action='store', dest='newRefExe',    type=str,   default="",                   help='Executable considered for ref.')
+parser.add_argument('--exe-args',    action='store', dest='exeArgs',     type=str,   default="", required=True,        help='String of exe-argurments')
+parser.add_argument('--list-exe',    action='store', dest='strListExe',  type=str,   default="", required=True,        help='List of executables to compare (format: "exe0, exe1, ... , exeN"')
+parser.add_argument('--refs-path',   action='store', dest='refsPath',    type=str,   default=PATH_BUILD + "/refs",     help='Path to the references to compare.')
+parser.add_argument('--new-ref-exe', action='store', dest='newRefExe',   type=str,   default="",                       help='Executable considered for ref.')
 
-def main_exec():
-    in_video       = " --in-video "       + args.inVideo
-    fra_start      = " --fra-start "      + str(0)
-    fra_end        = " --fra-end "        + str(10000)
-    fra_skip       = " --fra-skip "       + str(0)
-    light_min      = " --light-min "      + str(55)
-    light_max      = " --light-max "      + str(80)
-    surface_min    = " --surface-min "    + str(3)
-    surface_max    = " --surface-max "    + str(1000)
-    k              = " --k "              + str(3)
-    r_extrapol     = " --r-extrapol "     + str(5)
-    angle_max      = " --angle-max "      + str(20)
-    fra_star_min   = " --fra-star-min "   + str(15)
-    fra_meteor_min = " --fra-meteor-min " + str(3)
-    fra_meteor_max = " --fra-meteor-max " + str(100)
-    diff_dev       = " --diff-dev "       + str(4.0)
-    track_all      = " --track-all "
+def strListExe_to_listExe():
+    return args.strListExe.replace(' ', '').split(',')
 
+def main_exec(L_EXE):
     print("#")
-    print("# OPTIONS:")
-    print("# \t" + in_video      )
-    print("# \t" + fra_start     )
-    print("# \t" + fra_end       )
-    print("# \t" + fra_skip      )
-    print("# \t" + light_min     )
-    print("# \t" + light_max     )
-    print("# \t" + surface_min   )
-    print("# \t" + surface_max   )
-    print("# \t" + k             )
-    print("# \t" + r_extrapol    )
-    print("# \t" + angle_max     )
-    print("# \t" + fra_star_min  )
-    print("# \t" + fra_meteor_min)
-    print("# \t" + fra_meteor_max)
-    print("# \t" + diff_dev      )
-    print("# \t" + track_all     )
-
+    print("# EXE:")
+    
     for i in L_EXE: 
         out_bb     = " --out-bb "     + PATH_BUILD + "/" + i + "/" + "bb.txt"
         out_frames = " --out-frames " + PATH_BUILD + "/" + i
         out_stats  = " --out-stats "  + PATH_BUILD + "/" + i
-        bin        = PATH_EXE + "/" + i
-        print("# "+ out_bb)
-        print("# "+ out_frames)
-        print("# "+ out_stats)
-        print("# "+ bin)
+        bin        = PATH_EXE + "/" + i + " "
 
-        exec = bin + in_video + fra_start + fra_end + fra_skip + light_min + light_max + surface_min + surface_max + k + r_extrapol + angle_max + fra_star_min + fra_meteor_min + fra_meteor_max + diff_dev + track_all + out_bb + out_frames + out_stats
-
+        exec = bin + args.exeArgs + out_bb + out_frames + out_stats
         print("# "+ exec)
         os.system(exec)
     
@@ -122,7 +89,7 @@ def display_res(res, exe_name):
     size = len(res)
     for i in range (size):
         (file,line,txt0,txt1) = res[i] 
-        print("# {:>15s} |{:>26s} ||{:>10s} |{:>55s} |{:>56s}".format(file, exe_name, str(line), str(txt0, errors='replace')[:51], str(txt1, errors='replace')[:51]))
+        print("  {:>15s} |{:>26s} ||{:>10s} |{:>55s} |{:>56s}".format(file, exe_name, str(line), str(txt0, errors='replace')[:51], str(txt1, errors='replace')[:51]))
     print("#")
     return 1
 
@@ -160,8 +127,10 @@ def main():
     print("#         SCRIPT COMPARE.PY IS STARTING")
     print("#")
 
+    L_EXE  = strListExe_to_listExe()
+
     # execute and save all the data in ../build/name_executable
-    main_exec()  
+    main_exec(L_EXE)  
 
     print("#")
     print("#         END OF THE DATA GENERATION")
@@ -178,7 +147,7 @@ def main():
     print("#")
 
     # compare all the data with refs
-    errors = 0;
+    errors = 0
     for exe_cmp in L_EXE :
         errors = errors + main_diff(ref, exe_cmp)
 
@@ -191,4 +160,4 @@ args = parser.parse_args()
 parser.print_help()
 
 errors = main()
-sys.exit(errors);
+sys.exit(errors)
