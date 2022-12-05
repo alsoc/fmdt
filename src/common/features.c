@@ -730,16 +730,11 @@ void features_motion_write(FILE* f, const double first_theta, const double first
                            const double first_mean_error, const double first_std_deviation, const double theta,
                            const double tx, const double ty, const double mean_error, const double std_deviation) {
     fprintf(f, "# Motion:\n");
-    fprintf(f, "# * first theta         = %6.7f\n", first_theta);
-    fprintf(f, "# * first tx            = %6.4f\n", first_tx);
-    fprintf(f, "# * first ty            = %6.4f\n", first_ty);
-    fprintf(f, "# * first mean error    = %.3f\n", first_mean_error);
-    fprintf(f, "# * first std deviation = %.3f\n", first_std_deviation);
-    fprintf(f, "# * theta               = %6.7f\n", theta);
-    fprintf(f, "# * tx                  = %6.4f\n", tx);
-    fprintf(f, "# * ty                  = %6.4f\n", ty);
-    fprintf(f, "# * mean error          = %.3f\n", mean_error);
-    fprintf(f, "# * std deviation       = %.3f\n", std_deviation);
+    fprintf(f, "# -------------|----------|----------|------------------|---------------------|-----------|----------|----------|-------------|---------------\n");
+    fprintf(f, "#  first theta | first tx | first ty | first mean error | first std deviation |   theta   |    tx    |    ty    |  mean error | std deviation \n");
+    fprintf(f, "# -------------|----------|----------|------------------|---------------------|-----------|----------|----------|-------------|---------------\n");
+    fprintf(f, "    %6.7f |  %6.4f |   %6.4f | %16.3f | %19.3f | %6.7f | %8.4f | %8.4f | %11.3f | %13.3f \n",
+            first_theta,  first_tx, first_ty, first_mean_error, first_std_deviation, theta, tx, ty, mean_error, std_deviation);
 }
 
 void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id, const uint16_t* ROI0_xmin,
