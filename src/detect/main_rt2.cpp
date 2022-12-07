@@ -56,6 +56,7 @@ int main(int argc, char** argv) {
     char* def_p_out_bb = NULL;
     char* def_p_out_stats = NULL;
     char* def_p_out_mag = NULL;
+    int def_p_ffmpeg_threads = 0;
 
     // Help
     if (args_find(argc, argv, "-h")) {
@@ -126,6 +127,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --task-stats        Display the statistics of tasks                                            \n");
         fprintf(stderr,
+                "  --ffmpeg-threads    Select the number of threads to use to decode video input (in ffmpeg)  [%d]\n",
+                def_p_ffmpeg_threads);
+        fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
     }
@@ -153,6 +157,7 @@ int main(int argc, char** argv) {
     const char* p_out_mag = args_find_char(argc, argv, "--out-mag", def_p_out_mag);
     const int p_track_all = args_find(argc, argv, "--track-all");
     const int p_task_stats = args_find(argc, argv, "--task-stats");
+    const int p_ffmpeg_threads = args_find_int(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads);
 
     // heading display
     printf("#  ---------------------\n");
@@ -185,6 +190,7 @@ int main(int argc, char** argv) {
     printf("#  * diff-dev       = %4.2f\n", p_diff_dev);
     printf("#  * track-all      = %d\n", p_track_all);
     printf("#  * task-stats     = %d\n", p_task_stats);
+    printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
 #ifdef ENABLE_PIPELINE
     printf("#  * Runtime mode   = Pipeline\n");
 #else
@@ -212,6 +218,10 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
+    if (p_ffmpeg_threads < 0) {
+        fprintf(stderr, "(EE) '--ffmpeg-threads' has to be bigger or equal to 0\n");
+        exit(1);
+    }
 
     // -------------------------------- //
     // -- INITIALISATION GLOBAL DATA -- //
@@ -225,8 +235,7 @@ int main(int argc, char** argv) {
 
     // objects allocation
     const size_t b = 1; // image border
-    const size_t n_ffmpeg_threads = 4; // 0 = use all the threads available
-    Video2 video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, n_ffmpeg_threads, b);
+    Video2 video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_ffmpeg_threads, b);
     const size_t i0 = video.get_i0();
     const size_t i1 = video.get_i1();
     const size_t j0 = video.get_j0();

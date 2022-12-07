@@ -48,6 +48,7 @@ int main(int argc, char** argv) {
     char* def_p_out_stats = NULL;
     char* def_p_out_mag = NULL;
     int def_p_video_loop = 1;
+    int def_p_ffmpeg_threads = 0;
 
     // Help
     if (args_find(argc, argv, "-h")) {
@@ -121,6 +122,9 @@ int main(int argc, char** argv) {
                 "  --video-loop        Number of times the video is read in loop                              [%d]\n",
                 def_p_video_loop);
         fprintf(stderr,
+                "  --ffmpeg-threads    Select the number of threads to use to decode video input (in ffmpeg)  [%d]\n",
+                def_p_ffmpeg_threads);
+        fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
     }
@@ -149,6 +153,7 @@ int main(int argc, char** argv) {
     const int p_track_all = args_find(argc, argv, "--track-all");
     const int p_video_buff = args_find(argc, argv, "--video-buff");
     const int p_video_loop = args_find_int(argc, argv, "--video-loop", def_p_video_loop);
+    const int p_ffmpeg_threads = args_find_int(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads);
 
     // heading display
     printf("#  ---------------------\n");
@@ -182,6 +187,7 @@ int main(int argc, char** argv) {
     printf("#  * track-all      = %d\n", p_track_all);
     printf("#  * video-buff     = %d\n", p_video_buff);
     printf("#  * video-loop     = %d\n", p_video_loop);
+    printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
     printf("#\n");
 
     // arguments checking
@@ -206,13 +212,19 @@ int main(int argc, char** argv) {
         exit(1);
     }
     if (!tools_is_dir(p_in_video) && p_video_buff)
-        fprintf(stderr, "(WW) '--video-buff' has not effect when '--in-video' is a video file.\n");
+        fprintf(stderr, "(WW) '--video-buff' has no effect when '--in-video' is a video file\n");
     if (!tools_is_dir(p_in_video) && p_video_loop > 1)
-        fprintf(stderr, "(WW) '--video-loop' has not effect when '--in-video' is a video file.\n");
+        fprintf(stderr, "(WW) '--video-loop' has no effect when '--in-video' is a video file\n");
     if (p_video_loop <= 0) {
         fprintf(stderr, "(EE) '--video-loop' has to be bigger than 0\n");
         exit(1);
     }
+    if (p_ffmpeg_threads < 0) {
+        fprintf(stderr, "(EE) '--ffmpeg-threads' has to be bigger or equal to 0\n");
+        exit(1);
+    }
+    if (p_ffmpeg_threads && tools_is_dir(p_in_video))
+        fprintf(stderr, "(WW) '--ffmpeg-threads' has no effect when '--in-video' is a folder of images\n");
 
     // -------------------------- //
     // -- INITIALISATION VIDEO -- //
@@ -222,8 +234,7 @@ int main(int argc, char** argv) {
     video_t* video = NULL;
     images_t* images = NULL;
     if (!tools_is_dir(p_in_video)) {
-        const size_t n_ffmpeg_threads = 0; // 0 = use all the threads available
-        video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_fra_skip, n_ffmpeg_threads, &i0, &i1, &j0,
+        video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_ffmpeg_threads, &i0, &i1, &j0,
                                      &j1);
     } else {
         images = images_init_from_path(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_video_buff);

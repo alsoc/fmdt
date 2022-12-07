@@ -62,6 +62,7 @@ int main(int argc, char** argv) {
     char* def_p_out_mag = NULL;
     char* def_p_out_probes = NULL;
     int def_p_video_loop = 1;
+    int def_p_ffmpeg_threads = 0;
 
     // Help
     if (args_find(argc, argv, "-h")) {
@@ -140,6 +141,9 @@ int main(int argc, char** argv) {
                 "  --video-loop        Number of times the video is read in loop                              [%d]\n",
                 def_p_video_loop);
         fprintf(stderr,
+                "  --ffmpeg-threads    Select the number of threads to use to decode video input (in ffmpeg)  [%d]\n",
+                def_p_ffmpeg_threads);
+        fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
     }
@@ -170,6 +174,7 @@ int main(int argc, char** argv) {
     const int p_task_stats = args_find(argc, argv, "--task-stats");
     const int p_video_buff = args_find(argc, argv, "--video-buff");
     const int p_video_loop = args_find_int(argc, argv, "--video-loop", def_p_video_loop);
+    const int p_ffmpeg_threads = args_find_int(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads);
 
     // heading display
     printf("#  ---------------------\n");
@@ -205,6 +210,7 @@ int main(int argc, char** argv) {
     printf("#  * task-stats     = %d\n", p_task_stats);
     printf("#  * video-buff     = %d\n", p_video_buff);
     printf("#  * video-loop     = %d\n", p_video_loop);
+    printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
     printf("#  * Runtime mode   = Pipeline\n");
@@ -235,9 +241,9 @@ int main(int argc, char** argv) {
         exit(1);
     }
     if (!tools_is_dir(p_in_video) && p_video_buff)
-        fprintf(stderr, "(WW) '--video-buff' has not effect when '--in-video' is a video file.\n");
+        fprintf(stderr, "(WW) '--video-buff' has no effect when '--in-video' is a video file.\n");
     if (!tools_is_dir(p_in_video) && p_video_loop > 1)
-        fprintf(stderr, "(WW) '--video-loop' has not effect when '--in-video' is a video file.\n");
+        fprintf(stderr, "(WW) '--video-loop' has no effect when '--in-video' is a video file.\n");
     if (p_video_loop <= 0) {
         fprintf(stderr, "(EE) '--video-loop' has to be bigger than 0\n");
         exit(1);
@@ -246,6 +252,12 @@ int main(int argc, char** argv) {
     if (p_out_probes)
         fprintf(stderr, "(WW) Using '--out-probes' without pipeline is not very useful...\n");
 #endif
+    if (p_ffmpeg_threads < 0) {
+        fprintf(stderr, "(EE) '--ffmpeg-threads' has to be bigger or equal to 0\n");
+        exit(1);
+    }
+    if (p_ffmpeg_threads && tools_is_dir(p_in_video))
+        fprintf(stderr, "(WW) '--ffmpeg-threads' has no effect when '--in-video' is a folder of images\n");
 
     // -------------------------------- //
     // -- INITIALISATION GLOBAL DATA -- //
@@ -259,12 +271,11 @@ int main(int argc, char** argv) {
 
     // objects allocation
     const size_t b = 1; // image border
-    const size_t n_ffmpeg_threads = 4; // 0 = use all the threads available
     std::unique_ptr<Video> video;
     std::unique_ptr<Images> images;
     size_t i0, i1, j0, j1;
     if (!tools_is_dir(p_in_video)) {
-        video.reset(new Video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, n_ffmpeg_threads, b));
+        video.reset(new Video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_ffmpeg_threads, b));
         i0 = video->get_i0();
         i1 = video->get_i1();
         j0 = video->get_j0();

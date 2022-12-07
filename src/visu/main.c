@@ -34,27 +34,31 @@ int main(int argc, char** argv) {
     char def_p_out_video[256] = "./out_visu.mp4";
     char* def_p_out_frames = NULL;
     char* def_p_in_gt = NULL;
+    int def_p_ffmpeg_threads = 0;
 
     // help
     if (args_find(argc, argv, "-h")) {
-        fprintf(stderr, "  --in-tracks      Path to the tracks file                             [%s]\n",
+        fprintf(stderr, "  --in-tracks       Path to the tracks file                             [%s]\n",
                 def_p_in_tracks ? def_p_in_tracks : "NULL");
-        fprintf(stderr, "  --in-bb          Path the bounding boxes file                        [%s]\n",
+        fprintf(stderr, "  --in-bb           Path the bounding boxes file                        [%s]\n",
                 def_p_in_bb ? def_p_in_bb : "NULL");
-        fprintf(stderr, "  --in-video       Path to the inpute video file                       [%s]\n",
+        fprintf(stderr, "  --in-video        Path to the inpute video file                       [%s]\n",
                 def_p_in_video ? def_p_in_video : "NULL");
-        fprintf(stderr, "  --in-gt          Path to ground truth file                           [%s]\n",
+        fprintf(stderr, "  --in-gt           Path to ground truth file                           [%s]\n",
                 def_p_in_gt ? def_p_in_gt : "NULL");
-        fprintf(stderr, "  --out-video      Path to the output video file (MPEG-4 format)       [%s]\n",
+        fprintf(stderr, "  --out-video       Path to the output video file (MPEG-4 format)       [%s]\n",
                 def_p_out_video);
-        fprintf(stderr, "  --out-frames     Path to the frames output folder                    [%s]\n",
+        fprintf(stderr, "  --out-frames      Path to the frames output folder                    [%s]\n",
                 def_p_out_frames ? def_p_out_frames : "NULL");
 #ifdef OPENCV_LINK
-        fprintf(stderr, "  --show-id        Show the object ids on the output video and frames      \n");
-        fprintf(stderr, "  --nat-num        Natural numbering of the object ids                     \n");
+        fprintf(stderr, "  --show-id         Show the object ids on the output video and frames      \n");
+        fprintf(stderr, "  --nat-num         Natural numbering of the object ids                     \n");
 #endif
-        fprintf(stderr, "  --only-meteor    Show only meteors                                       \n");
-        fprintf(stderr, "  -h               This help                                               \n");
+        fprintf(stderr, "  --only-meteor     Show only meteors                                       \n");
+        fprintf(stderr, "  --ffmpeg-threads  Select the number of threads to use to "
+                        "                    decode video input (in ffmpeg)                       [%d]\n",
+                def_p_ffmpeg_threads);
+        fprintf(stderr, "  -h                This help                                               \n");
         exit(1);
     }
 
@@ -70,6 +74,7 @@ int main(int argc, char** argv) {
     const int p_nat_num = args_find(argc, argv, "--nat-num");
 #endif
     const int p_only_meteor = args_find(argc, argv, "--only-meteor");
+    const int p_ffmpeg_threads = args_find_int(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads);
 
     // heading display
     printf("#  -------------------\n");
@@ -80,17 +85,18 @@ int main(int argc, char** argv) {
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
-    printf("#  * in-tracks   = %s\n", p_in_tracks);
-    printf("#  * in-bb       = %s\n", p_in_bb);
-    printf("#  * in-video    = %s\n", p_in_video);
-    printf("#  * in-gt       = %s\n", p_in_gt);
-    printf("#  * out-video   = %s\n", p_out_video);
-    printf("#  * out-frames  = %s\n", p_out_frames);
+    printf("#  * in-tracks      = %s\n", p_in_tracks);
+    printf("#  * in-bb          = %s\n", p_in_bb);
+    printf("#  * in-video       = %s\n", p_in_video);
+    printf("#  * in-gt          = %s\n", p_in_gt);
+    printf("#  * out-video      = %s\n", p_out_video);
+    printf("#  * out-frames     = %s\n", p_out_frames);
 #ifdef OPENCV_LINK
-    printf("#  * show-id     = %d\n", p_show_id);
-    printf("#  * nat-num     = %d\n", p_nat_num);
+    printf("#  * show-id        = %d\n", p_show_id);
+    printf("#  * nat-num        = %d\n", p_nat_num);
 #endif
-    printf("#  * only-meteor = %d\n", p_only_meteor);
+    printf("#  * only-meteor    = %d\n", p_only_meteor);
+    printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
     printf("#\n");
 
     // arguments checking
@@ -116,6 +122,10 @@ int main(int argc, char** argv) {
     if (!p_show_id && p_nat_num)
         fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set.\n");
 #endif
+    if (p_ffmpeg_threads < 0) {
+        fprintf(stderr, "(EE) '--ffmpeg-threads' has to be bigger or equal to 0\n");
+        exit(1);
+    }
 
     int b = 1;
     int i0, i1, j0, j1;
@@ -178,8 +188,7 @@ int main(int argc, char** argv) {
            n_noise, (unsigned long)track_array->_size);
 
     // init
-    const size_t n_ffmpeg_threads = 0; // 0 = use all the threads available
-    video_t* video = video_init_from_file(p_in_video, start, end, 0, n_ffmpeg_threads, &i0, &i1, &j0, &j1);
+    video_t* video = video_init_from_file(p_in_video, start, end, 0, p_ffmpeg_threads, &i0, &i1, &j0, &j1);
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
 
     // validation pour établir si une track est vrai/faux positif

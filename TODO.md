@@ -6,6 +6,7 @@ TODO list:
 - [ ] Add CI tests with `fmdt-check` 
 - [ ] Tests column by column in the python script (new columns should not result 
       in a failure test)
+- [x] Add a parameter to select the number of threads to use in `ffmpeg-io`
 - [x] Improve magnitudes management in the tracking (keep array sizes per 
       objects + memory reallocations => like in C++ `std::vector`. What about
       creating a `vector` module in C for this? It will also be useful for 
