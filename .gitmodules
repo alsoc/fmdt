@@ -7,3 +7,6 @@
 [submodule "lib/aff3ct-core"]
 	path = lib/aff3ct-core
 	url = https://github.com/aff3ct/aff3ct-core.git
+[submodule "lib/c-vector"]
+	path = lib/c-vector
+	url = https://github.com/kouchy/c-vector.git

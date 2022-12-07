@@ -44,6 +44,7 @@ message(STATUS "  * CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 set(src_dir src)
 set(inc_dir include)
 set(exe_dir exe)
+set(lib_dir lib)
 
 # Compiler generic options ----------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -60,6 +61,13 @@ endif()
 # -----------------------------------------------------------------------------
 set(EXECUTABLE_OUTPUT_PATH ${exe_dir})
 
+# Check c-vector mandatory dependency -----------------------------------------
+# -----------------------------------------------------------------------------
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/c-vector/vec.h")
+	message(FATAL_ERROR "'c-vector' can't be found, try to init the submodule with the following cmd:\n"
+	                    "$ git submodule update --init -- ../lib/c-vector/")
+endif()
+
 # Declare source files to compile ---------------------------------------------
 # -----------------------------------------------------------------------------
 set(src_common_files
@@ -69,7 +77,8 @@ set(src_common_files
     ${src_dir}/common/tracking.c
     ${src_dir}/common/validation.c
     ${src_dir}/common/video.c
-    ${src_dir}/common/images.c)
+    ${src_dir}/common/images.c
+    ${lib_dir}/c-vector/vec.c)
 list(APPEND fmdt_src_list ${src_common_files})
 
 # Create binaries -------------------------------------------------------------
@@ -259,6 +268,7 @@ endmacro()
 
 fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/common)
 fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/detect)
+fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${lib_dir}/c-vector)
 if (FMDT_OPENCV_LINK)
 	include_directories(${OpenCV_INCLUDE_DIRS})
 endif()

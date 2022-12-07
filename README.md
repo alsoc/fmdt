@@ -15,16 +15,10 @@
 
 ## Dependencies
 
-This project use `ffmpeg-io`, `nrc2` and `aff3ct-core` projects as submodules:
+This project use `ffmpeg-io`, `nrc2`, `c-vector` and `aff3ct-core` projects as submodules:
 
 ```bash
-git submodule update --init -- ./lib/ffmpeg-io/
-git submodule update --init -- ./lib/nrc2/
-```
-
-If you plan to compile the multi-threaded detection executable you will also need to get the `aff3ct-core` submodule:
-```bash
-git submodule update --init --recursive -- ./lib/aff3ct-core/
+git submodule update --init --recursive
 ```
 
 If you want to enable text indications in generated videos/images (`--show-id` option), the `OpenCV` library is required.
