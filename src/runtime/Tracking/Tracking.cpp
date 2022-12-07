@@ -4,7 +4,7 @@
 
 Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float diff_dev, const int track_all,
                    const size_t fra_star_min, const size_t fra_meteor_min, const size_t fra_meteor_max,
-                   const bool out_bb, const size_t max_ROI_size, const size_t max_tracks_size,
+                   const bool out_bb, const bool magnitude, const size_t max_ROI_size, const size_t max_tracks_size,
                    const size_t max_bb_list_size)
 : Module(), r_extrapol(r_extrapol), angle_max(angle_max), diff_dev(diff_dev), track_all(track_all),
   fra_star_min(fra_star_min), fra_meteor_min(fra_meteor_min), fra_meteor_max(fra_meteor_max), 
@@ -15,7 +15,7 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
     this->set_short_name(name);
 
     this->tracking_data = tracking_alloc_data(std::max(fra_star_min, fra_meteor_min), max_ROI_size);
-    this->track_array = tracking_alloc_track_array(max_tracks_size);
+    this->track_array = tracking_alloc_track_array(max_tracks_size, magnitude);
 
     if (out_bb)
       this->BB_array = (BB_t**)malloc(max_bb_list_size * sizeof(BB_t*));

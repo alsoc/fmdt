@@ -115,7 +115,7 @@ size_t tracking_count_objects(const track_t* track_array, unsigned* n_stars, uns
                                    track_array->_size);
 }
 
-track_t* tracking_alloc_track_array(const size_t max_size) {
+track_t* tracking_alloc_track_array(const size_t max_size, const int is_magnitude) {
     track_t* track_array = (track_t*)malloc(sizeof(track_t));
     track_array->id = (uint16_t*)malloc(max_size * sizeof(uint16_t));
     track_array->begin = (ROI_light_t*)malloc(max_size * sizeof(ROI_light_t));
@@ -126,9 +126,12 @@ track_t* tracking_alloc_track_array(const size_t max_size) {
     track_array->obj_type = (enum obj_e*)malloc(max_size * sizeof(enum obj_e));
     track_array->change_state_reason = (enum change_state_reason_e*)malloc(max_size * sizeof(enum change_state_reason_e));
 
-    track_array->magnitude = (vec_uint32_t*)malloc(max_size * sizeof(vec_uint32_t*));
-    for (size_t i = 0; i < max_size; i++)
-        track_array->magnitude[i] = (vec_uint32_t)vector_create();
+    track_array->magnitude = NULL;
+    if (is_magnitude) {
+        track_array->magnitude = (vec_uint32_t*)malloc(max_size * sizeof(vec_uint32_t*));
+        for (size_t i = 0; i < max_size; i++)
+            track_array->magnitude[i] = (vec_uint32_t)vector_create();
+    }
 
     track_array->_max_size = max_size;
     return track_array;
@@ -165,9 +168,12 @@ void tracking_free_track_array(track_t* track_array) {
     free(track_array->state);
     free(track_array->obj_type);
     free(track_array->change_state_reason);
-    for (size_t i = 0; i < track_array->_max_size; i++)
-        vector_free(track_array->magnitude[i]);
-    free(track_array->magnitude);
+
+    if (track_array->magnitude != NULL) {
+        for (size_t i = 0; i < track_array->_max_size; i++)
+            vector_free(track_array->magnitude[i]);
+        free(track_array->magnitude);
+    }
 
     free(track_array);
 }
@@ -335,9 +341,11 @@ void _update_existing_tracks(ROI_history_t* ROI_history, uint16_t* track_id, con
                             ROI_history->array[0][j].is_extrapolated = 1;
                             memcpy(&track_end[i], &ROI_history->array[0][j], sizeof(ROI_light_t));
 
-                            // because we don't know the magnitude when ROI has been extrapolated
-                            vector_add(&track_magnitude[i], (uint32_t)0);
-                            vector_add(&track_magnitude[i], ROI_history->array[0][j].magnitude);
+                            if (track_magnitude != NULL) {
+                                // because we don't know the magnitude when ROI has been extrapolated
+                                vector_add(&track_magnitude[i], (uint32_t)0);
+                                vector_add(&track_magnitude[i], ROI_history->array[0][j].magnitude);
+                            }
 
                             if (BB_array != NULL)
                                 _update_bounding_box(BB_array, track_id[i], ROI_history->array[0][j].xmin,
@@ -388,7 +396,9 @@ void _update_existing_tracks(ROI_history_t* ROI_history, uint16_t* track_id, con
                     if (track_state[i] == TRACK_NEW) // because the right time has been set in 'insert_new_track'
                         track_state[i] = TRACK_UPDATED;
 
-                    vector_add(&track_magnitude[i], ROI_history->array[0][next_id - 1].magnitude);
+                    if (track_magnitude != NULL)
+                        vector_add(&track_magnitude[i], ROI_history->array[0][next_id - 1].magnitude);
+
                     if (BB_array != NULL)
                         _update_bounding_box(BB_array, track_id[i], ROI_history->array[0][next_id - 1].xmin,
                                              ROI_history->array[0][next_id - 1].xmax,
@@ -433,9 +443,9 @@ void _insert_new_track(const ROI_light_t* ROI_list, unsigned n_ROI, uint16_t* tr
     memcpy(&track_end[cur_track], &ROI_list[0], sizeof(ROI_light_t));
     track_state[cur_track] = TRACK_NEW;
     track_obj_type[cur_track] = type;
-    for (unsigned n = 0; n < n_ROI; n++) {
-        vector_add(&track_magnitude[cur_track], ROI_list[(n_ROI - 1) - n].magnitude);
-    }
+    if (track_magnitude != NULL)
+        for (unsigned n = 0; n < n_ROI; n++)
+            vector_add(&track_magnitude[cur_track], ROI_list[(n_ROI - 1) - n].magnitude);
     if (BB_array != NULL)
         for (unsigned n = 0; n < n_ROI; n++)
             _update_bounding_box(BB_array, track_id[cur_track], ROI_list[n].xmin, ROI_list[n].xmax, ROI_list[n].ymin,
@@ -667,6 +677,8 @@ void tracking_track_array_write_full(FILE* f, const track_t* track_array) {
 
 void _tracking_track_array_magnitude_write(FILE* f, const uint16_t* track_id, const enum obj_e* track_obj_type,
                                            const vec_uint32_t* track_magnitude, const size_t n_tracks) {
+    assert(track_magnitude != NULL);
+
     size_t real_n_tracks = 0;
     for (size_t i = 0; i < n_tracks; i++)
         if (track_id[i])

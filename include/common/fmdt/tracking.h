@@ -98,7 +98,7 @@ void tracking_free_data(tracking_data_t* tracking_data);
 
 void tracking_init_global_data();
 enum obj_e tracking_string_to_obj_type(const char* string);
-track_t* tracking_alloc_track_array(const size_t max_size);
+track_t* tracking_alloc_track_array(const size_t max_size, const int is_magnitude);
 void tracking_init_track_array(track_t* track_array);
 void tracking_free_track_array(track_t* track_array);
 void tracking_clear_index_track_array(track_t* track_array, const size_t t);

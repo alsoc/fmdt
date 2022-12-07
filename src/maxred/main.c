@@ -154,7 +154,7 @@ int main(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (p_in_tracks) {
-        track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
+        track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE, 0);
         tracking_init_track_array(track_array);
         tracking_parse_tracks(p_in_tracks, track_array);
 

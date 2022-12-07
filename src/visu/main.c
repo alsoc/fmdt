@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set.\n");
 #endif
 
-    track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
+    track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE, 0);
     BB_coord_t* BB_list = (BB_coord_t*)malloc(MAX_BB_LIST_SIZE * sizeof(BB_coord_t*));
 
     tracking_init_global_data();

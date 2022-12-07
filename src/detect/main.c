@@ -237,7 +237,7 @@ int main(int argc, char** argv) {
     ROI_t* ROI_array_tmp = features_alloc_ROI_array(MAX_ROI_SIZE);
     ROI_t* ROI_array0 = features_alloc_ROI_array(MAX_ROI_SIZE);
     ROI_t* ROI_array1 = features_alloc_ROI_array(MAX_ROI_SIZE);
-    track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
+    track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE, p_out_mag != NULL);
     BB_t** BB_array = NULL;
     if (p_out_bb)
         BB_array = (BB_t**)malloc(MAX_BB_LIST_SIZE * sizeof(BB_t*));

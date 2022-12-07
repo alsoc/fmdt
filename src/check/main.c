@@ -49,7 +49,7 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
-    track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
+    track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE, 0);
     tracking_init_track_array(track_array);
     tracking_init_global_data();
     tracking_init_track_array(track_array);
