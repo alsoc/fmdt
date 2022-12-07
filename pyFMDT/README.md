@@ -30,49 +30,51 @@ with:
 
 The configuration file allows the user to provide all necessary information and options. Here is an example:
 
-	[USER]
-	# data directory: this is where the FMDT data are located
-	data_dir = /Users/vaubaill/Desktop/W7_COLOUR_TEST/
-	# log level: choice is: DEBUG, INFO, WARNING, ERROR.
-	log_level = INFO
-	# astrometry.net API key: your API key. see: http://astrometry.net/doc/net/api.html
-	api_key = XXXXXXXX
-	# output file root name: used to identify all pyFMDT files. Default is ''.
-	root = Gray_
+```ini
+[USER]
+# data directory: this is where the FMDT data are located
+data_dir = /Users/vaubaill/Desktop/W7_COLOUR_TEST/
+# log level: choice is: DEBUG, INFO, WARNING, ERROR.
+log_level = INFO
+# astrometry.net API key: your API key. see: http://astrometry.net/doc/net/api.html
+api_key = XXXXXXXX
+# output file root name: used to identify all pyFMDT files. Default is ''.
+root = Gray_
 
-	[CAMERA]
-	# sensor width and height in [pixels]
-	image_width = 3840
-	image_height = 2160
-	# FOV size in [deg]
-	fov_width = 27.0
-	# estimtated limiting magnitude
-	LM = 6.0
-	# camera frame per second, in [Hz]
-	fps = 25.0
-	# approximate center of field of view: right Ascension in HH:MM:SS and Declination in DEG
-	RA = 11:56:01
-	DEC = -27:44:49
-	# video time start
-	time_start = 2022-05-31T05:00:00.000
-	# Photometric band. choice is 'V' (visible), 'R' (red), 'G' (green), 'B' (Blue)
-	band = V
+[CAMERA]
+# sensor width and height in [pixels]
+image_width = 3840
+image_height = 2160
+# FOV size in [deg]
+fov_width = 27.0
+# estimtated limiting magnitude
+LM = 6.0
+# camera frame per second, in [Hz]
+fps = 25.0
+# approximate center of field of view: right Ascension in HH:MM:SS and Declination in DEG
+RA = 11:56:01
+DEC = -27:44:49
+# video time start
+time_start = 2022-05-31T05:00:00.000
+# Photometric band. choice is 'V' (visible), 'R' (red), 'G' (green), 'B' (Blue)
+band = V
 
-	[PROCESS]
-	# Flux average over n frames (default is 0). This is used to make photometry calibration more robust.
-	avgflx = 5
-	# star match tolerance factor, in [pixel]. Star match is performed at the pixel resolution level, unless this factor is greater than 1. Default is 1.0.
-	match_tol_fct = 1.5
-	# option: read existing astrometry data: useful for debug purpose only. Default is False.
-	read_astrometry = True
-	
-	[FMDT]
-	# Object tracking file name
-	track_file = ${USER:data_dir}/out_detect_tracks_w7_CT.txt
-	# box boundaries file name
-	bb_file = ${USER:data_dir}/out_detect_bb_w7_CT.txt
-	# magnitude file name
-	mag_file = ${USER:data_dir}/mag_w7_CT.txt
+[PROCESS]
+# Flux average over n frames (default is 0). This is used to make photometry calibration more robust.
+avgflx = 5
+# star match tolerance factor, in [pixel]. Star match is performed at the pixel resolution level, unless this factor is greater than 1. Default is 1.0.
+match_tol_fct = 1.5
+# option: read existing astrometry data: useful for debug purpose only. Default is False.
+read_astrometry = True
+
+[FMDT]
+# Object tracking file name
+track_file = ${USER:data_dir}/out_detect_tracks_w7_CT.txt
+# box boundaries file name
+bb_file = ${USER:data_dir}/out_detect_bb_w7_CT.txt
+# magnitude file name
+mag_file = ${USER:data_dir}/mag_w7_CT.txt
+```
 
 ## What does pyFMDT do, and how does it do it?
 
