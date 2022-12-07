@@ -293,7 +293,7 @@ int main(int argc, char** argv) {
     Features_motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
-                      p_fra_meteor_max, p_out_bb, p_out_mag, MAX_ROI_SIZE, MAX_TRACKS_SIZE, MAX_BB_LIST_SIZE);
+                      p_fra_meteor_max, p_out_bb, p_out_mag, MAX_ROI_SIZE, MAX_TRACKS_SIZE);
     aff3ct::module::Delayer<uint16_t> delayer_ROI_id(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint16_t> delayer_ROI_xmin(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint16_t> delayer_ROI_xmax(MAX_ROI_SIZE, 0);
@@ -796,12 +796,22 @@ int main(int argc, char** argv) {
         terminal_probes.final_report(rt_probes_file);
 
     fprintf(stderr, "\n");
-    if (p_out_bb)
-        tracking_save_array_BB(p_out_bb, tracking.get_BB_array(), tracking.get_track_array(), MAX_BB_LIST_SIZE,
-                               p_track_all);
+    if (p_out_bb) {
+        FILE* f = fopen(p_out_bb, "w");
+        if (f == NULL) {
+            fprintf(stderr, "(EE) error while opening '%s'\n", p_out_bb);
+            exit(1);
+        }
+        tracking_BB_array_write(f, tracking.get_BB_array(), tracking.get_track_array());
+        fclose(f);
+    }
 
     if (p_out_mag) {
         FILE* f = fopen(p_out_mag, "w");
+        if (f == NULL) {
+            fprintf(stderr, "(EE) error while opening '%s'\n", p_out_bb);
+            exit(1);
+        }
         tracking_track_array_magnitude_write(f, tracking.get_track_array());
         fclose(f);
     }

@@ -14,7 +14,7 @@ int main(int argc, char** argv) {
     char* def_p_in_video = NULL;
     char* def_p_out_frames = NULL;
     int def_p_fra_start = 0;
-    int def_p_fra_end = MAX_N_FRAMES;
+    int def_p_fra_end = 0;
 
     // help
     if (args_find(argc, argv, "-h")) {
@@ -58,11 +58,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--out-frames' is missing\n");
         exit(1);
     }
-    if ((p_fra_end - p_fra_start) > MAX_N_FRAMES) {
-        fprintf(stderr, "(EE) '--fra-end' - '--fra-start' has to be lower than %d\n", MAX_N_FRAMES);
-        exit(1);
-    }
-    if (p_fra_end < p_fra_start) {
+    if (p_fra_end && p_fra_end < p_fra_start) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }

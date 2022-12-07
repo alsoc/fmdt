@@ -6,7 +6,7 @@ track_t* Tracking::get_track_array() {
     return this->track_array;
 }
 
-BB_t** Tracking::get_BB_array() {
+vec_BB_t* Tracking::get_BB_array() {
     return this->BB_array;
 }
 

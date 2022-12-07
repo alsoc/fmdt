@@ -1,15 +1,15 @@
 #include "fmdt/tracking.h"
+#include "vec.h"
 
 #include "fmdt/Tracking/Tracking.hpp"
 
 Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float diff_dev, const int track_all,
                    const size_t fra_star_min, const size_t fra_meteor_min, const size_t fra_meteor_max,
-                   const bool out_bb, const bool magnitude, const size_t max_ROI_size, const size_t max_tracks_size,
-                   const size_t max_bb_list_size)
+                   const bool out_bb, const bool magnitude, const size_t max_ROI_size, const size_t max_tracks_size)
 : Module(), r_extrapol(r_extrapol), angle_max(angle_max), diff_dev(diff_dev), track_all(track_all),
   fra_star_min(fra_star_min), fra_meteor_min(fra_meteor_min), fra_meteor_max(fra_meteor_max), 
-  max_ROI_size(max_ROI_size), max_tracks_size(max_tracks_size), max_bb_list_size(max_bb_list_size),
-  tracking_data(nullptr), track_array(nullptr), BB_array(nullptr) {
+  max_ROI_size(max_ROI_size), max_tracks_size(max_tracks_size), tracking_data(nullptr), track_array(nullptr),
+  BB_array(nullptr) {
     const std::string name = "Tracking";
     this->set_name(name);
     this->set_short_name(name);
@@ -18,12 +18,10 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
     this->track_array = tracking_alloc_track_array(max_tracks_size, magnitude);
 
     if (out_bb)
-      this->BB_array = (BB_t**)malloc(max_bb_list_size * sizeof(BB_t*));
+        this->BB_array = (vec_BB_t*)vector_create();
     
     tracking_init_data(this->tracking_data);
     tracking_init_track_array(this->track_array);
-    if (this->BB_array)
-      tracking_init_BB_array(this->BB_array);
 
     auto &p = this->create_task("perform");
 
@@ -95,7 +93,7 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                           trk.track_array->magnitude,
                           &trk.track_array->_offset,
                           &trk.track_array->_size,
-                          trk.BB_array,
+                          &trk.BB_array,
                           frame,
                           *static_cast<double*>(t[ps_in_theta].get_dataptr()),
                           *static_cast<double*>(t[ps_in_tx].get_dataptr()),
@@ -139,7 +137,9 @@ Tracking::~Tracking() {
     tracking_free_data(this->tracking_data);
     tracking_free_track_array(this->track_array);
     if (this->BB_array) {
-      tracking_free_BB_array(this->BB_array);
-      free(this->BB_array);
+        size_t vs = vector_size(this->BB_array);
+        for (size_t i = 0; i < vs; i++)
+            vector_free(this->BB_array[i]);
+        vector_free(this->BB_array);
     }
 }

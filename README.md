@@ -44,17 +44,19 @@ The `CMake` file comes with several options:
  * `-DFMDT_VISU_EXE`       [default=`ON`]  {possible:`ON`,`OFF`}: compile the visual tracking executable.
  * `-DFMDT_CHECK_EXE`      [default=`ON`]  {possible:`ON`,`OFF`}: compile the check executable.
  * `-DFMDT_MAXRED_EXE`     [default=`ON`]  {possible:`ON`,`OFF`}: compile the max reduction executable.
+ * `-DFMDT_VID2IMG_EXE`    [default=`ON`]  {possible:`ON`,`OFF`}: compile the video to images converter executable.
  * `-DFMDT_DEBUG`          [default=`OFF`] {possible:`ON`,`OFF`}: build the project using debugging prints: these additional prints will be output on `stderr` and prefixed by `(DBG)`.
  * `-DFMDT_OPENCV_LINK`    [default=`OFF`] {possible:`ON`,`OFF`}: link with OpenCV library (required to enable `--show-id` option in `fmdt-visu` executable).
  * `-DFMDT_AFF3CT_RUNTIME` [default=`OFF`] {possible:`ON`,`OFF`}: link with AFF3CT runtime and produce multi-threaded detection executable (`fmdt-detect-rt`).
 
 ## User Documentation
 
-This project generates 4 different executables:
-  - `fmdt-detect` (and `fmdt-detect-rt` if `-DFMDT_AFF3CT_RUNTIME` is set to `ON`): meteors detection chain.
+This project generates different executables:
+  - `fmdt-detect` (and `fmdt-detect-rt*` if `-DFMDT_AFF3CT_RUNTIME` is set to `ON`): meteors detection chain.
   - `fmdt-visu`: visualization of the detected meteors.
   - `fmdt-check`: validation of the detected meteors with the field truth.
   - `fmdt-maxred`: max reduction of grayscale pixels on a video.
+  - `fmdt-vid2img`: convert video input files into a series of grayscale images.
 
 The next sub-sections describe *how to use* the generated executables.
 
@@ -141,11 +143,25 @@ The list of available arguments:
 | `--in-tracks`   | str      | None        | No      | The tracks file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-gt`       | str      | None        | No      | File containing the ground truth. |
 | `--out-frame`   | str      | None        | Yes     | Path of the output frame (PGM format). |
-| `--fra-start`   | int      | 0           | No      | First frame id to start the max-reduction in the video sequence. |
-| `--fra-end`     | int      | 10000       | No      | Last frame id to stop the max-reduction in the video sequence. |
+| `--fra-start`   | int      | 0           | No      | First frame id (included) to start the max-reduction in the video sequence. |
+| `--fra-end`     | int      | 0           | No      | Last frame id (included) to stop the max-reduction in the video sequence. If set to 0, read entire video. |
 | `--show-id`     | bool     | -           | No      | Show the object ids on the output video and frames, works only if `--in-tracks` is set. Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
 | `--nat-num`     | bool     | -           | No      | Natural numbering of the object ids, works only if `--show-id` is set. |
 | `--only-meteor` | bool     | -           | No      | Show only meteors. |
+
+### Video to Images Converter
+
+The video to images converter program is located here: `./exe/fmdt-vid2img`.
+It's main interest is to directly work on images, thus removing the overhead of the source decoding (achieved by `ffmpeg`).
+
+The list of available arguments:
+
+| **Argument**    | **Type** | **Default** | **Req** | **Description** |
+| :---            | :---     | :---        | :---    | :--- |
+| `--in-video`    | str      | None        | Yes     | Input video path. |
+| `--out-frames`  | str      | None        | Yes     | Path of the output frames (PGM format). |
+| `--fra-start`   | int      | 0           | No      | First frame id (included) to start the conversion. |
+| `--fra-end`     | int      | 0           | No      | Last frame id (included) to stop the conversion. If set to 0, read entire video. |
 
 ### Examples of use
 
