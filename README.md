@@ -256,6 +256,19 @@ Here is the corresponding line format:
 ```
 Each line corresponds to a frame and to an object, each value is separated by a space character.
 
+#### Magnitudes: `--out-mag` in `fmdt-detect`
+
+The magnitudes can be output by `fmdt-detect` (with the `--out-mag` argument) and can be used for astrophotometry.
+For instance they are used as input in [pyFMDT](pyFMDT/README.md).
+
+Each line corresponds to an object and here is the corresponding line format:
+```
+{oid} {otype} {mag1} {mag2} {...} {magn}
+```
+
+`mag1` is the first magnitude value of the object of `oid` id. `mag2` is the second magnitude value (in the second frame where the object has been tracked).
+And so on, until the last magnitude value `magn`. Note that sometime the magnitude value can be `0`, it means that the object has been extrapolated on this frame, thus the magnitude cannot be computed.
+
 #### Ground Truth: `--in-gt` in `fmdt-visu`, `fmdt-check` & `fmdt-maxred`
 
 Ground truth file gives objects positions over time. Here is the expected text format of a line:
