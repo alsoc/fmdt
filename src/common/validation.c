@@ -136,12 +136,12 @@ void validation_process(const track_t* track_array) {
                 track_array->end[t].y <= g_val_objects[i].bb_y1 &&
                 track_array->obj_type[t] == g_val_objects[i].obj_type) {
 #ifdef ENABLE_DEBUG
-                g_val_objects[i].track_array_t0 = track_array->begin[t].frame;
-                g_val_objects[i].track_array_t1 = track_array->end[t].frame[t];
-                g_val_objects[i].track_array_x0 = track_array->begin[t].x;
-                g_val_objects[i].track_array_y0 = track_array->begin[t]y;
-                g_val_objects[i].track_array_x1 = track_array->end[t].x;
-                g_val_objects[i].track_array_y1 = track_array->end[t]y;
+                g_val_objects[i].track_t0 = track_array->begin[t].frame;
+                g_val_objects[i].track_t1 = track_array->end[t].frame;
+                g_val_objects[i].track_x0 = track_array->begin[t].x;
+                g_val_objects[i].track_y0 = track_array->begin[t].y;
+                g_val_objects[i].track_x1 = track_array->end[t].x;
+                g_val_objects[i].track_y1 = track_array->end[t].y;
 #endif
                 val_obj = &g_val_objects[i];
                 if (g_val_objects[i].nb_tracks == 0)
