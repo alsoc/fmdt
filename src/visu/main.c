@@ -12,6 +12,7 @@
 #include "fmdt/tracking.h"
 #include "fmdt/validation.h"
 #include "fmdt/video.h"
+#include "fmdt/images.h"
 
 #define DELTA_BB 5 // extra pixel size for bounding boxes
 
@@ -24,6 +25,14 @@ void add_to_BB_coord_list(BB_coord_t* coord, int rx, int ry, int bb_x, int bb_y,
     coord->xmax = bb_x + (rx + DELTA_BB);
     coord->color = color;
     coord->is_extrapolated = is_extrapolated;
+}
+
+int get_next_frame(video_t* video, images_t* images, uint8_t** I) {
+    if (video)
+        return video_get_next_frame(video, I);
+    else if (images)
+        return images_get_next_frame(images, I);
+    return 0;
 }
 
 int main(int argc, char** argv) {
@@ -44,7 +53,7 @@ int main(int argc, char** argv) {
                 def_p_in_tracks ? def_p_in_tracks : "NULL");
         fprintf(stderr, "  --in-bb           Path the bounding boxes file                        [%s]\n",
                 def_p_in_bb ? def_p_in_bb : "NULL");
-        fprintf(stderr, "  --in-video        Path to the inpute video file                       [%s]\n",
+        fprintf(stderr, "  --in-video        Path to video file or to a folder of PGM images     [%s]\n",
                 def_p_in_video ? def_p_in_video : "NULL");
         fprintf(stderr, "  --in-gt           Path to ground truth file                           [%s]\n",
                 def_p_in_gt ? def_p_in_gt : "NULL");
@@ -194,8 +203,15 @@ int main(int argc, char** argv) {
 
     // init
     int b = 1;
-    int i0, i1, j0, j1;
-    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, 0, p_ffmpeg_threads, &i0, &i1, &j0, &j1);
+    int i0, i1, j0, j1; // image dimension (y_min, y_max, x_min, x_max)
+    video_t* video = NULL;
+    images_t* images = NULL;
+    if (!tools_is_dir(p_in_video)) {
+        video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, 0, p_ffmpeg_threads, &i0, &i1, &j0, &j1);
+    } else {
+        images = images_init_from_path(p_in_video, p_fra_start, p_fra_end, 0, 0);
+        i0 = images->i0; i1 = images->i1; j0 = images->j0; j1 = images->j1;
+    }
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
 
     // validation pour établir si une track est vrai/faux positif
@@ -238,7 +254,7 @@ int main(int argc, char** argv) {
     char lines[1000];
     int frame_bb = -1, rx, ry, bb_x, bb_y, track_id, is_extrapolated;
     int is_first_read = 1;
-    while ((frame = video_get_next_frame(video, I0)) != -1) {
+    while ((frame = get_next_frame(video, images, I0)) != -1) {
         fprintf(stderr, "(II) Frame n°%-4d\r", frame);
         fflush(stderr);
         int cpt = 0;
@@ -317,7 +333,10 @@ int main(int argc, char** argv) {
     free(BB_list);
     if (p_in_gt)
         validation_free();
-    video_free(video);
+    if (video)
+        video_free(video);
+    if (images)
+        images_free(images);
     if (file_bb)
         fclose(file_bb);
 

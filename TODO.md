@@ -1,5 +1,4 @@
 TODO list:
-- [ ] Enable read from images in `fmdt-visu`
 - [ ] Use dynamic vector to store the tracks
 - [ ] Add `--video-loop` and `--video-buff` support to the video module (based 
       on `ffmpeg-io`)
@@ -7,6 +6,7 @@ TODO list:
 - [ ] Add CI tests with `fmdt-check` 
 - [ ] Tests column by column in the python script (new columns should not result 
       in a failure test)
+- [x] Enable read from images in `fmdt-visu`
 - [x] Document `--out-mag` output text file (objects magnitudes)
 - [x] Add a parameter to select the number of threads to use in `ffmpeg-io`
 - [x] Improve magnitudes management in the tracking (keep array sizes per 

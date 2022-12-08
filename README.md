@@ -103,7 +103,7 @@ The list of available arguments:
 
 | **Argument**       | **Type** | **Default**    | **Req** | **Description** |
 | :---               | :---     | :---           | :---    | :--- |
-| `--in-video`       | str      | None           | Yes     | Input video path. |
+| `--in-video`       | str      | None           | Yes     | Input video path (supports also a path to a folder containing PGM images). |
 | `--in-tracks`      | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-bb`          | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-gt`          | str      | None           | No      | File containing the ground truth. |
