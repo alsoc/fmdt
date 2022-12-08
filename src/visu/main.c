@@ -49,31 +49,31 @@ int main(int argc, char** argv) {
 
     // help
     if (args_find(argc, argv, "-h")) {
-        fprintf(stderr, "  --in-tracks       Path to the tracks file                             [%s]\n",
+        fprintf(stderr, "  --in-tracks       Path to the tracks file                              [%s]\n",
                 def_p_in_tracks ? def_p_in_tracks : "NULL");
-        fprintf(stderr, "  --in-bb           Path the bounding boxes file                        [%s]\n",
+        fprintf(stderr, "  --in-bb           Path the bounding boxes file                         [%s]\n",
                 def_p_in_bb ? def_p_in_bb : "NULL");
-        fprintf(stderr, "  --in-video        Path to video file or to a folder of PGM images     [%s]\n",
+        fprintf(stderr, "  --in-video        Path to video file or to a folder of PGM images      [%s]\n",
                 def_p_in_video ? def_p_in_video : "NULL");
-        fprintf(stderr, "  --in-gt           Path to ground truth file                           [%s]\n",
+        fprintf(stderr, "  --in-gt           Path to ground truth file                            [%s]\n",
                 def_p_in_gt ? def_p_in_gt : "NULL");
-        fprintf(stderr, "  --out-video       Path to the output video file (MPEG-4 format)       [%s]\n",
+        fprintf(stderr, "  --out-video       Path to the output video file (MPEG-4 format)        [%s]\n",
                 def_p_out_video);
-        fprintf(stderr, "  --out-frames      Path to the frames output folder                    [%s]\n",
+        fprintf(stderr, "  --out-frames      Path to the frames output folder                     [%s]\n",
                 def_p_out_frames ? def_p_out_frames : "NULL");
 #ifdef OPENCV_LINK
-        fprintf(stderr, "  --show-id         Show the object ids on the output video and frames      \n");
-        fprintf(stderr, "  --nat-num         Natural numbering of the object ids                     \n");
+        fprintf(stderr, "  --show-id         Show the object ids on the output video and frames       \n");
+        fprintf(stderr, "  --nat-num         Natural numbering of the object ids                      \n");
 #endif
-        fprintf(stderr, "  --only-meteor     Show only meteors                                       \n");
-        fprintf(stderr, "  --ffmpeg-threads  Select the number of threads to use to "
-                        "                    decode video input (in ffmpeg)                       [%d]\n",
+        fprintf(stderr, "  --only-meteor     Show only meteors                                        \n");
+        fprintf(stderr, "  --ffmpeg-threads  Select the number of threads to use to decode video  [%d]\n"
+                        "                    input (in ffmpeg)                                        \n",
                 def_p_ffmpeg_threads);
         fprintf(stderr, "  --fra-start       Starting point of the video                          [%d]\n",
                 def_p_fra_start);
         fprintf(stderr, "  --fra-end         Ending point of the video                            [%d]\n",
                 def_p_fra_end);
-        fprintf(stderr, "  -h                This help                                               \n");
+        fprintf(stderr, "  -h                This help                                                \n");
         exit(1);
     }
 

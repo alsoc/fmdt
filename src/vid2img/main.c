@@ -25,8 +25,8 @@ int main(int argc, char** argv) {
                 def_p_out_frames ? def_p_out_frames : "NULL");
         fprintf(stderr, "  --fra-start       Starting frame in the video              [%d]\n", def_p_fra_start);
         fprintf(stderr, "  --fra-end         Ending frame in the video                [%d]\n", def_p_fra_end);
-        fprintf(stderr, "  --ffmpeg-threads  Select the number of threads to use to "
-                        "                    decode video input (in ffmpeg)           [%d]\n", def_p_ffmpeg_threads);
+        fprintf(stderr, "  --ffmpeg-threads  Select the number of threads to use to   [%d]\n"
+                        "                    decode video input (in ffmpeg)               \n", def_p_ffmpeg_threads);
         fprintf(stderr, "  -h                This help                                    \n");
         exit(1);
     }
