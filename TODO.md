@@ -1,7 +1,9 @@
 TODO list:
+- [ ] Enable read from images in `fmdt-visu`
 - [ ] Use dynamic vector to store the tracks
 - [ ] Add `--video-loop` and `--video-buff` support to the video module (based 
       on `ffmpeg-io`)
+- [ ] Extrapolate more than one frame in tracking
 - [ ] Add CI tests with `fmdt-check` 
 - [ ] Tests column by column in the python script (new columns should not result 
       in a failure test)

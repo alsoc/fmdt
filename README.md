@@ -113,6 +113,8 @@ The list of available arguments:
 | `--nat-num`        | bool     | -              | No      | Natural numbering of the object ids, work only if `--show-id` is set. |
 | `--only-meteor`    | bool     | -              | No      | Show only meteors. |
 | `--ffmpeg-threads` | int      | 0              | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
+| `--fra-start`      | int      | 0              | No      | First frame id (included) to start the visualization in the video sequence. |
+| `--fra-end`        | int      | 0              | No      | Last frame id (included) to stop the visualization in the video sequence. If set to 0, read entire video. |
 
 **Note**: to run `fmdt-visu`, it is required to run `fmdt-detect` before and on the same input video. This will generate the required `tracks.txt` and `bounding_box.txt` files.
 

@@ -35,6 +35,8 @@ int main(int argc, char** argv) {
     char* def_p_out_frames = NULL;
     char* def_p_in_gt = NULL;
     int def_p_ffmpeg_threads = 0;
+    int def_p_fra_start = 0;
+    int def_p_fra_end = 0;
 
     // help
     if (args_find(argc, argv, "-h")) {
@@ -58,6 +60,10 @@ int main(int argc, char** argv) {
         fprintf(stderr, "  --ffmpeg-threads  Select the number of threads to use to "
                         "                    decode video input (in ffmpeg)                       [%d]\n",
                 def_p_ffmpeg_threads);
+        fprintf(stderr, "  --fra-start       Starting point of the video                          [%d]\n",
+                def_p_fra_start);
+        fprintf(stderr, "  --fra-end         Ending point of the video                            [%d]\n",
+                def_p_fra_end);
         fprintf(stderr, "  -h                This help                                               \n");
         exit(1);
     }
@@ -75,6 +81,8 @@ int main(int argc, char** argv) {
 #endif
     const int p_only_meteor = args_find(argc, argv, "--only-meteor");
     const int p_ffmpeg_threads = args_find_int(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads);
+    const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
+    const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
 
     // heading display
     printf("#  -------------------\n");
@@ -97,6 +105,8 @@ int main(int argc, char** argv) {
 #endif
     printf("#  * only-meteor    = %d\n", p_only_meteor);
     printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
+    printf("#  * fra-start      = %d\n", p_fra_start);
+    printf("#  * fra-end        = %d\n", p_fra_end);
     printf("#\n");
 
     // arguments checking
@@ -126,15 +136,10 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--ffmpeg-threads' has to be bigger or equal to 0\n");
         exit(1);
     }
-
-    int b = 1;
-    int i0, i1, j0, j1;
-    enum color_e color = MISC;
-    int frame, frame_bb;
-    int rx, ry, bb_x, bb_y, track_id, is_extrapolated;
-    int start = 0;
-    int end = 100000;
-
+    if (p_fra_end && p_fra_end < p_fra_start) {
+        fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
+        exit(1);
+    }
 
     if (!p_in_video) {
         fprintf(stderr, "(EE) '--in-video' is missing\n");
@@ -188,7 +193,9 @@ int main(int argc, char** argv) {
            n_noise, (unsigned long)track_array->_size);
 
     // init
-    video_t* video = video_init_from_file(p_in_video, start, end, 0, p_ffmpeg_threads, &i0, &i1, &j0, &j1);
+    int b = 1;
+    int i0, i1, j0, j1;
+    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, 0, p_ffmpeg_threads, &i0, &i1, &j0, &j1);
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
 
     // validation pour établir si une track est vrai/faux positif
@@ -206,12 +213,6 @@ int main(int argc, char** argv) {
         return EXIT_FAILURE;
     }
 
-    // parcours des BB à afficher
-    char lines[1000];
-    if (fgets(lines, 100, file_bb) == NULL) {
-        fprintf(stderr, "(EE) something went wrong when reading '%s'\n", p_in_bb);
-    }
-    sscanf(lines, "%d %d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id, &is_extrapolated);
     printf("# The program is running...\n");
 
     ffmpeg_handle writer_video_out;
@@ -232,10 +233,29 @@ int main(int argc, char** argv) {
     rgb8_t** img_bb = (rgb8_t**)rgb8matrix(0, i1, 0, j1);
 
     // parcours de la video
+    enum color_e color = MISC;
+    int frame;
+    char lines[1000];
+    int frame_bb = -1, rx, ry, bb_x, bb_y, track_id, is_extrapolated;
+    int is_first_read = 1;
     while ((frame = video_get_next_frame(video, I0)) != -1) {
         fprintf(stderr, "(II) Frame n°%-4d\r", frame);
         fflush(stderr);
         int cpt = 0;
+
+        // skip bounding boxes of previous frames
+        while (frame_bb < frame) {
+            if (fgets(lines, 100, file_bb) == NULL) {
+                if (is_first_read) {
+                    fprintf(stderr, "(EE) something went wrong when reading '%s'\n", p_in_bb);
+                    exit(1);
+                }
+                frame_bb = -1;
+                break;
+            }
+            sscanf(lines, "%d %d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id, &is_extrapolated);
+        }
+        is_first_read = 0;
 
         // affiche tous les BB de l'image
         while (frame_bb == frame) {
