@@ -5,6 +5,7 @@
 
 #include "fmdt/macros.h"
 #include "fmdt/validation.h"
+#include "vec.h"
 
 #define TOLERANCE_DISTANCEMIN 20 // 8
 
@@ -123,25 +124,26 @@ int validation_init(const char* val_objects_file) {
     return g_n_val_objects;
 }
 
-void validation_process(const track_t* track_array) {
-    for (size_t t = 0; t < track_array->_size; t++) {
+void validation_process(const vec_track_t track_array) {
+    size_t n_tracks = vector_size(track_array);
+    for (size_t t = 0; t < n_tracks; t++) {
         validation_obj_t* val_obj = NULL;
         for (unsigned i = 0; i < g_n_val_objects; i++) {
-            if ((size_t)g_val_objects[i].t0_min <= track_array->begin[t].frame &&
-                track_array->begin[t].frame + tracking_get_track_time(track_array, t) <=
+            if ((size_t)g_val_objects[i].t0_min <= track_array[t].begin.frame &&
+                track_array[t].begin.frame + tracking_get_track_time(track_array, t) <=
                 (size_t)g_val_objects[i].t1_max &&
-                g_val_objects[i].bb_x0 <= track_array->begin[t].x &&
-                track_array->end[t].x <= g_val_objects[i].bb_x1 &&
-                g_val_objects[i].bb_y0 <= track_array->begin[t].y &&
-                track_array->end[t].y <= g_val_objects[i].bb_y1 &&
-                track_array->obj_type[t] == g_val_objects[i].obj_type) {
+                g_val_objects[i].bb_x0 <= track_array[t].begin.x &&
+                track_array[t].end.x <= g_val_objects[i].bb_x1 &&
+                g_val_objects[i].bb_y0 <= track_array[t].begin.y &&
+                track_array[t].end.y <= g_val_objects[i].bb_y1 &&
+                track_array[t].obj_type == g_val_objects[i].obj_type) {
 #ifdef ENABLE_DEBUG
-                g_val_objects[i].track_array_t0 = track_array->begin[t].frame;
-                g_val_objects[i].track_array_t1 = track_array->end[t].frame[t];
-                g_val_objects[i].track_array_x0 = track_array->begin[t].x;
-                g_val_objects[i].track_array_y0 = track_array->begin[t]y;
-                g_val_objects[i].track_array_x1 = track_array->end[t].x;
-                g_val_objects[i].track_array_y1 = track_array->end[t]y;
+                g_val_objects[i].track_t0 = track_array[t].begin.frame;
+                g_val_objects[i].track_t1 = track_array[t].end.frame;
+                g_val_objects[i].track_x0 = track_array[t].begin.x;
+                g_val_objects[i].track_y0 = track_array[t].begin.y;
+                g_val_objects[i].track_x1 = track_array[t].end.x;
+                g_val_objects[i].track_y1 = track_array[t].end.y;
 #endif
                 val_obj = &g_val_objects[i];
                 if (g_val_objects[i].nb_tracks == 0)
@@ -153,12 +155,12 @@ void validation_process(const track_t* track_array) {
         if (val_obj) {
             val_obj->nb_tracks++;
             val_obj->hits = tracking_get_track_time(track_array, t) + val_obj->hits + 1;
-            g_true_positive[track_array->obj_type[t]]++;
-            if (track_array->obj_type[t] == METEOR)
+            g_true_positive[track_array[t].obj_type]++;
+            if (track_array[t].obj_type == METEOR)
                 g_is_valid_track[t] = 1;
         } else { // Piste ne matche pas avec input
-            g_false_positive[track_array->obj_type[t]]++;
-            if (track_array->obj_type[t] == METEOR)
+            g_false_positive[track_array[t].obj_type]++;
+            if (track_array[t].obj_type == METEOR)
                 g_is_valid_track[t] = 2;
         }
     }
@@ -167,13 +169,13 @@ void validation_process(const track_t* track_array) {
         if (!g_val_objects[i].nb_tracks)
             g_false_negative[g_val_objects[i].obj_type]++;
 
-    for (size_t t = 0; t < track_array->_size; t++)
+    for (size_t t = 0; t < n_tracks; t++)
         for (int ot = 1; ot < N_OBJECTS; ot++)
-            if (ot != track_array->obj_type[t])
+            if (ot != track_array[t].obj_type)
                 g_true_negative[ot]++;
 }
 
-void validation_print(const track_t* track_array) {
+void validation_print(const vec_track_t track_array) {
     float tracking_rate[N_OBJECTS + 1];
 
     unsigned total_tracked_frames[N_OBJECTS + 1] = {0};
@@ -230,11 +232,13 @@ void validation_print(const track_t* track_array) {
     for (int i = 0; i < N_OBJECTS + 1; i++)
         tracking_rate[i] = (float)total_tracked_frames[i] / (float)total_gt_frames[i];
 
+    size_t n_tracks = vector_size(track_array);
+
     printf("Statistics: \n");
     printf("  - Number of GT objs = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", n_val_meteors,
            n_val_stars, n_gt_noise, n_val_objects);
     printf("  - Number of tracks  = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4lu]\n", n_track_meteors,
-           n_track_stars, n_track_noise, (unsigned long)track_array->_size);
+           n_track_stars, n_track_noise, (unsigned long)n_tracks);
     printf("  - True positives    = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", g_true_positive[METEOR],
            g_true_positive[STAR], g_true_positive[NOISE], allPositiveTrue);
     printf("  - False positives   = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", g_false_positive[METEOR],

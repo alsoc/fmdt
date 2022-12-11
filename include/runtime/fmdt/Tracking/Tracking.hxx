@@ -2,11 +2,11 @@
 
 #include "fmdt/Tracking/Tracking.hpp"
 
-track_t* Tracking::get_track_array() {
-    return this->track_array;
+tracking_data_t* Tracking::get_data() {
+    return this->tracking_data;
 }
 
-BB_t** Tracking::get_BB_array() {
+vec_BB_t* Tracking::get_BB_array() {
     return this->BB_array;
 }
 

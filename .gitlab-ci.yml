@@ -106,6 +106,30 @@ build-linux-clang:
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
 
+build-linux-clang-debug:
+  image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_clang:v10.0.0
+  stage: build
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - schedules
+  tags:
+    - x86_64
+    - linux
+    - docker
+  artifacts:
+    name: build-linux-clang-debug
+    paths:
+      - build_linux_clang_debug
+  script:
+    - export CC="clang"
+    - export CXX="clang++"
+    - export CFLAGS="-Wall -funroll-loops"
+    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_DEBUG=ON"
+    - export NAME="build_linux_clang_debug"
+    - source ./ci/tools/threads.sh
+    - ./ci/build-linux-macos.sh
+
 build-linux-clang-c:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_clang:v10.0.0
   stage: build

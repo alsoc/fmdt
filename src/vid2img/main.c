@@ -14,17 +14,20 @@ int main(int argc, char** argv) {
     char* def_p_in_video = NULL;
     char* def_p_out_frames = NULL;
     int def_p_fra_start = 0;
-    int def_p_fra_end = MAX_N_FRAMES;
+    int def_p_fra_end = 0;
+    int def_p_ffmpeg_threads = 0;
 
     // help
     if (args_find(argc, argv, "-h")) {
-        fprintf(stderr, "  --in-video       Video source                             [%s]\n",
+        fprintf(stderr, "  --in-video        Video source                             [%s]\n",
                 def_p_in_video ? def_p_in_video : "NULL");
-        fprintf(stderr, "  --out-frames     Path to the directory of output frames   [%s]\n",
+        fprintf(stderr, "  --out-frames      Path to the directory of output frames   [%s]\n",
                 def_p_out_frames ? def_p_out_frames : "NULL");
-        fprintf(stderr, "  --fra-start      Starting frame in the video              [%d]\n", def_p_fra_start);
-        fprintf(stderr, "  --fra-end        Ending frame in the video                [%d]\n", def_p_fra_end);
-        fprintf(stderr, "  -h               This help                                    \n");
+        fprintf(stderr, "  --fra-start       Starting frame in the video              [%d]\n", def_p_fra_start);
+        fprintf(stderr, "  --fra-end         Ending frame in the video                [%d]\n", def_p_fra_end);
+        fprintf(stderr, "  --ffmpeg-threads  Select the number of threads to use to   [%d]\n"
+                        "                    decode video input (in ffmpeg)               \n", def_p_ffmpeg_threads);
+        fprintf(stderr, "  -h                This help                                    \n");
         exit(1);
     }
 
@@ -33,6 +36,7 @@ int main(int argc, char** argv) {
     const char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
     const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
     const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
+    const int p_ffmpeg_threads = args_find_int(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads);
 
     // heading display
     printf("#  ----------------------\n");
@@ -43,10 +47,11 @@ int main(int argc, char** argv) {
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
-    printf("#  * in-video    = %s\n", p_in_video);
-    printf("#  * out-frames  = %s\n", p_out_frames);
-    printf("#  * fra-start   = %d\n", p_fra_start);
-    printf("#  * fra-end     = %d\n", p_fra_end);
+    printf("#  * in-video       = %s\n", p_in_video);
+    printf("#  * out-frames     = %s\n", p_out_frames);
+    printf("#  * fra-start      = %d\n", p_fra_start);
+    printf("#  * fra-end        = %d\n", p_fra_end);
+    printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
     printf("#\n");
 
     // arguments checking
@@ -58,12 +63,12 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--out-frames' is missing\n");
         exit(1);
     }
-    if ((p_fra_end - p_fra_start) > MAX_N_FRAMES) {
-        fprintf(stderr, "(EE) '--fra-end' - '--fra-start' has to be lower than %d\n", MAX_N_FRAMES);
+    if (p_fra_end && p_fra_end < p_fra_start) {
+        fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
-    if (p_fra_end < p_fra_start) {
-        fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
+    if (p_ffmpeg_threads < 0) {
+        fprintf(stderr, "(EE) '--ffmpeg-threads' has to be bigger or equal to 0\n");
         exit(1);
     }
 
@@ -77,8 +82,7 @@ int main(int argc, char** argv) {
     // image
     // int b = 1;
     int i0, i1, j0, j1;
-    const size_t n_ffmpeg_threads = 0; // 0 = use all the threads available
-    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, skip, n_ffmpeg_threads, &i0, &i1, &j0,
+    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, skip, p_ffmpeg_threads, &i0, &i1, &j0,
                                           &j1);
 
     // ---------------- //

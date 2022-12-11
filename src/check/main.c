@@ -6,6 +6,7 @@
 #include "fmdt/defines.h"
 #include "fmdt/tracking.h"
 #include "fmdt/validation.h"
+#include "vec.h"
 
 int main(int argc, char** argv) {
     // default values
@@ -49,11 +50,9 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
-    track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE);
-    tracking_init_track_array(track_array);
     tracking_init_global_data();
-    tracking_init_track_array(track_array);
-    tracking_parse_tracks(p_in_tracks, track_array);
+    vec_track_t track_array;
+    tracking_parse_tracks(p_in_tracks, &track_array);
 
     printf("# The program is running...\n");
 
@@ -62,7 +61,7 @@ int main(int argc, char** argv) {
     validation_process(track_array);
     validation_print(track_array);
     validation_free();
-    tracking_free_track_array(track_array);
+    vector_free(track_array);
 
     printf("# End of the program, exiting.\n");
 

@@ -41,7 +41,7 @@
 int main(int argc, char** argv) {
     // default values
     int def_p_fra_start = 0;
-    int def_p_fra_end = MAX_N_FRAMES;
+    int def_p_fra_end = 0;
     int def_p_fra_skip = 0;
     int def_p_light_min = 55;
     int def_p_light_max = 80;
@@ -59,8 +59,10 @@ int main(int argc, char** argv) {
     char* def_p_out_frames = NULL;
     char* def_p_out_bb = NULL;
     char* def_p_out_stats = NULL;
+    char* def_p_out_mag = NULL;
     char* def_p_out_probes = NULL;
     int def_p_video_loop = 1;
+    int def_p_ffmpeg_threads = 0;
 
     // Help
     if (args_find(argc, argv, "-h")) {
@@ -76,6 +78,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --out-stats         Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_out_stats ? def_p_out_stats : "NULL");
+        fprintf(stderr,
+                "  --out-mag           Path to the file containing magnitudes of the tracked objects          [%s]\n",
+                def_p_out_mag ? def_p_out_mag : "NULL");
         fprintf(stderr,
                 "  --out-probes        Path of the output probe vales, only required for benchmarking purpose [%s]\n",
                 def_p_out_probes ? def_p_out_probes : "NULL");
@@ -136,6 +141,9 @@ int main(int argc, char** argv) {
                 "  --video-loop        Number of times the video is read in loop                              [%d]\n",
                 def_p_video_loop);
         fprintf(stderr,
+                "  --ffmpeg-threads    Select the number of threads to use to decode video input (in ffmpeg)  [%d]\n",
+                def_p_ffmpeg_threads);
+        fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
     }
@@ -160,11 +168,13 @@ int main(int argc, char** argv) {
     const char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
+    const char* p_out_mag = args_find_char(argc, argv, "--out-mag", def_p_out_mag);
     const char* p_out_probes = args_find_char(argc, argv, "--out-probes", def_p_out_probes);
     const int p_track_all = args_find(argc, argv, "--track-all");
     const int p_task_stats = args_find(argc, argv, "--task-stats");
     const int p_video_buff = args_find(argc, argv, "--video-buff");
     const int p_video_loop = args_find_int(argc, argv, "--video-loop", def_p_video_loop);
+    const int p_ffmpeg_threads = args_find_int(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads);
 
     // heading display
     printf("#  ---------------------\n");
@@ -179,6 +189,7 @@ int main(int argc, char** argv) {
     printf("#  * out-bb         = %s\n", p_out_bb);
     printf("#  * out-frames     = %s\n", p_out_frames);
     printf("#  * out-stats      = %s\n", p_out_stats);
+    printf("#  * out-mag        = %s\n", p_out_mag);
     printf("#  * out-probes     = %s\n", p_out_probes);
     printf("#  * fra-start      = %d\n", p_fra_start);
     printf("#  * fra-end        = %d\n", p_fra_end);
@@ -199,6 +210,7 @@ int main(int argc, char** argv) {
     printf("#  * task-stats     = %d\n", p_task_stats);
     printf("#  * video-buff     = %d\n", p_video_buff);
     printf("#  * video-loop     = %d\n", p_video_loop);
+    printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
     printf("#  * Runtime mode   = Pipeline\n");
@@ -224,18 +236,14 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-meteor-max' has to be bigger than '--fra-meteor-min'\n");
         exit(1);
     }
-    if ((p_fra_end - p_fra_start) > MAX_N_FRAMES) {
-        fprintf(stderr, "(EE) '--fra-end' - '--fra-start' has to be lower than %d\n", MAX_N_FRAMES);
-        exit(1);
-    }
-    if (p_fra_end < p_fra_start) {
+    if (p_fra_end && p_fra_end < p_fra_start) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
     if (!tools_is_dir(p_in_video) && p_video_buff)
-        fprintf(stderr, "(WW) '--video-buff' has not effect when '--in-video' is a video file.\n");
+        fprintf(stderr, "(WW) '--video-buff' has no effect when '--in-video' is a video file.\n");
     if (!tools_is_dir(p_in_video) && p_video_loop > 1)
-        fprintf(stderr, "(WW) '--video-loop' has not effect when '--in-video' is a video file.\n");
+        fprintf(stderr, "(WW) '--video-loop' has no effect when '--in-video' is a video file.\n");
     if (p_video_loop <= 0) {
         fprintf(stderr, "(EE) '--video-loop' has to be bigger than 0\n");
         exit(1);
@@ -244,6 +252,12 @@ int main(int argc, char** argv) {
     if (p_out_probes)
         fprintf(stderr, "(WW) Using '--out-probes' without pipeline is not very useful...\n");
 #endif
+    if (p_ffmpeg_threads < 0) {
+        fprintf(stderr, "(EE) '--ffmpeg-threads' has to be bigger or equal to 0\n");
+        exit(1);
+    }
+    if (p_ffmpeg_threads && tools_is_dir(p_in_video))
+        fprintf(stderr, "(WW) '--ffmpeg-threads' has no effect when '--in-video' is a folder of images\n");
 
     // -------------------------------- //
     // -- INITIALISATION GLOBAL DATA -- //
@@ -257,12 +271,11 @@ int main(int argc, char** argv) {
 
     // objects allocation
     const size_t b = 1; // image border
-    const size_t n_ffmpeg_threads = 4; // 0 = use all the threads available
     std::unique_ptr<Video> video;
     std::unique_ptr<Images> images;
     size_t i0, i1, j0, j1;
     if (!tools_is_dir(p_in_video)) {
-        video.reset(new Video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, n_ffmpeg_threads, b));
+        video.reset(new Video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_ffmpeg_threads, b));
         i0 = video->get_i0();
         i1 = video->get_i1();
         j0 = video->get_j0();
@@ -291,7 +304,7 @@ int main(int argc, char** argv) {
     Features_motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
-                      p_fra_meteor_max, p_out_bb, MAX_ROI_SIZE, MAX_TRACKS_SIZE, MAX_BB_LIST_SIZE);
+                      p_fra_meteor_max, p_out_bb, p_out_mag, MAX_ROI_SIZE);
     aff3ct::module::Delayer<uint16_t> delayer_ROI_id(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint16_t> delayer_ROI_xmin(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint16_t> delayer_ROI_xmax(MAX_ROI_SIZE, 0);
@@ -316,10 +329,10 @@ int main(int argc, char** argv) {
     delayer_ROI_y.set_custom_name("D<ROI_y>");
     delayer_ROI_magnitude.set_custom_name("D<ROI_mag>");
     delayer_n_ROI.set_custom_name("D<n_ROI>");
-    Logger_ROI log_ROI(p_out_stats ? p_out_stats : "", MAX_ROI_SIZE, MAX_TRACKS_SIZE);
+    Logger_ROI log_ROI(p_out_stats ? p_out_stats : "", MAX_ROI_SIZE, tracking.get_data());
     Logger_KNN log_KNN(p_out_stats ? p_out_stats : "", i0, i1, j0, j1, MAX_ROI_SIZE);
     Logger_motion log_motion(p_out_stats ? p_out_stats : "");
-    Logger_track log_track(p_out_stats ? p_out_stats : "", MAX_TRACKS_SIZE);
+    Logger_track log_track(p_out_stats ? p_out_stats : "", tracking.get_data());
     Logger_frame log_frame(p_out_frames ? p_out_frames : "", i0, i1, j0, j1, b);
     log_motion.set_custom_name("Logger_motio");
 
@@ -521,10 +534,6 @@ int main(int argc, char** argv) {
         log_ROI[lgr_roi::sck::write::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
         log_ROI[lgr_roi::sck::write::in_ROI1_magnitude] = merger[ftr_mrg::sck::merge::out_ROI_magnitude];
         log_ROI[lgr_roi::sck::write::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
-        log_ROI[lgr_roi::sck::write::in_track_id] = tracking[trk::sck::perform::out_track_id];
-        log_ROI[lgr_roi::sck::write::in_track_end] = tracking[trk::sck::perform::out_track_end];
-        log_ROI[lgr_roi::sck::write::in_track_obj_type] = tracking[trk::sck::perform::out_track_obj_type];
-        log_ROI[lgr_roi::sck::write::in_n_tracks] = tracking[trk::sck::perform::out_n_tracks];
         log_ROI[lgr_roi::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
 
         log_KNN[lgr_knn::sck::write::in_data_nearest] = matcher[knn::sck::match::out_data_nearest];
@@ -550,12 +559,6 @@ int main(int argc, char** argv) {
         log_motion[lgr_mtn::sck::write::in_std_deviation] = motion[ftr_mtn::sck::compute::out_std_deviation];
         log_motion[lgr_mtn::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
 
-        log_track[lgr_trk::sck::write::in_track_id] = tracking[trk::sck::perform::out_track_id];
-        log_track[lgr_trk::sck::write::in_track_begin] = tracking[trk::sck::perform::out_track_begin];
-        log_track[lgr_trk::sck::write::in_track_end] = tracking[trk::sck::perform::out_track_end];
-        log_track[lgr_trk::sck::write::in_track_obj_type] = tracking[trk::sck::perform::out_track_obj_type];
-        log_track[lgr_trk::sck::write::in_track_change_state_reason] = tracking[trk::sck::perform::out_track_change_state_reason];
-        log_track[lgr_trk::sck::write::in_n_tracks] = tracking[trk::sck::perform::out_n_tracks];
         log_track[lgr_trk::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
     }
 
@@ -747,7 +750,7 @@ int main(int argc, char** argv) {
             if (statuses.back() != nullptr) {
                 fprintf(stderr, "(II) Frame n°%4u", n_frames);
                 unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
-                size_t n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
+                size_t n_tracks = tracking_count_objects(tracking.get_data()->tracks, &n_stars, &n_meteors, &n_noise);
 
                 auto t_stop = std::chrono::steady_clock::now();
                 auto time_duration =
@@ -794,13 +797,29 @@ int main(int argc, char** argv) {
         terminal_probes.final_report(rt_probes_file);
 
     fprintf(stderr, "\n");
-    if (p_out_bb)
-        tracking_save_array_BB(p_out_bb, tracking.get_BB_array(), tracking.get_track_array(), MAX_N_FRAMES,
-                               p_track_all);
-    tracking_track_array_write(stdout, tracking.get_track_array());
+    if (p_out_bb) {
+        FILE* f = fopen(p_out_bb, "w");
+        if (f == NULL) {
+            fprintf(stderr, "(EE) error while opening '%s'\n", p_out_bb);
+            exit(1);
+        }
+        tracking_BB_array_write(f, tracking.get_BB_array(), tracking.get_data()->tracks);
+        fclose(f);
+    }
+
+    if (p_out_mag) {
+        FILE* f = fopen(p_out_mag, "w");
+        if (f == NULL) {
+            fprintf(stderr, "(EE) error while opening '%s'\n", p_out_bb);
+            exit(1);
+        }
+        tracking_track_array_magnitude_write(f, tracking.get_data()->tracks);
+        fclose(f);
+    }
+    tracking_track_array_write(stdout, tracking.get_data()->tracks);
 
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
-    size_t real_n_tracks = tracking_count_objects(tracking.get_track_array(), &n_stars, &n_meteors, &n_noise);
+    size_t real_n_tracks = tracking_count_objects(tracking.get_data()->tracks, &n_stars, &n_meteors, &n_noise);
     printf("# Tracks statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,

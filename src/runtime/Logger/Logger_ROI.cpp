@@ -3,8 +3,10 @@
 
 #include "fmdt/Logger/Logger_ROI.hpp"
 
-Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, const size_t max_tracks_size)
-: Module(), ROI_path(ROI_path) {
+Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, const tracking_data_t* tracking_data)
+: Module(), ROI_path(ROI_path),  tracking_data(tracking_data) {
+    assert(tracking_data != NULL);
+
     const std::string name = "Logger_ROI";
     this->set_name(name);
     this->set_short_name(name);
@@ -35,11 +37,6 @@ Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, co
     auto ps_in_ROI1_y = this->template create_socket_in<float>(p, "in_ROI1_y", max_ROI_size);
     auto ps_in_ROI1_magnitude = this->template create_socket_in<uint32_t>(p, "in_ROI1_magnitude", max_ROI_size);
     auto ps_in_n_ROI1 = this->template create_socket_in<uint32_t>(p, "in_n_ROI1", 1);
-
-    auto ps_in_track_id = this->template create_socket_in<uint16_t>(p, "in_track_id", max_tracks_size);
-    auto ps_in_track_end = this->template create_socket_in<uint8_t>(p, "in_track_end", max_tracks_size * sizeof(ROI_light_t));
-    auto ps_in_track_obj_type = this->template create_socket_in<uint8_t>(p, "in_track_obj_type", max_tracks_size * sizeof(enum obj_e));
-    auto ps_in_n_tracks = this->template create_socket_in<uint32_t>(p, "in_n_tracks", 1);
     auto ps_in_frame = this->template create_socket_in<uint32_t>(p, "in_frame", 1);
 
     if (!ROI_path.empty())
@@ -49,8 +46,7 @@ Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, co
                              ps_in_ROI0_S, ps_in_ROI0_Sx, ps_in_ROI0_Sy, ps_in_ROI0_x, ps_in_ROI0_y,
                              ps_in_ROI0_magnitude, ps_in_n_ROI0, ps_in_ROI1_id, ps_in_ROI1_xmin, ps_in_ROI1_xmax,
                              ps_in_ROI1_ymin, ps_in_ROI1_ymax, ps_in_ROI1_S, ps_in_ROI1_Sx, ps_in_ROI1_Sy, ps_in_ROI1_x,
-                             ps_in_ROI1_y, ps_in_ROI1_magnitude, ps_in_n_ROI1, ps_in_track_id, ps_in_track_end,
-                             ps_in_track_obj_type, ps_in_n_tracks, ps_in_frame]
+                             ps_in_ROI1_y, ps_in_ROI1_magnitude, ps_in_n_ROI1, ps_in_frame]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_roi = static_cast<Logger_ROI&>(m);
 
@@ -84,10 +80,7 @@ Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, co
                                       static_cast<const float*>(t[ps_in_ROI1_y].get_dataptr()),
                                       static_cast<const uint32_t*>(t[ps_in_ROI1_magnitude].get_dataptr()),
                                       *static_cast<const uint32_t*>(t[ps_in_n_ROI1].get_dataptr()),
-                                      static_cast<const uint16_t*>(t[ps_in_track_id].get_dataptr()),
-                                      static_cast<const ROI_light_t*>(t[ps_in_track_end].get_dataptr()),
-                                      static_cast<const enum obj_e*>(t[ps_in_track_obj_type].get_dataptr()),
-                                      *static_cast<const uint32_t*>(t[ps_in_n_tracks].get_dataptr()));
+                                      lgr_roi.tracking_data->tracks);
             fclose(file);
         }
         return aff3ct::runtime::status_t::SUCCESS;

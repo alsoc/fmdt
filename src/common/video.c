@@ -44,19 +44,23 @@ video_t* video_init_from_file(const char* filename, const int start, const int e
 }
 
 static int video_get_frame(video_t* video, uint8_t** I) {
-    if (video->frame_current > video->frame_end || video->ffmpeg.error || !ffmpeg_read2d(&video->ffmpeg, I)) {
+    if (video->frame_end && video->frame_current > video->frame_end)
+        return -1;
+
+    if (!ffmpeg_read2d(&video->ffmpeg, I)) {
         if (video->ffmpeg.error != 22) // 22 == EOF
             fprintf(stderr, "(EE) %s\n", ffmpeg_error2str(video->ffmpeg.error));
         return -1;
     }
+
     int cur_fra = video->frame_current;
     video->frame_current++;
-    return video->frame_current <= video->frame_end ? cur_fra : -1;
+    return cur_fra;
 }
 
 int video_get_next_frame(video_t* video, uint8_t** I) {
     int r;
-    int skip = ((video->frame_current < video->frame_start) ? video->frame_start - 1 : video->frame_skip);
+    int skip = ((video->frame_current < video->frame_start) ? video->frame_start : video->frame_skip);
     do {
         r = video_get_frame(video, I);
     } while ((r != -1) && skip--);
