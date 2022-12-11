@@ -659,7 +659,7 @@ int _find_corresponding_track(const int frame, const vec_track_t track_array, co
                         continue;
                     cur_ROI_id = ROI_id[track_array[t].end.prev_id - 1];
                 }
-                assert(cur_ROI_id <= n_ROI);
+                assert(cur_ROI_id <= (int)n_ROI);
                 if (cur_ROI_id <= 0)
                     continue;
                 if (sel_ROI_id == cur_ROI_id)

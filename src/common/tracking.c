@@ -127,8 +127,16 @@ ROI_history_t* alloc_ROI_history(const size_t max_history_size, const size_t max
     ROI_hist->array = (ROI_light_t**)malloc(ROI_hist->_max_size * sizeof(ROI_light_t*));
     ROI_hist->n_ROI = (uint32_t*)malloc(ROI_hist->_max_size * sizeof(uint32_t));
     ROI_hist->_max_n_ROI = max_ROI_size;
-    for (size_t i = 0; i < ROI_hist->_max_size; i++)
+    ROI_hist->_size = 0;
+    for (size_t i = 0; i < ROI_hist->_max_size; i++) {
         ROI_hist->array[i] = (ROI_light_t*)malloc(max_ROI_size * sizeof(ROI_light_t));
+        ROI_hist->n_ROI[i] = 0;
+        for (size_t j = 0; j < max_ROI_size; j++) {
+            memset(&ROI_hist->array[i][j], 0, sizeof(ROI_light_t));
+            ROI_hist->array[i][j].x = NAN;
+            ROI_hist->array[i][j].y = NAN;
+        }
+    }
     return ROI_hist;
 }
 
@@ -227,6 +235,11 @@ void _update_existing_tracks(ROI_history_t* ROI_history, vec_track_t track_array
             if (cur_track->state == TRACK_LOST) {
                 for (size_t j = 0; j < ROI_history->n_ROI[0]; j++) {
                     if (!ROI_history->array[0][j].prev_id) {
+                        // test NaN
+                        assert(ROI_history->array[0][j].x == ROI_history->array[0][j].x);
+                        assert(ROI_history->array[0][j].y == ROI_history->array[0][j].y);
+                        assert(cur_track->extrapol_x == cur_track->extrapol_x);
+                        assert(cur_track->extrapol_y == cur_track->extrapol_y);
                         if ((ROI_history->array[0][j].x > cur_track->extrapol_x - r_extrapol) &&
                             (ROI_history->array[0][j].x < cur_track->extrapol_x + r_extrapol) &&
                             (ROI_history->array[0][j].y < cur_track->extrapol_y + r_extrapol) &&
@@ -349,6 +362,8 @@ void _insert_new_track(const ROI_light_t* ROI_list, unsigned n_ROI, vec_track_t*
     tmp_track->state = TRACK_NEW;
     tmp_track->obj_type = type;
     tmp_track->magnitude = NULL;
+    tmp_track->extrapol_x = NAN;
+    tmp_track->extrapol_y = NAN;
     if (magnitude) {
         tmp_track->magnitude = (vec_uint32_t)vector_create();
         for (unsigned n = 0; n < n_ROI; n++)
@@ -404,7 +419,7 @@ void _create_new_tracks(ROI_history_t* ROI_history, ROI_light_t* ROI_list, vec_t
 
                     if (j == n_tracks || n_tracks == 0) {
                         memcpy(&ROI_list[0], &ROI_history->array[1][i], sizeof(ROI_light_t));
-                        for (size_t ii = 1; ii < fra_min - 1; ii++)
+                        for (int ii = 1; ii < fra_min - 1; ii++)
                             memcpy(&ROI_list[ii], &ROI_history->array[ii + 1][ROI_list[ii - 1].prev_id - 1],
                                    sizeof(ROI_light_t));
                         _insert_new_track(ROI_list, fra_min - 1, track_array, BB_array, frame,
@@ -472,10 +487,12 @@ void _tracking_perform(tracking_data_t* tracking_data, const float* ROI0_error, 
     if (tracking_data->ROI_history->_size < tracking_data->ROI_history->_max_size)
         tracking_data->ROI_history->_size++;
 
-    _create_new_tracks(tracking_data->ROI_history, tracking_data->ROI_list, &tracking_data->tracks, *BB_array, frame,
-                       mean_error, std_deviation, diff_dev, track_all, fra_star_min, fra_meteor_min, magnitude);
-    _update_existing_tracks(tracking_data->ROI_history, tracking_data->tracks, *BB_array, frame, theta, tx, ty,
-                            r_extrapol, angle_max, track_all, fra_meteor_max);
+    if (tracking_data->ROI_history->_size >= 2) {
+        _create_new_tracks(tracking_data->ROI_history, tracking_data->ROI_list, &tracking_data->tracks, *BB_array, frame,
+                           mean_error, std_deviation, diff_dev, track_all, fra_star_min, fra_meteor_min, magnitude);
+        _update_existing_tracks(tracking_data->ROI_history, tracking_data->tracks, *BB_array, frame, theta, tx, ty,
+                                r_extrapol, angle_max, track_all, fra_meteor_max);
+    }
 
     rotate_ROI_history(tracking_data->ROI_history);
     memset(tracking_data->ROI_history->array[0], 0, tracking_data->ROI_history->n_ROI[0] * sizeof(ROI_light_t));
