@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <stdint.h>
+#include <math.h>
 #include <nrc2.h>
 
 #include "fmdt/macros.h"
@@ -169,28 +170,35 @@ int main(int argc, char** argv) {
         }
 
         size_t n_tracks = vector_size(track_array);
-        BB_coord_t* listBB = (BB_coord_t*)malloc(sizeof(BB_coord_t) * n_tracks);
+        BB_t* BB_list = (BB_t*)malloc(sizeof(BB_t) * n_tracks);
+        enum color_e* BB_list_color = (enum color_e*)malloc(sizeof(enum color_e) * n_tracks);
         rgb8_t** img_bb = (rgb8_t**)rgb8matrix(i0, i1, j0, j1);
         size_t m = 0;
         for (size_t t = 0; t < n_tracks; t++) {
             if (!p_only_meteor || track_array[t].obj_type == METEOR) {
+                BB_list[m].frame_id = 0;
 #ifdef OPENCV_LINK
-                listBB[m].track_id = p_nat_num ? (m + 1) : track_array[t].id;
+                BB_list[m].track_id = p_nat_num ? (m + 1) : track_array[t].id;
 #else
-                listBB[m].track_id = track_array[t].id;
+                BB_list[m].track_id = track_array[t].id;
 #endif
-                int delta = 5;
-                listBB[m].xmin = (track_array[t].begin.x < track_array[t].end.x ?
-                    track_array[t].begin.x : track_array[t].end.x) - delta;
-                listBB[m].xmax = (track_array[t].begin.x < track_array[t].end.x ?
-                    track_array[t].end.x : track_array[t].begin.x) + delta;
-                listBB[m].ymin = (track_array[t].begin.y < track_array[t].end.y ?
-                    track_array[t].begin.y : track_array[t].end.y) - delta;
-                listBB[m].ymax = (track_array[t].begin.y < track_array[t].end.y ?
-                    track_array[t].end.y : track_array[t].begin.y) + delta;
+                int xmin =
+                    track_array[t].begin.x < track_array[t].end.x ? track_array[t].begin.x : track_array[t].end.x;
+                int xmax =
+                    track_array[t].begin.x < track_array[t].end.x ? track_array[t].end.x : track_array[t].begin.x;
+                int ymin =
+                    track_array[t].begin.y < track_array[t].end.y ? track_array[t].begin.y : track_array[t].end.y;
+                int ymax =
+                    track_array[t].begin.y < track_array[t].end.y ? track_array[t].end.y : track_array[t].begin.y;
+
+                BB_list[m].bb_x = (uint16_t)ceilf((float)(xmin + xmax) / 2.f);
+                BB_list[m].bb_y = (uint16_t)ceilf((float)(ymin + ymax) / 2.f);
+                BB_list[m].rx = BB_list[m].bb_x - xmin;
+                BB_list[m].ry = BB_list[m].bb_y - ymin;
+                BB_list[m].is_extrapolated = 0;
 
                 if (track_array[t].obj_type != UNKNOWN)
-                    listBB[m].color = g_obj_to_color[track_array[t].obj_type];
+                    BB_list_color[m] = g_obj_to_color[track_array[t].obj_type];
                 else {
                     fprintf(stderr, "(EE) This should never happen... ('t' = %lu, 'track_array[t].obj_type' = %d)\n",
                             (unsigned long)t, track_array[t].obj_type);
@@ -198,24 +206,25 @@ int main(int argc, char** argv) {
                 }
 
                 if (p_in_gt && g_is_valid_track[t] == 1)
-                    listBB[m].color = GREEN; // GREEN = true positive 'meteor'
+                    BB_list_color[m] = GREEN; // GREEN = true positive 'meteor'
                 if (p_in_gt && g_is_valid_track[t] == 2)
-                    listBB[m].color = RED; // RED = false positive 'meteor'
+                    BB_list_color[m] = RED; // RED = false positive 'meteor'
                 m++;
             }
         }
 
         tools_convert_img_grayscale_to_rgb((const uint8_t**)Max, img_bb, i0, i1, j0, j1);
         int n_BB = m;
-        tools_draw_BB(img_bb, listBB, n_BB, j1, i1);
+        tools_draw_BB(img_bb, BB_list, BB_list_color, n_BB, j1, i1);
 #ifdef OPENCV_LINK
-        tools_draw_text(img_bb, j1, i1, listBB, n_BB, p_in_gt ? 1 : 0, p_show_id);
+        tools_draw_text(img_bb, j1, i1, BB_list, BB_list_color, n_BB, p_in_gt ? 1 : 0, p_show_id);
 #endif
         tools_save_frame(p_out_frame, (const rgb8_t**)img_bb, j1, i1);
         vector_free(track_array);
 
         free_rgb8matrix((rgb8**)img_bb, i0, i1, j0, j1);
-        free(listBB);
+        free(BB_list);
+        free(BB_list_color);
 
         if (p_in_gt)
             validation_free();

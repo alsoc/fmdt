@@ -19,6 +19,9 @@
 
 #include "fmdt/macros.h"
 #include "fmdt/tools.h"
+#include "vec.h"
+
+#define DELTA_BB 5 // extra pixel size for bounding boxes
 
 rgb8_t tools_get_color(enum color_e color) {
     rgb8_t gray;
@@ -140,27 +143,32 @@ void tools_draw_legend_text(cv::Mat& cv_img, unsigned box_size, unsigned h_space
                     cv::LINE_AA);             // ?
 }
 
-void tools_draw_track_id(cv::Mat& cv_img, const BB_coord_t* listBB, const int nBB) {
+void tools_draw_track_id(cv::Mat& cv_img, const BB_t* BB_list, const enum color_e* BB_list_color, const int nBB) {
     //                       x    y color        list of ids
     std::vector<std::tuple<int, int, rgb8_t, std::vector<int>>> list_of_ids_grouped_by_pos;
     for (int i = 0; i < nBB; i++) {
-        int x = listBB[i].xmax + 3;
-        int y = (listBB[i].ymin) + ((listBB[i].ymax - listBB[i].ymin) / 2);
+        int ymin = BB_list[i].bb_y - (BB_list[i].ry + DELTA_BB);
+        int ymax = BB_list[i].bb_y + (BB_list[i].ry + DELTA_BB);
+        // int xmin = BB_list[i].bb_x - (BB_list[i].rx + DELTA_BB);
+        int xmax = BB_list[i].bb_x + (BB_list[i].rx + DELTA_BB);
+
+        int x = xmax + 3;
+        int y = (ymin) + ((ymax - ymin) / 2);
 
         bool found = false;
         for (auto& l : list_of_ids_grouped_by_pos) {
-            rgb8_t c = tools_get_color(listBB[i].color);
+            rgb8_t c = tools_get_color(BB_list_color[i]);
             if (std::get<0>(l) == x && std::get<1>(l) == y && std::get<2>(l).r == c.r && std::get<2>(l).g == c.g &&
                 std::get<2>(l).b == c.b) {
-                std::get<3>(l).push_back(listBB[i].track_id);
+                std::get<3>(l).push_back(BB_list[i].track_id);
                 found = true;
             }
         }
 
         if (!found) {
             std::vector<int> v;
-            v.push_back(listBB[i].track_id);
-            list_of_ids_grouped_by_pos.push_back(std::make_tuple(x, y, tools_get_color(listBB[i].color), v));
+            v.push_back(BB_list[i].track_id);
+            list_of_ids_grouped_by_pos.push_back(std::make_tuple(x, y, tools_get_color(BB_list_color[i]), v));
         }
     }
 
@@ -180,8 +188,8 @@ void tools_draw_track_id(cv::Mat& cv_img, const BB_coord_t* listBB, const int nB
     }
 }
 
-void tools_draw_text(rgb8_t** img, const int img_width, const int img_height, const BB_coord_t* listBB, const int nBB,
-                     int validation, int show_id) {
+void tools_draw_text(rgb8_t** img, const int img_width, const int img_height, const BB_t* BB_list,
+                     const enum color_e* BB_list_color, const int nBB, int validation, int show_id) {
     unsigned box_size = 20, h_space = 10, v_space = 10;
     tools_draw_legend_squares(img, box_size, h_space, v_space, validation);
 
@@ -205,7 +213,7 @@ void tools_draw_text(rgb8_t** img, const int img_width, const int img_height, co
         }
 
     if (show_id)
-        tools_draw_track_id(cv_img, listBB, nBB);
+        tools_draw_track_id(cv_img, BB_list, BB_list_color, nBB);
     tools_draw_legend_text(cv_img, box_size, h_space, v_space, validation);
 
     // // debug: show image inside a window.
@@ -233,15 +241,21 @@ void tools_convert_img_grayscale_to_rgb(const uint8** I, rgb8_t** I_bb, int i0, 
     }
 }
 
-void tools_draw_BB(rgb8_t** I_bb, const BB_coord_t* listBB, int n_BB, int w, int h) {
+void tools_draw_BB(rgb8_t** I_bb, const BB_t* BB_list, const enum color_e* BB_list_color, int n_BB, int w, int h) {
     int border = 2;
     for (int i = 0; i < n_BB; i++) {
-        int ymin = CLAMP(listBB[i].ymin, border + 1, h - (border + 2));
-        int ymax = CLAMP(listBB[i].ymax, border + 1, h - (border + 2));
-        int xmin = CLAMP(listBB[i].xmin, border + 1, w - (border + 2));
-        int xmax = CLAMP(listBB[i].xmax, border + 1, w - (border + 2));
-        tools_plot_bounding_box(I_bb, ymin, ymax, xmin, xmax, border, tools_get_color(listBB[i].color),
-                                listBB[i].is_extrapolated);
+        int ymin = BB_list[i].bb_y - (BB_list[i].ry + DELTA_BB);
+        int ymax = BB_list[i].bb_y + (BB_list[i].ry + DELTA_BB);
+        int xmin = BB_list[i].bb_x - (BB_list[i].rx + DELTA_BB);
+        int xmax = BB_list[i].bb_x + (BB_list[i].rx + DELTA_BB);
+
+        int ymin_fix = CLAMP(ymin, border + 1, h - (border + 2));
+        int ymax_fix = CLAMP(ymax, border + 1, h - (border + 2));
+        int xmin_fix = CLAMP(xmin, border + 1, w - (border + 2));
+        int xmax_fix = CLAMP(xmax, border + 1, w - (border + 2));
+
+        tools_plot_bounding_box(I_bb, ymin_fix, ymax_fix, xmin_fix, xmax_fix, border, tools_get_color(BB_list_color[i]),
+                                BB_list[i].is_extrapolated);
     }
 }
 

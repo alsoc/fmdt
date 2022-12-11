@@ -11,6 +11,8 @@ enum state_e { TRACK_NEW = 1, TRACK_UPDATED, TRACK_LOST, TRACK_FINISHED };
 // to remember why a 'meteor' object became a 'noise' object
 enum change_state_reason_e { REASON_TOO_BIG_ANGLE = 1, REASON_WRONG_DIRECTION, REASON_TOO_LONG_DURATION, N_REASONS };
 
+typedef enum color_e* vec_color_e;
+
 #define METEOR_COLOR GREEN
 #define STAR_COLOR PURPLE
 #define NOISE_COLOR ORANGE

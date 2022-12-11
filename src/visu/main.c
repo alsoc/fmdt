@@ -15,18 +15,30 @@
 #include "fmdt/images.h"
 #include "vec.h"
 
-#define MAX_BB_LIST_SIZE 1000
-#define DELTA_BB 5 // extra pixel size for bounding boxes
+void add_to_BB_coord_list(vec_BB_t* BB_list, vec_color_e* BB_list_color, size_t elem, int rx, int ry, int bb_x,
+                          int bb_y, int frame_id, int track_id, int is_extrapolated, enum color_e color) {
+    size_t alloc_amt = vector_get_alloc(*BB_list);
+    size_t alloc_amt2 = vector_get_alloc(*BB_list_color);
+    assert(alloc_amt == alloc_amt2);
 
-void add_to_BB_coord_list(BB_coord_t* coord, int rx, int ry, int bb_x, int bb_y, int track_id, int is_extrapolated,
-                          enum color_e color) {
-    coord->track_id = track_id;
-    coord->ymin = bb_y - (ry + DELTA_BB);
-    coord->ymax = bb_y + (ry + DELTA_BB);
-    coord->xmin = bb_x - (rx + DELTA_BB);
-    coord->xmax = bb_x + (rx + DELTA_BB);
-    coord->color = color;
-    coord->is_extrapolated = is_extrapolated;
+    size_t vs = vector_size(*BB_list);
+    size_t vs2 = vector_size(*BB_list_color);
+    assert(vs == vs2);
+    assert(elem < vs || elem == vs);
+
+    BB_t* BB_elem = (vs == elem) ? vector_add_asg(BB_list) : &(*BB_list)[elem];
+    BB_elem->frame_id = frame_id;
+    BB_elem->track_id = track_id;
+    BB_elem->bb_x = bb_x;
+    BB_elem->bb_y = bb_y;
+    BB_elem->rx = rx;
+    BB_elem->ry = ry;
+    BB_elem->is_extrapolated = is_extrapolated;
+
+    if (vs == elem)
+        vector_add(BB_list_color, MISC);
+    enum color_e* BB_color_elem = &(*BB_list_color)[elem];
+    *BB_color_elem = color;
 }
 
 int get_next_frame(video_t* video, images_t* images, uint8_t** I) {
@@ -175,7 +187,8 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set.\n");
 #endif
 
-    BB_coord_t* BB_list = (BB_coord_t*)malloc(MAX_BB_LIST_SIZE * sizeof(BB_coord_t*));
+    vec_BB_t BB_list = (vec_BB_t)vector_create();
+    vec_color_e BB_list_color = (vec_color_e)vector_create();
 
     tracking_init_global_data();
     vec_track_t track_array;
@@ -297,8 +310,8 @@ int main(int argc, char** argv) {
 #else
                 int display_track_id = track_id;
 #endif
-                assert(cpt < MAX_BB_LIST_SIZE);
-                add_to_BB_coord_list(BB_list + cpt, rx, ry, bb_x, bb_y, display_track_id, is_extrapolated, color);
+                add_to_BB_coord_list(&BB_list, &BB_list_color, cpt, rx, ry, bb_x, bb_y, frame_bb, display_track_id,
+                                     is_extrapolated, color);
                 cpt++;
             }
 
@@ -311,9 +324,9 @@ int main(int argc, char** argv) {
         }
 
         tools_convert_img_grayscale_to_rgb((const uint8_t**)I0, img_bb, i0, i1, j0, j1);
-        tools_draw_BB(img_bb, BB_list, cpt, j1, i1);
+        tools_draw_BB(img_bb, BB_list, BB_list_color, cpt, j1, i1);
 #ifdef OPENCV_LINK
-        tools_draw_text(img_bb, j1, i1, BB_list, cpt, p_in_gt ? 1 : 0, p_show_id);
+        tools_draw_text(img_bb, j1, i1, BB_list, BB_list_color, cpt, p_in_gt ? 1 : 0, p_show_id);
 #endif
         if (!ffmpeg_write2d(&writer_video_out, (uint8_t**)img_bb)) {
             fprintf(stderr, "(EE) ffmpeg_write2d: %s, frame: %d\n", ffmpeg_error2str(writer_video_out.error), frame);
@@ -332,7 +345,8 @@ int main(int argc, char** argv) {
     vector_free(track_array);
     free(LUT_tracks_id);
     free(LUT_tracks_nat_num);
-    free(BB_list);
+    vector_free(BB_list);
+    vector_free(BB_list_color);
     if (p_in_gt)
         validation_free();
     if (video)

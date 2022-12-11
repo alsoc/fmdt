@@ -201,8 +201,8 @@ void _update_bounding_box(vec_BB_t* BB_array, const int track_id, const uint16_t
                           const uint16_t ROI_ymin, const uint16_t ROI_ymax, int frame, int is_extrapolated) {
     assert(ROI_xmin || ROI_xmax || ROI_ymin || ROI_ymax);
 
-    uint16_t bb_x = (uint16_t)ceil((double)((ROI_xmin + ROI_xmax)) / 2);
-    uint16_t bb_y = (uint16_t)ceil((double)((ROI_ymin + ROI_ymax)) / 2);
+    uint16_t bb_x = (uint16_t)ceilf((float)(ROI_xmin + ROI_xmax) / 2.f);
+    uint16_t bb_y = (uint16_t)ceilf((float)(ROI_ymin + ROI_ymax) / 2.f);
     uint16_t rx = (bb_x - ROI_xmin);
     uint16_t ry = (bb_y - ROI_ymin);
 
