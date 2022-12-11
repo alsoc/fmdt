@@ -686,14 +686,14 @@ void _features_ROI_write(FILE* f, const int frame, const uint16_t* ROI_id, const
             cpt++;
 
     fprintf(f, "# Regions of interest (ROI) [%d]: \n", cpt);
-    if (cpt) {
+    // if (cpt) {  // for compare.py
         fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------||-----------\n");
         fprintf(f, "#   ROI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       || Magnitude \n");
         fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------||-----------\n");
         fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------\n");
         fprintf(f, "#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y ||        -- \n");
         fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------\n");
-    }
+    // }
 
     for (size_t i = 0; i < n_ROI; i++) {
         if (ROI_S[i] != 0) {
@@ -730,10 +730,13 @@ void features_motion_write(FILE* f, const double first_theta, const double first
                            const double first_mean_error, const double first_std_deviation, const double theta,
                            const double tx, const double ty, const double mean_error, const double std_deviation) {
     fprintf(f, "# Motion:\n");
-    fprintf(f, "# -------------|----------|----------|------------------|---------------------|-----------|----------|----------|-------------|---------------\n");
-    fprintf(f, "#  first theta | first tx | first ty | first mean error | first std deviation |   theta   |    tx    |    ty    |  mean error | std deviation \n");
-    fprintf(f, "# -------------|----------|----------|------------------|---------------------|-----------|----------|----------|-------------|---------------\n");
-    fprintf(f, "    %6.7f |  %6.4f |   %6.4f | %16.3f | %19.3f | %6.7f | %8.4f | %8.4f | %11.3f | %13.3f \n",
+    fprintf(f, "# -------------||----------||----------||------------------||---------------------||-----------||----------||----------||-------------||---------------\n");
+    fprintf(f, "#  first theta || first tx || first ty || first mean error || first std deviation ||   theta   ||    tx    ||    ty    ||  mean error || std deviation \n");
+    fprintf(f, "# -------------||----------||----------||------------------||---------------------||-----------||----------||----------||-------------||---------------\n");
+    fprintf(f, "# -------------||----------||----------||------------------||---------------------||-----------||----------||----------||-------------||---------------\n");
+    fprintf(f, "#              ||          ||          ||                  ||                     ||           ||          ||          ||             ||               \n");
+    fprintf(f, "# -------------||----------||----------||------------------||---------------------||-----------||----------||----------||-------------||---------------\n");
+    fprintf(f, "    %6.7f ||  %6.4f ||   %6.4f || %16.3f || %19.3f || %6.7f || %8.4f || %8.4f || %11.3f || %13.3f \n",
             first_theta,  first_tx, first_ty, first_mean_error, first_std_deviation, theta, tx, ty, mean_error, std_deviation);
 }
 
@@ -748,11 +751,11 @@ void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id
                                const size_t n_ROI1, const uint16_t* track_id, const ROI_light_t* track_end, 
                                const enum obj_e* track_obj_type, const size_t n_tracks) {
     // stats
-    fprintf(f, "# Frame n°%05d (cur)\n", frame - 1);
+    fprintf(f, "# Frame n°%05d (cur)\t", frame - 1);
     _features_ROI_write(f, frame - 1, ROI0_id, ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax, ROI0_S, ROI0_Sx, ROI0_Sy,
                         ROI0_x, ROI0_y, ROI0_magnitude, n_ROI0, track_id, track_end, track_obj_type, n_tracks, 1);
 
-    fprintf(f, "#\n# Frame n°%05d (next)\n", frame);
+    fprintf(f, "#\n# Frame n°%05d (next)\t", frame);
     _features_ROI_write(f, frame, ROI1_id, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_S, ROI1_Sx, ROI1_Sy, ROI1_x,
                         ROI1_y, ROI1_magnitude, n_ROI1, track_id, track_end, track_obj_type, n_tracks, 0);
 }

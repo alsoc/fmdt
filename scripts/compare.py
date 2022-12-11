@@ -4,14 +4,11 @@ import os
 import sys
 import hashlib
 import argparse
+import re
 
 PATH_HEAD = ".."
 PATH_BUILD = PATH_HEAD+"/build"
 PATH_EXE = PATH_BUILD+"/exe"
-
-# List of executable to compare
-# L_EXE = ["fmdt-detect", "fmdt-detect-rt-pip", "fmdt-detect-rt-seq", "fmdt-detect-rt2"]
-# L_EXE = ["fmdt-detect", "fmdt-detect-rt-pip", "fmdt-detect-rt-seq"] # waiting to update fmdt-detect-rt2 
 
 parser = argparse.ArgumentParser(prog='compare.py', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--exe-args',    action='store', dest='exeArgs',     type=str,   default="", required=True,        help='String of exe-argurments')
@@ -55,7 +52,7 @@ def diff_pgm(filename, p_v1, p_v2):
         res.append((filename, "X", key1, key2))
     return res
 
-def diff_txt(filename, p_v1, p_v2):
+def diff_bb(filename, p_v1, p_v2):
     res = []
     
     f_v1 = open(p_v1, "rb")
@@ -74,6 +71,106 @@ def diff_txt(filename, p_v1, p_v2):
     f_v2.close()
     return res
 
+
+def diff_stats(filename, p_v1, p_v2):
+    stats1 = parser_stats(p_v1)
+    stats2 = parser_stats(p_v2)
+    # type(stats1) = list[name_tab(str), line_title_tab(int), list[column_name(str), data(str)]]
+
+    # if all data are same
+    if stats1 == stats2 : 
+        return []
+
+    nb_tabs1 = len(stats1)
+    nb_tabs2 = len(stats2)
+    if nb_tabs1 != nb_tabs2:
+        return [(filename, "X", "number of tabs = " + str(nb_tabs1),"number of tabs = "+ str(nb_tabs2))]
+
+    for i in range (nb_tabs1):
+        # if not the same tab name 
+        if stats1[i][0] != stats2[i][0] :
+            return [(filename, stats1[i][1]+1, stats1[i][0], stats2[i][0])]
+        
+        for col1, data1 in  stats1[i][2] :
+            for col2, data2 in stats2[i][2]:
+                if col1 == col2 :
+                    if data1 != data2: 
+                        size = len(data1)
+                        for k in range(size):
+                            if data1[k] != data2[k]: 
+                                return [(filename, stats1[i][1]+8+k, col1 + " : " + data1[k], col2 + " : " +data2[k])]
+                    break
+
+    return []
+
+def parser_Tab(Lines, name, start, size_max):
+    List_columns = []
+    len_subtitle_index = 0
+    lenght = 2 # offset  
+
+    # set up titles and subtitles
+    List_title = (Lines[start+2][2:-1] ).split("||")
+    List_title_size = [len(txt) for txt in List_title] 
+    List_subtitle  = (Lines[start+5][2:-1]).replace("||","|").split("|")
+    List_subtitle_size = [len(txt) for txt in List_subtitle] 
+    len_title  = len(List_title)
+
+    for i in range(len_title):
+        len_title_index = List_title_size[i]
+        
+        cpt = 0
+        while cpt != len_title_index : 
+            # UGLY
+            if cpt == 0 :
+                cpt = List_subtitle_size[len_subtitle_index]
+            else :
+                cpt += List_subtitle_size[len_subtitle_index] + 1 
+
+            List_columns += [(List_title[i]+"_"+List_subtitle[len_subtitle_index],lenght,lenght + List_subtitle_size[len_subtitle_index], [])]
+            lenght += List_subtitle_size[len_subtitle_index] + 1
+            len_subtitle_index += 1
+        lenght += 1
+        
+    # add data
+    cur = start + 7
+    while cur != size_max and Lines[cur][0] != '#'  :
+        for (column, begin, end, data) in List_columns :
+            data.append(Lines[cur][begin:end])
+        cur += 1
+    
+    List_columns = [(column.replace(' ', ''), data) for (column, begin, end, data) in List_columns]
+        
+    return ((name[:-1], start, List_columns), cur)
+
+# only help to dev
+def display_tab_colums(input): 
+    size = len(input)
+
+    for name, line, tab in input:
+        print(name,end = '')
+        for column, trash0, trash1, data in tab:
+            print('{0:15s}'.format(column), end = ' ')
+        print("\n")
+    return None
+
+def parser_stats(path_filename):
+    f = open(path_filename, "r")
+
+    Lines = f.readlines()
+
+    f.close()
+
+    size = len(Lines)
+    res = []
+    i = 0 
+    
+    # on suppose qu'il n'y a que des tab
+    while i < size : 
+        (tuple, cur)= parser_Tab(Lines, Lines[i], i, size) 
+        i = cur + 1
+        res.append(tuple)
+    return res
+
 def display_res(res, exe_name):
     if res == [] :
         print("# -------------------------------------------")
@@ -89,7 +186,7 @@ def display_res(res, exe_name):
     size = len(res)
     for i in range (size):
         (file,line,txt0,txt1) = res[i] 
-        print("  {:>15s} |{:>26s} ||{:>10s} |{:>55s} |{:>56s}".format(file, exe_name, str(line), str(txt0, errors='replace')[:51], str(txt1, errors='replace')[:51]))
+        print("{:>18s}|{:>27s}||{:>11s}|{:>56s}|{:>56s}".format(file, exe_name, str(line), txt0, txt1))
     print("#")
     return 1
 
@@ -110,15 +207,20 @@ def main_diff(path_ref, exe_name):
         f_tocmp = os.path.join(dir_tocmp, filename)
         
 
-        if ".pgm" in filename:
+        if ".pgm" in filename: # image
             r = diff_pgm(filename, f_ref, f_tocmp)
             if r != []:
-                res = res + r 
-
-        elif ".txt" in filename:
-            r = diff_txt(filename, f_ref, f_tocmp)
+                res += r 
+        
+        elif "bb.txt" in filename: # bounding box 
+            r = diff_bb(filename, f_ref, f_tocmp)
             if r != []:
-                res = res + r
+                res += r 
+
+        elif ".txt" in filename: # stats
+            r = diff_stats(filename, f_ref, f_tocmp)
+            if r != []:
+                res += r
 
     return display_res(res, exe_name)
 
@@ -149,7 +251,7 @@ def main():
     # compare all the data with refs
     errors = 0
     for exe_cmp in L_EXE :
-        errors = errors + main_diff(ref, exe_cmp)
+        errors += main_diff(ref, exe_cmp)
 
     print("#")
     print("#         END OF THE SCRIPT")
