@@ -13,7 +13,9 @@
 #include "fmdt/validation.h"
 #include "fmdt/video.h"
 #include "fmdt/images.h"
+#include "vec.h"
 
+#define MAX_BB_LIST_SIZE 1000
 #define DELTA_BB 5 // extra pixel size for bounding boxes
 
 void add_to_BB_coord_list(BB_coord_t* coord, int rx, int ry, int bb_x, int bb_y, int track_id, int is_extrapolated,
@@ -173,33 +175,33 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set.\n");
 #endif
 
-    track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE, 0);
     BB_coord_t* BB_list = (BB_coord_t*)malloc(MAX_BB_LIST_SIZE * sizeof(BB_coord_t*));
 
     tracking_init_global_data();
-    tracking_init_track_array(track_array);
-    tracking_parse_tracks(p_in_tracks, track_array);
+    vec_track_t track_array;
+    tracking_parse_tracks(p_in_tracks, &track_array);
 
     size_t max_LUT = 0;
-    for (size_t i = 0; i < track_array->_size; i++)
-        if (track_array->id[i] > max_LUT)
-            max_LUT = (size_t)track_array->id[i];
+    size_t n_tracks = vector_size(track_array);
+    for (size_t i = 0; i < n_tracks; i++)
+        if (track_array[i].id > max_LUT)
+            max_LUT = (size_t)track_array[i].id;
     int* LUT_tracks_id = (int*)malloc(sizeof(int) * (max_LUT + 1));
     int* LUT_tracks_nat_num = (int*)malloc(sizeof(int) * (max_LUT + 1));
     memset(LUT_tracks_id, -1, max_LUT + 1);
     memset(LUT_tracks_nat_num, -1, max_LUT + 1);
     int j = 1;
-    for (size_t i = 0; i < track_array->_size; i++) {
-        LUT_tracks_id[track_array->id[i]] = i;
-        if (!p_only_meteor || track_array->obj_type[i] == METEOR)
-            LUT_tracks_nat_num[track_array->id[i]] = j++;
+    for (size_t i = 0; i < n_tracks; i++) {
+        LUT_tracks_id[track_array[i].id] = i;
+        if (!p_only_meteor || track_array[i].obj_type == METEOR)
+            LUT_tracks_nat_num[track_array[i].id] = j++;
 
     }
 
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
     tracking_count_objects(track_array, &n_stars, &n_meteors, &n_noise);
     printf("# Tracks read from file = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
-           n_noise, (unsigned long)track_array->_size);
+           n_noise, (unsigned long)n_tracks);
 
     // init
     int b = 1;
@@ -275,14 +277,14 @@ int main(int argc, char** argv) {
 
         // affiche tous les BB de l'image
         while (frame_bb == frame) {
-            if (!p_only_meteor || track_array->obj_type[LUT_tracks_id[track_id]] == METEOR) {
-                if (track_array->obj_type[LUT_tracks_id[track_id]] != UNKNOWN)
-                    color = g_obj_to_color[track_array->obj_type[LUT_tracks_id[track_id]]];
+            if (!p_only_meteor || track_array[LUT_tracks_id[track_id]].obj_type == METEOR) {
+                if (track_array[LUT_tracks_id[track_id]].obj_type != UNKNOWN)
+                    color = g_obj_to_color[track_array[LUT_tracks_id[track_id]].obj_type];
                 else {
                     fprintf(stderr,
                             "(EE) This should never happen... ('cpt' = %d, 'track_id' = %d, 'LUT_tracks_id[track_id]' "
-                            "= %d, 'track_array->obj_type[LUT_tracks_id[track_id]]' = %d)\n",
-                            cpt, track_id, LUT_tracks_id[track_id], track_array->obj_type[LUT_tracks_id[track_id]]);
+                            "= %d, 'track_array[LUT_tracks_id[track_id]].obj_type' = %d)\n",
+                            cpt, track_id, LUT_tracks_id[track_id], track_array[LUT_tracks_id[track_id]].obj_type);
                     exit(-1);
                 }
                 if (p_in_gt && g_is_valid_track[LUT_tracks_id[track_id]] == 1)
@@ -327,7 +329,7 @@ int main(int argc, char** argv) {
     free_rgb8matrix((rgb8**)img_bb, 0, i1, 0, j1);
     ffmpeg_stop_writer(&writer_video_out);
     free_ui8matrix(I0, i0 - b, i1 + b, j0 - b, j1 + b);
-    tracking_free_track_array(track_array);
+    vector_free(track_array);
     free(LUT_tracks_id);
     free(LUT_tracks_nat_num);
     free(BB_list);

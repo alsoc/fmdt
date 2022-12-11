@@ -1,7 +1,4 @@
 #pragma once
 
 #define MAX_ROI_SIZE 50000
-#define MAX_TRACKS_SIZE 10000
 #define MAX_KPPV_SIZE 400
-#define MAX_ROI_HISTORY_SIZE 10000
-#define MAX_BB_LIST_SIZE 1000

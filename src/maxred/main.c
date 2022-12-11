@@ -11,6 +11,7 @@
 #include "fmdt/tracking.h"
 #include "fmdt/validation.h"
 #include "fmdt/video.h"
+#include "vec.h"
 
 void max_reduce(uint8_t** M, int i0, int i1, int j0, int j1, uint8_t** I) {
     for (int i = i0; i <= i1; i++) {
@@ -159,40 +160,40 @@ int main(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (p_in_tracks) {
-        track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE, 0);
-        tracking_init_track_array(track_array);
-        tracking_parse_tracks(p_in_tracks, track_array);
+        vec_track_t track_array;
+        tracking_parse_tracks(p_in_tracks, &track_array);
 
         if (p_in_gt) {
             validation_init(p_in_gt);
             validation_process(track_array);
         }
 
-        BB_coord_t* listBB = (BB_coord_t*)malloc(sizeof(BB_coord_t) * track_array->_size);
+        size_t n_tracks = vector_size(track_array);
+        BB_coord_t* listBB = (BB_coord_t*)malloc(sizeof(BB_coord_t) * n_tracks);
         rgb8_t** img_bb = (rgb8_t**)rgb8matrix(i0, i1, j0, j1);
         size_t m = 0;
-        for (size_t t = 0; t < track_array->_size; t++) {
-            if (!p_only_meteor || track_array->obj_type[t] == METEOR) {
+        for (size_t t = 0; t < n_tracks; t++) {
+            if (!p_only_meteor || track_array[t].obj_type == METEOR) {
 #ifdef OPENCV_LINK
-                listBB[m].track_id = p_nat_num ? (m + 1) : track_array->id[t];
+                listBB[m].track_id = p_nat_num ? (m + 1) : track_array[t].id;
 #else
-                listBB[m].track_id = track_array->id[t];
+                listBB[m].track_id = track_array[t].id;
 #endif
                 int delta = 5;
-                listBB[m].xmin = (track_array->begin[t].x < track_array->end[t].x ?
-                    track_array->begin[t].x : track_array->end[t].x) - delta;
-                listBB[m].xmax = (track_array->begin[t].x < track_array->end[t].x ?
-                    track_array->end[t].x : track_array->begin[t].x) + delta;
-                listBB[m].ymin = (track_array->begin[t].y < track_array->end[t].y ?
-                    track_array->begin[t].y : track_array->end[t].y) - delta;
-                listBB[m].ymax = (track_array->begin[t].y < track_array->end[t].y ?
-                    track_array->end[t].y : track_array->begin[t].y) + delta;
+                listBB[m].xmin = (track_array[t].begin.x < track_array[t].end.x ?
+                    track_array[t].begin.x : track_array[t].end.x) - delta;
+                listBB[m].xmax = (track_array[t].begin.x < track_array[t].end.x ?
+                    track_array[t].end.x : track_array[t].begin.x) + delta;
+                listBB[m].ymin = (track_array[t].begin.y < track_array[t].end.y ?
+                    track_array[t].begin.y : track_array[t].end.y) - delta;
+                listBB[m].ymax = (track_array[t].begin.y < track_array[t].end.y ?
+                    track_array[t].end.y : track_array[t].begin.y) + delta;
 
-                if (track_array->obj_type[t] != UNKNOWN)
-                    listBB[m].color = g_obj_to_color[track_array->obj_type[t]];
+                if (track_array[t].obj_type != UNKNOWN)
+                    listBB[m].color = g_obj_to_color[track_array[t].obj_type];
                 else {
-                    fprintf(stderr, "(EE) This should never happen... ('t' = %lu, 'track_array->obj_type[t]' = %d)\n",
-                            (unsigned long)t, track_array->obj_type[t]);
+                    fprintf(stderr, "(EE) This should never happen... ('t' = %lu, 'track_array[t].obj_type' = %d)\n",
+                            (unsigned long)t, track_array[t].obj_type);
                     exit(-1);
                 }
 
@@ -211,7 +212,7 @@ int main(int argc, char** argv) {
         tools_draw_text(img_bb, j1, i1, listBB, n_BB, p_in_gt ? 1 : 0, p_show_id);
 #endif
         tools_save_frame(p_out_frame, (const rgb8_t**)img_bb, j1, i1);
-        tracking_free_track_array(track_array);
+        vector_free(track_array);
 
         free_rgb8matrix((rgb8**)img_bb, i0, i1, j0, j1);
         free(listBB);

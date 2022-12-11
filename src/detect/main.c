@@ -249,7 +249,6 @@ int main(int argc, char** argv) {
     ROI_t* ROI_array_tmp = features_alloc_ROI_array(MAX_ROI_SIZE);
     ROI_t* ROI_array0 = features_alloc_ROI_array(MAX_ROI_SIZE);
     ROI_t* ROI_array1 = features_alloc_ROI_array(MAX_ROI_SIZE);
-    track_t* track_array = tracking_alloc_track_array(MAX_TRACKS_SIZE, p_out_mag != NULL);
     vec_BB_t* BB_array = NULL;
     if (p_out_bb)
         BB_array = (vec_BB_t*)vector_create();
@@ -272,7 +271,6 @@ int main(int argc, char** argv) {
     features_init_ROI_array(ROI_array_tmp);
     features_init_ROI_array(ROI_array0);
     features_init_ROI_array(ROI_array1);
-    tracking_init_track_array(track_array);
     tracking_init_data(tracking_data);
     CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
     zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -321,9 +319,9 @@ int main(int argc, char** argv) {
                                 &first_mean_error, &first_std_deviation, &theta, &tx, &ty, &mean_error, &std_deviation);
 
         // Step 6: tracking
-        tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, track_array, &BB_array, cur_fra, theta,
-                         tx, ty, mean_error, std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all,
-                         p_fra_star_min, p_fra_meteor_min, p_fra_meteor_max);
+        tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, &BB_array, cur_fra, theta, tx, ty,
+                         mean_error, std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min,
+                         p_fra_meteor_min, p_fra_meteor_max, p_out_mag != NULL);
 
         // Saving frames
         if (p_out_frames) {
@@ -344,14 +342,14 @@ int main(int argc, char** argv) {
                 exit(1);
             }
             if (f) {
-                features_ROI0_ROI1_write(f, cur_fra, ROI_array0, ROI_array1, track_array);
+                features_ROI0_ROI1_write(f, cur_fra, ROI_array0, ROI_array1, tracking_data->tracks);
                 fprintf(f, "#\n");
                 KPPV_asso_conflicts_write(f, kppv_data, ROI_array0);
                 fprintf(f, "#\n");
                 features_motion_write(f, first_theta, first_tx, first_ty, first_mean_error, first_std_deviation, theta,
                                       tx, ty, mean_error, std_deviation);
                 fprintf(f, "#\n");
-                tracking_track_array_write_full(f, track_array);
+                tracking_track_array_write_full(f, tracking_data->tracks);
                 fclose(f);
             } else {
                 fprintf(stderr, "(WW) cannot open '%s' file.", filename);
@@ -359,7 +357,7 @@ int main(int argc, char** argv) {
         }
 
         n_frames++;
-        real_n_tracks = tracking_count_objects(track_array, &n_stars, &n_meteors, &n_noise);
+        real_n_tracks = tracking_count_objects(tracking_data->tracks, &n_stars, &n_meteors, &n_noise);
         fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors, n_stars,
                 n_noise, (unsigned long)real_n_tracks);
         fflush(stderr);
@@ -376,7 +374,7 @@ int main(int argc, char** argv) {
             fprintf(stderr, "(EE) error while opening '%s'\n", p_out_bb);
             exit(1);
         }
-        tracking_BB_array_write(f, BB_array, track_array);
+        tracking_BB_array_write(f, BB_array, tracking_data->tracks);
         fclose(f);
     }
 
@@ -386,10 +384,10 @@ int main(int argc, char** argv) {
             fprintf(stderr, "(EE) error while opening '%s'\n", p_out_mag);
             exit(1);
         }
-        tracking_track_array_magnitude_write(f, track_array);
+        tracking_track_array_magnitude_write(f, tracking_data->tracks);
         fclose(f);
     }
-    tracking_track_array_write(stdout, track_array);
+    tracking_track_array_write(stdout, tracking_data->tracks);
 
     printf("# Tracks statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
@@ -422,7 +420,6 @@ int main(int argc, char** argv) {
             vector_free(BB_array[i]);
         vector_free(BB_array);
     }
-    tracking_free_track_array(track_array);
     tracking_free_data(tracking_data);
 
     printf("# End of the program, exiting.\n");

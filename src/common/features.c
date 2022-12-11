@@ -7,6 +7,7 @@
 #include "fmdt/macros.h"
 #include "fmdt/tools.h"
 #include "fmdt/features.h"
+#include "vec.h"
 
 ROI_t* features_alloc_ROI_array(const size_t max_size) {
     ROI_t* ROI_array = (ROI_t*)malloc(sizeof(ROI_t));
@@ -642,20 +643,21 @@ void features_parse_stats(const char* filename, ROI_t* stats, int* n) {
     fclose(file);
 }
 
-int _find_corresponding_track(const int frame, const uint16_t* track_id, const ROI_light_t* track_end,
-                              const size_t n_tracks, const uint16_t* ROI_id, const int sel_ROI_id, const size_t n_ROI,
-                              const unsigned age) {
+int _find_corresponding_track(const int frame, const vec_track_t track_array, const uint16_t* ROI_id,
+                              const int sel_ROI_id, const size_t n_ROI, const unsigned age) {
     assert(age == 0 || age == 1);
+
+    size_t n_tracks = vector_size(track_array);
     for (size_t t = 0; t < n_tracks; t++) {
-        if (track_id[t]) {
-            if (track_end[t].frame == frame + age) {
+        if (track_array[t].id) {
+            if (track_array[t].end.frame == frame + age) {
                 int cur_ROI_id;
                 if (age == 0)
-                    cur_ROI_id = track_end[t].id;
+                    cur_ROI_id = track_array[t].end.id;
                 else {
-                    if (track_end[t].prev_id == 0)
+                    if (track_array[t].end.prev_id == 0)
                         continue;
-                    cur_ROI_id = ROI_id[track_end[t].prev_id - 1];
+                    cur_ROI_id = ROI_id[track_array[t].end.prev_id - 1];
                 }
                 assert(cur_ROI_id <= n_ROI);
                 if (cur_ROI_id <= 0)
@@ -668,18 +670,16 @@ int _find_corresponding_track(const int frame, const uint16_t* track_id, const R
     return -1;
 }
 
-int find_corresponding_track(const int frame, const track_t* track_array, const ROI_t* ROI_array, const int sel_ROI_id,
-                             const size_t n_ROI, const unsigned age) {
-    return _find_corresponding_track(frame, track_array->id, track_array->end, track_array->_size, ROI_array->id,
-                                     sel_ROI_id, n_ROI, age);
+int find_corresponding_track(const int frame, const vec_track_t track_array, const ROI_t* ROI_array,
+                             const int sel_ROI_id, const size_t n_ROI, const unsigned age) {
+    return _find_corresponding_track(frame, track_array, ROI_array->id, sel_ROI_id, n_ROI, age);
 }
 
 void _features_ROI_write(FILE* f, const int frame, const uint16_t* ROI_id, const uint16_t* ROI_xmin,
                          const uint16_t* ROI_xmax, const uint16_t* ROI_ymin, const uint16_t* ROI_ymax,
                          const uint32_t* ROI_S, const uint32_t* ROI_Sx, const uint32_t* ROI_Sy, const float* ROI_x,
                          const float* ROI_y, const uint32_t* ROI_magnitude, const size_t n_ROI,
-                         const uint16_t* track_id, const ROI_light_t* track_end, const enum obj_e* track_obj_type,
-                         const size_t n_tracks, const unsigned age) {
+                         const vec_track_t track_array, const unsigned age) {
     int cpt = 0;
     for (size_t i = 0; i < n_ROI; i++)
         if (ROI_S[i] != 0)
@@ -697,17 +697,18 @@ void _features_ROI_write(FILE* f, const int frame, const uint16_t* ROI_id, const
 
     for (size_t i = 0; i < n_ROI; i++) {
         if (ROI_S[i] != 0) {
-            int t = _find_corresponding_track(frame, track_id, track_end, n_tracks, ROI_id, ROI_id[i], n_ROI, age);
+            int t = _find_corresponding_track(frame, track_array, ROI_id, ROI_id[i], n_ROI, age);
             char task_id_str[16];
             if (t == -1)
                 strcpy(task_id_str, "   -");
             else
-                snprintf(task_id_str, sizeof(task_id_str), "%4d", track_id[t]);
+                snprintf(task_id_str, sizeof(task_id_str), "%4d", track_array[t].id);
             char task_obj_type[64];
             if (t == -1)
                 strcpy(task_obj_type, "      -");
             else
-                snprintf(task_obj_type, sizeof(task_obj_type), "%s", g_obj_to_string_with_spaces[track_obj_type[t]]);
+                snprintf(task_obj_type, sizeof(task_obj_type), "%s",
+                    g_obj_to_string_with_spaces[track_array[t].obj_type]);
             uint32_t mag = 0;
             if (ROI_magnitude != NULL)
                 mag = ROI_magnitude[i];
@@ -718,12 +719,11 @@ void _features_ROI_write(FILE* f, const int frame, const uint16_t* ROI_id, const
     }
 }
 
-void features_ROI_write(FILE* f, const int frame, const ROI_t* ROI_array, const track_t* track_array,
+void features_ROI_write(FILE* f, const int frame, const ROI_t* ROI_array, const vec_track_t track_array,
                         const unsigned age) {
     _features_ROI_write(f, frame, ROI_array->id, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin, ROI_array->ymax,
                         ROI_array->S, ROI_array->Sx, ROI_array->Sy, ROI_array->x, ROI_array->y, ROI_array->magnitude,
-                        ROI_array->_size, track_array->id, track_array->end, track_array->obj_type, track_array->_size,
-                        age);
+                        ROI_array->_size, track_array, age);
 }
 
 void features_motion_write(FILE* f, const double first_theta, const double first_tx, const double first_ty,
@@ -750,26 +750,25 @@ void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id
                                const uint16_t* ROI1_xmax, const uint16_t* ROI1_ymin, const uint16_t* ROI1_ymax,
                                const uint32_t* ROI1_S, const uint32_t* ROI1_Sx, const uint32_t* ROI1_Sy,
                                const float* ROI1_x, const float* ROI1_y, const uint32_t* ROI1_magnitude,
-                               const size_t n_ROI1, const uint16_t* track_id, const ROI_light_t* track_end, 
-                               const enum obj_e* track_obj_type, const size_t n_tracks) {
+                               const size_t n_ROI1, const vec_track_t track_array) {
     // stats
     fprintf(f, "# Frame n°%05d (cur)\n", frame - 1);
     _features_ROI_write(f, frame - 1, ROI0_id, ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax, ROI0_S, ROI0_Sx, ROI0_Sy,
-                        ROI0_x, ROI0_y, ROI0_magnitude, n_ROI0, track_id, track_end, track_obj_type, n_tracks, 1);
+                        ROI0_x, ROI0_y, ROI0_magnitude, n_ROI0, track_array, 1);
 
     fprintf(f, "#\n# Frame n°%05d (next)\n", frame);
     _features_ROI_write(f, frame, ROI1_id, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_S, ROI1_Sx, ROI1_Sy, ROI1_x,
-                        ROI1_y, ROI1_magnitude, n_ROI1, track_id, track_end, track_obj_type, n_tracks, 0);
+                        ROI1_y, ROI1_magnitude, n_ROI1, track_array, 0);
 }
 
 void features_ROI0_ROI1_write(FILE* f, const int frame, const ROI_t* ROI_array0, const ROI_t* ROI_array1,
-                              const track_t* track_array) {
+                              const vec_track_t track_array) {
     _features_ROI0_ROI1_write(f, frame, ROI_array0->id, ROI_array0->xmin, ROI_array0->xmax, ROI_array0->ymin,
                               ROI_array0->ymax, ROI_array0->S, ROI_array0->Sx, ROI_array0->Sy, ROI_array0->x,
                               ROI_array0->y, ROI_array0->magnitude, ROI_array0->_size, ROI_array1->id, ROI_array1->xmin,
                               ROI_array1->xmax, ROI_array1->ymin, ROI_array1->ymax, ROI_array1->S, ROI_array1->Sx, 
                               ROI_array1->Sy, ROI_array1->x, ROI_array1->y, ROI_array1->magnitude, ROI_array1->_size,
-                              track_array->id, track_array->end, track_array->obj_type, track_array->_size);
+                              track_array);
 }
 
 void features_save_motion_extraction(const char* filename, const ROI_t* ROI_array, const double theta, const double tx,
