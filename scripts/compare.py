@@ -232,7 +232,7 @@ def main():
     L_EXE  = strListExe_to_listExe()
 
     # execute and save all the data in ../build/name_executable
-    main_exec(L_EXE)  
+    main_exec(L_EXE)
 
     print("#")
     print("#         END OF THE DATA GENERATION")

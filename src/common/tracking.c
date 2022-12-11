@@ -131,6 +131,11 @@ ROI_history_t* alloc_ROI_history(const size_t max_history_size, const size_t max
     for (size_t i = 0; i < ROI_hist->_max_size; i++) {
         ROI_hist->array[i] = (ROI_light_t*)malloc(max_ROI_size * sizeof(ROI_light_t));
         ROI_hist->n_ROI[i] = 0;
+        for (size_t j = 0; j < max_ROI_size; j++) {
+            memset(&ROI_hist->array[i][j], 0, sizeof(ROI_light_t));
+            ROI_hist->array[i][j].x = NAN;
+            ROI_hist->array[i][j].y = NAN;
+        }
     }
     return ROI_hist;
 }
@@ -230,8 +235,12 @@ void _update_existing_tracks(ROI_history_t* ROI_history, vec_track_t track_array
             if (cur_track->state == TRACK_LOST) {
                 for (size_t j = 0; j < ROI_history->n_ROI[0]; j++) {
                     if (!ROI_history->array[0][j].prev_id) {
-                        if (cur_track->extrapol_x != NAN && cur_track->extrapol_y != NAN &&
-                            (ROI_history->array[0][j].x > cur_track->extrapol_x - r_extrapol) &&
+                        // test NaN
+                        assert(ROI_history->array[0][j].x == ROI_history->array[0][j].x);
+                        assert(ROI_history->array[0][j].y == ROI_history->array[0][j].y);
+                        assert(cur_track->extrapol_x == cur_track->extrapol_x);
+                        assert(cur_track->extrapol_y == cur_track->extrapol_y);
+                        if ((ROI_history->array[0][j].x > cur_track->extrapol_x - r_extrapol) &&
                             (ROI_history->array[0][j].x < cur_track->extrapol_x + r_extrapol) &&
                             (ROI_history->array[0][j].y < cur_track->extrapol_y + r_extrapol) &&
                             (ROI_history->array[0][j].y > cur_track->extrapol_y - r_extrapol)) {
@@ -410,7 +419,7 @@ void _create_new_tracks(ROI_history_t* ROI_history, ROI_light_t* ROI_list, vec_t
 
                     if (j == n_tracks || n_tracks == 0) {
                         memcpy(&ROI_list[0], &ROI_history->array[1][i], sizeof(ROI_light_t));
-                        for (size_t ii = 1; ii < fra_min - 1; ii++)
+                        for (int ii = 1; ii < fra_min - 1; ii++)
                             memcpy(&ROI_list[ii], &ROI_history->array[ii + 1][ROI_list[ii - 1].prev_id - 1],
                                    sizeof(ROI_light_t));
                         _insert_new_track(ROI_list, fra_min - 1, track_array, BB_array, frame,
