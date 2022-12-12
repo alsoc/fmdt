@@ -55,8 +55,8 @@ def diff_pgm(filename, p_v1, p_v2):
 def diff_bb(filename, p_v1, p_v2):
     res = []
     
-    f_v1 = open(p_v1, "rb")
-    f_v2 = open(p_v2, "rb")
+    f_v1 = open(p_v1, "r")
+    f_v2 = open(p_v2, "r")
 
     L_v1 = f_v1.readlines()
     L_v2 = f_v2.readlines()
@@ -213,9 +213,10 @@ def main_diff(path_ref, exe_name):
                 res += r 
         
         elif "bb.txt" in filename: # bounding box 
-            r = diff_bb(filename, f_ref, f_tocmp)
-            if r != []:
-                res += r 
+            # r = diff_bb(filename, f_ref, f_tocmp)
+            # if r != []:
+            #     res += r
+            continue 
 
         elif ".txt" in filename: # stats
             r = diff_stats(filename, f_ref, f_tocmp)
@@ -232,7 +233,7 @@ def main():
     L_EXE  = strListExe_to_listExe()
 
     # execute and save all the data in ../build/name_executable
-    main_exec(L_EXE)
+    # main_exec(L_EXE)
 
     print("#")
     print("#         END OF THE DATA GENERATION")
