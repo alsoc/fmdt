@@ -11,10 +11,10 @@ PATH_BUILD = PATH_HEAD+"/build"
 PATH_EXE = PATH_BUILD+"/exe"
 
 parser = argparse.ArgumentParser(prog='compare.py', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--exe-args',    action='store', dest='exeArgs',     type=str,   default="", required=True,        help='String of exe-argurments')
-parser.add_argument('--list-exe',    action='store', dest='strListExe',  type=str,   default="", required=True,        help='List of executables to compare (format: "exe0, exe1, ... , exeN"')
-parser.add_argument('--refs-path',   action='store', dest='refsPath',    type=str,   default=PATH_BUILD + "/refs",     help='Path to the references to compare.')
-parser.add_argument('--new-ref-exe', action='store', dest='newRefExe',   type=str,   default="",                       help='Executable considered for ref.')
+parser.add_argument('--exe-args',    action='store', dest='exeArgs',     type=str,   default="", required=True,    help='String of exe-argurments')
+parser.add_argument('--list-exe',    action='store', dest='strListExe',  type=str,   default="", required=True,    help='List of executables to compare (format: "exe0, exe1, ... , exeN"')
+parser.add_argument('--refs-path',   action='store', dest='refsPath',    type=str,   default=PATH_BUILD + "/refs", help='Path to the references to compare.')
+parser.add_argument('--new-ref-exe', action='store', dest='newRefExe',   type=str,   default="",                   help='Executable considered for ref.')
 
 def strListExe_to_listExe():
     return args.strListExe.replace(' ', '').split(',')
