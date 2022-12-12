@@ -6,7 +6,7 @@ import hashlib
 import argparse
 import re
 
-PATH_HEAD = ".."
+PATH_HEAD = "../.."
 PATH_BUILD = PATH_HEAD+"/build"
 PATH_EXE = PATH_BUILD+"/exe"
 
@@ -97,7 +97,7 @@ def diff_stats(filename, p_v1, p_v2):
                     if data1 != data2: 
                         size = len(data1)
                         for k in range(size):
-                            if data1[k] != data2[k]: 
+                            if data1[k].strip() != data2[k].strip(): 
                                 return [(filename, stats1[i][1]+8+k, col1 + " : " + data1[k], col2 + " : " +data2[k])]
                     break
 
@@ -138,8 +138,8 @@ def parser_Tab(Lines, name, start, size_max):
             data.append(Lines[cur][begin:end])
         cur += 1
     
-    List_columns = [(column.replace(' ', ''), data) for (column, begin, end, data) in List_columns]
-        
+    List_columns = [(column.strip(), data) for (column, begin, end, data) in List_columns]
+    
     return ((name[:-1], start, List_columns), cur)
 
 # only help to dev
@@ -233,7 +233,7 @@ def main():
     L_EXE  = strListExe_to_listExe()
 
     # execute and save all the data in ../build/name_executable
-    # main_exec(L_EXE)
+    main_exec(L_EXE)
 
     print("#")
     print("#         END OF THE DATA GENERATION")
