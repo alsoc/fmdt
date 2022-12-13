@@ -300,7 +300,6 @@ int main(int argc, char** argv) {
         threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_light_max);
         features_merge_HI_CCL_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, ROI_array_tmp,
                                  p_surface_min, p_surface_max);
-        features_init_ROI_array(ROI_array1); // TODO: this is overkill, need to understand why we need to do that
         features_shrink_ROI_array((const ROI_t*)ROI_array_tmp, ROI_array1);
 
         // Step 4: k-NN matching

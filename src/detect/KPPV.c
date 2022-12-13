@@ -136,6 +136,10 @@ void _KPPV_match(uint32_t** data_nearest, float** data_distances, uint32_t* data
                  size_t n_ROI1, const int k, const uint32_t max_dist_square) {
     assert(n_ROI0 < MAX_KPPV_SIZE);
     assert(n_ROI1 < MAX_KPPV_SIZE);
+
+    memset(ROI0_next_id, 0, n_ROI0 * sizeof(int32_t));
+    memset(ROI1_prev_id, 0, n_ROI1 * sizeof(int32_t));
+
     KPPV_match1(ROI0_x, ROI0_y, n_ROI0, ROI1_x, ROI1_y, n_ROI1, data_nearest, data_distances, data_conflicts, k,
                 max_dist_square);
     KPPV_match2((const uint32_t**)data_nearest, (const float**)data_distances, ROI0_id, ROI0_next_id, n_ROI0, ROI1_id,

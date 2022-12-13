@@ -556,6 +556,8 @@ void _features_compute_motion(const int32_t* ROI0_next_id, const float* ROI0_x, 
                               const float* ROI1_x, const float* ROI1_y, double* first_theta, double* first_tx,
                               double* first_ty, double* first_mean_error, double* first_std_deviation, double* theta,
                               double* tx, double* ty, double* mean_error, double* std_deviation) {
+    memset(ROI0_is_moving, 0, n_ROI0 * sizeof(uint8_t));
+
     _features_rigid_registration(ROI0_next_id, ROI0_x, ROI0_y, n_ROI0, ROI1_x, ROI1_y, first_theta, first_tx, first_ty);
     _features_motion_extraction(ROI0_next_id, ROI0_x, ROI0_y, ROI0_dx, ROI0_dy, ROI0_error, n_ROI0, ROI1_x, ROI1_y,
                                 *first_theta, *first_tx, *first_ty);
