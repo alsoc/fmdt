@@ -67,25 +67,25 @@ Features_merger::Features_merger(const int i0, const int i1, const int j0, const
 
         const uint32_t in_n_ROI = *static_cast<const uint32_t*>(t[ps_in_n_ROI].get_dataptr());
 
-        std::copy_n(static_cast<const uint32_t*>(t[ps_in_ROI_S].get_dataptr()), in_n_ROI,
-                    static_cast<uint32_t*>(t[ps_out_ROI_S].get_dataptr()));
+        std::copy_n(static_cast<const uint32_t*>(t[ps_in_ROI_id].get_dataptr()), in_n_ROI,
+                    static_cast<uint32_t*>(t[ps_out_ROI_id].get_dataptr()));
 
         _features_merge_HI_CCL_v2(mrg.in_img1, mrg.in_img2, mrg.out_img, mrg.i0, mrg.i1, mrg.j0, mrg.j1,
-                                  static_cast<const uint16_t*>(t[ps_in_ROI_id].get_dataptr()),
+                                  static_cast<uint16_t*>(t[ps_out_ROI_id].get_dataptr()),
                                   static_cast<const uint16_t*>(t[ps_in_ROI_xmin].get_dataptr()),
                                   static_cast<const uint16_t*>(t[ps_in_ROI_xmax].get_dataptr()),
                                   static_cast<const uint16_t*>(t[ps_in_ROI_ymin].get_dataptr()),
                                   static_cast<const uint16_t*>(t[ps_in_ROI_ymax].get_dataptr()),
-                                  static_cast<uint32_t*>(t[ps_out_ROI_S].get_dataptr()),
+                                  static_cast<const uint32_t*>(t[ps_in_ROI_S].get_dataptr()),
                                   in_n_ROI,
                                   mrg.S_min, mrg.S_max);
 
-        size_t out_n_ROI = _features_shrink_ROI_array(static_cast<const uint16_t*>(t[ps_in_ROI_id].get_dataptr()),
+        size_t out_n_ROI = _features_shrink_ROI_array(static_cast<const uint16_t*>(t[ps_out_ROI_id].get_dataptr()),
                                                       static_cast<const uint16_t*>(t[ps_in_ROI_xmin].get_dataptr()),
                                                       static_cast<const uint16_t*>(t[ps_in_ROI_xmax].get_dataptr()),
                                                       static_cast<const uint16_t*>(t[ps_in_ROI_ymin].get_dataptr()),
                                                       static_cast<const uint16_t*>(t[ps_in_ROI_ymax].get_dataptr()),
-                                                      static_cast<const uint32_t*>(t[ps_out_ROI_S].get_dataptr()),
+                                                      static_cast<const uint32_t*>(t[ps_in_ROI_S].get_dataptr()),
                                                       static_cast<const uint32_t*>(t[ps_in_ROI_Sx].get_dataptr()),
                                                       static_cast<const uint32_t*>(t[ps_in_ROI_Sy].get_dataptr()),
                                                       static_cast<const float*>(t[ps_in_ROI_x].get_dataptr()),
