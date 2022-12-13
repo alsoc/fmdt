@@ -126,7 +126,7 @@ def parser_Tab(Lines, name, start, size_max):
             else :
                 cpt += List_subtitle_size[len_subtitle_index] + 1 
 
-            List_columns += [(List_title[i]+"_"+List_subtitle[len_subtitle_index],lenght,lenght + List_subtitle_size[len_subtitle_index], [])]
+            List_columns += [(List_title[i].strip()+"_"+List_subtitle[len_subtitle_index].strip(),lenght,lenght + List_subtitle_size[len_subtitle_index], [])]
             lenght += List_subtitle_size[len_subtitle_index] + 1
             len_subtitle_index += 1
         lenght += 1
@@ -138,7 +138,7 @@ def parser_Tab(Lines, name, start, size_max):
             data.append(Lines[cur][begin:end])
         cur += 1
     
-    List_columns = [(column.strip(), data) for (column, begin, end, data) in List_columns]
+    List_columns = [(column, data) for (column, begin, end, data) in List_columns]
     
     return ((name[:-1], start, List_columns), cur)
 
