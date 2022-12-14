@@ -284,16 +284,16 @@ int main(int argc, char** argv) {
     
     // Step 2 : ECC/ACC
     lsl0[ccl::sck::apply::in_img] = threshold_min0[thr::sck::apply::out_img];
-    extractor0[ftr_ext::sck::extract::in_img] = lsl0[ccl::sck::apply::out_img];
+    extractor0[ftr_ext::sck::extract::in_img] = lsl0[ccl::sck::apply::out_labels];
     extractor0[ftr_ext::sck::extract::in_n_ROI] = lsl0[ccl::sck::apply::out_n_ROI];
 
     lsl1[ccl::sck::apply::in_img] = threshold_min1[thr::sck::apply::out_img];
-    extractor1[ftr_ext::sck::extract::in_img] = lsl1[ccl::sck::apply::out_img];
+    extractor1[ftr_ext::sck::extract::in_img] = lsl1[ccl::sck::apply::out_labels];
     extractor1[ftr_ext::sck::extract::in_n_ROI] = lsl1[ccl::sck::apply::out_n_ROI];
 
     // Step 2.5 : calcul de la magnitude pour chaque ROI
     magnitude0[ftr_mgn::sck::compute::in_img] = video[vid2::sck::generate::out_img0];
-    magnitude0[ftr_mgn::sck::compute::in_labels] = lsl0[ccl::sck::apply::out_img];
+    magnitude0[ftr_mgn::sck::compute::in_labels] = lsl0[ccl::sck::apply::out_labels];
     magnitude0[ftr_mgn::sck::compute::in_ROI_xmin] = extractor0[ftr_ext::sck::extract::out_ROI_xmin];
     magnitude0[ftr_mgn::sck::compute::in_ROI_xmax] = extractor0[ftr_ext::sck::extract::out_ROI_xmax];
     magnitude0[ftr_mgn::sck::compute::in_ROI_ymin] = extractor0[ftr_ext::sck::extract::out_ROI_ymin];
@@ -302,7 +302,7 @@ int main(int argc, char** argv) {
     magnitude0[ftr_mgn::sck::compute::in_n_ROI] = lsl0[ccl::sck::apply::out_n_ROI];
 
     magnitude1[ftr_mgn::sck::compute::in_img] = video[vid2::sck::generate::out_img1];
-    magnitude1[ftr_mgn::sck::compute::in_labels] = lsl1[ccl::sck::apply::out_img];
+    magnitude1[ftr_mgn::sck::compute::in_labels] = lsl1[ccl::sck::apply::out_labels];
     magnitude1[ftr_mgn::sck::compute::in_ROI_xmin] = extractor1[ftr_ext::sck::extract::out_ROI_xmin];
     magnitude1[ftr_mgn::sck::compute::in_ROI_xmax] = extractor1[ftr_ext::sck::extract::out_ROI_xmax];
     magnitude1[ftr_mgn::sck::compute::in_ROI_ymin] = extractor1[ftr_ext::sck::extract::out_ROI_ymin];
@@ -311,7 +311,7 @@ int main(int argc, char** argv) {
     magnitude1[ftr_mgn::sck::compute::in_n_ROI] = lsl1[ccl::sck::apply::out_n_ROI];
 
     // Step 3 : seuillage hysteresis && filter surface
-    merger0[ftr_mrg::sck::merge::in_img1] = lsl0[ccl::sck::apply::out_img];
+    merger0[ftr_mrg::sck::merge::in_img1] = lsl0[ccl::sck::apply::out_labels];
     merger0[ftr_mrg::sck::merge::in_img2] = threshold_max0[thr::sck::apply::out_img];
     merger0[ftr_mrg::sck::merge::in_ROI_id] = extractor0[ftr_ext::sck::extract::out_ROI_id];
     merger0[ftr_mrg::sck::merge::in_ROI_xmin] = extractor0[ftr_ext::sck::extract::out_ROI_xmin];
@@ -326,7 +326,7 @@ int main(int argc, char** argv) {
     merger0[ftr_mrg::sck::merge::in_ROI_magnitude] = magnitude0[ftr_mgn::sck::compute::out_ROI_magnitude];
     merger0[ftr_mrg::sck::merge::in_n_ROI] = lsl0[ccl::sck::apply::out_n_ROI];
 
-    merger1[ftr_mrg::sck::merge::in_img1] = lsl1[ccl::sck::apply::out_img];
+    merger1[ftr_mrg::sck::merge::in_img1] = lsl1[ccl::sck::apply::out_labels];
     merger1[ftr_mrg::sck::merge::in_img2] = threshold_max1[thr::sck::apply::out_img];
     merger1[ftr_mrg::sck::merge::in_ROI_id] = extractor1[ftr_ext::sck::extract::out_ROI_id];
     merger1[ftr_mrg::sck::merge::in_ROI_xmin] = extractor1[ftr_ext::sck::extract::out_ROI_xmin];

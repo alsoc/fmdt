@@ -2,8 +2,8 @@
 
 #include "fmdt/CCL_LSL/CCL_LSL.hpp"
 
-uint32_t** CCL_LSL::get_out_img() {
-    return this->out_img;
+uint32_t** CCL_LSL::get_out_labels() {
+    return this->out_labels;
 }
 
 aff3ct::runtime::Task& CCL_LSL::operator[](const ccl::tsk t) {

@@ -33,8 +33,8 @@ void CCL_LSL_free_data(CCL_data_t* data) {
     free(data);
 }
 
-void LSL_segment_detection(uint32_t* line_er, uint32_t* line_rlc, uint32_t* line_ner, const uint8_t* line,
-                           const int j0, const int j1, uint32_t* line_cpy_out) {
+void _LSL_segment_detection(uint32_t* line_er, uint32_t* line_rlc, uint32_t* line_ner, const uint8_t* img_line,
+                            const int j0, const int j1) {
     uint32_t j_curr;
     uint32_t j_prev = 0;
     uint32_t f = 0; // Front detection
@@ -42,8 +42,7 @@ void LSL_segment_detection(uint32_t* line_er, uint32_t* line_rlc, uint32_t* line
     uint32_t er = 0;
 
     for (int j = j0; j <= j1; j++) {
-        j_curr = (uint32_t)line[j];
-        line_cpy_out[j] = j_curr;
+        j_curr = (uint32_t)img_line[j];
         f = j_curr ^ j_prev;        // Xor: Front detection
         line_rlc[er] = j - (b & 1); // Begin/End of segment
         b ^= f;                     // Xor: End of segment correction
@@ -111,15 +110,14 @@ void _LSL_equivalence_construction(uint32_t* data_eq, const uint32_t* line_rlc, 
 }
 
 uint32_t _CCL_LSL_apply(uint32_t** data_er, uint32_t** data_era, uint32_t** data_rlc, uint32_t* data_eq,
-                        uint32_t* data_ner, const uint8_t** img_in, uint32_t** img_out, const int i0, const int i1,
+                        uint32_t* data_ner, const uint8_t** img, uint32_t** labels, const int i0, const int i1,
                         const int j0, const int j1) {
-    // if ((void*)img_in != (void*)img_out)
-    //     for (int i = i0; i <= i1; i++)
-    //         memcpy(img_out[i] + j0, img_in[i] + j0, sizeof(uint8_t) * ((j1 - j0) + 1));
+    for (int i = i0; i <= i1; i++)
+        memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
 
     // Step #1 - Segment detection
     for (int i = i0; i <= i1; i++) {
-        LSL_segment_detection(data_er[i], data_rlc[i], &data_ner[i], img_in[i], j0, j1, img_out[i]);
+        _LSL_segment_detection(data_er[i], data_rlc[i], &data_ner[i], img[i], j0, j1);
     }
 
     // Step #2 - Equivalence construction
@@ -158,7 +156,7 @@ uint32_t _CCL_LSL_apply(uint32_t** data_er, uint32_t** data_era, uint32_t** data
             val = data_eq[val] + 1;
 
             for (int j = a; j <= b; j++) {
-                img_out[i][j] = (uint32_t)val;
+                labels[i][j] = (uint32_t)val;
             }
         }
     }
@@ -168,7 +166,7 @@ uint32_t _CCL_LSL_apply(uint32_t** data_er, uint32_t** data_era, uint32_t** data
     return trueN;
 }
 
-uint32_t CCL_LSL_apply(CCL_data_t* data, const uint8_t** img_in, uint32_t** img_out) {
-    return _CCL_LSL_apply(data->er, data->era, data->rlc, data->eq, data->ner, img_in, img_out, data->i0, data->i1,
+uint32_t CCL_LSL_apply(CCL_data_t* data, const uint8_t** img, uint32_t** labels) {
+    return _CCL_LSL_apply(data->er, data->era, data->rlc, data->eq, data->ner, img, labels, data->i0, data->i1,
                           data->j0, data->j1);
 }
