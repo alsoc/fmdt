@@ -6,12 +6,12 @@
 
 #include "fmdt/tools.h"
 #include "fmdt/defines.h"
-#include "fmdt/KPPV.h"
+#include "fmdt/KNN.h"
 
 #define INF32 0xFFFFFFFF
 
-KKPV_data_t* KPPV_alloc_and_init_data(int i0, int i1, int j0, int j1) {
-    KKPV_data_t* data = (KKPV_data_t*)malloc(sizeof(KKPV_data_t));
+KNN_data_t* KNN_alloc_and_init_data(int i0, int i1, int j0, int j1) {
+    KNN_data_t* data = (KNN_data_t*)malloc(sizeof(KNN_data_t));
     data->i0 = i0;
     data->i1 = i1;
     data->j0 = j0;
@@ -25,7 +25,7 @@ KKPV_data_t* KPPV_alloc_and_init_data(int i0, int i1, int j0, int j1) {
     return data;
 }
 
-void KPPV_free_data(KKPV_data_t* data) {
+void KNN_free_data(KNN_data_t* data) {
     free_ui32matrix(data->nearest, data->i0, data->i1, data->j0, data->j1);
     free_f32matrix(data->distances, data->i0, data->i1, data->j0, data->j1);
     free_ui32vector(data->conflicts, data->j0, data->j1);
@@ -58,9 +58,9 @@ void compute_distance(float** distances, const ROI_t* ROI_array0, const ROI_t* R
                       distances);
 }
 
-void KPPV_match1(const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, const float* ROI1_x,
-                 const float* ROI1_y, const size_t n_ROI1, uint32_t** data_nearest, float** distances,
-                 uint32_t* data_conflicts, const int k, const uint32_t max_dist_square) {
+void KNN_match1(const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, const float* ROI1_x,
+                const float* ROI1_y, const size_t n_ROI1, uint32_t** data_nearest, float** distances,
+                uint32_t* data_conflicts, const int k, const uint32_t max_dist_square) {
     int k_index, val, cpt = 0;
 
     // vecteur de conflits pour debug
@@ -101,8 +101,8 @@ void KPPV_match1(const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, 
     }
 }
 
-void KPPV_match2(const uint32_t** data_nearest, const float** distances, const uint16_t* ROI0_id, int32_t* ROI0_next_id,
-                 const size_t n_ROI0, const uint16_t* ROI1_id, int32_t* ROI1_prev_id, const size_t n_ROI1) {
+void KNN_match2(const uint32_t** data_nearest, const float** distances, const uint16_t* ROI0_id, int32_t* ROI0_next_id,
+                const size_t n_ROI0, const uint16_t* ROI1_id, int32_t* ROI1_prev_id, const size_t n_ROI1) {
     uint32_t rang = 1;
     for (size_t i = 0; i < n_ROI0; i++) {
     change:
@@ -130,30 +130,30 @@ void KPPV_match2(const uint32_t** data_nearest, const float** distances, const u
     }
 }
 
-void _KPPV_match(uint32_t** data_nearest, float** data_distances, uint32_t* data_conflicts, const uint16_t* ROI0_id,
-                 const float* ROI0_x, const float* ROI0_y, int32_t* ROI0_next_id, const size_t n_ROI0,
-                 const uint16_t* ROI1_id, const float* ROI1_x, const float* ROI1_y, int32_t* ROI1_prev_id, const
-                 size_t n_ROI1, const int k, const uint32_t max_dist_square) {
-    assert(n_ROI0 < MAX_KPPV_SIZE);
-    assert(n_ROI1 < MAX_KPPV_SIZE);
+void _KNN_match(uint32_t** data_nearest, float** data_distances, uint32_t* data_conflicts, const uint16_t* ROI0_id,
+                const float* ROI0_x, const float* ROI0_y, int32_t* ROI0_next_id, const size_t n_ROI0,
+                const uint16_t* ROI1_id, const float* ROI1_x, const float* ROI1_y, int32_t* ROI1_prev_id, const
+                size_t n_ROI1, const int k, const uint32_t max_dist_square) {
+    assert(n_ROI0 < MAX_KNN_SIZE);
+    assert(n_ROI1 < MAX_KNN_SIZE);
 
     memset(ROI0_next_id, 0, n_ROI0 * sizeof(int32_t));
     memset(ROI1_prev_id, 0, n_ROI1 * sizeof(int32_t));
 
-    KPPV_match1(ROI0_x, ROI0_y, n_ROI0, ROI1_x, ROI1_y, n_ROI1, data_nearest, data_distances, data_conflicts, k,
-                max_dist_square);
-    KPPV_match2((const uint32_t**)data_nearest, (const float**)data_distances, ROI0_id, ROI0_next_id, n_ROI0, ROI1_id,
-                ROI1_prev_id, n_ROI1);
+    KNN_match1(ROI0_x, ROI0_y, n_ROI0, ROI1_x, ROI1_y, n_ROI1, data_nearest, data_distances, data_conflicts, k,
+               max_dist_square);
+    KNN_match2((const uint32_t**)data_nearest, (const float**)data_distances, ROI0_id, ROI0_next_id, n_ROI0, ROI1_id,
+               ROI1_prev_id, n_ROI1);
 }
 
-void KPPV_match(KKPV_data_t* data, ROI_t* ROI_array0, ROI_t* ROI_array1, const int k, const uint32_t max_dist_square) {
-    _KPPV_match(data->nearest, data->distances, data->conflicts, ROI_array0->id, ROI_array0->x, ROI_array0->y,
-                ROI_array0->next_id, ROI_array0->_size, ROI_array1->id, ROI_array1->x, ROI_array1->y,
-                ROI_array1->prev_id, ROI_array1->_size, k, max_dist_square);
+void KNN_match(KNN_data_t* data, ROI_t* ROI_array0, ROI_t* ROI_array1, const int k, const uint32_t max_dist_square) {
+    _KNN_match(data->nearest, data->distances, data->conflicts, ROI_array0->id, ROI_array0->x, ROI_array0->y,
+               ROI_array0->next_id, ROI_array0->_size, ROI_array1->id, ROI_array1->x, ROI_array1->y,
+               ROI_array1->prev_id, ROI_array1->_size, k, max_dist_square);
 }
 
-void KPPV_save_asso(const char* filename, const uint32_t** data_nearest, const float** data_distances,
-                    ROI_t* ROI_array) {
+void KNN_save_asso(const char* filename, const uint32_t** data_nearest, const float** data_distances,
+                   ROI_t* ROI_array) {
     FILE* f = fopen(filename, "w");
     if (f == NULL) {
         fprintf(stderr, "(EE) error ouverture %s \n", filename);
@@ -185,7 +185,7 @@ void KPPV_save_asso(const char* filename, const uint32_t** data_nearest, const f
     fclose(f);
 }
 
-void KPPV_save_asso_VT(const char* filename, int nc0, ROI_t* ROI_array, int frame) {
+void KNN_save_asso_VT(const char* filename, int nc0, ROI_t* ROI_array, int frame) {
     FILE* f = fopen(filename, "a");
     if (f == NULL) {
         fprintf(stderr, "(EE) error ouverture %s \n", filename);
@@ -208,8 +208,8 @@ void KPPV_save_asso_VT(const char* filename, int nc0, ROI_t* ROI_array, int fram
     fclose(f);
 }
 
-void KPPV_conflicts_write(FILE* f, uint32_t* data_conflicts, uint32_t** data_nearest, float** data_distances,
-                          int n_asso, int n_conflict) {
+void KNN_conflicts_write(FILE* f, uint32_t* data_conflicts, uint32_t** data_nearest, float** data_distances,
+                         int n_asso, int n_conflict) {
     // tmp (le temps de mettre à jour n)
     int cpt = 0;
     for (int i = 0; i < n_conflict; i++) {
@@ -234,9 +234,9 @@ void KPPV_conflicts_write(FILE* f, uint32_t* data_conflicts, uint32_t** data_nea
     }
 }
 
-void _KPPV_asso_conflicts_write(FILE* f, const uint32_t** KPPV_data_nearest, const float** KPPV_data_distances,
-                                const uint16_t* ROI_id, const uint32_t* ROI_S, const float* ROI_dx, const float* ROI_dy,
-                                const float* ROI_error, const int32_t* ROI_next_id, const size_t n_ROI) {
+void _KNN_asso_conflicts_write(FILE* f, const uint32_t** KNN_data_nearest, const float** KNN_data_distances,
+                               const uint16_t* ROI_id, const uint32_t* ROI_S, const float* ROI_dx, const float* ROI_dy,
+                               const float* ROI_error, const int32_t* ROI_next_id, const size_t n_ROI) {
     // Asso
     int cpt = 0;
     for (size_t i = 0; i < n_ROI; i++) {
@@ -261,24 +261,24 @@ void _KPPV_asso_conflicts_write(FILE* f, const uint32_t** KPPV_data_nearest, con
         if (ROI_next_id[i]) {
             j = (size_t)(ROI_next_id[i] - 1);
             fprintf(f, "  %4u | %4u || %6.2f | %4d || %5.1f | %5.1f | %6.3f \n", ROI_id[i], ROI_next_id[i],
-                    KPPV_data_distances[i][j], KPPV_data_nearest[i][j], ROI_dx[i], ROI_dy[i], ROI_error[i]);
+                    KNN_data_distances[i][j], KNN_data_nearest[i][j], ROI_dx[i], ROI_dy[i], ROI_error[i]);
         }
     }
 
     // // Conflicts
     // cpt = 0;
     // for(int i = 0; i < n_conflict; i++){
-    //     if(KPPV_data_conflicts[i] != 1 && KPPV_data_conflicts[i] != 0)
+    //     if(KNN_data_conflicts[i] != 1 && KNN_data_conflicts[i] != 0)
     //         cpt++;
     // }
 
     // fprintf(f, "Conflicts\n%d\n", cpt);
 
     // for(int j = 1; j <= n_conflict; j++){
-    //     if (KPPV_data_conflicts[j] != 1 && KPPV_data_conflicts[j] != 0){
+    //     if (KNN_data_conflicts[j] != 1 && KNN_data_conflicts[j] != 0){
     //         fprintf(f, "conflit CC = %4d : ", j);
     //         for(int i = 0 ; i < n_ROI; i++){
-    //             if (KPPV_data_nearest[i][j] == 1 ){
+    //             if (KNN_data_nearest[i][j] == 1 ){
     //                 fprintf(f, "%4d\t", i);
     //             }
     //         }
@@ -287,8 +287,8 @@ void _KPPV_asso_conflicts_write(FILE* f, const uint32_t** KPPV_data_nearest, con
     // }
 }
 
-void KPPV_asso_conflicts_write(FILE* f, const KKPV_data_t* KPPV_data, const ROI_t* ROI_array) {
-    _KPPV_asso_conflicts_write(f, (const uint32_t**)KPPV_data->nearest, (const float**)KPPV_data->distances,
-                               ROI_array->id, ROI_array->S, ROI_array->dx, ROI_array->dy, ROI_array->error,
-                               ROI_array->next_id, ROI_array->_size);
+void KNN_asso_conflicts_write(FILE* f, const KNN_data_t* KNN_data, const ROI_t* ROI_array) {
+    _KNN_asso_conflicts_write(f, (const uint32_t**)KNN_data->nearest, (const float**)KNN_data->distances,
+                              ROI_array->id, ROI_array->S, ROI_array->dx, ROI_array->dy, ROI_array->error,
+                              ROI_array->next_id, ROI_array->_size);
 }

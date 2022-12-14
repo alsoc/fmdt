@@ -91,7 +91,7 @@ list(APPEND fmdt_targets_list fmdt-common-obj)
 if(FMDT_DETECT_EXE)
 	set(src_detect_common_files
 	    ${src_dir}/detect/CCL.c
-	    ${src_dir}/detect/KPPV.c
+	    ${src_dir}/detect/KNN.c
 	    ${src_dir}/detect/threshold.c)
 	list(APPEND fmdt_src_list ${src_detect_common_files})
 	add_library(fmdt-detect-common-obj OBJECT ${src_detect_common_files})

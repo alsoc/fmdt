@@ -8,13 +8,6 @@
 
 #include "fmdt/args.h"
 #include "fmdt/defines.h"
-#include "fmdt/CCL.h"
-#include "fmdt/tools.h"
-#include "fmdt/features.h"
-#include "fmdt/KPPV.h"
-#include "fmdt/threshold.h"
-#include "fmdt/tracking.h"
-#include "fmdt/video.h"
 #include "fmdt/macros.h"
 
 #include "fmdt/CCL_LSL/CCL_LSL.hpp"

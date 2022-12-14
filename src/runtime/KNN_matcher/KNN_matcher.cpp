@@ -1,4 +1,4 @@
-#include "fmdt/KPPV.h"
+#include "fmdt/KNN.h"
 #include "fmdt/tools.h"
 
 #include "fmdt/KNN_matcher/KNN_matcher.hpp"
@@ -51,19 +51,19 @@ KNN_matcher::KNN_matcher(const size_t i0, const int i1, const int j0, const int 
         tools_linear_2d_nrc_f32matrix((const float*)m_out_data_distances, knn.i0, knn.i1, knn.j0, knn.j1, 
                                        (const float**)knn.out_data_distances);     
 
-        _KPPV_match(knn.out_data_nearest,
-                    knn.out_data_distances,
-                    static_cast<uint32_t*>(t[ps_out_data_conflicts].get_dataptr()),
-                    static_cast<const uint16_t*>(t[ps_in_ROI0_id].get_dataptr()),
-                    static_cast<const float*>(t[ps_in_ROI0_x].get_dataptr()),
-                    static_cast<const float*>(t[ps_in_ROI0_y].get_dataptr()),
-                    static_cast<int32_t*>(t[ps_out_ROI0_next_id].get_dataptr()),
-                    n_ROI0,
-                    static_cast<const uint16_t*>(t[ps_in_ROI1_id].get_dataptr()),
-                    static_cast<const float*>(t[ps_in_ROI1_x].get_dataptr()),
-                    static_cast<const float*>(t[ps_in_ROI1_y].get_dataptr()),
-                    static_cast<int32_t*>(t[ps_out_ROI1_prev_id].get_dataptr()),
-                    n_ROI1, knn.k, knn.max_dist_square);
+        _KNN_match(knn.out_data_nearest,
+                   knn.out_data_distances,
+                   static_cast<uint32_t*>(t[ps_out_data_conflicts].get_dataptr()),
+                   static_cast<const uint16_t*>(t[ps_in_ROI0_id].get_dataptr()),
+                   static_cast<const float*>(t[ps_in_ROI0_x].get_dataptr()),
+                   static_cast<const float*>(t[ps_in_ROI0_y].get_dataptr()),
+                   static_cast<int32_t*>(t[ps_out_ROI0_next_id].get_dataptr()),
+                   n_ROI0,
+                   static_cast<const uint16_t*>(t[ps_in_ROI1_id].get_dataptr()),
+                   static_cast<const float*>(t[ps_in_ROI1_x].get_dataptr()),
+                   static_cast<const float*>(t[ps_in_ROI1_y].get_dataptr()),
+                   static_cast<int32_t*>(t[ps_out_ROI1_prev_id].get_dataptr()),
+                   n_ROI1, knn.k, knn.max_dist_square);
 
         return aff3ct::runtime::status_t::SUCCESS;
     });

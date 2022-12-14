@@ -9,7 +9,7 @@
 #include "fmdt/CCL.h"
 #include "fmdt/tools.h"
 #include "fmdt/features.h"
-#include "fmdt/KPPV.h"
+#include "fmdt/KNN.h"
 #include "fmdt/threshold.h"
 #include "fmdt/tracking.h"
 #include "fmdt/video.h"
@@ -265,7 +265,7 @@ int main(int argc, char** argv) {
     // --------------------------- //
 
     tracking_init_global_data();
-    KKPV_data_t* kppv_data = KPPV_alloc_and_init_data(0, MAX_KPPV_SIZE, 0, MAX_KPPV_SIZE);
+    KNN_data_t* knn_data = KNN_alloc_and_init_data(0, MAX_KNN_SIZE, 0, MAX_KNN_SIZE);
     features_init_ROI_array(ROI_array_tmp);
     features_init_ROI_array(ROI_array0);
     features_init_ROI_array(ROI_array1);
@@ -303,7 +303,7 @@ int main(int argc, char** argv) {
         features_shrink_ROI_array((const ROI_t*)ROI_array_tmp, ROI_array1);
 
         // Step 4: k-NN matching
-        KPPV_match(kppv_data, ROI_array0, ROI_array1, p_k, p_max_dist * p_max_dist);
+        KNN_match(knn_data, ROI_array0, ROI_array1, p_k, p_max_dist * p_max_dist);
 
         // Step 5: motion estimation
         double first_theta, first_tx, first_ty, first_mean_error, first_std_deviation;
@@ -337,7 +337,7 @@ int main(int argc, char** argv) {
             if (f) {
                 features_ROI0_ROI1_write(f, cur_fra, ROI_array0, ROI_array1, tracking_data->tracks);
                 fprintf(f, "#\n");
-                KPPV_asso_conflicts_write(f, kppv_data, ROI_array0);
+                KNN_asso_conflicts_write(f, knn_data, ROI_array0);
                 fprintf(f, "#\n");
                 features_motion_write(f, first_theta, first_tx, first_ty, first_mean_error, first_std_deviation, theta,
                                       tx, ty, mean_error, std_deviation);
@@ -404,7 +404,7 @@ int main(int argc, char** argv) {
     if (images)
         images_free(images);
     CCL_LSL_free_data(ccl_data);
-    KPPV_free_data(kppv_data);
+    KNN_free_data(knn_data);
     if (BB_array) {
         size_t vs = vector_size(BB_array);
         for (size_t i = 0; i < vs; i++)

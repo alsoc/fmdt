@@ -1,4 +1,4 @@
-#include "fmdt/KPPV.h"
+#include "fmdt/KNN.h"
 #include "fmdt/tools.h"
 
 #include "fmdt/Logger/Logger_KNN.hpp"
@@ -52,14 +52,14 @@ Logger_KNN::Logger_KNN(const std::string KNN_path, const size_t i0, const int i1
             snprintf(file_path, sizeof(file_path), "%s/%05u_%05u.txt", lgr_knn.KNN_path.c_str(), frame -1, frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
-            _KPPV_asso_conflicts_write(file, lgr_knn.in_data_nearest, lgr_knn.in_data_distances,
-                                       static_cast<const uint16_t*>(t[ps_in_ROI_id].get_dataptr()),
-                                       static_cast<const uint32_t*>(t[ps_in_ROI_S].get_dataptr()),
-                                       static_cast<const float*>(t[ps_in_ROI_dx].get_dataptr()),
-                                       static_cast<const float*>(t[ps_in_ROI_dy].get_dataptr()),
-                                       static_cast<const float*>(t[ps_in_ROI_error].get_dataptr()),
-                                       static_cast<const int32_t*>(t[ps_in_ROI_next_id].get_dataptr()),
-                                       *static_cast<const uint32_t*>(t[ps_in_n_ROI].get_dataptr()));
+            _KNN_asso_conflicts_write(file, lgr_knn.in_data_nearest, lgr_knn.in_data_distances,
+                                      static_cast<const uint16_t*>(t[ps_in_ROI_id].get_dataptr()),
+                                      static_cast<const uint32_t*>(t[ps_in_ROI_S].get_dataptr()),
+                                      static_cast<const float*>(t[ps_in_ROI_dx].get_dataptr()),
+                                      static_cast<const float*>(t[ps_in_ROI_dy].get_dataptr()),
+                                      static_cast<const float*>(t[ps_in_ROI_error].get_dataptr()),
+                                      static_cast<const int32_t*>(t[ps_in_ROI_next_id].get_dataptr()),
+                                      *static_cast<const uint32_t*>(t[ps_in_n_ROI].get_dataptr()));
             fclose(file);
         }
         return aff3ct::runtime::status_t::SUCCESS;
