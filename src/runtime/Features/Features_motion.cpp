@@ -42,8 +42,6 @@ Features_motion::Features_motion(const size_t max_ROI_size)
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         const uint32_t n_ROI0 = *static_cast<const uint32_t*>(t[ps_in_n_ROI0].get_dataptr());
 
-        std::fill_n(static_cast<uint8_t*>(t[ps_out_ROI0_is_moving].get_dataptr()), n_ROI0, 0);
-
         _features_compute_motion(static_cast<const int32_t*>(t[ps_in_ROI0_next_id].get_dataptr()),
                                  static_cast<const float*>(t[ps_in_ROI0_x].get_dataptr()),
                                  static_cast<const float*>(t[ps_in_ROI0_y].get_dataptr()),

@@ -48,9 +48,9 @@ void features_extract(const uint32_t** img, const int i0, const int i1, const in
                       ROI_t* ROI_array);
 // void features_filter_surface(ROI_t* ROI_array, uint32_t** img, uint32_t threshold_min, uint32_t threshold_max);
 void _features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_t** HI_out, const int i0, const int i1,
-                               const int j0, const int j1, const uint16_t* ROI_id, const uint16_t* ROI_xmin,
+                               const int j0, const int j1, uint16_t* ROI_id, const uint16_t* ROI_xmin,
                                const uint16_t* ROI_xmax, const uint16_t* ROI_ymin, const uint16_t* ROI_ymax,
-                               uint32_t* ROI_S, const size_t n_ROI, const uint32_t S_min, const uint32_t S_max);
+                               const uint32_t* ROI_S, const size_t n_ROI, const uint32_t S_min, const uint32_t S_max);
 void features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_t** HI_out, const int i0, const int i1,
                               const int j0, const int j1, ROI_t* ROI_array, const uint32_t S_min, const uint32_t S_max);
 size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* ROI_src_xmin,

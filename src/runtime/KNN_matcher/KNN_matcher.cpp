@@ -51,8 +51,6 @@ KNN_matcher::KNN_matcher(const size_t i0, const int i1, const int j0, const int 
         tools_linear_2d_nrc_f32matrix((const float*)m_out_data_distances, knn.i0, knn.i1, knn.j0, knn.j1, 
                                        (const float**)knn.out_data_distances);     
 
-        std::fill_n(static_cast<int32_t*>(t[ps_out_ROI0_next_id].get_dataptr()), n_ROI0, 0);
-        std::fill_n(static_cast<int32_t*>(t[ps_out_ROI1_prev_id].get_dataptr()), n_ROI1, 0);
         _KPPV_match(knn.out_data_nearest,
                     knn.out_data_distances,
                     static_cast<uint32_t*>(t[ps_out_data_conflicts].get_dataptr()),

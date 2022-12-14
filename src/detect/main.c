@@ -129,7 +129,7 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
-    // Parsing Arguments
+    // parse arguments
     const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
     const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
     const int p_fra_skip = args_find_int(argc, argv, "--fra-skip", def_p_fra_skip);
@@ -227,10 +227,10 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--ffmpeg-threads' has no effect when '--in-video' is a folder of images\n");
 
     // -------------------------- //
-    // -- INITIALISATION VIDEO -- //
+    // -- VIDEO INITIALISATION -- //
     // -------------------------- //
 
-    int i0, i1, j0, j1; // image dimension (y_min, y_max, x_min, x_max)
+    int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
     video_t* video = NULL;
     images_t* images = NULL;
     if (!tools_is_dir(p_in_video)) {
@@ -254,17 +254,15 @@ int main(int argc, char** argv) {
         BB_array = (vec_BB_t*)vector_create();
     tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_fra_star_min, p_fra_meteor_min), MAX_ROI_SIZE);
     int b = 1; // image border
-    uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // frame
-    uint8_t **SM_0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
-    uint8_t **SM_1 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
-    uint32_t **SM_2 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
-    uint8_t **SH_0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
-    uint8_t **SH_1 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
-    uint8_t **SH_2 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // hysteresis
+    uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // grayscale input image
+    uint8_t **IL = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold low)
+    uint8_t **IH = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold high)
+    uint32_t **L1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL)
+    uint8_t **L2 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL + hysteresis)
 
-    // -------------------------- //
-    // -- INITIALISATION MATRIX-- //
-    // -------------------------- //
+    // --------------------------- //
+    // -- MATRIX INITIALISATION -- //
+    // --------------------------- //
 
     tracking_init_global_data();
     KKPV_data_t* kppv_data = KPPV_alloc_and_init_data(0, MAX_KPPV_SIZE, 0, MAX_KPPV_SIZE);
@@ -274,15 +272,13 @@ int main(int argc, char** argv) {
     tracking_init_data(tracking_data);
     CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
     zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(SM_0, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(SM_1, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui32matrix(SM_2, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(SH_0, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(SH_1, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(SH_2, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
 
     // ----------------//
-    // -- TRAITEMENT --//
+    // -- PROCESSING --//
     // ----------------//
 
     printf("# The program is running...\n");
@@ -292,27 +288,24 @@ int main(int argc, char** argv) {
     while ((cur_fra = get_next_frame(video, images, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
-        // Step 1 : seuillage low/high
-        tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0, i1, j0, j1, SH_0);
-        tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0, i1, j0, j1, SM_0);
-        threshold_high((const uint8_t**)SM_0, SM_1, i0, i1, j0, j1, p_light_min);
-        threshold_high((const uint8_t**)SH_0, SH_1, i0, i1, j0, j1, p_light_max);
+        // Step 1: threshold low
+        threshold((const uint8_t**)I, IL, i0, i1, j0, j1, p_light_min);
 
-        // Step 2 : ECC/ACC
-        const int n_ROI = CCL_LSL_apply(ccl_data, (const uint8_t**)SM_1, SM_2);
-        features_extract((const uint32_t**)SM_2, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
-        features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)SM_2, ROI_array_tmp);
+        // Step 2: CCL/CCA
+        const int n_ROI = CCL_LSL_apply(ccl_data, (const uint8_t**)IL, L1);
+        features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
+        features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L1, ROI_array_tmp);
 
-        // Step 3 : seuillage hysteresis && filter surface
-        features_merge_HI_CCL_v2((const uint32_t**)SM_2, (const uint8_t**)SH_1, SH_2, i0, i1, j0, j1, ROI_array_tmp,
+        // Step 3: hysteresis threshold & surface filtering
+        threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_light_max);
+        features_merge_HI_CCL_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, ROI_array_tmp,
                                  p_surface_min, p_surface_max);
-        features_init_ROI_array(ROI_array1); // TODO: this is overkill, need to understand why we need to do that
         features_shrink_ROI_array((const ROI_t*)ROI_array_tmp, ROI_array1);
 
-        // Step 4 : mise en correspondance
+        // Step 4: k-NN matching
         KPPV_match(kppv_data, ROI_array0, ROI_array1, p_k, p_max_dist * p_max_dist);
 
-        // Step 5 : recalage
+        // Step 5: motion estimation
         double first_theta, first_tx, first_ty, first_mean_error, first_std_deviation;
         double theta, tx, ty, mean_error, std_deviation;
         features_compute_motion((const ROI_t*)ROI_array1, ROI_array0, &first_theta, &first_tx, &first_ty,
@@ -323,15 +316,15 @@ int main(int argc, char** argv) {
                          mean_error, std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min,
                          p_fra_meteor_min, p_fra_meteor_max, p_out_mag != NULL);
 
-        // Saving frames
+        // save frames (CCs)
         if (p_out_frames) {
             tools_create_folder(p_out_frames);
             char filename[1024];
             snprintf(filename, sizeof(filename), "%s/%05d.pgm", p_out_frames, cur_fra);
-            tools_save_frame_ui8matrix(filename, (const uint8_t**)SH_2, i0, i1, j0, j1);
+            tools_save_frame_ui8matrix(filename, (const uint8_t**)L2, i0, i1, j0, j1);
         }
 
-        // Saving stats
+        // save stats
         if (p_out_stats && n_frames) {
             tools_create_folder(p_out_stats);
             char filename[1024];
@@ -399,12 +392,10 @@ int main(int argc, char** argv) {
     // ----------
 
     free_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui8matrix(SM_0, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui8matrix(SM_1, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui32matrix(SM_2, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui8matrix(SH_0, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui8matrix(SH_1, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui8matrix(SH_2, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui8matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
     features_free_ROI_array(ROI_array_tmp);
     features_free_ROI_array(ROI_array0);
     features_free_ROI_array(ROI_array1);
