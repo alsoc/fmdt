@@ -51,10 +51,10 @@ If you are using a GNU or Clang compiler like, **it is advised to use the follow
 cmake .. -DFMDT_OPENCV_LINK=ON -DFMDT_AFF3CT_RUNTIME=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O3 -g" -DCMAKE_CXX_FLAGS="-Wall -funroll-loops -fstrict-aliasing -march=native"
 ```
 
+**Tips**: on Apple Silicon M1 CPUs and with Apple Clang, use `-mcpu=apple-m1` instead of `-march=native`.
+
 The previous command line will generate a Makefile in **release mode** (with debug information `-g`). It will produce optimized and ready for debug binaries.
 Moreover, OpenCV and AFF3CT libraries will be used during the compilation. It enables advanced features (see the [CMake Options](#cmake-options) section for more details about it).
-
-**Tips**: on Apple Silicon M1 CPUs and with Apple Clang, use `-mcpu=apple-m1` instead of `-march=native`.
 
 ### CMake Options
 

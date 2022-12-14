@@ -252,7 +252,7 @@ void _KNN_asso_conflicts_write(FILE* f, const uint32_t** KNN_data_nearest, const
         fprintf(f, "#    ROI ID   ||    Distance   ||          Error         \n");
         fprintf(f, "# ------------||---------------||------------------------\n");
         fprintf(f, "# -----|------||--------|------||-------|-------|--------\n");
-        fprintf(f, "#  t-1 |    t || pixels | k-nn ||    dx |    dy |      e \n");
+        fprintf(f, "#  t-1 |    t || pixels |    k ||    dx |    dy |      e \n");
         fprintf(f, "# -----|------||--------|------||-------|-------|--------\n");
     }
 

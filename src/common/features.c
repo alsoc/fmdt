@@ -793,13 +793,13 @@ void features_motion_write(FILE* f, const double first_theta, const double first
         snprintf(second_std_deviation_str, sizeof(second_std_deviation_str), "%2.5f", std_deviation);
 
     fprintf(f, "# Motion:\n");
-    fprintf(f, "# ----------------------------------------------------------||----------------------------------------------------------\n");
-    fprintf(f, "#     First motion estimation (with all associated ROI)     ||      Second motion estimation (exclude fastest ROI)      \n");
-    fprintf(f, "# ----------------------------------------------------------||----------------------------------------------------------\n");
-    fprintf(f, "# ----------||----------||----------||----------||----------||----------||----------||----------||----------||----------\n");
-    fprintf(f, "#     theta ||       tx ||       ty || mean err ||  std dev ||    theta ||       tx ||       ty || mean err ||  std dev \n");
-    fprintf(f, "# ----------||----------||----------||----------||----------||----------||----------||----------||----------||----------\n");
-    fprintf(f, "   %s || %s || %s || %s || %s || %s || %s || %s || %s || %s \n",
+    fprintf(f, "# ------------------------------------------------------||------------------------------------------------------\n");
+    fprintf(f, "#   First motion estimation (with all associated ROI)   ||    Second motion estimation (exclude fastest ROI)    \n");
+    fprintf(f, "# ------------------------------------------------------||------------------------------------------------------\n");
+    fprintf(f, "# ----------|----------|----------|----------|----------||----------|----------|----------|----------|----------\n");
+    fprintf(f, "#     theta |       tx |       ty | mean err |  std dev ||    theta |       tx |       ty | mean err |  std dev \n");
+    fprintf(f, "# ----------|----------|----------|----------|----------||----------|----------|----------|----------|----------\n");
+    fprintf(f, "   %s | %s | %s | %s | %s || %s | %s | %s | %s | %s \n",
             first_theta_str,  first_tx_str, first_ty_str, first_mean_error_str, first_std_deviation_str,
             second_theta_str, second_tx_str, second_ty_str, second_mean_error_str, second_std_deviation_str);
 }
@@ -814,11 +814,11 @@ void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id
                                const float* ROI1_x, const float* ROI1_y, const uint32_t* ROI1_magnitude,
                                const size_t n_ROI1, const vec_track_t track_array) {
     // stats
-    fprintf(f, "# Frame n°%05d (cur)\t", frame - 1);
+    fprintf(f, "# Frame n°%05d (t-1)\t", frame - 1);
     _features_ROI_write(f, frame - 1, ROI0_id, ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax, ROI0_S, ROI0_Sx, ROI0_Sy,
                         ROI0_x, ROI0_y, ROI0_magnitude, n_ROI0, track_array, 1);
 
-    fprintf(f, "#\n# Frame n°%05d (next)\t", frame);
+    fprintf(f, "#\n# Frame n°%05d (t)\t", frame);
     _features_ROI_write(f, frame, ROI1_id, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_S, ROI1_Sx, ROI1_Sy, ROI1_x,
                         ROI1_y, ROI1_magnitude, n_ROI1, track_array, 0);
 }
