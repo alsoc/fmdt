@@ -2,6 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 #include <assert.h>
+#include <math.h>
 #include <nrc2.h>
 
 #include "fmdt/tools.h"
@@ -251,7 +252,7 @@ void _KNN_asso_conflicts_write(FILE* f, const uint32_t** KNN_data_nearest, const
         fprintf(f, "#    ROI ID   ||    Distance   ||          Error         \n");
         fprintf(f, "# ------------||---------------||------------------------\n");
         fprintf(f, "# -----|------||--------|------||-------|-------|--------\n");
-        fprintf(f, "#  cur | next || pixels | k-nn ||    dx |    dy |      e \n");
+        fprintf(f, "#  t-1 |    t || pixels | k-nn ||    dx |    dy |      e \n");
         fprintf(f, "# -----|------||--------|------||-------|-------|--------\n");
     }
 
@@ -260,8 +261,9 @@ void _KNN_asso_conflicts_write(FILE* f, const uint32_t** KNN_data_nearest, const
             continue;
         if (ROI_next_id[i]) {
             j = (size_t)(ROI_next_id[i] - 1);
+            float distance = sqrtf(KNN_data_distances[i][j]);
             fprintf(f, "  %4u | %4u || %6.2f | %4d || %5.1f | %5.1f | %6.3f \n", ROI_id[i], ROI_next_id[i],
-                    KNN_data_distances[i][j], KNN_data_nearest[i][j], ROI_dx[i], ROI_dy[i], ROI_error[i]);
+                    distance, KNN_data_nearest[i][j], ROI_dx[i], ROI_dy[i], ROI_error[i]);
         }
     }
 

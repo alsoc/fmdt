@@ -3,7 +3,7 @@ TODO list:
       on `ffmpeg-io`)
 - [ ] Extrapolate more than one frame in tracking
 - [ ] Add CI tests with `fmdt-check` 
-- [ ] Tests column by column in the python script (new columns should not result 
+- [x] Tests column by column in the python script (new columns should not result 
       in a failure test)
 - [x] Use dynamic vector to store the tracks
 - [x] Enable read from images in `fmdt-visu`
