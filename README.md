@@ -4,24 +4,37 @@
 
 [1. Dependencies](#dependencies)  
 [2. Compilation with CMake](#compilation-with-cmake)  
+[2.1. CMake Options](#cmake-options)  
 [3. User Documentation](#user-documentation)  
 [3.1. Detection Executable](#detection-executable)  
 [3.2. Visualization Executable](#visualization-executable)  
 [3.3. Checking Executable](#checking-executable)  
 [3.4. Max-reduction Executable](#max-reduction-executable)  
-[3.5. Examples of use](#examples-of-use)  
-[3.6. Input and Output Text Formats](#input-and-output-text-formats)  
+[3.5. Video to Images Converter Executable](#video-to-images-converter-executable)  
+[3.6. Examples of use](#examples-of-use)  
+[3.7. Input and Output Text Formats](#input-and-output-text-formats)  
 [4. List of Contributors](#list-of-contributors)
 
 ## Dependencies
 
-This project use `ffmpeg-io`, `nrc2`, `c-vector` and `aff3ct-core` projects as submodules:
+This project uses `ffmpeg-io`, `nrc2`, `c-vector` and `aff3ct-core` projects as Git submodules, **you need to download them with the following command**:
 
 ```bash
 git submodule update --init --recursive
 ```
 
-If you want to enable text indications in generated videos/images (`--show-id` option), the `OpenCV` library is required.
+Note that `ffmpeg-io` requires the `ffmpeg` executable: **you need to install `ffmpeg` on your system** if you want to be able to read video files.
+In addition, if you want to enable text indications in generated videos/images (`--show-id` option), the `OpenCV` library is required.
+
+On Debian like systems you can easily install these packages with the `apt` package manager:
+```bash
+sudo apt install ffmpeg libopencv-dev
+```
+
+On macOS, we recommend you to use the `homebrew` package manager:
+```bash
+brew install ffmpeg opencv
+```
 
 ## Compilation with CMake
 
@@ -32,12 +45,18 @@ cmake ..
 make -j4
 ```
 
-Example of optimization flags:
+Note that the previous CMake command (`cmake ..`) will generate a Makefile without any compiler flag.
+If you are using a GNU or Clang compiler like, **it is advised to use the following CMake command line** instead:
 ```bash
-cmake .. -DCMAKE_BUILD_TYPE=Release -DCMAKE_C_FLAGS="-Wall -funroll-loops -fstrict-aliasing -march=native"
+cmake .. -DFMDT_OPENCV_LINK=ON -DFMDT_AFF3CT_RUNTIME=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O3 -g" -DCMAKE_CXX_FLAGS="-Wall -funroll-loops -fstrict-aliasing -march=native"
 ```
 
+The previous command line will generate a Makefile in **release mode** (with debug information `-g`). It will produce optimized and ready for debug binaries.
+Moreover, OpenCV and AFF3CT libraries will be used during the compilation. It enables advanced features (see the [CMake Options](#cmake-options) section for more details about it).
+
 **Tips**: on Apple Silicon M1 CPUs and with Apple Clang, use `-mcpu=apple-m1` instead of `-march=native`.
+
+### CMake Options
 
 The `CMake` file comes with several options:
  * `-DFMDT_DETECT_EXE`     [default=`ON`]  {possible:`ON`,`OFF`}: compile the detection chain executable.
@@ -154,7 +173,7 @@ The list of available arguments:
 | `--only-meteor`    | bool     | -           | No      | Show only meteors. |
 | `--ffmpeg-threads` | int      | 0           | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
 
-### Video to Images Converter
+### Video to Images Converter Executable
 
 The video to images converter program is located here: `./exe/fmdt-vid2img`.
 It's main interest is to directly work on images, thus removing the overhead of the source decoding (achieved by `ffmpeg`).
