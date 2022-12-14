@@ -50,7 +50,7 @@ int main(int argc, char** argv) {
     int def_p_video_loop = 1;
     int def_p_ffmpeg_threads = 0;
 
-    // Help
+    // help
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr,
                 "  --in-video          Path to video file or to a folder of PGM images                        [%s]\n",
@@ -288,30 +288,30 @@ int main(int argc, char** argv) {
     while ((cur_fra = get_next_frame(video, images, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
-        // Step 1: threshold low
+        // step 1: threshold low
         threshold((const uint8_t**)I, IL, i0, i1, j0, j1, p_light_min);
 
-        // Step 2: CCL/CCA
+        // step 2: CCL/CCA
         const int n_ROI = CCL_LSL_apply(ccl_data, (const uint8_t**)IL, L1);
         features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
         features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L1, ROI_array_tmp);
 
-        // Step 3: hysteresis threshold & surface filtering
+        // step 3: hysteresis threshold & surface filtering
         threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_light_max);
         features_merge_HI_CCL_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, ROI_array_tmp,
                                  p_surface_min, p_surface_max);
         features_shrink_ROI_array((const ROI_t*)ROI_array_tmp, ROI_array1);
 
-        // Step 4: k-NN matching
+        // step 4: k-NN matching
         KNN_match(knn_data, ROI_array0, ROI_array1, p_k, p_max_dist * p_max_dist);
 
-        // Step 5: motion estimation
+        // step 5: motion estimation
         double first_theta, first_tx, first_ty, first_mean_error, first_std_deviation;
         double theta, tx, ty, mean_error, std_deviation;
         features_compute_motion((const ROI_t*)ROI_array1, ROI_array0, &first_theta, &first_tx, &first_ty,
                                 &first_mean_error, &first_std_deviation, &theta, &tx, &ty, &mean_error, &std_deviation);
 
-        // Step 6: tracking
+        // step 6: tracking
         tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, &BB_array, cur_fra, theta, tx, ty,
                          mean_error, std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min,
                          p_fra_meteor_min, p_fra_meteor_max, p_out_mag != NULL);

@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     int def_p_video_loop = 1;
     int def_p_ffmpeg_threads = 0;
 
-    // Help
+    // help
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr,
                 "  --in-video          Path to video file                                                     [%s]\n",
@@ -142,7 +142,7 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
-    // Parsing Arguments
+    // parse arguments
     const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
     const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
     const int p_fra_skip = args_find_int(argc, argv, "--fra-skip", def_p_fra_skip);
@@ -254,7 +254,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--ffmpeg-threads' has no effect when '--in-video' is a folder of images\n");
 
     // -------------------------------- //
-    // -- INITIALISATION GLOBAL DATA -- //
+    // -- GLOBAL DATA INITIALISATION -- //
     // -------------------------------- //
 
     tracking_init_global_data();
@@ -396,17 +396,15 @@ int main(int argc, char** argv) {
         (*prb_ts_s2b)[aff3ct::module::prb::sck::probe::in] = (*ts_s2b)["exec::out"];
     }
 
-    // Step 1 : seuillage low/high
+    // step 1: threshold low
     threshold_min[thr::sck::apply::in_img] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-    threshold_max[thr::sck::apply::in_img] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
 
-    // Step 2 : ECC/ACC
+    // step 2: CCL/CCA
     lsl[ccl::sck::apply::in_img] = threshold_min[thr::sck::apply::out_img];
-
     extractor[ftr_ext::sck::extract::in_img] = lsl[ccl::sck::apply::out_labels];
     extractor[ftr_ext::sck::extract::in_n_ROI] = lsl[ccl::sck::apply::out_n_ROI];
 
-    // Step 2.5 : calcul de la magnitude pour chaque ROI
+    // step 2.5 : compute magnitude for each ROI
     magnitude[ftr_mgn::sck::compute::in_img] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
     magnitude[ftr_mgn::sck::compute::in_labels] = lsl[ccl::sck::apply::out_labels];
     magnitude[ftr_mgn::sck::compute::in_ROI_xmin] = extractor[ftr_ext::sck::extract::out_ROI_xmin];
@@ -416,7 +414,8 @@ int main(int argc, char** argv) {
     magnitude[ftr_mgn::sck::compute::in_ROI_S] = extractor[ftr_ext::sck::extract::out_ROI_S];
     magnitude[ftr_mgn::sck::compute::in_n_ROI] = lsl[ccl::sck::apply::out_n_ROI];
 
-    // Step 3 : seuillage hysteresis && filter surface
+    // step 3: hysteresis threshold & surface filtering
+    threshold_max[thr::sck::apply::in_img] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
     merger[ftr_mrg::sck::merge::in_img1] = lsl[ccl::sck::apply::out_labels];
     merger[ftr_mrg::sck::merge::in_img2] = threshold_max[thr::sck::apply::out_img];
     merger[ftr_mrg::sck::merge::in_ROI_id] = extractor[ftr_ext::sck::extract::out_ROI_id];
@@ -438,7 +437,7 @@ int main(int argc, char** argv) {
         (*prb_ts_s3b)[aff3ct::module::prb::tsk::probe] = (*prb_ts_s2e)[aff3ct::module::prb::sck::probe::status];
     }
 
-    // Step 3.5 : delais => caractéristiques des ROIs à t - 1
+    // step 3.5 : delayer => save t - 1 ROI statistics
     delayer_ROI_id[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
     delayer_ROI_xmin[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
     delayer_ROI_xmax[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
@@ -452,7 +451,7 @@ int main(int argc, char** argv) {
     delayer_ROI_magnitude[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_magnitude];
     delayer_n_ROI[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_ROI_id];
 
-    // Step 4 : mise en correspondance
+    // step 4: k-NN matching
     matcher[knn::sck::match::in_ROI0_id] = delayer_ROI_id[aff3ct::module::dly::sck::produce::out];
     matcher[knn::sck::match::in_ROI0_x] = delayer_ROI_x[aff3ct::module::dly::sck::produce::out];
     matcher[knn::sck::match::in_ROI0_y] = delayer_ROI_y[aff3ct::module::dly::sck::produce::out];
@@ -462,7 +461,7 @@ int main(int argc, char** argv) {
     matcher[knn::sck::match::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
     matcher[knn::sck::match::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
 
-    // Step 5 : recalage
+    // step 5: motion estimation
     motion[ftr_mtn::sck::compute::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
     motion[ftr_mtn::sck::compute::in_ROI0_x] = delayer_ROI_x[aff3ct::module::dly::sck::produce::out];
     motion[ftr_mtn::sck::compute::in_ROI0_y] = delayer_ROI_y[aff3ct::module::dly::sck::produce::out];
@@ -470,7 +469,7 @@ int main(int argc, char** argv) {
     motion[ftr_mtn::sck::compute::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
     motion[ftr_mtn::sck::compute::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
 
-    // Step 6 : tracking
+    // step 6 : tracking
     tracking[trk::sck::perform::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
     tracking[trk::sck::perform::in_ROI0_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
     tracking[trk::sck::perform::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
@@ -574,9 +573,9 @@ int main(int argc, char** argv) {
             (*prb_ts_s3e)[aff3ct::module::prb::tsk::probe] = (*prb_thr_time)[aff3ct::module::prb::sck::probe_noin::status];
     }
 
-    // --------------------- //
-    // -- CREATE SEQUENCE -- //
-    // --------------------- //
+    // --------------------------------- //
+    // -- CREATE SEQUENCE OR PIPELINE -- //
+    // --------------------------------- //
 
     // determine the first task in the tasks graph
     aff3ct::runtime::Task* first_task = nullptr;
@@ -733,9 +732,9 @@ int main(int argc, char** argv) {
     std::ofstream fs("runtime_dag.dot");
     sequence_or_pipeline.export_dot(fs);
 
-    // ---------------------- //
-    // -- EXECUTE SEQUENCE -- //
-    // ---------------------- //
+    // ---------------------------------- //
+    // -- EXECUTE SEQUENCE OR PIPELINE -- //
+    // ---------------------------------- //
 
     std::chrono::time_point<std::chrono::steady_clock> t_start;
     unsigned n_frames = 0;
