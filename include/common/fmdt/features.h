@@ -4,6 +4,9 @@
 #include <stddef.h>
 #include <stdio.h>
 
+#define MAX_ROI_SIZE_BEFORE_SHRINK 50000
+#define MAX_ROI_SIZE 400
+
 enum obj_e { UNKNOWN = 0, METEOR, STAR, NOISE, N_OBJECTS };
 
 typedef struct {

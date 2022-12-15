@@ -3,7 +3,6 @@
 #include <string.h>
 #include <nrc2.h>
 
-#include "fmdt/defines.h"
 #include "fmdt/CCL.h"
 
 CCL_data_t* CCL_LSL_alloc_and_init_data(int i0, int i1, int j0, int j1) {
@@ -160,8 +159,6 @@ uint32_t _CCL_LSL_apply(uint32_t** data_er, uint32_t** data_era, uint32_t** data
             }
         }
     }
-
-    assert(trueN < MAX_ROI_SIZE);
 
     return trueN;
 }

@@ -7,7 +7,6 @@
 
 #include "fmdt/macros.h"
 #include "fmdt/args.h"
-#include "fmdt/defines.h"
 #include "fmdt/tools.h"
 #include "fmdt/tracking.h"
 #include "fmdt/validation.h"

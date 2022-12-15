@@ -3,7 +3,6 @@
 #include <stdlib.h>
 
 #include "fmdt/args.h"
-#include "fmdt/defines.h"
 #include "fmdt/tracking.h"
 #include "fmdt/validation.h"
 #include "vec.h"

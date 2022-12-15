@@ -287,6 +287,7 @@ size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* RO
     size_t cpt = 0;
     for (size_t i = 0; i < n_ROI_src; i++) {
         if (ROI_src_id[i]) {
+            assert(cpt < MAX_ROI_SIZE);
             ROI_dest_id[cpt] = cpt + 1;
             ROI_dest_xmin[cpt] = ROI_src_xmin[i];
             ROI_dest_xmax[cpt] = ROI_src_xmax[i];

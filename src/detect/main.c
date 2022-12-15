@@ -5,7 +5,6 @@
 #include <nrc2.h>
 
 #include "fmdt/args.h"
-#include "fmdt/defines.h"
 #include "fmdt/CCL.h"
 #include "fmdt/tools.h"
 #include "fmdt/features.h"
@@ -246,7 +245,7 @@ int main(int argc, char** argv) {
     // -- ALLOCATION -- //
     // ---------------- //
 
-    ROI_t* ROI_array_tmp = features_alloc_ROI_array(MAX_ROI_SIZE);
+    ROI_t* ROI_array_tmp = features_alloc_ROI_array(MAX_ROI_SIZE_BEFORE_SHRINK);
     ROI_t* ROI_array0 = features_alloc_ROI_array(MAX_ROI_SIZE);
     ROI_t* ROI_array1 = features_alloc_ROI_array(MAX_ROI_SIZE);
     vec_BB_t* BB_array = NULL;
@@ -265,7 +264,7 @@ int main(int argc, char** argv) {
     // --------------------------- //
 
     tracking_init_global_data();
-    KNN_data_t* knn_data = KNN_alloc_and_init_data(0, MAX_KNN_SIZE, 0, MAX_KNN_SIZE);
+    KNN_data_t* knn_data = KNN_alloc_and_init_data(0, MAX_ROI_SIZE, 0, MAX_ROI_SIZE);
     features_init_ROI_array(ROI_array_tmp);
     features_init_ROI_array(ROI_array0);
     features_init_ROI_array(ROI_array1);

@@ -19,13 +19,15 @@ protected:
     const int i0, i1, j0, j1;
     const int b;
     const int S_min, S_max;
-    const size_t max_ROI_size;
+    const size_t max_in_ROI_size;
+    const size_t max_out_ROI_size;
     const uint32_t** in_img1;
     const uint8_t** in_img2;
     uint8_t** out_img;
+    uint16_t* tmp_in_ROI_id;
 public:
     Features_merger(const int i0, const int i1, const int j0, const int j1, const int b, const uint32_t S_min,
-                    const uint32_t S_max, const size_t max_ROI_size);
+                    const uint32_t S_max, const size_t max_in_ROI_size, const size_t max_out_ROI_size);
     virtual ~Features_merger();
     virtual Features_merger* clone() const;
     inline uint8_t** get_out_img();

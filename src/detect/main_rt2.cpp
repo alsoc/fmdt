@@ -7,7 +7,6 @@
 #include <algorithm>
 
 #include "fmdt/args.h"
-#include "fmdt/defines.h"
 #include "fmdt/macros.h"
 
 #include "fmdt/CCL_LSL/CCL_LSL.hpp"
@@ -240,11 +239,11 @@ int main(int argc, char** argv) {
     threshold_max0.set_custom_name("Thr0<max>");
     CCL_LSL lsl0(i0, i1, j0, j1, b);
     lsl0.set_custom_name("CCL_LSL0");
-    Features_extractor extractor0(i0, i1, j0, j1, b, MAX_ROI_SIZE);
+    Features_extractor extractor0(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     extractor0.set_custom_name("Extractor0");
-    Features_magnitude magnitude0(i0, i1, j0, j1, b, MAX_ROI_SIZE);
+    Features_magnitude magnitude0(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     magnitude0.set_custom_name("Magnitude0");
-    Features_merger merger0(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE);
+    Features_merger merger0(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
     merger0.set_custom_name("Merger0");
 
     Threshold threshold_min1(i0, i1, j0, j1, b, p_light_min);
@@ -253,11 +252,11 @@ int main(int argc, char** argv) {
     threshold_max1.set_custom_name("Thr1<max>");
     CCL_LSL lsl1(i0, i1, j0, j1, b);
     lsl1.set_custom_name("CCL_LSL1");
-    Features_extractor extractor1(i0, i1, j0, j1, b, MAX_ROI_SIZE);
+    Features_extractor extractor1(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     extractor1.set_custom_name("Extractor1");
     Features_magnitude magnitude1(i0, i1, j0, j1, b, MAX_ROI_SIZE);
     magnitude1.set_custom_name("Magnitude1");
-    Features_merger merger1(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE);
+    Features_merger merger1(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
     merger1.set_custom_name("Merger1");
 
     KNN_matcher matcher(i0, i1, j0, j1, p_k, p_max_dist, MAX_ROI_SIZE);

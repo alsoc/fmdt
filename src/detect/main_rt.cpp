@@ -9,7 +9,6 @@
 #include <aff3ct-core.hpp>
 
 #include "fmdt/args.h"
-#include "fmdt/defines.h"
 #include "fmdt/tools.h"
 #include "fmdt/macros.h"
 
@@ -288,11 +287,11 @@ int main(int argc, char** argv) {
     threshold_min.set_custom_name("Thr<min>");
     threshold_max.set_custom_name("Thr<max>");
     CCL_LSL lsl(i0, i1, j0, j1, b);
-    Features_extractor extractor(i0, i1, j0, j1, b, MAX_ROI_SIZE);
+    Features_extractor extractor(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     extractor.set_custom_name("Extractor");
-    Features_magnitude magnitude(i0, i1, j0, j1, b, MAX_ROI_SIZE);
+    Features_magnitude magnitude(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     magnitude.set_custom_name("Magnitude");
-    Features_merger merger(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE);
+    Features_merger merger(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
     merger.set_custom_name("Merger");
     KNN_matcher matcher(i0, i1, j0, j1, p_k, p_max_dist, MAX_ROI_SIZE);
     Features_motion motion(MAX_ROI_SIZE);

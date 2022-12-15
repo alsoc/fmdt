@@ -6,7 +6,6 @@
 #include <nrc2.h>
 
 #include "fmdt/tools.h"
-#include "fmdt/defines.h"
 #include "fmdt/KNN.h"
 
 KNN_data_t* KNN_alloc_and_init_data(int i0, int i1, int j0, int j1) {
@@ -136,9 +135,6 @@ void _KNN_match(uint32_t** data_nearest, float** data_distances, uint32_t* data_
                 const float* ROI0_x, const float* ROI0_y, int32_t* ROI0_next_id, const size_t n_ROI0,
                 const uint16_t* ROI1_id, const float* ROI1_x, const float* ROI1_y, int32_t* ROI1_prev_id, const
                 size_t n_ROI1, const int k, const uint32_t max_dist_square) {
-    assert(n_ROI0 < MAX_KNN_SIZE);
-    assert(n_ROI1 < MAX_KNN_SIZE);
-
     memset(ROI0_next_id, 0, n_ROI0 * sizeof(int32_t));
     memset(ROI1_prev_id, 0, n_ROI1 * sizeof(int32_t));
 

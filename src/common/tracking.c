@@ -4,7 +4,6 @@
 #include <stdlib.h>
 #include <string.h>
 
-#include "fmdt/defines.h"
 #include "fmdt/tools.h"
 #include "fmdt/macros.h"
 #include "fmdt/tracking.h"

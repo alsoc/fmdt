@@ -5,7 +5,6 @@
 #include <nrc2.h>
 
 #include "fmdt/args.h"
-#include "fmdt/defines.h"
 #include "fmdt/tools.h"
 #include "fmdt/video.h"
 
