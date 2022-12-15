@@ -106,7 +106,7 @@ if(FMDT_DETECT_EXE)
 		set(src_detectrt_common_files
 		    ${src_dir}/runtime/CCL_LSL/CCL_LSL.cpp
 		    ${src_dir}/runtime/Features/Features_extractor.cpp
-		    ${src_dir}/runtime/Features/Features_merger.cpp
+		    ${src_dir}/runtime/Features/Features_merger_CCL_HI.cpp
 		    ${src_dir}/runtime/Features/Features_motion.cpp
 		    ${src_dir}/runtime/Features/Features_magnitude.cpp
 		    ${src_dir}/runtime/KNN_matcher/KNN_matcher.cpp

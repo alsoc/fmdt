@@ -188,13 +188,14 @@ void features_extract(const uint32_t** img, const int i0, const int i1, const in
                       ROI_array->_size);
 }
 
-void _features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_t** HI_out, const int i0, const int i1,
-                               const int j0, const int j1, uint16_t* ROI_id, const uint16_t* ROI_xmin,
+void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
+                               const int i1, const int j0, const int j1, uint16_t* ROI_id, const uint16_t* ROI_xmin,
                                const uint16_t* ROI_xmax, const uint16_t* ROI_ymin, const uint16_t* ROI_ymax,
                                const uint32_t* ROI_S, const size_t n_ROI, const uint32_t S_min, const uint32_t S_max) {
-    if ((void*)HI_in != (void*)HI_out)
+    if ((void*)img_HI != (void*)out_labels)
         for (int i = i0; i <= i1; i++)
-            memcpy(HI_out[i] + j0, HI_in[i] + j0, sizeof(uint8_t) * ((j1 - j0) + 1));
+            for (int j = j0; j <= j1; j++)
+                out_labels[i][j] = (uint32_t)img_HI[i][j];
 
     int x0, x1, y0, y1, id;
     for (size_t i = 0; i < n_ROI; i++) {
@@ -206,22 +207,21 @@ void _features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_
             y1 = ROI_xmax[i];
             if (S_min > ROI_S[i] || ROI_S[i] > S_max) {
                 ROI_id[i] = 0;
-                // JUSTE POUR DEBUG (Affichage frames)
                 for (int k = x0; k <= x1; k++) {
                     for (int l = y0; l <= y1; l++) {
-                        if ((uint32_t)M[k][l] == (uint32_t)id)
-                            HI_out[k][l] = (uint8_t)0;
+                        if ((uint32_t)in_labels[k][l] == (uint32_t)id)
+                            out_labels[k][l] = 0;
                     }
                 }
                 continue;
             }
             for (int k = x0; k <= x1; k++) {
                 for (int l = y0; l <= y1; l++) {
-                    if (HI_out[k][l]) {
+                    if (out_labels[k][l]) {
                         for (k = x0; k <= x1; k++) {
                             for (l = y0; l <= y1; l++) {
-                                if ((uint32_t)M[k][l] == (uint32_t)id) {
-                                    HI_out[k][l] = (uint8_t)MAX(MIN(i + 1, 255), 80);
+                                if ((uint32_t)in_labels[k][l] == (uint32_t)id) {
+                                    out_labels[k][l] = i + 1;
                                 }
                             }
                         }
@@ -235,11 +235,13 @@ void _features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_
     }
 }
 
-void features_merge_HI_CCL_v2(const uint32_t** M, const uint8_t** HI_in, uint8_t** HI_out, const int i0, const int i1,
-                              const int j0, const int j1, ROI_t* ROI_array, const uint32_t S_min, const uint32_t S_max)
+void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
+                              const int i1, const int j0, const int j1, ROI_t* ROI_array, const uint32_t S_min,
+                              const uint32_t S_max)
 {
-    _features_merge_HI_CCL_v2(M, HI_in, HI_out, i0,i1, j0, j1, ROI_array->id, ROI_array->xmin, ROI_array->xmax,
-                              ROI_array->ymin, ROI_array->ymax, ROI_array->S, ROI_array->_size, S_min, S_max);
+    _features_merge_CCL_HI_v2(in_labels, img_HI, out_labels, i0,i1, j0, j1, ROI_array->id, ROI_array->xmin,
+                              ROI_array->xmax, ROI_array->ymin, ROI_array->ymax, ROI_array->S, ROI_array->_size, S_min,
+                              S_max);
 }
 
 void features_filter_surface(ROI_t* ROI_array, uint32_t** img, uint32_t threshold_min, uint32_t threshold_max) {

@@ -6,7 +6,7 @@
 namespace lgr_fra {
     enum class tsk : size_t { write, SIZE };
     namespace sck {
-        enum class write : size_t { in_img, in_frame, status };
+        enum class write : size_t { in_labels, in_frame, status };
     }
 }
 
@@ -18,7 +18,8 @@ protected:
     const int j0;
     const int j1;
     const int b;
-    const uint8_t** in_img;
+    const uint32_t** in_labels;
+    uint8_t** img_tmp;
 public:
     Logger_frame(const std::string frames_path, const int i0, const int i1, const int j0, const int j1, const int b);
     virtual ~Logger_frame();

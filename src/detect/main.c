@@ -257,7 +257,11 @@ int main(int argc, char** argv) {
     uint8_t **IL = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold low)
     uint8_t **IH = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold high)
     uint32_t **L1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL)
-    uint8_t **L2 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL + hysteresis)
+    uint32_t **L2 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL + hysteresis)
+    uint8_t **img_tmp = NULL;
+    if (p_out_frames)
+        img_tmp = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // tmp file to avoid multiple allocations when writing L2
+                                                             // into a file
 
     // --------------------------- //
     // -- MATRIX INITIALISATION -- //
@@ -274,7 +278,7 @@ int main(int argc, char** argv) {
     zero_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui8matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
 
     // ----------------//
     // -- PROCESSING --//
@@ -297,7 +301,7 @@ int main(int argc, char** argv) {
 
         // step 3: hysteresis threshold & surface filtering
         threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_light_max);
-        features_merge_HI_CCL_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, ROI_array_tmp,
+        features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, ROI_array_tmp,
                                  p_surface_min, p_surface_max);
         features_shrink_ROI_array((const ROI_t*)ROI_array_tmp, ROI_array1);
 
@@ -320,7 +324,7 @@ int main(int argc, char** argv) {
             tools_create_folder(p_out_frames);
             char filename[1024];
             snprintf(filename, sizeof(filename), "%s/%05d.pgm", p_out_frames, cur_fra);
-            tools_save_frame_ui8matrix(filename, (const uint8_t**)L2, i0, i1, j0, j1);
+            _tools_save_frame_ui32matrix(filename, (const uint32_t**)L2, i0, i1, j0, j1, img_tmp);
         }
 
         // save stats
@@ -395,7 +399,9 @@ int main(int argc, char** argv) {
     free_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui8matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
+    if (img_tmp)
+        free_ui8matrix(img_tmp, i0 - b, i1 + b, j0 - b, j1 + b);
     features_free_ROI_array(ROI_array_tmp);
     features_free_ROI_array(ROI_array0);
     features_free_ROI_array(ROI_array1);

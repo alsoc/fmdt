@@ -14,7 +14,7 @@
 
 #include "fmdt/CCL_LSL/CCL_LSL.hpp"
 #include "fmdt/Features/Features_extractor.hpp"
-#include "fmdt/Features/Features_merger.hpp"
+#include "fmdt/Features/Features_merger_CCL_HI.hpp"
 #include "fmdt/Features/Features_motion.hpp"
 #include "fmdt/Features/Features_magnitude.hpp"
 #include "fmdt/KNN_matcher/KNN_matcher.hpp"
@@ -291,7 +291,7 @@ int main(int argc, char** argv) {
     extractor.set_custom_name("Extractor");
     Features_magnitude magnitude(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     magnitude.set_custom_name("Magnitude");
-    Features_merger merger(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
+    Features_merger_CCL_HI merger(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
     merger.set_custom_name("Merger");
     KNN_matcher matcher(i0, i1, j0, j1, p_k, p_max_dist, MAX_ROI_SIZE);
     Features_motion motion(MAX_ROI_SIZE);
@@ -415,8 +415,8 @@ int main(int argc, char** argv) {
 
     // step 3: hysteresis threshold & surface filtering
     threshold_max[thr::sck::apply::in_img] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-    merger[ftr_mrg::sck::merge::in_img1] = lsl[ccl::sck::apply::out_labels];
-    merger[ftr_mrg::sck::merge::in_img2] = threshold_max[thr::sck::apply::out_img];
+    merger[ftr_mrg::sck::merge::in_labels] = lsl[ccl::sck::apply::out_labels];
+    merger[ftr_mrg::sck::merge::in_img_HI] = threshold_max[thr::sck::apply::out_img];
     merger[ftr_mrg::sck::merge::in_ROI_id] = extractor[ftr_ext::sck::extract::out_ROI_id];
     merger[ftr_mrg::sck::merge::in_ROI_xmin] = extractor[ftr_ext::sck::extract::out_ROI_xmin];
     merger[ftr_mrg::sck::merge::in_ROI_xmax] = extractor[ftr_ext::sck::extract::out_ROI_xmax];
@@ -557,7 +557,7 @@ int main(int argc, char** argv) {
     }
 
     if (p_out_frames) {
-        log_frame[lgr_fra::sck::write::in_img] = merger[ftr_mrg::sck::merge::out_img];
+        log_frame[lgr_fra::sck::write::in_labels] = merger[ftr_mrg::sck::merge::out_labels];
         log_frame[lgr_fra::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
     }
 

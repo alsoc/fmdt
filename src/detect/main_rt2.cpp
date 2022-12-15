@@ -11,7 +11,7 @@
 
 #include "fmdt/CCL_LSL/CCL_LSL.hpp"
 #include "fmdt/Features/Features_extractor.hpp"
-#include "fmdt/Features/Features_merger.hpp"
+#include "fmdt/Features/Features_merger_CCL_HI.hpp"
 #include "fmdt/Features/Features_motion.hpp"
 #include "fmdt/Features/Features_magnitude.hpp"
 #include "fmdt/KNN_matcher/KNN_matcher.hpp"
@@ -243,7 +243,7 @@ int main(int argc, char** argv) {
     extractor0.set_custom_name("Extractor0");
     Features_magnitude magnitude0(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     magnitude0.set_custom_name("Magnitude0");
-    Features_merger merger0(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
+    Features_merger_CCL_HI merger0(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
     merger0.set_custom_name("Merger0");
 
     Threshold threshold_min1(i0, i1, j0, j1, b, p_light_min);
@@ -254,9 +254,9 @@ int main(int argc, char** argv) {
     lsl1.set_custom_name("CCL_LSL1");
     Features_extractor extractor1(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     extractor1.set_custom_name("Extractor1");
-    Features_magnitude magnitude1(i0, i1, j0, j1, b, MAX_ROI_SIZE);
+    Features_magnitude magnitude1(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     magnitude1.set_custom_name("Magnitude1");
-    Features_merger merger1(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
+    Features_merger_CCL_HI merger1(i0, i1, j0, j1, b, p_surface_min, p_surface_max, MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
     merger1.set_custom_name("Merger1");
 
     KNN_matcher matcher(i0, i1, j0, j1, p_k, p_max_dist, MAX_ROI_SIZE);
@@ -310,8 +310,8 @@ int main(int argc, char** argv) {
     magnitude1[ftr_mgn::sck::compute::in_n_ROI] = lsl1[ccl::sck::apply::out_n_ROI];
 
     // Step 3 : seuillage hysteresis && filter surface
-    merger0[ftr_mrg::sck::merge::in_img1] = lsl0[ccl::sck::apply::out_labels];
-    merger0[ftr_mrg::sck::merge::in_img2] = threshold_max0[thr::sck::apply::out_img];
+    merger0[ftr_mrg::sck::merge::in_labels] = lsl0[ccl::sck::apply::out_labels];
+    merger0[ftr_mrg::sck::merge::in_img_HI] = threshold_max0[thr::sck::apply::out_img];
     merger0[ftr_mrg::sck::merge::in_ROI_id] = extractor0[ftr_ext::sck::extract::out_ROI_id];
     merger0[ftr_mrg::sck::merge::in_ROI_xmin] = extractor0[ftr_ext::sck::extract::out_ROI_xmin];
     merger0[ftr_mrg::sck::merge::in_ROI_xmax] = extractor0[ftr_ext::sck::extract::out_ROI_xmax];
@@ -325,8 +325,8 @@ int main(int argc, char** argv) {
     merger0[ftr_mrg::sck::merge::in_ROI_magnitude] = magnitude0[ftr_mgn::sck::compute::out_ROI_magnitude];
     merger0[ftr_mrg::sck::merge::in_n_ROI] = lsl0[ccl::sck::apply::out_n_ROI];
 
-    merger1[ftr_mrg::sck::merge::in_img1] = lsl1[ccl::sck::apply::out_labels];
-    merger1[ftr_mrg::sck::merge::in_img2] = threshold_max1[thr::sck::apply::out_img];
+    merger1[ftr_mrg::sck::merge::in_labels] = lsl1[ccl::sck::apply::out_labels];
+    merger1[ftr_mrg::sck::merge::in_img_HI] = threshold_max1[thr::sck::apply::out_img];
     merger1[ftr_mrg::sck::merge::in_ROI_id] = extractor1[ftr_ext::sck::extract::out_ROI_id];
     merger1[ftr_mrg::sck::merge::in_ROI_xmin] = extractor1[ftr_ext::sck::extract::out_ROI_xmin];
     merger1[ftr_mrg::sck::merge::in_ROI_xmax] = extractor1[ftr_ext::sck::extract::out_ROI_xmax];
@@ -379,8 +379,8 @@ int main(int argc, char** argv) {
     tracking[trk::sck::perform::in_std_deviation] = motion[ftr_mtn::sck::compute::out_std_deviation];
 
     if (p_out_frames) {
-        log_frame[lgr_fra::sck::write::in_img] =  merger1[ftr_mrg::sck::merge::out_img];
-        log_frame[lgr_fra::sck::write::in_frame] =   video[vid2::sck::generate::out_frame];
+        log_frame[lgr_fra::sck::write::in_labels] = merger1[ftr_mrg::sck::merge::out_labels];
+        log_frame[lgr_fra::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
     }
 
     if (p_out_stats) {

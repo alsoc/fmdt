@@ -17,6 +17,8 @@ void tools_draw_BB(rgb8_t** I_bb, const BB_t* BB_list, const enum color_e* BB_li
 void tools_save_frame(const char* filename, const rgb8_t** I_bb, int w, int h);
 void tools_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8_t color,
                              int is_dashed);
+void _tools_save_frame_ui32matrix(const char* filename, const uint32_t** I, int i0, int i1, int j0, int j1,
+                                  uint8_t** img);
 void tools_save_frame_ui32matrix(const char* filename, const uint32_t** I, int i0, int i1, int j0, int j1);
 void tools_save_frame_ui8matrix(const char* filename, const uint8_t** I, int i0, int i1, int j0, int j1);
 void tools_create_folder(const char* folder_path);
