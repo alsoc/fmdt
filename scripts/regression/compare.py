@@ -77,7 +77,7 @@ def diff_stats(filename, p_v1, p_v2):
     stats2 = parser_stats(p_v2)
     # type(stats1) = list[name_tab(str), line_title_tab(int), list[column_name(str), data(str)]]
 
-    # if all data are same
+    # if all data are same
     if stats1 == stats2 : 
         return []
 
@@ -87,7 +87,7 @@ def diff_stats(filename, p_v1, p_v2):
         return [(filename, "X", "number of tabs = " + str(nb_tabs1),"number of tabs = "+ str(nb_tabs2))]
 
     for i in range (nb_tabs1):
-        # if not the same tab name 
+        # if not the same tab name
         if stats1[i][0] != stats2[i][0] :
             return [(filename, stats1[i][1]+1, stats1[i][0], stats2[i][0])]
         
@@ -106,24 +106,26 @@ def diff_stats(filename, p_v1, p_v2):
 def parser_Tab(Lines, name, start, size_max):
     List_columns = []
     len_subtitle_index = 0
-    lenght = 2 # offset  
+    lenght = 2 # offset
 
-    # set up titles and subtitles
+    # set up titles and subtitles
     List_title = (Lines[start+2][2:-1] ).split("||")
     List_title_size = [len(txt) for txt in List_title] 
     List_subtitle  = (Lines[start+5][2:-1]).replace("||","|").split("|")
     List_subtitle_size = [len(txt) for txt in List_subtitle] 
-    len_title  = len(List_title)
+    len_title = len(List_title)
 
     for i in range(len_title):
         len_title_index = List_title_size[i]
         
         cpt = 0
         while cpt != len_title_index : 
-            # UGLY
+            # UGLY
             if cpt == 0 :
                 cpt = List_subtitle_size[len_subtitle_index]
             else :
+                if (len(List_subtitle_size) <= len_subtitle_index):
+                    sys.exit("(EE) Something went wrong when parsing the table named: '" + name.replace("\n", "") + "'.")
                 cpt += List_subtitle_size[len_subtitle_index] + 1 
 
             List_columns += [(List_title[i].strip()+"_"+List_subtitle[len_subtitle_index].strip(),lenght,lenght + List_subtitle_size[len_subtitle_index], [])]
@@ -131,7 +133,7 @@ def parser_Tab(Lines, name, start, size_max):
             len_subtitle_index += 1
         lenght += 1
         
-    # add data
+    # add data
     cur = start + 7
     while cur != size_max and Lines[cur][0] != '#'  :
         for (column, begin, end, data) in List_columns :
@@ -153,6 +155,9 @@ def display_tab_colums(input):
         print("\n")
     return None
 
+# liste des tables a ne pas traiter dans la comparaison
+table_exceptions = ["No conflict found", "Association conflicts"]
+
 def parser_stats(path_filename):
     f = open(path_filename, "r")
 
@@ -164,11 +169,28 @@ def parser_stats(path_filename):
     res = []
     i = 0 
     
-    # on suppose qu'il n'y a que des tab
-    while i < size : 
-        (tuple, cur)= parser_Tab(Lines, Lines[i], i, size) 
-        i = cur + 1
-        res.append(tuple)
+    # on suppose qu'il n'y a que des tab
+    while i < size :
+        name = Lines[i];
+        skip_table = 0
+        # on vérifie que le nom de la table à traiter n'est pas une exception
+        for excep in table_exceptions:
+            if excep in name:
+                skip_table = 1;
+        # si c'est une exception alors on avance jusqu'a la nouvelle table
+        if skip_table:
+            if i + 1 < size:
+                i = i + 1
+            while i < size and Lines[i][0] != '#':
+                i = i + 1
+            # sauter la ligne ou il y a un seul caractere #
+            if i + 1 < size:
+                i = i + 1
+        # sinon on traite la table normalement
+        else:
+            (tuple, cur)= parser_Tab(Lines, name, i, size)
+            i = cur + 1
+            res.append(tuple)
     return res
 
 def display_res(res, exe_name):
@@ -232,7 +254,7 @@ def main():
 
     L_EXE  = strListExe_to_listExe()
 
-    # execute and save all the data in ../build/name_executable
+    # execute and save all the data in ../build/name_executable
     main_exec(L_EXE)
 
     print("#")
@@ -249,7 +271,7 @@ def main():
     print("# The references directory : " + ref )
     print("#")
 
-    # compare all the data with refs
+    # compare all the data with refs
     errors = 0
     for exe_cmp in L_EXE :
         errors += main_diff(ref, exe_cmp)
