@@ -337,7 +337,8 @@ int main(int argc, char** argv) {
             if (f) {
                 features_ROI0_ROI1_write(f, cur_fra, ROI_array0, ROI_array1, tracking_data->tracks);
                 fprintf(f, "#\n");
-                KNN_asso_conflicts_write(f, knn_data, ROI_array0);
+                const size_t n_conflicts = ROI_array1->_size;
+                KNN_asso_conflicts_write(f, knn_data, ROI_array0, n_conflicts);
                 fprintf(f, "#\n");
                 features_motion_write(f, first_theta, first_tx, first_ty, first_mean_error, first_std_deviation, theta,
                                       tx, ty, mean_error, std_deviation);
