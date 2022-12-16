@@ -366,8 +366,7 @@ Each file contains 6 different tables:
   - Table 2: list of Regions Of Interest (ROIs) at `t` (result of the CCL/CCA + hysteresis algorithm at `t`)
   - Table 3: list of associations between `t - 1` ROIs and `t` ROIs (result of the k-NN algorithm)
   - Table 4: motion estimation statistics between `t - 1` and `t` frame
-  - Table 5: estimated error position for each associated ROI (in the `t - 1` frame), these error can also be interpreted as the velocity
-  - Table 6: list of tracks since the beginning of the execution (final output of the detection chain)
+  - Table 5: list of tracks since the beginning of the execution (final output of the detection chain)
 
 **Table 1 and table 2** have the same following layout:
 
@@ -399,13 +398,13 @@ Each line corresponds to one region of interest (ROI) :
 **Table 3** has the following layout:
 
 ```
-# --------------------||---------------
-#         ROI ID      ||    Distance   
-# --------------------||---------------
-# ----------|---------||--------|------
-#       t-1 |       t || pixels | rank 
-# ----------|---------||--------|------
-  {rid_t-1} | {rid_t} || {dist} |  {k} 
+# --------------------||---------------||------------------------||-----------
+#         ROI ID      ||    Distance   ||  Error (or velocity)   ||   Motion  
+# --------------------||---------------||------------------------||-----------
+# ----------|---------||--------|------||-------|-------|--------||-----------
+#       t-1 |       t || pixels | rank ||    dx |    dy |      e || is moving 
+# ----------|---------||--------|------||-------|-------|--------||-----------
+  {rid_t-1} | {rid_t} || {dist} |  {k} ||  {dx} |  {dy} |    {e} ||      {mov}
 ```
 
 Each line corresponds to an association between one ROI at `t - 1` and at `t`:
@@ -413,6 +412,12 @@ Each line corresponds to an association between one ROI at `t - 1` and at `t`:
   - `{rid_t}` : id of the ROI in the table 2 (in the `t` frame)
   - `{dist}`: distance in pixels between the two ROIs
   - `{rank}`: rank in the k-NN algorithm, if 1: it means that this is the closest ROI asso., if 2: it means that this is the second closest ROI asso., etc.
+  - `{dx}`: x distance between the estimated position (after motion estimation) and the real position (in frame `t - 1`)
+  - `{dy}`: y distance between the estimated position (after motion estimation) and the real position (in frame `t - 1`)
+  - `{e}`: euclidean distance between the estimated position and the real position
+  - `{mov}`: `yes` if the ROI is moving, `no` otherwise. The criteria to detect the motion of an ROI is: abs(`{e}` - `{mean_err1}`) > `{std_dev1}`
+
+If `{mov}` = `yes` then, `{dx}`,`{dy}` is the velocity vector and `{e}` is the velocity value in pixel.
 
 **Table 4** has the following layout:
 
@@ -436,27 +441,6 @@ The first estimation considers all the associated ROIs while the second estimati
 To be considered in movement, an ROI has to verify the following condition: abs(`{e}` - `{mean_er1}`) > `{std_dev1}`, with `{e}` the error of the current ROI (see below for more explanation about the error `{e}`).
 
 **Table 5** has the following layout:
-
-```
-# -----||------------------------||-----------
-#  ROI ||          Error         ||   Motion  
-# -----||------------------------||-----------
-# -----||-------|-------|--------||-----------
-#   ID ||    dx |    dy |      e || is moving 
-# -----||-------|-------|--------||-----------
- {rid} ||  {dx} |  {dy} |    {e} ||      {mov}
-```
-
-The following statistics concern the `t - 1` frame (after the second motion estimation):
-  - `{rid}`: the ROI id in the frame `t - 1`
-  - `{dx}`: x distance between the estimated position and the real position
-  - `{dy}`: y distance between the estimated position and the real position
-  - `{e}`: euclidean distance between the estimated position and the real position
-  - `{mov}`: `yes` if the ROI is moving, `no` otherwise. The criteria to detect the motion of an ROI is: abs(`{e}` - `{mean_err1}`) > `{std_dev1}`
-
-If `{mov}` = `yes` then, `{dx}`,`{dy}` is the velocity vector and `{e}` is the velocity value in pixel.
-
-**Table 6** has the following layout:
 
 ```
 # -------||---------------------------||---------------------------||---------||-------------------

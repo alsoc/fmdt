@@ -103,7 +103,3 @@ void _features_compute_magnitude(const uint8_t** img, const uint16_t img_width, 
                                  uint32_t* ROI_magnitude, const size_t n_ROI);
 void features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
                                 const uint32_t** labels, ROI_t* ROI_array);
-void _features_ROI_error_write(FILE* f, const int frame, const uint16_t* ROI_id, const float* ROI_dx,
-                               const float* ROI_dy, const float* ROI_error, const int32_t* ROI_next_id,
-                               const uint8_t* ROI_is_moving, const size_t n_ROI);
-void features_ROI_error_write(FILE* f, const int frame, const ROI_t* ROI_array);

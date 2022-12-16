@@ -114,7 +114,6 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/runtime/Logger/Logger_KNN.cpp
 		    ${src_dir}/runtime/Logger/Logger_motion.cpp
 		    ${src_dir}/runtime/Logger/Logger_ROI.cpp
-		    ${src_dir}/runtime/Logger/Logger_ROI_error.cpp
 		    ${src_dir}/runtime/Logger/Logger_track.cpp
 		    ${src_dir}/runtime/Threshold/Threshold.cpp
 		    ${src_dir}/runtime/Tracking/Tracking.cpp)

@@ -19,6 +19,7 @@ void _KNN_match(uint32_t** data_nearest, float** data_distances, uint32_t* data_
 void KNN_match(KNN_data_t* data, ROI_t* ROI_array0, ROI_t* ROI_array1, const int k, const uint32_t max_dist_square);
 void KNN_free_data(KNN_data_t* data);
 void _KNN_asso_conflicts_write(FILE* f, const uint32_t** KNN_data_nearest, const float** KNN_data_distances,
-                               const uint32_t* KNN_data_conflicts, const uint16_t* ROI_id, const int32_t* ROI_next_id,
-                               const size_t n_ROI, const size_t n_conflicts);
+                               const uint32_t* KNN_data_conflicts, const uint16_t* ROI_id, const float* ROI_dx,
+                               const float* ROI_dy, const float* ROI_error, const int32_t* ROI_next_id,
+                               const uint8_t* ROI_is_moving, const size_t n_ROI, const size_t n_conflicts);
 void KNN_asso_conflicts_write(FILE* f, const KNN_data_t* KNN_data, const ROI_t* ROI_array, const size_t n_conflicts);

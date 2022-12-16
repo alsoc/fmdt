@@ -411,7 +411,11 @@ int main(int argc, char** argv) {
         log_KNN[lgr_knn::sck::write::in_data_nearest] = matcher[knn::sck::match::out_data_nearest];
         log_KNN[lgr_knn::sck::write::in_data_distances] = matcher[knn::sck::match::out_data_distances];
         log_KNN[lgr_knn::sck::write::in_ROI_id] = merger0[ftr_mrg::sck::merge::out_ROI_id]; // pas sur
+        log_KNN[lgr_knn::sck::write::in_ROI_dx] = motion[ftr_mtn::sck::compute::out_ROI0_dx];
+        log_KNN[lgr_knn::sck::write::in_ROI_dy] = motion[ftr_mtn::sck::compute::out_ROI0_dy];
+        log_KNN[lgr_knn::sck::write::in_ROI_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
         log_KNN[lgr_knn::sck::write::in_ROI_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
+        log_KNN[lgr_knn::sck::write::in_ROI_is_moving] = motion[ftr_mtn::sck::compute::out_ROI0_is_moving];
         log_KNN[lgr_knn::sck::write::in_n_ROI] = merger0[ftr_mrg::sck::merge::out_n_ROI]; // pas sur
         log_KNN[lgr_knn::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
 

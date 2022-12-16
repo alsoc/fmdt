@@ -27,7 +27,6 @@
 #include "fmdt/Logger/Logger_motion.hpp"
 #include "fmdt/Logger/Logger_track.hpp"
 #include "fmdt/Logger/Logger_frame.hpp"
-#include "fmdt/Logger/Logger_ROI_error.hpp"
 
 // Do not use this define anymore!! NOW it is set in the CMakeFile :-)
 // #define FMDT_ENABLE_PIPELINE
@@ -327,8 +326,6 @@ int main(int argc, char** argv) {
     Logger_KNN log_KNN(p_out_stats ? p_out_stats : "", i0, i1, j0, j1, MAX_ROI_SIZE);
     Logger_motion log_motion(p_out_stats ? p_out_stats : "");
     Logger_track log_track(p_out_stats ? p_out_stats : "", tracking.get_data());
-    Logger_ROI_error log_ROI_error(p_out_stats ? p_out_stats : "", MAX_ROI_SIZE);
-    log_ROI_error.set_custom_name("Logger_error");
     Logger_frame log_frame(p_out_frames ? p_out_frames : "", i0, i1, j0, j1, b);
     log_motion.set_custom_name("Logger_motio");
 
@@ -534,7 +531,11 @@ int main(int argc, char** argv) {
         log_KNN[lgr_knn::sck::write::in_data_distances] = matcher[knn::sck::match::out_data_distances];
         log_KNN[lgr_knn::sck::write::in_data_conflicts] = matcher[knn::sck::match::out_data_conflicts];
         log_KNN[lgr_knn::sck::write::in_ROI_id] = delayer_ROI_id[aff3ct::module::dly::sck::produce::out];
+        log_KNN[lgr_knn::sck::write::in_ROI_dx] = motion[ftr_mtn::sck::compute::out_ROI0_dx];
+        log_KNN[lgr_knn::sck::write::in_ROI_dy] = motion[ftr_mtn::sck::compute::out_ROI0_dy];
+        log_KNN[lgr_knn::sck::write::in_ROI_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
         log_KNN[lgr_knn::sck::write::in_ROI_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
+        log_KNN[lgr_knn::sck::write::in_ROI_is_moving] = motion[ftr_mtn::sck::compute::out_ROI0_is_moving];
         log_KNN[lgr_knn::sck::write::in_n_ROI] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
         log_KNN[lgr_knn::sck::write::in_n_conflicts] = merger[ftr_mrg::sck::merge::out_n_ROI];
         log_KNN[lgr_knn::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
@@ -550,15 +551,6 @@ int main(int argc, char** argv) {
         log_motion[lgr_mtn::sck::write::in_mean_error] = motion[ftr_mtn::sck::compute::out_mean_error];
         log_motion[lgr_mtn::sck::write::in_std_deviation] = motion[ftr_mtn::sck::compute::out_std_deviation];
         log_motion[lgr_mtn::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
-
-        log_ROI_error[lgr_err::sck::write::in_ROI_id] = delayer_ROI_id[aff3ct::module::dly::sck::produce::out];
-        log_ROI_error[lgr_err::sck::write::in_ROI_dx] = motion[ftr_mtn::sck::compute::out_ROI0_dx];
-        log_ROI_error[lgr_err::sck::write::in_ROI_dy] = motion[ftr_mtn::sck::compute::out_ROI0_dy];
-        log_ROI_error[lgr_err::sck::write::in_ROI_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
-        log_ROI_error[lgr_err::sck::write::in_ROI_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
-        log_ROI_error[lgr_err::sck::write::in_ROI_is_moving] = motion[ftr_mtn::sck::compute::out_ROI0_is_moving];
-        log_ROI_error[lgr_err::sck::write::in_n_ROI] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
-        log_ROI_error[lgr_err::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
 
         log_track[lgr_trk::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
     }
@@ -702,7 +694,6 @@ int main(int argc, char** argv) {
         std::get<0>(sep_stages[2]).push_back(&log_ROI[lgr_roi::tsk::write]);
         std::get<0>(sep_stages[2]).push_back(&log_KNN[lgr_knn::tsk::write]);
         std::get<0>(sep_stages[2]).push_back(&log_motion[lgr_mtn::tsk::write]);
-        std::get<0>(sep_stages[2]).push_back(&log_ROI_error[lgr_err::tsk::write]);
         std::get<0>(sep_stages[2]).push_back(&log_track[lgr_trk::tsk::write]);
     }
 
