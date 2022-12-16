@@ -370,6 +370,7 @@ Each file contains 6 different tables:
   - Table 6: list of tracks since the beginning of the execution (final output of the detection chain)
 
 **Table 1 and table 2** have the same following layout:
+
 ```
 # ------||----------------||---------------------------||---------------------------||-------------------||-----------
 #   ROI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       || Magnitude 
@@ -379,6 +380,7 @@ Each file contains 6 different tables:
 # ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------
   {rid} || {tid}| {otype} ||{xmin}|{xmax}|{ymin}|{ymax}|| {S} |     {Sx} |     {Sy} ||    {cx} |    {cy} ||      {mag}
 ```
+
 Each line corresponds to one region of interest (ROI) :
   - `{rid}`: unique identifier for the current ROI (start to 1)
   - `{tid}`: unique identifier of the corresponding track (start to 1), can be empty if no track is associated to the current ROI
@@ -395,6 +397,7 @@ Each line corresponds to one region of interest (ROI) :
   - `{mag}`: magnitude of the current ROI (accumulated brightness of the ROI)
 
 **Table 3** has the following layout:
+
 ```
 # --------------------||---------------
 #         ROI ID      ||    Distance   
@@ -404,6 +407,7 @@ Each line corresponds to one region of interest (ROI) :
 # ----------|---------||--------|------
   {rid_t-1} | {rid_t} || {dist} |  {k} 
 ```
+
 Each line corresponds to an association between one ROI at `t - 1` and at `t`:
   - `{rid_t-1}`: id of the ROI in the table 1 (in the `t - 1` frame)
   - `{rid_t}` : id of the ROI in the table 2 (in the `t` frame)
@@ -411,6 +415,7 @@ Each line corresponds to an association between one ROI at `t - 1` and at `t`:
   - `{rank}`: rank in the k-NN algorithm, if 1: it means that this is the closest ROI asso., if 2: it means that this is the second closest ROI asso., etc.
 
 **Table 4** has the following layout:
+
 ```
 # ------------------------------------------------------||------------------------------------------------------
 #   First motion estimation (with all associated ROIs)  ||    Second motion estimation (exclude moving ROIs)    
@@ -420,15 +425,18 @@ Each line corresponds to an association between one ROI at `t - 1` and at `t`:
 # ----------|----------|----------|----------|----------||----------|----------|----------|----------|----------
    {theta1} |    {tx1} |    {ty1} |{mean_er1}|{std_dev1}|| {theta2} |    {tx2} |    {ty2} |{mean_er2}|{std_dev2}
 ```
+
 There is only one line in this table. It represents the motion estimation between frame `t - 1` and frame `t`:
   - `{theta}`: the estimated rotation angle between frame `t` and frame `t - 1`
   - `{tx}` and `{ty}`: the estimated translation vector from frame `t` to frame `t - 1`
   - `{mean_er}`: the mean error of the associated ROIs
   - `{std_dev}`: the standard deviation of the error considering the associated ROIs
+
 The first estimation considers all the associated ROIs while the second estimation excludes the associated ROIs in movement.
 To be considered in movement, an ROI has to verify the following condition: abs(`{e}` - `{mean_er1}`) > `{std_dev1}`, with `{e}` the error of the current ROI (see below for more explanation about the error `{e}`).
 
 **Table 5** has the following layout:
+
 ```
 # -----||------------------------||-----------
 #  ROI ||          Error         ||   Motion  
@@ -438,14 +446,16 @@ To be considered in movement, an ROI has to verify the following condition: abs(
 # -----||-------|-------|--------||-----------
  {rid} ||  {dx} |  {dy} |    {e} ||      {mov}
 ```
+
 The following statistics concern the `t - 1` frame (after the second motion estimation):
   - `{rid}`: the ROI id in the frame `t - 1`
   - `{dx}`: x distance between the estimated position and the real position
   - `{dy}`: y distance between the estimated position and the real position
   - `{e}`: euclidean distance between the estimated position and the real position
-  - `{mov}`: `yes` if the ROI is moving, `no` otherwise. The criteria to detect the motion of an ROI is: abs(`{e}` - `{mean_err1}`) > `{std_dev1}`.
+  - `{mov}`: `yes` if the ROI is moving, `no` otherwise. The criteria to detect the motion of an ROI is: abs(`{e}` - `{mean_err1}`) > `{std_dev1}`
 
 **Table 6** has the following layout:
+
 ```
 # -------||---------------------------||---------------------------||---------||-------------------
 #  Track ||           Begin           ||            End            ||  Object || Reason of changed 
@@ -453,8 +463,9 @@ The following statistics concern the `t - 1` frame (after the second motion esti
 # -------||---------|--------|--------||---------|--------|--------||---------||  meteor to noise  
 #     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type ||    object only)   
 # -------||---------|--------|--------||---------|--------|--------||---------||-------------------
-   {tid} ||  {fbeg} | {xbeg} | {ybeg} ||  {fend} | {xend} | {yend} || {otype} ||           {reason}
+   {tid} ||  {fbeg} | {xbeg} | {ybeg} ||  {fend} | {xend} | {yend} || {otype} ||          {reason}
 ```
+
 Most of the columns of this table have been described in a previous section, here we focus only on extra columns:
   - `{reason}`: reason of the classification from `meteor` to `noise`
 
