@@ -1,9 +1,10 @@
 TODO list:
-- [ ] Compute velocity of moving ROI, add this to the statistics
 - [ ] Add `--video-loop` and `--video-buff` support to the video module (based 
       on `ffmpeg-io`)
 - [ ] Extrapolate more than one frame in tracking
 - [ ] Add CI tests with `fmdt-check` 
+- [x] Compute velocity of moving ROIs, add this to the statistics (no need to do 
+      this, this is the same thing as ROI error when is_moving = 1)
 - [x] Tests column by column in the python script (new columns should not result 
       in a failure test)
 - [x] Use dynamic vector to store the tracks

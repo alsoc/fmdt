@@ -366,7 +366,7 @@ Each file contains 6 different tables:
   - Table 2: list of Regions Of Interest (ROIs) at `t` (result of the CCL/CCA + hysteresis algorithm at `t`)
   - Table 3: list of associations between `t - 1` ROIs and `t` ROIs (result of the k-NN algorithm)
   - Table 4: motion estimation statistics between `t - 1` and `t` frame
-  - Table 5: estimated error position for each associated ROI (in the `t - 1` frame)
+  - Table 5: estimated error position for each associated ROI (in the `t - 1` frame), these error can also be interpreted as the velocity
   - Table 6: list of tracks since the beginning of the execution (final output of the detection chain)
 
 **Table 1 and table 2** have the same following layout:
@@ -453,6 +453,8 @@ The following statistics concern the `t - 1` frame (after the second motion esti
   - `{dy}`: y distance between the estimated position and the real position
   - `{e}`: euclidean distance between the estimated position and the real position
   - `{mov}`: `yes` if the ROI is moving, `no` otherwise. The criteria to detect the motion of an ROI is: abs(`{e}` - `{mean_err1}`) > `{std_dev1}`
+
+If `{mov}` = `yes` then, `{dx}`,`{dy}` is the velocity vector and `{e}` is the velocity value in pixel.
 
 **Table 6** has the following layout:
 
