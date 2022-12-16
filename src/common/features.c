@@ -685,10 +685,10 @@ void _features_ROI_write(FILE* f, const int frame, const uint16_t* ROI_id, const
                          const vec_track_t track_array, const unsigned age) {
     int cpt = 0;
     for (size_t i = 0; i < n_ROI; i++)
-        if (ROI_S[i] != 0)
+        if (ROI_id[i] != 0)
             cpt++;
 
-    fprintf(f, "# Regions of interest (ROI) [%d]: \n", cpt);
+    fprintf(f, "Regions of interest (ROI) [%d]: \n", cpt);
     // if (cpt) {  // for compare.py
         fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------||-----------\n");
         fprintf(f, "#   ROI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       || Magnitude \n");
@@ -699,7 +699,7 @@ void _features_ROI_write(FILE* f, const int frame, const uint16_t* ROI_id, const
     // }
 
     for (size_t i = 0; i < n_ROI; i++) {
-        if (ROI_S[i] != 0) {
+        if (ROI_id[i] != 0) {
             int t = _find_corresponding_track(frame, track_array, ROI_id, ROI_id[i], n_ROI, age);
             char task_id_str[16];
             if (t == -1)
@@ -795,7 +795,7 @@ void features_motion_write(FILE* f, const double first_theta, const double first
 
     fprintf(f, "# Motion:\n");
     fprintf(f, "# ------------------------------------------------------||------------------------------------------------------\n");
-    fprintf(f, "#   First motion estimation (with all associated ROI)   ||    Second motion estimation (exclude fastest ROI)    \n");
+    fprintf(f, "#   First motion estimation (with all associated ROIs)  ||    Second motion estimation (exclude moving ROIs)    \n");
     fprintf(f, "# ------------------------------------------------------||------------------------------------------------------\n");
     fprintf(f, "# ----------|----------|----------|----------|----------||----------|----------|----------|----------|----------\n");
     fprintf(f, "#     theta |       tx |       ty | mean err |  std dev ||    theta |       tx |       ty | mean err |  std dev \n");
@@ -815,11 +815,11 @@ void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id
                                const float* ROI1_x, const float* ROI1_y, const uint32_t* ROI1_magnitude,
                                const size_t n_ROI1, const vec_track_t track_array) {
     // stats
-    fprintf(f, "# Frame n°%05d (t-1)\t", frame - 1);
+    fprintf(f, "# Frame n°%05d (t-1) -- ", frame - 1);
     _features_ROI_write(f, frame - 1, ROI0_id, ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax, ROI0_S, ROI0_Sx, ROI0_Sy,
                         ROI0_x, ROI0_y, ROI0_magnitude, n_ROI0, track_array, 1);
 
-    fprintf(f, "#\n# Frame n°%05d (t)\t", frame);
+    fprintf(f, "#\n# Frame n°%05d (t) -- ", frame);
     _features_ROI_write(f, frame, ROI1_id, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_S, ROI1_Sx, ROI1_Sy, ROI1_x,
                         ROI1_y, ROI1_magnitude, n_ROI1, track_array, 0);
 }
@@ -911,4 +911,41 @@ void features_compute_magnitude(const uint8_t** img, const uint16_t img_width, c
                                 const uint32_t** labels, ROI_t* ROI_array) {
     _features_compute_magnitude(img, img_width, img_height, labels, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin,
                                 ROI_array->ymax, ROI_array->S, ROI_array->magnitude, ROI_array->_size);
+}
+
+
+void _features_ROI_error_write(FILE* f, const int frame, const uint16_t* ROI_id, const float* ROI_dx, const float* ROI_dy,
+                               const float* ROI_error, const int32_t* ROI_next_id, const uint8_t* ROI_is_moving,
+                               const size_t n_ROI) {
+    int cpt = 0;
+    for (size_t i = 0; i < n_ROI; i++)
+        if (ROI_id[i] != 0 && ROI_next_id[i] > 0)
+            cpt++;
+
+    fprintf(f, "#  Frame n°%05d (t-1) -- Regions of interest (ROI) -- Error and Motion [%d]:\n", frame, cpt);
+    fprintf(f, "# -----||------------------------||-----------\n");
+    fprintf(f, "#  ROI ||          Error         ||   Motion  \n");
+    fprintf(f, "# -----||------------------------||-----------\n");
+    fprintf(f, "# -----||-------|-------|--------||-----------\n");
+    fprintf(f, "#   ID ||    dx |    dy |      e || is moving \n");
+    fprintf(f, "# -----||-------|-------|--------||-----------\n");
+
+    for (size_t i = 0; i < n_ROI; i++) {
+        if (ROI_next_id[i] > 0) {
+            if (ROI_id[i] == 0)
+                continue;
+            char moving_str[32];
+            if (ROI_is_moving[i])
+                snprintf(moving_str, sizeof(moving_str), "      yes");
+            else
+                snprintf(moving_str, sizeof(moving_str), "       no");
+            fprintf(f, "  %4u || %5.1f | %5.1f | %6.3f || %s \n",
+                    ROI_id[i], ROI_dx[i], ROI_dy[i], ROI_error[i], moving_str);
+        }
+    }
+}
+
+void features_ROI_error_write(FILE* f, const int frame, const ROI_t* ROI_array) {
+    _features_ROI_error_write(f, frame, ROI_array->id, ROI_array->dx, ROI_array->dy, ROI_array->error,
+                              ROI_array->next_id, ROI_array->is_moving, ROI_array->_size);
 }

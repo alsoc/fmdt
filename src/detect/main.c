@@ -343,6 +343,8 @@ int main(int argc, char** argv) {
                 features_motion_write(f, first_theta, first_tx, first_ty, first_mean_error, first_std_deviation, theta,
                                       tx, ty, mean_error, std_deviation);
                 fprintf(f, "#\n");
+                features_ROI_error_write(f, cur_fra - (p_fra_skip + 1), ROI_array0);
+                fprintf(f, "#\n");
                 tracking_track_array_write_full(f, tracking_data->tracks);
                 fclose(f);
             } else {

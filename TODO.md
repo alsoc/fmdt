@@ -1,4 +1,5 @@
 TODO list:
+- [ ] Compute velocity of moving ROI, add this to the statistics
 - [ ] Add `--video-loop` and `--video-buff` support to the video module (based 
       on `ffmpeg-io`)
 - [ ] Extrapolate more than one frame in tracking

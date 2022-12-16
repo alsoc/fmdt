@@ -254,10 +254,10 @@ The tracks represent the detected objects in the video sequence.
 # -------||---------|--------|--------||---------|--------|--------||---------
 #     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type
 # -------||---------|--------|--------||---------|--------|--------||---------
-    {id} ||  {fbeg} | {xbeg} | {ybeg} ||  {fend} | {xend} | {yend} || {otype}
+   {tid} ||  {fbeg} | {xbeg} | {ybeg} ||  {fend} | {xend} | {yend} || {otype}
 ```
 
-* `{id}`: a positive integer value representing a unique track identifier.
+* `{tid}`: a positive integer (start to 1) value representing a unique track identifier.
 * `{fbeg}`: a positive integer value representing the first frame in the video sequence when the track is detected.
 * `{xbeg}`: a positive real value of the x-axis coordinate (beginning of the track).
 * `{ybeg}`: a positive real value of the y-axis coordinate (beginning of the track).
@@ -282,12 +282,12 @@ Each line corresponds to a frame and to an object, each value is separated by a 
 The magnitudes can be output by `fmdt-detect` (with the `--out-mag` argument) and can be used for astrophotometry.
 For instance they are used as input in [pyFMDT](pyFMDT/README.md).
 
-Each line corresponds to an object and here is the corresponding line format:
+Each line corresponds to a track/object and here is the corresponding line format:
 ```
-{oid} {otype} {mag1} {mag2} {...} {magn}
+{tid} {otype} {mag1} {mag2} {...} {magn}
 ```
 
-`mag1` is the first magnitude value of the object of `oid` id. `mag2` is the second magnitude value (in the second frame where the object has been tracked).
+`mag1` is the first magnitude value of the track/object of `tid` id. `mag2` is the second magnitude value (in the second frame where the object has been tracked).
 And so on, until the last magnitude value `magn`. Note that sometime the magnitude value can be `0`, it means that the object has been extrapolated on this frame, thus the magnitude cannot be computed.
 
 #### Ground Truth: `--in-gt` in `fmdt-visu`, `fmdt-check` & `fmdt-maxred`
@@ -295,11 +295,14 @@ And so on, until the last magnitude value `magn`. Note that sometime the magnitu
 Ground truth file gives objects positions over time. Here is the expected text format of a line:
 
 ```
-{object_type} {begin_frame} {begin_x} {begin_y} {end_frame} {end_x} {end_y}
+{otype} {fbeg} {xbeg} {ybeg} {fend} {xend} {yend}
 ```
 
-`{object_type}` can be `meteor`, `star` or `noise`.
-`{begin_frame}`, `{begin_x}`, `{begin_y}`, `{end_frame}`, `{end_x}`, `{end_y}` are positive integers.
+`{otype}` can be `meteor`, `star` or `noise`.
+`{fbeg}` and `{fend}` stand for `frame begin` and `frame end`.
+`{xbeg}` and `{ybeg}` stand for `x` and `y` coordinates of the `frame begin`.
+`{xend}` and `{yend}` stand for `x` and `y` coordinates of the `frame end`.
+`{fbeg}`, `{xbeg}`, `{ybeg}`, `{fend}`, `{xend}`, `{yend}` are positive integers.
 Each line corresponds to an object and each value is separated by a space character.
 
 #### Check Report: `stdout` in `fmdt-check`
@@ -313,10 +316,10 @@ The first part of `fmdt-check` `stdout` is a table where each entry corresponds 
 # -----|---------||--------|------||--------|--------||--------
 #   Id |    Type || Detect |  GT  ||  Start |  Stop  ||      #
 # -----|---------||--------|------||--------|--------||--------
- {oid} | {otype} ||   {dh} | {gh} || {staf} | {stof} ||   {nt}
+ {tid} | {otype} ||   {dh} | {gh} || {staf} | {stof} ||   {nt}
 ```
 
-* `{oid}`: a positive integer value representing a unique identifier of ground truth object.
+* `{tid}`: a positive integer value representing a unique identifier of ground truth track/object.
 * `{otype}`: a string of the object type, can be: `meteor`, `star` or `noise`.
 * `{dh}`: a positive integer value of the number of frames when the object is detected (from the tracks, `--in-tracks`).
 * `{gh}`: a positive integer value of the number of frame when the object is present (from the ground truth, `--in-gt`).
@@ -347,6 +350,113 @@ Statistics:
 
 For each line, the `meteor`, `star` and `noise` object types are considered.
 `all` stands for all types, sometime `all` can be mean-less.
+
+#### Statistics: `--out-stats` in `fmdt-detect`
+
+**This section targets advanced users, some knowledge about the implemented algorithms may be required!! You have been warned ;-).**
+
+`fmdt-detect` comes with the `--out-stats` option to help to understand what is happening during the execution.
+This option enables to log internal statistics of the different algorithms used to detect meteors.
+
+The folder contains multiple files, one per frame (except for the very first frame n°0). 
+For instance, the file name for the frame n°12 is: `00011_00012.txt`.
+`00011` stands for the `t - 1` frame and `00012` stands for the `t` frame.
+Each file contains 6 different tables:
+  - Table 1: list of Regions Of Interest (ROIs) at `t - 1` (result of the CCL/CCA + hysteresis algorithm at `t - 1`)
+  - Table 2: list of Regions Of Interest (ROIs) at `t` (result of the CCL/CCA + hysteresis algorithm at `t`)
+  - Table 3: list of associations between `t - 1` ROIs and `t` ROIs (result of the k-NN algorithm)
+  - Table 4: motion estimation statistics between `t - 1` and `t` frame
+  - Table 5: estimated error position for each associated ROI (in the `t - 1` frame)
+  - Table 6: list of tracks since the beginning of the execution (final output of the detection chain)
+
+**Table 1 and table 2** have the same following layout:
+```
+# ------||----------------||---------------------------||---------------------------||-------------------||-----------
+#   ROI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       || Magnitude 
+# ------||----------------||---------------------------||---------------------------||-------------------||-----------
+# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------
+#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y ||        -- 
+# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------
+  {rid} || {tid}| {otype} ||{xmin}|{xmax}|{ymin}|{ymax}|| {S} |     {Sx} |     {Sy} ||    {cx} |    {cy} ||      {mag}
+```
+Each line corresponds to one region of interest (ROI) :
+  - `{rid}`: unique identifier for the current ROI (start to 1)
+  - `{tid}`: unique identifier of the corresponding track (start to 1), can be empty if no track is associated to the current ROI
+  - `{otype}`: type of the track object (`meteor`, `noise` or `star`), only if there is a track corresponding to this ROI
+  - `{xmin}`: minimum x position of the bounding box
+  - `{xmax}`: maximum x position of the bounding box
+  - `{ymin}`: minimum y position of the bounding box
+  - `{ymax}`: maximum y position of the bounding box
+  - `{S}`: surface (area) of the ROI in pixels
+  - `{Sx}`: sum of x properties
+  - `{Sy}`: sum of y properties
+  - `{cx}`: x center of mass
+  - `{cy}`: y center of mass
+  - `{mag}`: magnitude of the current ROI (accumulated brightness of the ROI)
+
+**Table 3** has the following layout:
+```
+# --------------------||---------------
+#         ROI ID      ||    Distance   
+# --------------------||---------------
+# ----------|---------||--------|------
+#       t-1 |       t || pixels | rank 
+# ----------|---------||--------|------
+  {rid_t-1} | {rid_t} || {dist} |  {k} 
+```
+Each line corresponds to an association between one ROI at `t - 1` and at `t`:
+  - `{rid_t-1}`: id of the ROI in the table 1 (in the `t - 1` frame)
+  - `{rid_t}` : id of the ROI in the table 2 (in the `t` frame)
+  - `{dist}`: distance in pixels between the two ROIs
+  - `{rank}`: rank in the k-NN algorithm, if 1: it means that this is the closest ROI asso., if 2: it means that this is the second closest ROI asso., etc.
+
+**Table 4** has the following layout:
+```
+# ------------------------------------------------------||------------------------------------------------------
+#   First motion estimation (with all associated ROIs)  ||    Second motion estimation (exclude moving ROIs)    
+# ------------------------------------------------------||------------------------------------------------------
+# ----------|----------|----------|----------|----------||----------|----------|----------|----------|----------
+#     theta |       tx |       ty | mean err |  std dev ||    theta |       tx |       ty | mean err |  std dev 
+# ----------|----------|----------|----------|----------||----------|----------|----------|----------|----------
+   {theta1} |    {tx1} |    {ty1} |{mean_er1}|{std_dev1}|| {theta2} |    {tx2} |    {ty2} |{mean_er2}|{std_dev2}
+```
+There is only one line in this table. It represents the motion estimation between frame `t - 1` and frame `t`:
+  - `{theta}`: the estimated rotation angle between frame `t` and frame `t - 1`
+  - `{tx}` and `{ty}`: the estimated translation vector from frame `t` to frame `t - 1`
+  - `{mean_er}`: the mean error of the associated ROIs
+  - `{std_dev}`: the standard deviation of the error considering the associated ROIs
+The first estimation considers all the associated ROIs while the second estimation excludes the associated ROIs in movement.
+To be considered in movement, an ROI has to verify the following condition: abs(`{e}` - `{mean_er1}`) > `{std_dev1}`, with `{e}` the error of the current ROI (see below for more explanation about the error `{e}`).
+
+**Table 5** has the following layout:
+```
+# -----||------------------------||-----------
+#  ROI ||          Error         ||   Motion  
+# -----||------------------------||-----------
+# -----||-------|-------|--------||-----------
+#   ID ||    dx |    dy |      e || is moving 
+# -----||-------|-------|--------||-----------
+ {rid} ||  {dx} |  {dy} |    {e} ||      {mov}
+```
+The following statistics concern the `t - 1` frame (after the second motion estimation):
+  - `{rid}`: the ROI id in the frame `t - 1`
+  - `{dx}`: x distance between the estimated position and the real position
+  - `{dy}`: y distance between the estimated position and the real position
+  - `{e}`: euclidean distance between the estimated position and the real position
+  - `{mov}`: `yes` if the ROI is moving, `no` otherwise. The criteria to detect the motion of an ROI is: abs(`{e}` - `{mean_err1}`) > `{std_dev1}`.
+
+**Table 6** has the following layout:
+```
+# -------||---------------------------||---------------------------||---------||-------------------
+#  Track ||           Begin           ||            End            ||  Object || Reason of changed 
+# -------||---------------------------||---------------------------||---------||    state (from    
+# -------||---------|--------|--------||---------|--------|--------||---------||  meteor to noise  
+#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type ||    object only)   
+# -------||---------|--------|--------||---------|--------|--------||---------||-------------------
+   {tid} ||  {fbeg} | {xbeg} | {ybeg} ||  {fend} | {xend} | {yend} || {otype} ||           {reason}
+```
+Most of the columns of this table have been described in a previous section, here we focus only on extra columns:
+  - `{reason}`: reason of the classification from `meteor` to `noise`
 
 ## List of Contributors
 

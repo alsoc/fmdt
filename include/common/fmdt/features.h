@@ -97,10 +97,13 @@ void features_ROI0_ROI1_write(FILE* f, const int frame, const ROI_t* ROI_array0,
 void features_motion_write(FILE* f, const double first_theta, const double first_tx, const double first_ty,
                            const double first_mean_error, const double first_std_deviation, const double theta,
                            const double tx, const double ty, const double mean_error, const double std_deviation);
-
 void _features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
                                  const uint32_t** labels, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
                                  const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
                                  uint32_t* ROI_magnitude, const size_t n_ROI);
 void features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
                                 const uint32_t** labels, ROI_t* ROI_array);
+void _features_ROI_error_write(FILE* f, const int frame, const uint16_t* ROI_id, const float* ROI_dx,
+                               const float* ROI_dy, const float* ROI_error, const int32_t* ROI_next_id,
+                               const uint8_t* ROI_is_moving, const size_t n_ROI);
+void features_ROI_error_write(FILE* f, const int frame, const ROI_t* ROI_array);
