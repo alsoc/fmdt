@@ -61,11 +61,10 @@ size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* RO
                                   const uint16_t* ROI_src_xmax, const uint16_t* ROI_src_ymin,
                                   const uint16_t* ROI_src_ymax, const uint32_t* ROI_src_S, const uint32_t* ROI_src_Sx,
                                   const uint32_t* ROI_src_Sy, const float* ROI_src_x, const float* ROI_src_y,
-                                  const uint32_t* ROI_src_magnitude, const size_t n_ROI_src, uint16_t* ROI_dest_id,
-                                  uint16_t* ROI_dest_xmin, uint16_t* ROI_dest_xmax, uint16_t* ROI_dest_ymin,
-                                  uint16_t* ROI_dest_ymax, uint32_t* ROI_dest_S, uint32_t* ROI_dest_Sx,
-                                  uint32_t* ROI_dest_Sy, float* ROI_dest_x, float* ROI_dest_y,
-                                  uint32_t* ROI_dest_magnitude);
+                                  const size_t n_ROI_src, uint16_t* ROI_dest_id, uint16_t* ROI_dest_xmin,
+                                  uint16_t* ROI_dest_xmax, uint16_t* ROI_dest_ymin, uint16_t* ROI_dest_ymax,
+                                  uint32_t* ROI_dest_S, uint32_t* ROI_dest_Sx, uint32_t* ROI_dest_Sy, float* ROI_dest_x,
+                                  float* ROI_dest_y);
 void features_shrink_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest);
 double features_compute_mean_error(const ROI_t* stats);
 double features_compute_std_deviation(const ROI_t* stats, const double mean_error);

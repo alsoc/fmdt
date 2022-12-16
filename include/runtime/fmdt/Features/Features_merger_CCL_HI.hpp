@@ -7,10 +7,9 @@ namespace ftr_mrg {
     enum class tsk : size_t { merge, SIZE };
     namespace sck {
         enum class merge : size_t { in_labels, in_img_HI, in_ROI_id, in_ROI_xmin, in_ROI_xmax, in_ROI_ymin,
-                                    in_ROI_ymax, in_ROI_S, in_ROI_Sx, in_ROI_Sy, in_ROI_x, in_ROI_y, in_ROI_magnitude,
-                                    in_n_ROI, out_ROI_id, out_ROI_xmin, out_ROI_xmax, out_ROI_ymin,
-                                    out_ROI_ymax, out_ROI_S, out_ROI_Sx, out_ROI_Sy, out_ROI_x, out_ROI_y,
-                                    out_ROI_magnitude, out_n_ROI, out_labels, status };
+                                    in_ROI_ymax, in_ROI_S, in_ROI_Sx, in_ROI_Sy, in_ROI_x, in_ROI_y, in_n_ROI,
+                                    out_ROI_id, out_ROI_xmin, out_ROI_xmax, out_ROI_ymin, out_ROI_ymax, out_ROI_S,
+                                    out_ROI_Sx, out_ROI_Sy, out_ROI_x, out_ROI_y, out_n_ROI, out_labels, status };
     }
 }
 
