@@ -16,14 +16,18 @@
 
 void add_to_BB_coord_list(vec_BB_t* BB_list, vec_color_e* BB_list_color, size_t elem, int rx, int ry, int bb_x,
                           int bb_y, int frame_id, int track_id, int is_extrapolated, enum color_e color) {
+#ifndef NDEBUG
     size_t alloc_amt = vector_get_alloc(*BB_list);
     size_t alloc_amt2 = vector_get_alloc(*BB_list_color);
     assert(alloc_amt == alloc_amt2);
+#endif
 
     size_t vs = vector_size(*BB_list);
+#ifndef NDEBUG
     size_t vs2 = vector_size(*BB_list_color);
     assert(vs == vs2);
     assert(elem < vs || elem == vs);
+#endif
 
     BB_t* BB_elem = (vs == elem) ? vector_add_asg(BB_list) : &(*BB_list)[elem];
     BB_elem->frame_id = frame_id;
