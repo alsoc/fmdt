@@ -321,7 +321,11 @@ int main(int argc, char** argv) {
             tools_create_folder(p_out_frames);
             char filename[1024];
             snprintf(filename, sizeof(filename), "%s/%05d.pgm", p_out_frames, cur_fra);
-            _tools_save_frame_ui32matrix(filename, (const uint32_t**)L2, i0, i1, j0, j1, IT);
+            // convert labels to black & white image: white if there is a CC, black otherwise
+            for (int i = i0; i <= i1; i++)
+                for (int j = j0; j <= j1; j++)
+                    IT[i][j] = (L2[i][j] == 0) ? 0 : 255;
+            SavePGM_ui8matrix((uint8**)IT, i0, i1, j0, j1, (char*)filename);
         }
 
         // save stats

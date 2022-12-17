@@ -416,25 +416,6 @@ void tools_save_frame_threshold(const char* filename, uint8** I0, uint8** I1, in
     free_rgb8matrix((rgb8**)img, 0, h - 1, 0, 2 * w - 1);
 }
 
-void _tools_save_frame_ui32matrix(const char* filename, const uint32** I, int i0, int i1, int j0, int j1, uint8_t** img)
-{
-    for (int i = i0; i <= i1; i++)
-        for (int j = j0; j <= j1; j++)
-            img[i][j] = (I[i][j] == 0) ? 0 : 255;
-
-    SavePGM_ui8matrix((uint8**)img, i0, i1, j0, j1, (char *)filename);
-}
-
-void tools_save_frame_ui32matrix(const char* filename, const uint32** I, int i0, int i1, int j0, int j1) {
-    uint8_t **img = ui8matrix(i0, i1, j0, j1);
-    _tools_save_frame_ui32matrix(filename, I, i0, i1, j0, j1, img);
-    free_ui8matrix(img, i0, i1, j0, j1);
-}
-
-void tools_save_frame_ui8matrix(const char* filename, const uint8_t** I, int i0, int i1, int j0, int j1) {
-    SavePGM_ui8matrix((uint8**)I, i0, i1, j0, j1, (char *)filename);
-}
-
 void tools_HSV_to_RGB(rgb8_t* pixel, uint8 h, uint8 s, uint8 v) {
     unsigned char region, remainder, p, q, t;
 

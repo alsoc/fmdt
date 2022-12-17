@@ -37,8 +37,11 @@ Logger_frame::Logger_frame(const std::string frames_path, const int i0, const in
         if (!lgr_fra.frames_path.empty()) {
             char file_path[256];
             snprintf(file_path, sizeof(file_path), "%s/%05u.pgm", lgr_fra.frames_path.c_str(), frame);
-            _tools_save_frame_ui32matrix(file_path, lgr_fra.in_labels, lgr_fra.i0, lgr_fra.i1, lgr_fra.j0, lgr_fra.j1,
-                                         lgr_fra.img_tmp);
+            // convert labels to black & white image: white if there is a CC, black otherwise
+            for (int i = lgr_fra.i0; i <= lgr_fra.i1; i++)
+                for (int j = lgr_fra.j0; j <= lgr_fra.j1; j++)
+                    lgr_fra.img_tmp[i][j] = (lgr_fra.in_labels[i][j] == 0) ? 0 : 255;
+            SavePGM_ui8matrix((uint8**)lgr_fra.img_tmp, lgr_fra.i0, lgr_fra.i1, lgr_fra.j0, lgr_fra.j1, file_path);
         }
 
         return aff3ct::runtime::status_t::SUCCESS;
