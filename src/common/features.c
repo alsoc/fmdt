@@ -156,6 +156,7 @@ void _features_extract(const uint32_t** img, const int i0, const int i1, const i
         for (int j = j0; j <= j1; j++) {
             uint32_t e = (uint32_t)img[i][j];
             if (e > 0) {
+                assert(e < MAX_ROI_SIZE_BEFORE_SHRINK);
                 uint32_t r = e - 1;
                 ROI_S[r] += 1;
                 ROI_id[r] = e;
