@@ -312,8 +312,8 @@ int main(int argc, char** argv) {
                                 &first_mean_error, &first_std_deviation, &theta, &tx, &ty, &mean_error, &std_deviation);
 
         // step 6: tracking
-        tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, &BB_array, cur_fra, theta, tx, ty,
-                         mean_error, std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min,
+        tracking_perform(tracking_data, (const ROI_t*)ROI_array1, &BB_array, cur_fra, theta, tx, ty, mean_error,
+                         std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min,
                          p_fra_meteor_min, p_fra_meteor_max, p_out_mag != NULL);
 
         // save frames (CCs)

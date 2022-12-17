@@ -469,18 +469,17 @@ int main(int argc, char** argv) {
 
     // step 6 : tracking
     tracking[trk::sck::perform::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
-    tracking[trk::sck::perform::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
-    tracking[trk::sck::perform::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
-    tracking[trk::sck::perform::in_ROI1_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
-    tracking[trk::sck::perform::in_ROI1_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
-    tracking[trk::sck::perform::in_ROI1_ymin] = merger[ftr_mrg::sck::merge::out_ROI_ymin];
-    tracking[trk::sck::perform::in_ROI1_ymax] = merger[ftr_mrg::sck::merge::out_ROI_ymax];
-    tracking[trk::sck::perform::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
-    tracking[trk::sck::perform::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
-    tracking[trk::sck::perform::in_ROI1_error] = motion[ftr_mtn::sck::compute::out_ROI1_error];
-    tracking[trk::sck::perform::in_ROI1_prev_id] = matcher[knn::sck::match::out_ROI1_prev_id];
-    tracking[trk::sck::perform::in_ROI1_magnitude] = magnitude[ftr_mgn::sck::compute::out_ROI_magnitude];
-    tracking[trk::sck::perform::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
+    tracking[trk::sck::perform::in_ROI_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    tracking[trk::sck::perform::in_ROI_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
+    tracking[trk::sck::perform::in_ROI_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
+    tracking[trk::sck::perform::in_ROI_ymin] = merger[ftr_mrg::sck::merge::out_ROI_ymin];
+    tracking[trk::sck::perform::in_ROI_ymax] = merger[ftr_mrg::sck::merge::out_ROI_ymax];
+    tracking[trk::sck::perform::in_ROI_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
+    tracking[trk::sck::perform::in_ROI_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
+    tracking[trk::sck::perform::in_ROI_error] = motion[ftr_mtn::sck::compute::out_ROI1_error];
+    tracking[trk::sck::perform::in_ROI_prev_id] = matcher[knn::sck::match::out_ROI1_prev_id];
+    tracking[trk::sck::perform::in_ROI_magnitude] = magnitude[ftr_mgn::sck::compute::out_ROI_magnitude];
+    tracking[trk::sck::perform::in_n_ROI] = merger[ftr_mrg::sck::merge::out_n_ROI];
     tracking[trk::sck::perform::in_theta] = motion[ftr_mtn::sck::compute::out_theta];
     tracking[trk::sck::perform::in_tx] = motion[ftr_mtn::sck::compute::out_tx];
     tracking[trk::sck::perform::in_ty] = motion[ftr_mtn::sck::compute::out_ty];

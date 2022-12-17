@@ -8,10 +8,9 @@
 namespace trk {
     enum class tsk : size_t { perform, SIZE };
     namespace sck {
-        enum class perform : size_t { in_frame, in_ROI0_next_id, in_ROI1_id, in_ROI1_xmin, in_ROI1_xmax,
-                                      in_ROI1_ymin, in_ROI1_ymax, in_ROI1_x, in_ROI1_y, in_ROI1_error, in_ROI1_prev_id,
-                                      in_ROI1_magnitude, in_n_ROI1, in_theta, in_tx, in_ty, in_mean_error,
-                                      in_std_deviation, status };
+        enum class perform : size_t { in_frame, in_ROI_id, in_ROI_xmin, in_ROI_xmax, in_ROI_ymin, in_ROI_ymax,
+                                      in_ROI_x, in_ROI_y, in_ROI_error, in_ROI_prev_id, in_ROI_magnitude,
+                                      in_n_ROI, in_theta, in_tx, in_ty, in_mean_error, in_std_deviation, status };
     }
 }
 

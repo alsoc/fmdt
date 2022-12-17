@@ -460,30 +460,29 @@ void light_copy_ROI_array(const ROI_t* ROI_array_src, const uint32_t ROI_src_fra
                           ROI_array_dest);
 }
 
-void _update_ROI_array(const int32_t* ROI_src_next_id, ROI_light_t* ROI_dest, const size_t n_ROI_dest) {
-    for (size_t i = 0; i < n_ROI_dest; i++) {
-        ROI_dest[i].next_id = ROI_src_next_id[i];
-    }
+void _update_ROI_array_next_id(const int32_t* ROI_prev_id, ROI_light_t* ROI_dest, const size_t n_ROI) {
+    for (size_t i = 0; i < n_ROI; i++)
+        if (ROI_prev_id[i])
+            ROI_dest[ROI_prev_id[i] - 1].next_id = i + 1;
 }
 
-void _tracking_perform(tracking_data_t* tracking_data, const int32_t* ROI0_next_id,
-                       const uint16_t* ROI1_id, const uint16_t* ROI1_xmin, const uint16_t* ROI1_xmax,
-                       const uint16_t* ROI1_ymin, const uint16_t* ROI1_ymax, const float* ROI1_x, const float* ROI1_y,
-                       const float* ROI1_error, const int32_t* ROI1_prev_id, const uint32_t* ROI1_magnitude,
-                       const size_t n_ROI1, vec_BB_t** BB_array, size_t frame, double theta, double tx, double ty,
-                       double mean_error, double std_deviation, size_t r_extrapol, float angle_max, float diff_dev,
-                       int track_all, size_t fra_star_min, size_t fra_meteor_min, size_t fra_meteor_max,
-                       int magnitude) {
+void _tracking_perform(tracking_data_t* tracking_data, const uint16_t* ROI_id, const uint16_t* ROI_xmin,
+                       const uint16_t* ROI_xmax, const uint16_t* ROI_ymin, const uint16_t* ROI_ymax,
+                       const float* ROI_x, const float* ROI_y, const float* ROI_error, const int32_t* ROI_prev_id,
+                       const uint32_t* ROI_magnitude, const size_t n_ROI1, vec_BB_t** BB_array, size_t frame,
+                       double theta, double tx, double ty, double mean_error, double std_deviation, size_t r_extrapol,
+                       float angle_max, float diff_dev, int track_all, size_t fra_star_min, size_t fra_meteor_min,
+                       size_t fra_meteor_max, int magnitude) {
     if (*BB_array != NULL) {
         vec_BB_t new_BB = (vec_BB_t)vector_create();
         vector_add(BB_array, new_BB);
     }
 
     tracking_data->ROI_history->n_ROI[0] = n_ROI1;
-    _light_copy_ROI_array(ROI1_id, frame, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_x, ROI1_y, ROI1_error,
-                          ROI1_prev_id, ROI1_magnitude, n_ROI1, tracking_data->ROI_history->array[0]);
+    _light_copy_ROI_array(ROI_id, frame, ROI_xmin, ROI_xmax, ROI_ymin, ROI_ymax, ROI_x, ROI_y, ROI_error,
+                          ROI_prev_id, ROI_magnitude, n_ROI1, tracking_data->ROI_history->array[0]);
     if (tracking_data->ROI_history->_size > 0)
-        _update_ROI_array(ROI0_next_id, tracking_data->ROI_history->array[1], tracking_data->ROI_history->n_ROI[1]);
+        _update_ROI_array_next_id(ROI_prev_id, tracking_data->ROI_history->array[1], n_ROI1);
     if (tracking_data->ROI_history->_size < tracking_data->ROI_history->_max_size)
         tracking_data->ROI_history->_size++;
 
@@ -499,15 +498,15 @@ void _tracking_perform(tracking_data_t* tracking_data, const int32_t* ROI0_next_
     tracking_data->ROI_history->n_ROI[0] = 0;
 }
 
-void tracking_perform(tracking_data_t* tracking_data, const ROI_t* ROI_array0, ROI_t* ROI_array1, vec_BB_t** BB_array,
+void tracking_perform(tracking_data_t* tracking_data, const ROI_t* ROI_array, vec_BB_t** BB_array,
                       size_t frame, double theta, double tx, double ty, double mean_error, double std_deviation,
                       size_t r_extrapol, float angle_max, float diff_dev, int track_all, size_t fra_star_min,
                       size_t fra_meteor_min, size_t fra_meteor_max, int magnitude) {
-    _tracking_perform(tracking_data, ROI_array0->next_id, ROI_array1->id, ROI_array1->xmin, ROI_array1->xmax,
-                      ROI_array1->ymin, ROI_array1->ymax, ROI_array1->x, ROI_array1->y, ROI_array1->error,
-                      ROI_array1->prev_id, ROI_array1->magnitude, ROI_array1->_size, BB_array, frame, theta, tx, ty,
-                      mean_error, std_deviation, r_extrapol, angle_max, diff_dev, track_all, fra_star_min,
-                      fra_meteor_min, fra_meteor_max, magnitude);
+    _tracking_perform(tracking_data, ROI_array->id, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin,
+                      ROI_array->ymax, ROI_array->x, ROI_array->y, ROI_array->error, ROI_array->prev_id,
+                      ROI_array->magnitude, ROI_array->_size, BB_array, frame, theta, tx, ty, mean_error,
+                      std_deviation, r_extrapol, angle_max, diff_dev, track_all, fra_star_min, fra_meteor_min,
+                      fra_meteor_max, magnitude);
 }
 
 void tracking_track_array_write(FILE* f, const vec_track_t track_array) {
