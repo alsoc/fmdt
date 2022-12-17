@@ -361,14 +361,14 @@ This option enables to log internal statistics of the different algorithms used 
 The folder contains multiple files, one per frame (except for the very first frame n°0). 
 For instance, the file name for the frame n°12 is: `00011_00012.txt`.
 `00011` stands for the `t - 1` frame and `00012` stands for the `t` frame.
-Each file contains 6 different tables:
+Each file contains 5 different tables:
   - Table 1: list of Regions Of Interest (ROIs) at `t - 1` (result of the CCL/CCA + hysteresis algorithm at `t - 1`)
   - Table 2: list of Regions Of Interest (ROIs) at `t` (result of the CCL/CCA + hysteresis algorithm at `t`)
-  - Table 3: list of associations between `t - 1` ROIs and `t` ROIs (result of the k-NN algorithm)
+  - Table 3: list of associations between `t - 1` ROIs and `t` ROIs (result of the k-NN algorithm) + errors/velocities after motion estimation
   - Table 4: motion estimation statistics between `t - 1` and `t` frame
   - Table 5: list of tracks since the beginning of the execution (final output of the detection chain)
 
-**Table 1 and table 2** have the same following layout:
+##### Table 1 and table 2: Regions Of Interest (ROIs)
 
 ```
 # ------||----------------||---------------------------||---------------------------||-------------------||-----------
@@ -395,7 +395,7 @@ Each line corresponds to one region of interest (ROI) :
   - `{cy}`: y center of mass
   - `{mag}`: magnitude of the current ROI (accumulated brightness of the ROI)
 
-**Table 3** has the following layout:
+##### Table 3: List of associations between ROIs
 
 ```
 # --------------------||---------------||------------------------||-----------
@@ -419,7 +419,9 @@ Each line corresponds to an association between one ROI at `t - 1` and at `t`:
 
 If `{mov}` = `yes` then, `{dx}`,`{dy}` is the velocity vector and `{e}` is the velocity value in pixel.
 
-**Table 4** has the following layout:
+**Note that `{dx}`, `{dy}`, `{e}` and `{mov}` are computed after the second motion estimation.**
+
+##### Table 4: Motion Estimation Statistics
 
 ```
 # ------------------------------------------------------||------------------------------------------------------
@@ -435,12 +437,12 @@ There is only one line in this table. It represents the motion estimation betwee
   - `{theta}`: the estimated rotation angle between frame `t` and frame `t - 1`
   - `{tx}` and `{ty}`: the estimated translation vector from frame `t` to frame `t - 1`
   - `{mean_er}`: the mean error of the associated ROIs
-  - `{std_dev}`: the standard deviation of the error considering the associated ROIs
+  - `{std_dev}`: the standard deviation of the associated ROI errors
 
 The first estimation considers all the associated ROIs while the second estimation excludes the associated ROIs in movement.
-To be considered in movement, an ROI has to verify the following condition: abs(`{e}` - `{mean_er1}`) > `{std_dev1}`, with `{e}` the error of the current ROI (see below for more explanation about the error `{e}`).
+To be considered in movement, an ROI has to verify the following condition: abs(`{e}` - `{mean_er1}`) > `{std_dev1}`, with `{e}` the error of the current ROI.
 
-**Table 5** has the following layout:
+##### Table 5: List of Tracks
 
 ```
 # -------||---------------------------||---------------------------||---------||-------------------
