@@ -25,7 +25,7 @@ build-linux-gcc-c:
   artifacts:
     name: build-linux-gcc-c
     paths:
-      - build_linux_gcc_c
+      - build_linux_gcc_c.tar.gz
   script:
     - export CC="gcc"
     - export CXX="g++"
@@ -34,6 +34,7 @@ build-linux-gcc-c:
     - export NAME="build_linux_gcc_c"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
+    - tar -zcvf build_linux_gcc_c.tar.gz build_linux_gcc_c
 
 build-linux-gcc-x64-avx2:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_gcc:v9.3.0
@@ -49,7 +50,7 @@ build-linux-gcc-x64-avx2:
   artifacts:
     name: build-linux-gcc-x64-avx2
     paths:
-      - build_linux_gcc_x64_avx2
+      - build_linux_gcc_x64_avx2.tar.gz
   script:
     - export CC="gcc"
     - export CXX="g++"
@@ -59,6 +60,7 @@ build-linux-gcc-x64-avx2:
     - export NAME="build_linux_gcc_x64_avx2"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
+    - tar -zcvf build_linux_gcc_x64_avx2.tar.gz build_linux_gcc_x64_avx2
 
 build-linux-gcc-coverage:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_gcc:v9.3.0
@@ -72,7 +74,7 @@ build-linux-gcc-coverage:
   artifacts:
     name: build
     paths:
-      - build
+      - build.tar.gz
   script:
     - export CC="gcc"
     - export CXX="g++"
@@ -81,6 +83,7 @@ build-linux-gcc-coverage:
     - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
+    - tar -zcvf build.tar.gz build
 
 build-linux-clang:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_clang:v10.0.0
@@ -96,7 +99,7 @@ build-linux-clang:
   artifacts:
     name: build-linux-clang
     paths:
-      - build_linux_clang
+      - build_linux_clang.tar.gz
   script:
     - export CC="clang"
     - export CXX="clang++"
@@ -105,6 +108,7 @@ build-linux-clang:
     - export NAME="build_linux_clang"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
+    - tar -zcvf build_linux_clang.tar.gz build_linux_clang
 
 build-linux-clang-debug:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_clang:v10.0.0
@@ -120,7 +124,7 @@ build-linux-clang-debug:
   artifacts:
     name: build-linux-clang-debug
     paths:
-      - build_linux_clang_debug
+      - build_linux_clang_debug.tar.gz
   script:
     - export CC="clang"
     - export CXX="clang++"
@@ -129,6 +133,7 @@ build-linux-clang-debug:
     - export NAME="build_linux_clang_debug"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
+    - tar -zcvf build_linux_clang_debug.tar.gz build_linux_clang_debug
 
 build-linux-clang-c:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_clang:v10.0.0
@@ -144,7 +149,7 @@ build-linux-clang-c:
   artifacts:
     name: build-linux-clang-c
     paths:
-      - build_linux_clang_c
+      - build_linux_clang_c.tar.gz
   script:
     - export CC="clang"
     - export CXX="clang++"
@@ -153,6 +158,7 @@ build-linux-clang-c:
     - export NAME="build_linux_clang_c"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
+    - tar -zcvf build_linux_clang_c.tar.gz build_linux_clang_c
 
 build-linux-icpc:
   image: intel/oneapi-hpckit
@@ -168,7 +174,7 @@ build-linux-icpc:
   artifacts:
     name: build-linux-icpc
     paths:
-      - build_linux_icpc
+      - build_linux_icpc.tar.gz
   script:
     - export CC="icc"
     - export CXX="icpc"
@@ -177,8 +183,31 @@ build-linux-icpc:
     - export NAME="build_linux_icpc"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
+    - tar -zcvf build_linux_icpc.tar.gz build_linux_icpc
 
-test-coverage-regression:
+test-regression-c:
+  image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_coverage
+  stage: test
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - schedules
+  needs:
+    - job: build-linux-gcc-c
+      artifacts: true
+  tags:
+    - x86_64
+    - sse4.2
+    - linux
+    - docker
+  script:
+    - tar -xvvf build_linux_gcc_c.tar.gz
+    - mv build_linux_gcc_c build
+    - mkdir build_linux_gcc_c/exe
+    - mv build_linux_gcc_c/* build_linux_gcc_c/exe
+    - ./ci/test-regression.sh
+
+test-regression:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_coverage
   stage: test
   variables:
@@ -194,12 +223,17 @@ test-coverage-regression:
     - linux
     - docker
   artifacts:
-     name: code-coverage-files
-     when: always
-     paths:
-      - code_coverage_files/
+    name: build
+    when: always
+    paths:
+      - build.tar.gz
   script:
-    - ./ci/test-coverage-regression.sh
+    - tar -xvvf build.tar.gz
+    - ./ci/test-regression.sh
+    - rm -rf build/fmdt-detect*
+    - rm -rf build/exe
+    - rm -rf build/lib
+    - tar -zcvf build.tar.gz build
 
 coverage-linux:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_coverage
@@ -207,7 +241,7 @@ coverage-linux:
   except:
     - schedules
   needs:
-    - job: test-coverage-regression
+    - job: test-regression
       artifacts: true
   tags:
     - x86_64
@@ -220,6 +254,7 @@ coverage-linux:
      paths:
        - code_coverage_report/
   script:
+    - tar -xvvf build.tar.gz
     - ./ci/coverage-linux.sh
 
 pages:
