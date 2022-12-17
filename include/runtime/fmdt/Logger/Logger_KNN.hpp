@@ -6,8 +6,8 @@
 namespace lgr_knn {
     enum class tsk : size_t { write, SIZE };
     namespace sck {
-        enum class write : size_t { in_data_nearest, in_data_distances, in_data_conflicts, in_ROI_id, in_ROI_dx,
-                                    in_ROI_dy, in_ROI_error, in_ROI_next_id, in_ROI_is_moving, in_n_ROI, in_n_conflicts,
+        enum class write : size_t { in_data_nearest, in_data_distances, in_data_conflicts, in_ROI0_id, in_ROI0_next_id,
+                                    in_n_ROI0, in_ROI1_dx, in_ROI1_dy, in_ROI1_error, in_ROI1_is_moving, in_n_ROI1,
                                     in_frame, status };
     }
 }

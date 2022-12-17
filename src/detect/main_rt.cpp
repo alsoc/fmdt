@@ -460,16 +460,15 @@ int main(int argc, char** argv) {
     matcher[knn::sck::match::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
 
     // step 5: motion estimation
-    motion[ftr_mtn::sck::compute::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
     motion[ftr_mtn::sck::compute::in_ROI0_x] = delayer_ROI_x[aff3ct::module::dly::sck::produce::out];
     motion[ftr_mtn::sck::compute::in_ROI0_y] = delayer_ROI_y[aff3ct::module::dly::sck::produce::out];
-    motion[ftr_mtn::sck::compute::in_n_ROI0] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
     motion[ftr_mtn::sck::compute::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
     motion[ftr_mtn::sck::compute::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
+    motion[ftr_mtn::sck::compute::in_ROI1_prev_id] = matcher[knn::sck::match::out_ROI1_prev_id];
+    motion[ftr_mtn::sck::compute::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
 
     // step 6 : tracking
     tracking[trk::sck::perform::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
-    tracking[trk::sck::perform::in_ROI0_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
     tracking[trk::sck::perform::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
     tracking[trk::sck::perform::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
     tracking[trk::sck::perform::in_ROI1_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
@@ -478,6 +477,7 @@ int main(int argc, char** argv) {
     tracking[trk::sck::perform::in_ROI1_ymax] = merger[ftr_mrg::sck::merge::out_ROI_ymax];
     tracking[trk::sck::perform::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
     tracking[trk::sck::perform::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
+    tracking[trk::sck::perform::in_ROI1_error] = motion[ftr_mtn::sck::compute::out_ROI1_error];
     tracking[trk::sck::perform::in_ROI1_prev_id] = matcher[knn::sck::match::out_ROI1_prev_id];
     tracking[trk::sck::perform::in_ROI1_magnitude] = magnitude[ftr_mgn::sck::compute::out_ROI_magnitude];
     tracking[trk::sck::perform::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
@@ -530,14 +530,14 @@ int main(int argc, char** argv) {
         log_KNN[lgr_knn::sck::write::in_data_nearest] = matcher[knn::sck::match::out_data_nearest];
         log_KNN[lgr_knn::sck::write::in_data_distances] = matcher[knn::sck::match::out_data_distances];
         log_KNN[lgr_knn::sck::write::in_data_conflicts] = matcher[knn::sck::match::out_data_conflicts];
-        log_KNN[lgr_knn::sck::write::in_ROI_id] = delayer_ROI_id[aff3ct::module::dly::sck::produce::out];
-        log_KNN[lgr_knn::sck::write::in_ROI_dx] = motion[ftr_mtn::sck::compute::out_ROI0_dx];
-        log_KNN[lgr_knn::sck::write::in_ROI_dy] = motion[ftr_mtn::sck::compute::out_ROI0_dy];
-        log_KNN[lgr_knn::sck::write::in_ROI_error] = motion[ftr_mtn::sck::compute::out_ROI0_error];
-        log_KNN[lgr_knn::sck::write::in_ROI_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
-        log_KNN[lgr_knn::sck::write::in_ROI_is_moving] = motion[ftr_mtn::sck::compute::out_ROI0_is_moving];
-        log_KNN[lgr_knn::sck::write::in_n_ROI] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
-        log_KNN[lgr_knn::sck::write::in_n_conflicts] = merger[ftr_mrg::sck::merge::out_n_ROI];
+        log_KNN[lgr_knn::sck::write::in_ROI0_id] = delayer_ROI_id[aff3ct::module::dly::sck::produce::out];
+        log_KNN[lgr_knn::sck::write::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
+        log_KNN[lgr_knn::sck::write::in_n_ROI0] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
+        log_KNN[lgr_knn::sck::write::in_ROI1_dx] = motion[ftr_mtn::sck::compute::out_ROI1_dx];
+        log_KNN[lgr_knn::sck::write::in_ROI1_dy] = motion[ftr_mtn::sck::compute::out_ROI1_dy];
+        log_KNN[lgr_knn::sck::write::in_ROI1_error] = motion[ftr_mtn::sck::compute::out_ROI1_error];
+        log_KNN[lgr_knn::sck::write::in_ROI1_is_moving] = motion[ftr_mtn::sck::compute::out_ROI1_is_moving];
+        log_KNN[lgr_knn::sck::write::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
         log_KNN[lgr_knn::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
 
         log_motion[lgr_mtn::sck::write::in_first_theta] = motion[ftr_mtn::sck::compute::out_first_theta];

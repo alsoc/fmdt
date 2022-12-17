@@ -308,7 +308,7 @@ int main(int argc, char** argv) {
         // step 5: motion estimation
         double first_theta, first_tx, first_ty, first_mean_error, first_std_deviation;
         double theta, tx, ty, mean_error, std_deviation;
-        features_compute_motion((const ROI_t*)ROI_array1, ROI_array0, &first_theta, &first_tx, &first_ty,
+        features_compute_motion((const ROI_t*)ROI_array0, ROI_array1, &first_theta, &first_tx, &first_ty,
                                 &first_mean_error, &first_std_deviation, &theta, &tx, &ty, &mean_error, &std_deviation);
 
         // step 6: tracking
@@ -337,8 +337,7 @@ int main(int argc, char** argv) {
             if (f) {
                 features_ROI0_ROI1_write(f, cur_fra, ROI_array0, ROI_array1, tracking_data->tracks);
                 fprintf(f, "#\n");
-                const size_t n_conflicts = ROI_array1->_size;
-                KNN_asso_conflicts_write(f, knn_data, ROI_array0, n_conflicts);
+                KNN_asso_conflicts_write(f, knn_data, ROI_array0, ROI_array1);
                 fprintf(f, "#\n");
                 features_motion_write(f, first_theta, first_tx, first_ty, first_mean_error, first_std_deviation, theta,
                                       tx, ty, mean_error, std_deviation);
