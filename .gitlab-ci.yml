@@ -202,9 +202,9 @@ test-regression-c:
     - docker
   script:
     - tar -xvvf build_linux_gcc_c.tar.gz
-    - mv build_linux_gcc_c build
-    - mkdir build_linux_gcc_c/exe
-    - mv build_linux_gcc_c/* build_linux_gcc_c/exe
+    - mkdir build
+    - mkdir build/exe
+    - mv build_linux_gcc_c/* build/exe
     - ./ci/test-regression.sh
 
 test-regression:
@@ -234,6 +234,59 @@ test-regression:
     - rm -rf build/exe
     - rm -rf build/lib
     - tar -zcvf build.tar.gz build
+
+test-memory-c:
+  image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_valgrind
+  stage: test
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - schedules
+  needs:
+    - job: build-linux-gcc-c
+      artifacts: true
+    - job: build-linux-clang-c
+      artifacts: true
+  tags:
+    - x86_64
+    - sse4.2
+    - linux
+    - docker
+  script:
+    - tar -xvvf build_linux_gcc_c.tar.gz
+    - mkdir build_gcc
+    - mkdir build_gcc/exe
+    - mv build_linux_gcc_c/* build_gcc/exe
+    - tar -xvvf build_linux_clang_c.tar.gz
+    - mkdir build_clang
+    - mkdir build_clang/exe
+    - mv build_linux_clang_c/* build_clang/exe
+    - ./ci/test-memory.sh build_gcc build_clang
+
+test-memory:
+  image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_valgrind
+  stage: test
+  variables:
+    GIT_SUBMODULE_STRATEGY: recursive
+  except:
+    - schedules
+  needs:
+    - job: build-linux-gcc-coverage
+      artifacts: true
+    - job: build-linux-clang
+      artifacts: true
+  tags:
+    - x86_64
+    - sse4.2
+    - linux
+    - docker
+  script:
+    - tar -xvvf build.tar.gz
+    - tar -xvvf build_linux_clang.tar.gz
+    - mkdir build_clang
+    - mkdir build_clang/exe
+    - mv build_linux_clang/* build_clang/exe
+    - ./ci/test-memory.sh build build_clang
 
 coverage-linux:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_coverage
