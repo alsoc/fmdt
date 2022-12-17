@@ -16,10 +16,10 @@ KNN_data_t* KNN_alloc_and_init_data(int i0, int i1, int j0, int j1) {
     data->j1 = j1;
     data->nearest = (uint32_t**)ui32matrix(data->i0, data->i1, data->j0, data->j1);
     data->distances = (float**)f32matrix(data->i0, data->i1, data->j0, data->j1);
-    data->conflicts = (uint32_t*)ui32vector(data->j0, data->j1);
     zero_ui32matrix(data->nearest, data->i0, data->i1, data->j0, data->j1);
     zero_f32matrix(data->distances, data->i0, data->i1, data->j0, data->j1);
 #ifdef ENABLE_DEBUG
+    data->conflicts = (uint32_t*)ui32vector(data->j0, data->j1);
     zero_ui32vector(data->conflicts, data->j0, data->j1);
 #else
     data->conflicts = NULL;
