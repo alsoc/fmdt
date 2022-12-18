@@ -81,6 +81,12 @@ void _features_compute_motion(const float* ROI0_x, const float* ROI0_y, const fl
                               uint8_t* ROI1_is_moving, const size_t n_ROI1, motion_t* motion_est1,
                               motion_t* motion_est2);
 void features_compute_motion(const ROI_t* ROI_array0, ROI_t* ROI_array1, motion_t* motion_est1, motion_t* motion_est2);
+void _features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
+                                 const uint32_t** labels, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
+                                 const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
+                                 uint32_t* ROI_magnitude, const size_t n_ROI);
+void features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
+                                const uint32_t** labels, ROI_t* ROI_array);
 void _features_ROI_write(FILE* f, const int frame, const uint16_t* ROI_id, const uint16_t* ROI_xmin,
                          const uint16_t* ROI_xmax, const uint16_t* ROI_ymin, const uint16_t* ROI_ymax,
                          const uint32_t* ROI_S, const uint32_t* ROI_Sx, const uint32_t* ROI_Sy, const float* ROI_x,
@@ -100,9 +106,3 @@ void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id
 void features_ROI0_ROI1_write(FILE* f, const int frame, const ROI_t* ROI_array0, const ROI_t* ROI_array1,
                               const vec_track_t track_array);
 void features_motion_write(FILE* f, const motion_t* motion_est1, const motion_t* motion_est2);
-void _features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
-                                 const uint32_t** labels, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
-                                 const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
-                                 uint32_t* ROI_magnitude, const size_t n_ROI);
-void features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
-                                const uint32_t** labels, ROI_t* ROI_array);

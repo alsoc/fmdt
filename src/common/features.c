@@ -540,6 +540,58 @@ void features_print_stats(ROI_t* stats, int n) {
     printf("\n");
 }
 
+void _features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
+                                 const uint32_t** labels, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
+                                 const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
+                                 uint32_t* ROI_magnitude, const size_t n_ROI) {
+    // set all ROIs (Regions of Interest) magnitudes to 0
+    memset(ROI_magnitude, 0, n_ROI * sizeof(uint32_t));
+    // for each ROI (= Region of Interest = object)
+    for (uint32_t r = 0; r < n_ROI; r++) {
+        // width and height of the current ROI
+        uint16_t w = (ROI_xmax[r] - ROI_xmin[r]) + 1;
+        uint16_t h = (ROI_ymax[r] - ROI_ymin[r]) + 1;
+
+        // bounding box around the ROI + extra space to consider local noise level
+        uint16_t ymin = ROI_ymin[r] - h >          0 ? ROI_ymin[r] - h :          0;
+        uint16_t ymax = ROI_ymax[r] + h < img_height ? ROI_ymax[r] + h : img_height;
+        uint16_t xmin = ROI_xmin[r] - w >          0 ? ROI_xmin[r] - w :          0;
+        uint16_t xmax = ROI_xmax[r] + w <  img_width ? ROI_xmax[r] + w :  img_width;
+
+        uint32_t acc_noise = 0; // accumulate noisy pixels (= dark pixels)
+        uint32_t count_noise = 0; // count the number of noisy pixels
+        uint32_t count_px = 0; // count the number of pixels for the current ROI (= bright pixels)
+
+        // moving in a square (bigger that the real bounding box) around the current ROI
+        for (uint16_t i = ymin; i <= ymax; i++) {
+            for (uint16_t j = xmin; j <= xmax; j++) {
+                // get the label from the current pixel position
+                // if l != 0 then it is a ROI, else it is a dark / noisy pixel
+                uint32_t l = labels[i][j];
+                // check if the current pixel belong to the current ROI (same bounding box can share multiple ROIs)
+                if (l == r + 1) {
+                    ROI_magnitude[r] += (uint32_t)img[i][j];
+                    count_px++;
+                } else if (l == 0) {
+                    acc_noise += (uint32_t)img[i][j];
+                    count_noise++;
+                }
+            }
+        }
+        assert(count_px == ROI_S[r]); // useless check, only for debugging purpose
+        // compute mean noise value
+        uint32_t noise = acc_noise / count_noise;
+        // subtract mean noise to the current ROI (Region of Interest) magnitude
+        ROI_magnitude[r] -= noise * ROI_S[r];
+    }
+}
+
+void features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
+                                const uint32_t** labels, ROI_t* ROI_array) {
+    _features_compute_magnitude(img, img_width, img_height, labels, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin,
+                                ROI_array->ymax, ROI_array->S, ROI_array->magnitude, ROI_array->_size);
+}
+
 void features_parse_stats(const char* filename, ROI_t* stats, int* n) {
     char lines[200];
     int id, xmin, xmax, ymin, ymax, s, sx, sy, prev_id, next_id;
@@ -681,24 +733,24 @@ void features_motion_write(FILE* f, const motion_t* motion_est1, const motion_t*
         snprintf(theta1_str, sizeof(theta1_str), "%1.5f", motion_est1->theta);
 
     if (motion_est1->tx >= 0)
-        snprintf(tx1_str, sizeof(tx1_str), " %2.5f", motion_est1->tx);
+        snprintf(tx1_str, sizeof(tx1_str), " %2.4f", motion_est1->tx);
     else
-        snprintf(tx1_str, sizeof(tx1_str), "%2.5f", motion_est1->tx);
+        snprintf(tx1_str, sizeof(tx1_str), "%2.4f", motion_est1->tx);
 
     if (motion_est1->ty >= 0)
-        snprintf(ty1_str, sizeof(ty1_str), " %2.5f", motion_est1->ty);
+        snprintf(ty1_str, sizeof(ty1_str), " %2.4f", motion_est1->ty);
     else
-        snprintf(ty1_str, sizeof(ty1_str), "%2.5f", motion_est1->ty);
+        snprintf(ty1_str, sizeof(ty1_str), "%2.4f", motion_est1->ty);
 
     if (motion_est1->mean_error >= 0)
-        snprintf(mean_err1_str, sizeof(mean_err1_str), " %2.5f", motion_est1->mean_error);
+        snprintf(mean_err1_str, sizeof(mean_err1_str), "  %2.4f", motion_est1->mean_error);
     else
-        snprintf(mean_err1_str, sizeof(mean_err1_str), "%2.5f", motion_est1->mean_error);
+        snprintf(mean_err1_str, sizeof(mean_err1_str), " %2.4f", motion_est1->mean_error);
 
     if (motion_est1->std_deviation >= 0)
-        snprintf(std_dev1_str, sizeof(std_dev1_str), " %2.5f", motion_est1->std_deviation);
+        snprintf(std_dev1_str, sizeof(std_dev1_str), " %2.4f", motion_est1->std_deviation);
     else
-        snprintf(std_dev1_str, sizeof(std_dev1_str), "%2.5f", motion_est1->std_deviation);
+        snprintf(std_dev1_str, sizeof(std_dev1_str), "%2.4f", motion_est1->std_deviation);
 
     if (motion_est2->theta >= 0)
         snprintf(theta2_str, sizeof(theta2_str), " %1.5f", motion_est2->theta);
@@ -706,32 +758,32 @@ void features_motion_write(FILE* f, const motion_t* motion_est1, const motion_t*
         snprintf(theta2_str, sizeof(theta2_str), "%1.5f", motion_est2->theta);
 
     if (motion_est2->tx >= 0)
-        snprintf(tx2_str, sizeof(tx2_str), " %2.5f", motion_est2->tx);
+        snprintf(tx2_str, sizeof(tx2_str), " %2.4f", motion_est2->tx);
     else
-        snprintf(tx2_str, sizeof(tx2_str), "%2.5f", motion_est2->tx);
+        snprintf(tx2_str, sizeof(tx2_str), "%2.4f", motion_est2->tx);
 
     if (motion_est2->ty >= 0)
-        snprintf(ty2_str, sizeof(ty2_str), " %2.5f", motion_est2->ty);
+        snprintf(ty2_str, sizeof(ty2_str), " %2.4f", motion_est2->ty);
     else
-        snprintf(ty2_str, sizeof(ty2_str), "%2.5f", motion_est2->ty);
+        snprintf(ty2_str, sizeof(ty2_str), "%2.4f", motion_est2->ty);
 
     if (motion_est2->mean_error >= 0)
-        snprintf(mean_err2_str, sizeof(mean_err2_str), " %2.5f", motion_est2->mean_error);
+        snprintf(mean_err2_str, sizeof(mean_err2_str), "  %2.4f", motion_est2->mean_error);
     else
-        snprintf(mean_err2_str, sizeof(mean_err2_str), "%2.5f", motion_est2->mean_error);
+        snprintf(mean_err2_str, sizeof(mean_err2_str), " %2.4f", motion_est2->mean_error);
 
     if (motion_est2->std_deviation >= 0)
-        snprintf(std_dev2_str, sizeof(std_dev2_str), " %2.5f", motion_est2->std_deviation);
+        snprintf(std_dev2_str, sizeof(std_dev2_str), " %2.4f", motion_est2->std_deviation);
     else
-        snprintf(std_dev2_str, sizeof(std_dev2_str), "%2.5f", motion_est2->std_deviation);
+        snprintf(std_dev2_str, sizeof(std_dev2_str), "%2.4f", motion_est2->std_deviation);
 
     fprintf(f, "# Motion:\n");
-    fprintf(f, "# ------------------------------------------------------||------------------------------------------------------\n");
-    fprintf(f, "#   First motion estimation (with all associated ROIs)  ||    Second motion estimation (exclude moving ROIs)    \n");
-    fprintf(f, "# ------------------------------------------------------||------------------------------------------------------\n");
-    fprintf(f, "# ----------|----------|----------|----------|----------||----------|----------|----------|----------|----------\n");
-    fprintf(f, "#     theta |       tx |       ty | mean err |  std dev ||    theta |       tx |       ty | mean err |  std dev \n");
-    fprintf(f, "# ----------|----------|----------|----------|----------||----------|----------|----------|----------|----------\n");
+    fprintf(f, "# ---------------------------------------------------||---------------------------------------------------\n");
+    fprintf(f, "#  First motion estimation (with all associated ROIs)||   Second motion estimation (exclude moving ROIs)  \n");
+    fprintf(f, "# ---------------------------------------------------||---------------------------------------------------\n");
+    fprintf(f, "# ----------|---------|---------|----------|---------||----------|---------|---------|----------|---------\n");
+    fprintf(f, "#     theta |      tx |      ty | mean err | std dev ||    theta |      tx |      ty | mean err | std dev \n");
+    fprintf(f, "# ----------|---------|---------|----------|---------||----------|---------|---------|----------|---------\n");
     fprintf(f, "   %s | %s | %s | %s | %s || %s | %s | %s | %s | %s \n",
             theta1_str, tx1_str, ty1_str, mean_err1_str, std_dev1_str,
             theta2_str, tx2_str, ty2_str, mean_err2_str, std_dev2_str);
@@ -791,56 +843,4 @@ void features_save_motion_extraction(const char* filename, const ROI_t* ROI_arra
         }
     }
     fclose(f);
-}
-
-void _features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
-                                 const uint32_t** labels, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
-                                 const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,
-                                 uint32_t* ROI_magnitude, const size_t n_ROI) {
-    // set all ROIs (Regions of Interest) magnitudes to 0
-    memset(ROI_magnitude, 0, n_ROI * sizeof(uint32_t));
-    // for each ROI (= Region of Interest = object)
-    for (uint32_t r = 0; r < n_ROI; r++) {
-        // width and height of the current ROI
-        uint16_t w = (ROI_xmax[r] - ROI_xmin[r]) + 1;
-        uint16_t h = (ROI_ymax[r] - ROI_ymin[r]) + 1;
-
-        // bounding box around the ROI + extra space to consider local noise level
-        uint16_t ymin = ROI_ymin[r] - h >          0 ? ROI_ymin[r] - h :          0;
-        uint16_t ymax = ROI_ymax[r] + h < img_height ? ROI_ymax[r] + h : img_height;
-        uint16_t xmin = ROI_xmin[r] - w >          0 ? ROI_xmin[r] - w :          0;
-        uint16_t xmax = ROI_xmax[r] + w <  img_width ? ROI_xmax[r] + w :  img_width;
-
-        uint32_t acc_noise = 0; // accumulate noisy pixels (= dark pixels)
-        uint32_t count_noise = 0; // count the number of noisy pixels
-        uint32_t count_px = 0; // count the number of pixels for the current ROI (= bright pixels)
-
-        // moving in a square (bigger that the real bounding box) around the current ROI
-        for (uint16_t i = ymin; i <= ymax; i++) {
-            for (uint16_t j = xmin; j <= xmax; j++) {
-                // get the label from the current pixel position
-                // if l != 0 then it is a ROI, else it is a dark / noisy pixel
-                uint32_t l = labels[i][j];
-                // check if the current pixel belong to the current ROI (same bounding box can share multiple ROIs)
-                if (l == r + 1) {
-                    ROI_magnitude[r] += (uint32_t)img[i][j];
-                    count_px++;
-                } else if (l == 0) {
-                    acc_noise += (uint32_t)img[i][j];
-                    count_noise++;
-                }
-            }
-        }
-        assert(count_px == ROI_S[r]); // useless check, only for debugging purpose
-        // compute mean noise value
-        uint32_t noise = acc_noise / count_noise;
-        // subtract mean noise to the current ROI (Region of Interest) magnitude
-        ROI_magnitude[r] -= noise * ROI_S[r];
-    }
-}
-
-void features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
-                                const uint32_t** labels, ROI_t* ROI_array) {
-    _features_compute_magnitude(img, img_width, img_height, labels, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin,
-                                ROI_array->ymax, ROI_array->S, ROI_array->magnitude, ROI_array->_size);
 }
