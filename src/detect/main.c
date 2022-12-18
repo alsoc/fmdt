@@ -88,7 +88,7 @@ int main(int argc, char** argv) {
                 "  --surface-max       Minimum area of the CC                                                 [%d]\n",
                 def_p_surface_max);
         fprintf(stderr,
-                "  -k                  Number of neighbours                                                   [%d]\n",
+                "  -k                  Maximum number of neighbors considered in k-NN algorithm               [%d]\n",
                 def_p_k);
         fprintf(stderr,
                 "  --max-dist          Maximum number of pixels between two images (in k-NN)                  [%d]\n",

@@ -99,7 +99,7 @@ The list of available arguments:
 | `--light-max`      | int      | 80          | No      | Maximum light intensity hysteresis threshold (grayscale [0;255]). |
 | `--surface-min`    | int      | 3           | No      | Minimum surface of the CCs in pixel. |
 | `--surface-max`    | int      | 1000        | No      | Maximum surface of the CCs in pixel. |
-| `-k`               | int      | 3           | No      | Number of neighbors in the k-nearest neighbor matching (k-NN algorithm). |
+| `-k`               | int      | 3           | No      | Maximum number of neighbors considered in k-nearest neighbor matching (k-NN algorithm). |
 | `--max-dist`       | int      | 10          | No      | Maximum number of pixels between two images (k-NN algorithm). |
 | `--r-extrapol`     | int      | 5           | No      | Search radius for CC extrapolation (piece-wise tracking). |
 | `--angle-max`      | float    | 20.0        | No      | Tracking angle max between two consecutive meteor moving points (in degree). |
