@@ -129,30 +129,30 @@ int main(int argc, char** argv) {
     }
 
     // parse arguments
-    const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
-    const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
-    const int p_fra_skip = args_find_int(argc, argv, "--fra-skip", def_p_fra_skip);
-    const int p_light_min = args_find_int(argc, argv, "--light-min", def_p_light_min);
-    const int p_light_max = args_find_int(argc, argv, "--light-max", def_p_light_max);
-    const int p_surface_min = args_find_int(argc, argv, "--surface-min", def_p_surface_min);
-    const int p_surface_max = args_find_int(argc, argv, "--surface-max", def_p_surface_max);
-    const int p_k = args_find_int(argc, argv, "-k", def_p_k);
-    const int p_max_dist = args_find_int(argc, argv, "--max-dist", def_p_max_dist);
-    const int p_r_extrapol = args_find_int(argc, argv, "--r-extrapol", def_p_r_extrapol);
-    const float p_angle_max = args_find_float(argc, argv, "--angle-max", def_p_angle_max);
-    const int p_fra_star_min = args_find_int(argc, argv, "--fra-star-min", def_p_fra_star_min);
-    const int p_fra_meteor_min = args_find_int(argc, argv, "--fra-meteor-min", def_p_fra_meteor_min);
-    const int p_fra_meteor_max = args_find_int(argc, argv, "--fra-meteor-max", def_p_fra_meteor_max);
-    const float p_diff_dev = args_find_float(argc, argv, "--diff-dev", def_p_diff_dev);
+    const int p_fra_start = args_find_int_min(argc, argv, "--fra-start", def_p_fra_start, 0);
+    const int p_fra_end = args_find_int_min(argc, argv, "--fra-end", def_p_fra_end, 0);
+    const int p_fra_skip = args_find_int_min(argc, argv, "--fra-skip", def_p_fra_skip, 0);
+    const int p_light_min = args_find_int_min_max(argc, argv, "--light-min", def_p_light_min, 0, 255);
+    const int p_light_max = args_find_int_min_max(argc, argv, "--light-max", def_p_light_max, 0, 255);
+    const int p_surface_min = args_find_int_min(argc, argv, "--surface-min", def_p_surface_min, 0);
+    const int p_surface_max = args_find_int_min(argc, argv, "--surface-max", def_p_surface_max, 0);
+    const int p_k = args_find_int_min(argc, argv, "-k", def_p_k, 0);
+    const int p_max_dist = args_find_int_min(argc, argv, "--max-dist", def_p_max_dist, 0);
+    const int p_r_extrapol = args_find_int_min(argc, argv, "--r-extrapol", def_p_r_extrapol, 0);
+    const float p_angle_max = args_find_float_min_max(argc, argv, "--angle-max", def_p_angle_max, 0.f, 360.f);
+    const int p_fra_star_min = args_find_int_min(argc, argv, "--fra-star-min", def_p_fra_star_min, 2);
+    const int p_fra_meteor_min = args_find_int_min(argc, argv, "--fra-meteor-min", def_p_fra_meteor_min, 2);
+    const int p_fra_meteor_max = args_find_int_min(argc, argv, "--fra-meteor-max", def_p_fra_meteor_max, 2);
+    const float p_diff_dev = args_find_float_min(argc, argv, "--diff-dev", def_p_diff_dev, 0.f);
     const char* p_in_video = args_find_char(argc, argv, "--in-video", def_p_in_video);
     const char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
     const char* p_out_mag = args_find_char(argc, argv, "--out-mag", def_p_out_mag);
     const int p_track_all = args_find(argc, argv, "--track-all");
+    const int p_ffmpeg_threads = args_find_int_min(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads, 0);
     const int p_video_buff = args_find(argc, argv, "--video-buff");
-    const int p_video_loop = args_find_int(argc, argv, "--video-loop", def_p_video_loop);
-    const int p_ffmpeg_threads = args_find_int(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads);
+    const int p_video_loop = args_find_int_min(argc, argv, "--video-loop", def_p_video_loop, 1);
 
     // heading display
     printf("#  ---------------------\n");
@@ -194,14 +194,6 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--in-video' is missing\n");
         exit(1);
     }
-    if (p_fra_star_min < 2) {
-        fprintf(stderr, "(EE) '--fra-star-min' has to be bigger than 1\n");
-        exit(1);
-    }
-    if (p_fra_meteor_min < 2) {
-        fprintf(stderr, "(EE) '--fra-meteor-min' has to be bigger than 1\n");
-        exit(1);
-    }
     if (p_fra_meteor_max < p_fra_meteor_min) {
         fprintf(stderr, "(EE) '--fra-meteor-max' has to be bigger than '--fra-meteor-min'\n");
         exit(1);
@@ -210,18 +202,14 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
+    if (p_light_min > p_light_max) {
+        fprintf(stderr, "(EE) '--light-max' has to be higher than '--light-min'\n");
+        exit(1);
+    }
     if (!tools_is_dir(p_in_video) && p_video_buff)
         fprintf(stderr, "(WW) '--video-buff' has no effect when '--in-video' is a video file\n");
     if (!tools_is_dir(p_in_video) && p_video_loop > 1)
         fprintf(stderr, "(WW) '--video-loop' has no effect when '--in-video' is a video file\n");
-    if (p_video_loop <= 0) {
-        fprintf(stderr, "(EE) '--video-loop' has to be bigger than 0\n");
-        exit(1);
-    }
-    if (p_ffmpeg_threads < 0) {
-        fprintf(stderr, "(EE) '--ffmpeg-threads' has to be bigger or equal to 0\n");
-        exit(1);
-    }
     if (p_ffmpeg_threads && tools_is_dir(p_in_video))
         fprintf(stderr, "(WW) '--ffmpeg-threads' has no effect when '--in-video' is a folder of images\n");
 

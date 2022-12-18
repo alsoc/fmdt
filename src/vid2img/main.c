@@ -33,9 +33,9 @@ int main(int argc, char** argv) {
     // Parsing Arguments
     const char* p_in_video = args_find_char(argc, argv, "--in-video", def_p_in_video);
     const char* p_out_frames = args_find_char(argc, argv, "--out-frames", def_p_out_frames);
-    const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
-    const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
-    const int p_ffmpeg_threads = args_find_int(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads);
+    const int p_fra_start = args_find_int_min(argc, argv, "--fra-start", def_p_fra_start, 0);
+    const int p_fra_end = args_find_int_min(argc, argv, "--fra-end", def_p_fra_end, 0);
+    const int p_ffmpeg_threads = args_find_int_min(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads, 0);
 
     // heading display
     printf("#  ----------------------\n");

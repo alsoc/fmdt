@@ -106,9 +106,9 @@ int main(int argc, char** argv) {
     const int p_nat_num = args_find(argc, argv, "--nat-num");
 #endif
     const int p_only_meteor = args_find(argc, argv, "--only-meteor");
-    const int p_ffmpeg_threads = args_find_int(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads);
-    const int p_fra_start = args_find_int(argc, argv, "--fra-start", def_p_fra_start);
-    const int p_fra_end = args_find_int(argc, argv, "--fra-end", def_p_fra_end);
+    const int p_ffmpeg_threads = args_find_int_min(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads, 0);
+    const int p_fra_start = args_find_int_min(argc, argv, "--fra-start", def_p_fra_start, 0);
+    const int p_fra_end = args_find_int_min(argc, argv, "--fra-end", def_p_fra_end, 0);
 
     // heading display
     printf("#  -------------------\n");
@@ -166,29 +166,6 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-end' has to be higher than '--fra-start'\n");
         exit(1);
     }
-
-    if (!p_in_video) {
-        fprintf(stderr, "(EE) '--in-video' is missing\n");
-        exit(1);
-    }
-    if (!p_in_tracks) {
-        fprintf(stderr, "(EE) '--in-tracks' is missing\n");
-        exit(1);
-    }
-    if (!p_in_bb) {
-        fprintf(stderr, "(EE) '--in-bb' is missing\n");
-        exit(1);
-    }
-    if (!p_out_video) {
-        fprintf(stderr, "(EE) '--out-video' is missing\n");
-        exit(1);
-    }
-    if (!p_out_frames)
-        fprintf(stderr, "(II) '--out-frames' is missing -> no frames will be saved\n");
-#ifdef OPENCV_LINK
-    if (!p_show_id && p_nat_num)
-        fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set.\n");
-#endif
 
     vec_BB_t BB_list = (vec_BB_t)vector_create();
     vec_color_e BB_list_color = (vec_color_e)vector_create();
