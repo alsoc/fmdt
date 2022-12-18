@@ -317,90 +317,14 @@ void features_shrink_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest
                                                        ROI_array_dest->Sy, ROI_array_dest->x, ROI_array_dest->y);
 }
 
-void _features_rigid_registration(const float* ROI0_x, const float* ROI0_y, const float* ROI1_x, const float* ROI1_y,
-                                  const int32_t* ROI1_prev_id, const size_t n_ROI1, double* theta, double* tx,
-                                  double* ty) {
-    double Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
-    double x0, y0, x1, y1;
-    double a, b;
-    double xg, yg, xpg, ypg;
-    int asso;
-    int cpt;
-
-    Sx = 0;
-    Sxp = 0;
-    Sy = 0;
-    Syp = 0;
-    Sx_xp = 0;
-    Sxp_y = 0;
-    Sx_yp = 0;
-    Sy_yp = 0;
-    cpt = 0;
-
-    // parcours tab assos
-    for (size_t i = 0; i < n_ROI1; i++) {
-        asso = ROI1_prev_id[i];
-        if (asso) {
-            cpt++;
-            Sx += ROI0_x[asso - 1];
-            Sy += ROI0_y[asso - 1];
-            Sxp += ROI1_x[i];
-            Syp += ROI1_y[i];
-        }
-    }
-
-    xg = Sx / cpt;
-    yg = Sy / cpt;
-    xpg = Sxp / cpt;
-    ypg = Syp / cpt;
-
-    Sx = 0;
-    Sxp = 0;
-    Sy = 0;
-    Syp = 0;
-
-    // parcours tab assos
-    for (size_t i = 0; i < n_ROI1; i++) {
-        asso = ROI1_prev_id[i];
-        if (asso) {
-            // cpt++;
-            x0 = ROI0_x[asso - 1] - xg;
-            y0 = ROI0_y[asso - 1] - yg;
-            x1 = ROI1_x[i] - xpg;
-            y1 = ROI1_y[i] - ypg;
-
-            Sx += x0;
-            Sy += y0;
-            Sxp += x1;
-            Syp += y1;
-            Sx_xp += x0 * x1;
-            Sxp_y += x1 * y0;
-            Sx_yp += x0 * y1;
-            Sy_yp += y0 * y1;
-        }
-    }
-    a = cpt * cpt * (Sx_yp - Sxp_y) + (1 - 2 * cpt) * (Sx * Syp - Sxp * Sy);
-    b = cpt * cpt * (Sx_xp + Sy_yp) + (1 - 2 * cpt) * (Sx * Sxp + Syp * Sy);
-
-    *theta = atan2(a, b);
-    *tx = xpg - cos(*theta) * xg + sin(*theta) * yg;
-    *ty = ypg - sin(*theta) * xg - cos(*theta) * yg;
-}
-
-void features_rigid_registration(const ROI_t* ROI_array0, const ROI_t* ROI_array1, double* theta, double* tx,
-                                 double* ty) {
-    _features_rigid_registration(ROI_array0->x, ROI_array0->y, ROI_array1->x, ROI_array1->y, ROI_array1->prev_id,
-                                 ROI_array1->_size, theta, tx, ty);
-}
-
 void _features_rigid_registration_corrected(const float* ROI0_x, const float* ROI0_y, const float* ROI1_x,
                                             const float* ROI1_y, const float* ROI1_error, const int32_t* ROI1_prev_id,
-                                            uint8_t* ROI1_is_moving, const size_t n_ROI1, double* theta, double* tx,
-                                            double* ty, double mean_error, double std_deviation) {
-    double Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
-    double x0, y0, x1, y1;
-    double a, b;
-    double xg, yg, xpg, ypg;
+                                            uint8_t* ROI1_is_moving, const size_t n_ROI1, float* theta, float* tx,
+                                            float* ty, float mean_error, float std_deviation) {
+    float Sx, Sxp, Sy, Syp, Sx_xp, Sxp_y, Sx_yp, Sy_yp;
+    float x0, y0, x1, y1;
+    float a, b;
+    float xg, yg, xpg, ypg;
     int asso;
     int cpt;
 
@@ -414,12 +338,10 @@ void _features_rigid_registration_corrected(const float* ROI0_x, const float* RO
     Sy_yp = 0;
     cpt = 0;
 
-    int cpt1 = 0;
     // parcours tab assos
     for (size_t i = 0; i < n_ROI1; i++) {
-        if (fabs(ROI1_error[i] - mean_error) > std_deviation) {
+        if (ROI1_error != NULL && fabs(ROI1_error[i] - mean_error) > std_deviation) {
             ROI1_is_moving[i] = 1;
-            cpt1++;
             continue;
         }
         asso = ROI1_prev_id[i];
@@ -444,11 +366,10 @@ void _features_rigid_registration_corrected(const float* ROI0_x, const float* RO
 
     // parcours tab assos
     for (size_t i = 0; i < n_ROI1; i++) {
-        if (ROI1_is_moving[i])
+        if (ROI1_is_moving != NULL && ROI1_is_moving[i])
             continue;
         asso = ROI1_prev_id[i];
         if (asso) {
-            // cpt++;
             x0 = ROI0_x[asso - 1] - xg;
             y0 = ROI0_y[asso - 1] - yg;
             x1 = ROI1_x[i] - xpg;
@@ -467,23 +388,35 @@ void _features_rigid_registration_corrected(const float* ROI0_x, const float* RO
     a = cpt * cpt * (Sx_yp - Sxp_y) + (1 - 2 * cpt) * (Sx * Syp - Sxp * Sy);
     b = cpt * cpt * (Sx_xp + Sy_yp) + (1 - 2 * cpt) * (Sx * Sxp + Syp * Sy);
 
-    *theta = atan2(a, b);
-    *tx = xpg - cos(*theta) * xg + sin(*theta) * yg;
-    *ty = ypg - sin(*theta) * xg - cos(*theta) * yg;
+    *theta = atan2f(a, b);
+    *tx = xpg - cosf(*theta) * xg + sinf(*theta) * yg;
+    *ty = ypg - sinf(*theta) * xg - cosf(*theta) * yg;
 }
 
-void features_rigid_registration_corrected(ROI_t* ROI_array0, const ROI_t* ROI_array1, double* theta, double* tx,
-                                           double* ty, double mean_error, double std_deviation) {
+void features_rigid_registration_corrected(ROI_t* ROI_array0, const ROI_t* ROI_array1, float* theta, float* tx,
+                                           float* ty, float mean_error, float std_deviation) {
     _features_rigid_registration_corrected(ROI_array0->x, ROI_array0->y, ROI_array1->x, ROI_array1->y,
                                            ROI_array1->error, ROI_array1->prev_id, ROI_array1->is_moving,
                                            ROI_array1->_size, theta, tx, ty, mean_error, std_deviation);
 }
 
+void _features_rigid_registration(const float* ROI0_x, const float* ROI0_y, const float* ROI1_x, const float* ROI1_y,
+                                  const int32_t* ROI1_prev_id, const size_t n_ROI1, float* theta, float* tx,
+                                  float* ty) {
+    _features_rigid_registration_corrected(ROI0_x, ROI0_y, ROI1_x, ROI1_y, NULL, ROI1_prev_id, NULL, n_ROI1, theta, tx,
+                                           ty, 0.f, 0.f);
+}
+
+void features_rigid_registration(const ROI_t* ROI_array0, const ROI_t* ROI_array1, float* theta, float* tx,
+                                 float* ty) {
+    _features_rigid_registration(ROI_array0->x, ROI_array0->y, ROI_array1->x, ROI_array1->y, ROI_array1->prev_id,
+                                 ROI_array1->_size, theta, tx, ty);
+}
 
 // TODO: Pour l'optimisation : faire une version errorMoy_corrected()
-double _features_compute_mean_error(const float* ROI_error, const int32_t* ROI_prev_id, const uint8_t* ROI_is_moving,
+float _features_compute_mean_error(const float* ROI_error, const int32_t* ROI_prev_id, const uint8_t* ROI_is_moving,
                                     const size_t n_ROI) {
-    double S = 0.0;
+    float S = 0.0;
     int cpt = 0;
     for (size_t i = 0; i < n_ROI; i++) {
         if (ROI_is_moving[i] || !ROI_prev_id[i])
@@ -494,14 +427,14 @@ double _features_compute_mean_error(const float* ROI_error, const int32_t* ROI_p
     return S / cpt;
 }
 
-double features_compute_mean_error(const ROI_t* ROI_array) {
+float features_compute_mean_error(const ROI_t* ROI_array) {
     return _features_compute_mean_error(ROI_array->error, ROI_array->prev_id, ROI_array->is_moving, ROI_array->_size);
 }
 
 // TODO: Pour l'optimisation : faire une version ecartType_corrected()
-double _features_compute_std_deviation(const float* ROI_error, const int32_t* ROI_prev_id, const uint8_t* ROI_is_moving,
-                                       const size_t n_ROI, const double mean_error) {
-    double S = 0.0;
+float _features_compute_std_deviation(const float* ROI_error, const int32_t* ROI_prev_id, const uint8_t* ROI_is_moving,
+                                       const size_t n_ROI, const float mean_error) {
+    float S = 0.0;
     int cpt = 0;
     for (size_t i = 0; i < n_ROI; i++) {
         if (ROI_is_moving[i] || !ROI_prev_id[i])
@@ -513,16 +446,16 @@ double _features_compute_std_deviation(const float* ROI_error, const int32_t* RO
     return sqrt(S / cpt);
 }
 
-double features_compute_std_deviation(const ROI_t* ROI_array, const double mean_error) {
+float features_compute_std_deviation(const ROI_t* ROI_array, const float mean_error) {
     return _features_compute_std_deviation(ROI_array->error, ROI_array->prev_id, ROI_array->is_moving, ROI_array->_size,
                                            mean_error);
 }
 
 void _features_motion_extraction(const float* ROI0_x, const float* ROI0_y, const float* ROI1_x, const float* ROI1_y,
                                  float* ROI1_dx, float* ROI1_dy, float* ROI1_error, const int32_t* ROI1_prev_id,
-                                 const size_t n_ROI1, double theta, double tx, double ty) {
+                                 const size_t n_ROI1, float theta, float tx, float ty) {
     int cc0;
-    double x, y, xp, yp;
+    float x, y, xp, yp;
     float dx, dy;
     float e;
 
@@ -533,8 +466,8 @@ void _features_motion_extraction(const float* ROI0_x, const float* ROI0_y, const
             xp = ROI1_x[i];
             yp = ROI1_y[i];
             // calcul de (x,y) pour l'image I
-            x = cos(theta) * (xp - tx) + sin(theta) * (yp - ty);
-            y = cos(theta) * (yp - ty) - sin(theta) * (xp - tx);
+            x = cosf(theta) * (xp - tx) + sinf(theta) * (yp - ty);
+            y = cosf(theta) * (yp - ty) - sinf(theta) * (xp - tx);
 
             // pas besoin de stocker dx et dy (juste pour l'affichage du debug)
             dx = x - ROI0_x[cc0 - 1];
@@ -542,13 +475,13 @@ void _features_motion_extraction(const float* ROI0_x, const float* ROI0_y, const
             ROI1_dx[i] = dx;
             ROI1_dy[i] = dy;
 
-            e = sqrt(dx * dx + dy * dy);
+            e = sqrtf(dx * dx + dy * dy);
             ROI1_error[i] = e;
         }
     }
 }
 
-void features_motion_extraction(const ROI_t* ROI_array0, ROI_t* ROI_array1, double theta, double tx, double ty) {
+void features_motion_extraction(const ROI_t* ROI_array0, ROI_t* ROI_array1, float theta, float tx, float ty) {
     _features_motion_extraction(ROI_array0->x, ROI_array0->y, ROI_array1->x, ROI_array1->y, ROI_array1->dx,
                                 ROI_array1->dy, ROI_array1->error, ROI_array1->prev_id, ROI_array1->_size, theta, tx,
                                 ty);
@@ -556,33 +489,32 @@ void features_motion_extraction(const ROI_t* ROI_array0, ROI_t* ROI_array1, doub
 
 void _features_compute_motion(const float* ROI0_x, const float* ROI0_y, const float* ROI1_x, const float* ROI1_y,
                               float* ROI1_dx, float* ROI1_dy, float* ROI1_error, const int32_t* ROI1_prev_id,
-                              uint8_t* ROI1_is_moving, const size_t n_ROI1, double* first_theta, double* first_tx,
-                              double* first_ty, double* first_mean_error, double* first_std_deviation, double* theta,
-                              double* tx, double* ty, double* mean_error, double* std_deviation) {
+                              uint8_t* ROI1_is_moving, const size_t n_ROI1, motion_t* motion_est1,
+                              motion_t* motion_est2) {
     memset(ROI1_is_moving, 0, n_ROI1 * sizeof(uint8_t));
 
-    _features_rigid_registration(ROI0_x, ROI0_y, ROI1_x, ROI1_y, ROI1_prev_id, n_ROI1, first_theta, first_tx, first_ty);
+    _features_rigid_registration(ROI0_x, ROI0_y, ROI1_x, ROI1_y, ROI1_prev_id, n_ROI1, &motion_est1->theta,
+                                 &motion_est1->tx, &motion_est1->ty);
     _features_motion_extraction(ROI0_x, ROI0_y, ROI1_x, ROI1_y, ROI1_dx, ROI1_dy, ROI1_error, ROI1_prev_id, n_ROI1,
-                                *first_theta, *first_tx, *first_ty);
-    *first_mean_error = _features_compute_mean_error(ROI1_error, ROI1_prev_id, ROI1_is_moving, n_ROI1);
-    *first_std_deviation = _features_compute_std_deviation(ROI1_error, ROI1_prev_id, ROI1_is_moving, n_ROI1,
-                                                           *first_mean_error);
+                                motion_est1->theta, motion_est1->tx, motion_est1->ty);
+    motion_est1->mean_error = _features_compute_mean_error(ROI1_error, ROI1_prev_id, ROI1_is_moving, n_ROI1);
+    motion_est1->std_deviation = _features_compute_std_deviation(ROI1_error, ROI1_prev_id, ROI1_is_moving, n_ROI1,
+                                                                 motion_est1->mean_error);
     // saveErrorMoy("first_error.txt", mean_error, std_deviation);
     _features_rigid_registration_corrected(ROI0_x, ROI0_y, ROI1_x, ROI1_y, ROI1_error, ROI1_prev_id, ROI1_is_moving,
-                                           n_ROI1, theta, tx, ty, *first_mean_error, *first_std_deviation);
+                                           n_ROI1, &motion_est2->theta, &motion_est2->tx, &motion_est2->ty,
+                                           motion_est1->mean_error, motion_est1->std_deviation);
     _features_motion_extraction(ROI0_x, ROI0_y, ROI1_x, ROI1_y, ROI1_dx, ROI1_dy, ROI1_error, ROI1_prev_id, n_ROI1,
-                                *theta, *tx, *ty);
-    *mean_error = _features_compute_mean_error(ROI1_error, ROI1_prev_id, ROI1_is_moving, n_ROI1);
-    *std_deviation = _features_compute_std_deviation(ROI1_error, ROI1_prev_id, ROI1_is_moving, n_ROI1, *mean_error);
+                                motion_est2->theta, motion_est2->tx, motion_est2->ty);
+    motion_est2->mean_error = _features_compute_mean_error(ROI1_error, ROI1_prev_id, ROI1_is_moving, n_ROI1);
+    motion_est2->std_deviation = _features_compute_std_deviation(ROI1_error, ROI1_prev_id, ROI1_is_moving, n_ROI1,
+                                 motion_est2->mean_error);
 }
 
-void features_compute_motion(const ROI_t* ROI_array0, ROI_t* ROI_array1, double* first_theta, double* first_tx,
-                             double* first_ty, double* first_mean_error, double* first_std_deviation, double* theta,
-                             double* tx, double* ty, double* mean_error, double* std_deviation) {
+void features_compute_motion(const ROI_t* ROI_array0, ROI_t* ROI_array1, motion_t* motion_est1, motion_t* motion_est2) {
     _features_compute_motion(ROI_array0->x, ROI_array0->y, ROI_array1->x, ROI_array1->y, ROI_array1->dx, ROI_array1->dy,
                              ROI_array1->error, ROI_array1->prev_id, ROI_array1->is_moving, ROI_array1->_size,
-                             first_theta, first_tx, first_ty, first_mean_error, first_std_deviation, theta, tx, ty,
-                             mean_error, std_deviation);
+                             motion_est1, motion_est2);
 }
 
 void features_print_stats(ROI_t* stats, int n) {
@@ -600,7 +532,7 @@ void features_print_stats(ROI_t* stats, int n) {
     for (int i = 0; i < n; i++) {
         if (stats->S[i] > 0)
             printf("%4d \t %4d \t %4d \t %4d \t %4d \t %3d \t %4d \t %4d \t %7.1f \t %7.1f \t %4d \t %4d \t "
-                   "%7.1lf \t %d\n",
+                   "%7.1f \t %d\n",
                    stats->id[i], stats->xmin[i], stats->xmax[i], stats->ymin[i], stats->ymax[i], stats->S[i],
                    stats->Sx[i], stats->Sy[i], stats->x[i], stats->y[i], stats->prev_id[i], stats->next_id[i],
                    stats->error[i], stats->is_moving[i]);
@@ -611,7 +543,7 @@ void features_print_stats(ROI_t* stats, int n) {
 void features_parse_stats(const char* filename, ROI_t* stats, int* n) {
     char lines[200];
     int id, xmin, xmax, ymin, ymax, s, sx, sy, prev_id, next_id;
-    double x, y;
+    float x, y;
     float dx, dy, error;
     FILE* file = fopen(filename, "r");
     if (file == NULL) {
@@ -627,7 +559,7 @@ void features_parse_stats(const char* filename, ROI_t* stats, int* n) {
     sscanf(lines, "%d", n);
 
     while (fgets(lines, 200, file)) {
-        sscanf(lines, "%d %d %d %d %d %d %d %d %lf %lf %f %f %f %d %d", &id, &xmin, &xmax, &ymin, &ymax, &s, &sx, &sy,
+        sscanf(lines, "%d %d %d %d %d %d %d %d %f %f %f %f %f %d %d", &id, &xmin, &xmax, &ymin, &ymax, &s, &sx, &sy,
                &x, &y, &dx, &dy, &error, &prev_id, &next_id);
         stats->id[id - 1] = id;
         stats->xmin[id - 1] = xmin;
@@ -731,69 +663,67 @@ void features_ROI_write(FILE* f, const int frame, const ROI_t* ROI_array, const 
                         ROI_array->_size, track_array, age);
 }
 
-void features_motion_write(FILE* f, const double first_theta, const double first_tx, const double first_ty,
-                           const double first_mean_error, const double first_std_deviation, const double theta,
-                           const double tx, const double ty, const double mean_error, const double std_deviation) {
-    char first_theta_str[64];
-    char first_tx_str[64];
-    char first_ty_str[64];
-    char first_mean_error_str[64];
-    char first_std_deviation_str[64];
-    char second_theta_str[64];
-    char second_tx_str[64];
-    char second_ty_str[64];
-    char second_mean_error_str[64];
-    char second_std_deviation_str[64];
+void features_motion_write(FILE* f, const motion_t* motion_est1, const motion_t* motion_est2) {
+    char theta1_str[64];
+    char tx1_str[64];
+    char ty1_str[64];
+    char mean_err1_str[64];
+    char std_dev1_str[64];
+    char theta2_str[64];
+    char tx2_str[64];
+    char ty2_str[64];
+    char mean_err2_str[64];
+    char std_dev2_str[64];
 
-    if (first_theta >= 0)
-        snprintf(first_theta_str, sizeof(first_theta_str), " %1.5f", first_theta);
+    if (motion_est1->theta >= 0)
+        snprintf(theta1_str, sizeof(theta1_str), " %1.5f", motion_est1->theta);
     else
-        snprintf(first_theta_str, sizeof(first_theta_str), "%1.5f", first_theta);
+        snprintf(theta1_str, sizeof(theta1_str), "%1.5f", motion_est1->theta);
 
-    if (first_tx >= 0)
-        snprintf(first_tx_str, sizeof(first_tx_str), " %2.5f", first_tx);
+    if (motion_est1->tx >= 0)
+        snprintf(tx1_str, sizeof(tx1_str), " %2.5f", motion_est1->tx);
     else
-        snprintf(first_tx_str, sizeof(first_tx_str), "%2.5f", first_tx);
+        snprintf(tx1_str, sizeof(tx1_str), "%2.5f", motion_est1->tx);
 
-    if (first_ty >= 0)
-        snprintf(first_ty_str, sizeof(first_ty_str), " %2.5f", first_ty);
+    if (motion_est1->ty >= 0)
+        snprintf(ty1_str, sizeof(ty1_str), " %2.5f", motion_est1->ty);
     else
-        snprintf(first_ty_str, sizeof(first_ty_str), "%2.5f", first_ty);
+        snprintf(ty1_str, sizeof(ty1_str), "%2.5f", motion_est1->ty);
 
-    if (first_mean_error >= 0)
-        snprintf(first_mean_error_str, sizeof(first_mean_error_str), " %2.5f", first_mean_error);
+    if (motion_est1->mean_error >= 0)
+        snprintf(mean_err1_str, sizeof(mean_err1_str), " %2.5f", motion_est1->mean_error);
     else
-        snprintf(first_mean_error_str, sizeof(first_mean_error_str), "%2.5f", first_mean_error);
+        snprintf(mean_err1_str, sizeof(mean_err1_str), "%2.5f", motion_est1->mean_error);
 
-    if (first_std_deviation >= 0)
-        snprintf(first_std_deviation_str, sizeof(first_std_deviation_str), " %2.5f", first_std_deviation);
+    if (motion_est1->std_deviation >= 0)
+        snprintf(std_dev1_str, sizeof(std_dev1_str), " %2.5f", motion_est1->std_deviation);
     else
-        snprintf(first_std_deviation_str, sizeof(first_std_deviation_str), "%2.5f", first_std_deviation);
+        snprintf(std_dev1_str, sizeof(std_dev1_str), "%2.5f", motion_est1->std_deviation);
 
-    if (theta >= 0)
-        snprintf(second_theta_str, sizeof(second_theta_str), " %1.5f", theta);
+    if (motion_est2->theta >= 0)
+        snprintf(theta2_str, sizeof(theta2_str), " %1.5f", motion_est2->theta);
     else
-        snprintf(second_theta_str, sizeof(second_theta_str), "%1.5f", theta);
+        snprintf(theta2_str, sizeof(theta2_str), "%1.5f", motion_est2->theta);
 
-    if (tx >= 0)
-        snprintf(second_tx_str, sizeof(second_tx_str), " %2.5f", tx);
+    if (motion_est2->tx >= 0)
+        snprintf(tx2_str, sizeof(tx2_str), " %2.5f", motion_est2->tx);
     else
-        snprintf(second_tx_str, sizeof(second_tx_str), "%2.5f", tx);
+        snprintf(tx2_str, sizeof(tx2_str), "%2.5f", motion_est2->tx);
 
-    if (ty >= 0)
-        snprintf(second_ty_str, sizeof(second_ty_str), " %2.5f", ty);
+    if (motion_est2->ty >= 0)
+        snprintf(ty2_str, sizeof(ty2_str), " %2.5f", motion_est2->ty);
     else
-        snprintf(second_ty_str, sizeof(second_ty_str), "%2.5f", ty);
+        snprintf(ty2_str, sizeof(ty2_str), "%2.5f", motion_est2->ty);
 
-    if (mean_error >= 0)
-        snprintf(second_mean_error_str, sizeof(second_mean_error_str), " %2.5f", mean_error);
+    if (motion_est2->mean_error >= 0)
+        snprintf(mean_err2_str, sizeof(mean_err2_str), " %2.5f", motion_est2->mean_error);
     else
-        snprintf(second_mean_error_str, sizeof(second_mean_error_str), "%2.5f", mean_error);
+        snprintf(mean_err2_str, sizeof(mean_err2_str), "%2.5f", motion_est2->mean_error);
 
-    if (std_deviation >= 0)
-        snprintf(second_std_deviation_str, sizeof(second_std_deviation_str), " %2.5f", std_deviation);
+    if (motion_est2->std_deviation >= 0)
+        snprintf(std_dev2_str, sizeof(std_dev2_str), " %2.5f", motion_est2->std_deviation);
     else
-        snprintf(second_std_deviation_str, sizeof(second_std_deviation_str), "%2.5f", std_deviation);
+        snprintf(std_dev2_str, sizeof(std_dev2_str), "%2.5f", motion_est2->std_deviation);
 
     fprintf(f, "# Motion:\n");
     fprintf(f, "# ------------------------------------------------------||------------------------------------------------------\n");
@@ -803,8 +733,8 @@ void features_motion_write(FILE* f, const double first_theta, const double first
     fprintf(f, "#     theta |       tx |       ty | mean err |  std dev ||    theta |       tx |       ty | mean err |  std dev \n");
     fprintf(f, "# ----------|----------|----------|----------|----------||----------|----------|----------|----------|----------\n");
     fprintf(f, "   %s | %s | %s | %s | %s || %s | %s | %s | %s | %s \n",
-            first_theta_str,  first_tx_str, first_ty_str, first_mean_error_str, first_std_deviation_str,
-            second_theta_str, second_tx_str, second_ty_str, second_mean_error_str, second_std_deviation_str);
+            theta1_str, tx1_str, ty1_str, mean_err1_str, std_dev1_str,
+            theta2_str, tx2_str, ty2_str, mean_err2_str, std_dev2_str);
 }
 
 void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id, const uint16_t* ROI0_xmin,

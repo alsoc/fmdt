@@ -6,9 +6,7 @@
 namespace lgr_mtn {
     enum class tsk : size_t { write, SIZE };
     namespace sck {
-        enum class write : size_t { in_first_theta, in_first_tx, in_first_ty, in_first_mean_error,
-                                    in_first_std_deviation, in_theta, in_tx, in_ty, in_mean_error, in_std_deviation,
-                                    in_frame, status };
+        enum class write : size_t { in_motion_est1, in_motion_est2, in_frame, status };
     }
 }
 

@@ -306,15 +306,13 @@ int main(int argc, char** argv) {
         KNN_match(knn_data, ROI_array0, ROI_array1, p_k, p_max_dist * p_max_dist);
 
         // step 5: motion estimation
-        double first_theta, first_tx, first_ty, first_mean_error, first_std_deviation;
-        double theta, tx, ty, mean_error, std_deviation;
-        features_compute_motion((const ROI_t*)ROI_array0, ROI_array1, &first_theta, &first_tx, &first_ty,
-                                &first_mean_error, &first_std_deviation, &theta, &tx, &ty, &mean_error, &std_deviation);
+        motion_t motion_est1, motion_est2;
+        features_compute_motion((const ROI_t*)ROI_array0, ROI_array1, &motion_est1, &motion_est2);
 
         // step 6: tracking
-        tracking_perform(tracking_data, (const ROI_t*)ROI_array1, &BB_array, cur_fra, theta, tx, ty, mean_error,
-                         std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min,
-                         p_fra_meteor_min, p_fra_meteor_max, p_out_mag != NULL);
+        tracking_perform(tracking_data, (const ROI_t*)ROI_array1, &BB_array, cur_fra, &motion_est2,
+                         p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
+                         p_fra_meteor_max, p_out_mag != NULL);
 
         // save frames (CCs)
         if (p_out_frames) {
@@ -343,8 +341,7 @@ int main(int argc, char** argv) {
                 fprintf(f, "#\n");
                 KNN_asso_conflicts_write(f, knn_data, ROI_array0, ROI_array1);
                 fprintf(f, "#\n");
-                features_motion_write(f, first_theta, first_tx, first_ty, first_mean_error, first_std_deviation, theta,
-                                      tx, ty, mean_error, std_deviation);
+                features_motion_write(f, &motion_est1, &motion_est2);
                 fprintf(f, "#\n");
                 tracking_track_array_write_full(f, tracking_data->tracks);
                 fclose(f);

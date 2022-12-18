@@ -10,11 +10,11 @@
 enum obj_e { UNKNOWN = 0, METEOR, STAR, NOISE, N_OBJECTS };
 
 typedef struct {
-    uint16_t* id;
-    uint16_t* xmin;
-    uint16_t* xmax;
-    uint16_t* ymin;
-    uint16_t* ymax;
+    uint16_t* id; // ROI unique identifier
+    uint16_t* xmin; // xmin bounding box
+    uint16_t* xmax; // xmax bounding box
+    uint16_t* ymin; // ymin bounding box
+    uint16_t* ymax; // ymax bounding box
     uint32_t* S; // number of points
     uint32_t* Sx; // sum of x properties
     uint32_t* Sy; // sum of y properties
@@ -22,7 +22,7 @@ typedef struct {
     float* y; // ordonnee du centre d'inertie y = Sy / S
     float* dx; // erreur par rapport a l`image recalee
     float* dy; // erreur par rapport a l`image recalee
-    float* error;
+    float* error; // error after motion estimation (= velocity if is_moving = 1)
     int32_t* prev_id; // associated CC from t-1 -> t -> t+1
     int32_t* next_id; // associated CC from t-1 -> t -> t+1
     uint8_t* is_moving;
@@ -31,6 +31,14 @@ typedef struct {
     size_t _size; // current size/utilization of the fields
     size_t _max_size; // maximum amount of data that can be contained in the fields
 } ROI_t;
+
+typedef struct {
+    float theta; // rotation angle
+    float tx; // translation vector x
+    float ty; // translation vector y
+    float mean_error;
+    float std_deviation;
+} motion_t;
 
 // defined in "tracking.h"
 typedef struct track track_t;
@@ -66,16 +74,13 @@ size_t _features_shrink_ROI_array(const uint16_t* ROI_src_id, const uint16_t* RO
                                   uint32_t* ROI_dest_S, uint32_t* ROI_dest_Sx, uint32_t* ROI_dest_Sy, float* ROI_dest_x,
                                   float* ROI_dest_y);
 void features_shrink_ROI_array(const ROI_t* ROI_array_src, ROI_t* ROI_array_dest);
-double features_compute_mean_error(const ROI_t* stats);
-double features_compute_std_deviation(const ROI_t* stats, const double mean_error);
+float features_compute_mean_error(const ROI_t* stats);
+float features_compute_std_deviation(const ROI_t* stats, const float mean_error);
 void _features_compute_motion(const float* ROI0_x, const float* ROI0_y, const float* ROI1_x, const float* ROI1_y,
                               float* ROI1_dx, float* ROI1_dy, float* ROI1_error, const int32_t* ROI1_prev_id,
-                              uint8_t* ROI1_is_moving, const size_t n_ROI1, double* first_theta, double* first_tx,
-                              double* first_ty, double* first_mean_error, double* first_std_deviation, double* theta,
-                              double* tx, double* ty, double* mean_error, double* std_deviation);
-void features_compute_motion(const ROI_t* ROI_array0, ROI_t* ROI_array1, double* first_theta, double* first_tx,
-                             double* first_ty, double* first_mean_error, double* first_std_deviation, double* theta,
-                             double* tx, double* ty, double* mean_error, double* std_deviation);
+                              uint8_t* ROI1_is_moving, const size_t n_ROI1, motion_t* motion_est1,
+                              motion_t* motion_est2);
+void features_compute_motion(const ROI_t* ROI_array0, ROI_t* ROI_array1, motion_t* motion_est1, motion_t* motion_est2);
 void _features_ROI_write(FILE* f, const int frame, const uint16_t* ROI_id, const uint16_t* ROI_xmin,
                          const uint16_t* ROI_xmax, const uint16_t* ROI_ymin, const uint16_t* ROI_ymax,
                          const uint32_t* ROI_S, const uint32_t* ROI_Sx, const uint32_t* ROI_Sy, const float* ROI_x,
@@ -94,9 +99,7 @@ void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint16_t* ROI0_id
                                const size_t n_ROI1, const vec_track_t track_array);
 void features_ROI0_ROI1_write(FILE* f, const int frame, const ROI_t* ROI_array0, const ROI_t* ROI_array1,
                               const vec_track_t track_array);
-void features_motion_write(FILE* f, const double first_theta, const double first_tx, const double first_ty,
-                           const double first_mean_error, const double first_std_deviation, const double theta,
-                           const double tx, const double ty, const double mean_error, const double std_deviation);
+void features_motion_write(FILE* f, const motion_t* motion_est1, const motion_t* motion_est2);
 void _features_compute_magnitude(const uint8_t** img, const uint16_t img_width, const uint16_t img_height,
                                  const uint32_t** labels, const uint16_t* ROI_xmin, const uint16_t* ROI_xmax,
                                  const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const uint32_t* ROI_S,

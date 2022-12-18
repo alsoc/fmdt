@@ -22,23 +22,12 @@ Features_motion::Features_motion(const size_t max_ROI_size)
     auto ps_out_ROI1_error = this->template create_socket_out<float>(p, "out_ROI1_error", max_ROI_size);
     auto ps_out_ROI1_is_moving = this->template create_socket_out<uint8_t>(p, "out_ROI1_is_moving", max_ROI_size);
 
-    auto ps_out_first_theta = this->template create_socket_out<double>(p, "out_first_theta", 1);
-    auto ps_out_first_tx = this->template create_socket_out<double>(p, "out_first_tx", 1);
-    auto ps_out_first_ty = this->template create_socket_out<double>(p, "out_first_ty", 1);
-    auto ps_out_first_mean_error = this->template create_socket_out<double>(p, "out_first_mean_error", 1);
-    auto ps_out_first_std_deviation = this->template create_socket_out<double>(p, "out_first_std_deviation", 1);
-
-    auto ps_out_theta = this->template create_socket_out<double>(p, "out_theta", 1);
-    auto ps_out_tx = this->template create_socket_out<double>(p, "out_tx", 1);
-    auto ps_out_ty = this->template create_socket_out<double>(p, "out_ty", 1);
-    auto ps_out_mean_error = this->template create_socket_out<double>(p, "out_mean_error", 1);
-    auto ps_out_std_deviation = this->template create_socket_out<double>(p, "out_std_deviation", 1);
+    auto ps_out_motion_est1 = this->template create_socket_out<uint8_t>(p, "out_motion_est1", sizeof(motion_t));
+    auto ps_out_motion_est2 = this->template create_socket_out<uint8_t>(p, "out_motion_est2", sizeof(motion_t));
 
     this->create_codelet(p, [ps_in_ROI0_x, ps_in_ROI0_y, ps_in_ROI1_x, ps_in_ROI1_y, ps_out_ROI1_dx, ps_out_ROI1_dy,
                              ps_out_ROI1_error, ps_in_ROI1_prev_id, ps_out_ROI1_is_moving, ps_in_n_ROI1,
-                             ps_out_first_theta, ps_out_first_tx, ps_out_first_ty, ps_out_first_mean_error,
-                             ps_out_first_std_deviation, ps_out_theta, ps_out_tx, ps_out_ty, ps_out_mean_error,
-                             ps_out_std_deviation]
+                             ps_out_motion_est1, ps_out_motion_est2]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         const uint32_t n_ROI1 = *static_cast<const uint32_t*>(t[ps_in_n_ROI1].get_dataptr());
 
@@ -52,16 +41,8 @@ Features_motion::Features_motion(const size_t max_ROI_size)
                                  static_cast<const int32_t*>(t[ps_in_ROI1_prev_id].get_dataptr()),
                                  static_cast<uint8_t*>(t[ps_out_ROI1_is_moving].get_dataptr()),
                                  n_ROI1,
-                                 static_cast<double*>(t[ps_out_first_theta].get_dataptr()),
-                                 static_cast<double*>(t[ps_out_first_tx].get_dataptr()),
-                                 static_cast<double*>(t[ps_out_first_ty].get_dataptr()),
-                                 static_cast<double*>(t[ps_out_first_mean_error].get_dataptr()),
-                                 static_cast<double*>(t[ps_out_first_std_deviation].get_dataptr()),
-                                 static_cast<double*>(t[ps_out_theta].get_dataptr()),
-                                 static_cast<double*>(t[ps_out_tx].get_dataptr()),
-                                 static_cast<double*>(t[ps_out_ty].get_dataptr()),
-                                 static_cast<double*>(t[ps_out_mean_error].get_dataptr()),
-                                 static_cast<double*>(t[ps_out_std_deviation].get_dataptr()));
+                                 static_cast<motion_t*>(t[ps_out_motion_est1].get_dataptr()),
+                                 static_cast<motion_t*>(t[ps_out_motion_est2].get_dataptr()));
 
         return aff3ct::runtime::status_t::SUCCESS;
     });

@@ -10,7 +10,7 @@ namespace trk {
     namespace sck {
         enum class perform : size_t { in_frame, in_ROI_id, in_ROI_xmin, in_ROI_xmax, in_ROI_ymin, in_ROI_ymax,
                                       in_ROI_x, in_ROI_y, in_ROI_error, in_ROI_prev_id, in_ROI_magnitude,
-                                      in_n_ROI, in_theta, in_tx, in_ty, in_mean_error, in_std_deviation, status };
+                                      in_n_ROI, in_motion_est, status };
     }
 }
 

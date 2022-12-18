@@ -34,16 +34,11 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
     auto ps_in_ROI_magnitude = this->template create_socket_in<uint32_t>(p, "in_ROI_magnitude", max_ROI_size);
     auto ps_in_n_ROI = this->template create_socket_in<uint32_t>(p, "in_n_ROI", 1);
 
-    auto ps_in_theta = this->template create_socket_in<double>(p, "in_theta", 1);
-    auto ps_in_tx = this->template create_socket_in<double>(p, "in_tx", 1);
-    auto ps_in_ty = this->template create_socket_in<double>(p, "in_ty", 1);
-    auto ps_in_mean_error = this->template create_socket_in<double>(p, "in_mean_error", 1);
-    auto ps_in_std_deviation = this->template create_socket_in<double>(p, "in_std_deviation", 1);
+    auto ps_in_motion_est = this->template create_socket_in<uint8_t>(p, "in_motion_est", sizeof(motion_t));
 
     this->create_codelet(p, [ps_in_frame, ps_in_ROI_id, ps_in_ROI_xmin, ps_in_ROI_xmax, ps_in_ROI_ymin,
                              ps_in_ROI_ymax, ps_in_ROI_x, ps_in_ROI_y, ps_in_ROI_error, ps_in_ROI_prev_id,
-                             ps_in_ROI_magnitude, ps_in_n_ROI, ps_in_theta, ps_in_tx, ps_in_ty, ps_in_mean_error,
-                             ps_in_std_deviation]
+                             ps_in_ROI_magnitude, ps_in_n_ROI, ps_in_motion_est]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &trk = static_cast<Tracking&>(m);
 
@@ -64,11 +59,7 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                           n_ROI,
                           &trk.BB_array,
                           frame,
-                          *static_cast<double*>(t[ps_in_theta].get_dataptr()),
-                          *static_cast<double*>(t[ps_in_tx].get_dataptr()),
-                          *static_cast<double*>(t[ps_in_ty].get_dataptr()),
-                          *static_cast<double*>(t[ps_in_mean_error].get_dataptr()),
-                          *static_cast<double*>(t[ps_in_std_deviation].get_dataptr()),
+                          static_cast<const motion_t*>(t[ps_in_motion_est].get_dataptr()),
                           trk.r_extrapol, trk.angle_max, trk.diff_dev, trk.track_all, trk.fra_star_min,
                           trk.fra_meteor_min, trk.fra_meteor_max, trk.magnitude);
 

@@ -7,9 +7,8 @@ namespace ftr_mtn {
     enum class tsk : size_t { compute, SIZE };
     namespace sck {
         enum class compute : size_t { in_ROI0_x, in_ROI0_y, in_ROI1_x, in_ROI1_y, in_ROI1_prev_id, in_n_ROI1,
-                                      out_ROI1_dx, out_ROI1_dy, out_ROI1_error, out_ROI1_is_moving, out_first_theta,
-                                      out_first_tx, out_first_ty, out_first_mean_error, out_first_std_deviation,
-                                      out_theta, out_tx, out_ty, out_mean_error, out_std_deviation, status };
+                                      out_ROI1_dx, out_ROI1_dy, out_ROI1_error, out_ROI1_is_moving, out_motion_est1,
+                                      out_motion_est2, status };
     }
 }
 
