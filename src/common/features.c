@@ -247,39 +247,6 @@ void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI
                               S_max);
 }
 
-void features_filter_surface(ROI_t* ROI_array, uint32_t** img, uint32_t threshold_min, uint32_t threshold_max) {
-    // Doit on vraiment modifier l'image de départ? ou juste les stats.
-    uint32_t S, e;
-    int i0, i1, j0, j1;
-    uint32_t id;
-
-    for (size_t i = 0; i < ROI_array->_size; i++) {
-        S = ROI_array->S[i];
-        id = ROI_array->id[i];
-
-        if (S == 0)
-            continue; // DEBUG
-
-        if (S < threshold_min || S > threshold_max) {
-            ROI_array->S[i] = 0;
-
-            // pour affichage debbug
-            i0 = ROI_array->ymin[i];
-            i1 = ROI_array->ymax[i];
-            j0 = ROI_array->xmin[i];
-            j1 = ROI_array->xmax[i];
-            for (int i = i0; i <= i1; i++) {
-                for (int j = j0; j <= j1; j++) {
-                    e = img[i][j];
-                    if (e == id) {
-                        img[i][j] = 0;
-                    }
-                }
-            }
-        }
-    }
-}
-
 size_t _features_shrink_ROI_array(const uint32_t* ROI_src_id, const uint32_t* ROI_src_xmin,
                                   const uint32_t* ROI_src_xmax, const uint32_t* ROI_src_ymin,
                                   const uint32_t* ROI_src_ymax, const uint32_t* ROI_src_S, const uint32_t* ROI_src_Sx,
