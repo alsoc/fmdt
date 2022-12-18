@@ -14,7 +14,7 @@ Features_motion::Features_motion(const size_t max_ROI_size)
     auto ps_in_ROI0_y = this->template create_socket_in<float>(p, "in_ROI0_y", max_ROI_size);
     auto ps_in_ROI1_x = this->template create_socket_in<float>(p, "in_ROI1_x", max_ROI_size);
     auto ps_in_ROI1_y = this->template create_socket_in<float>(p, "in_ROI1_y", max_ROI_size);
-    auto ps_in_ROI1_prev_id = this->template create_socket_in<int32_t>(p, "in_ROI1_prev_id", max_ROI_size);
+    auto ps_in_ROI1_prev_id = this->template create_socket_in<uint32_t>(p, "in_ROI1_prev_id", max_ROI_size);
     auto ps_in_n_ROI1 = this->template create_socket_in<uint32_t>(p, "in_n_ROI1", 1);
 
     auto ps_out_ROI1_dx = this->template create_socket_out<float>(p, "out_ROI1_dx", max_ROI_size);
@@ -38,7 +38,7 @@ Features_motion::Features_motion(const size_t max_ROI_size)
                                  static_cast<float*>(t[ps_out_ROI1_dx].get_dataptr()),
                                  static_cast<float*>(t[ps_out_ROI1_dy].get_dataptr()),
                                  static_cast<float*>(t[ps_out_ROI1_error].get_dataptr()),
-                                 static_cast<const int32_t*>(t[ps_in_ROI1_prev_id].get_dataptr()),
+                                 static_cast<const uint32_t*>(t[ps_in_ROI1_prev_id].get_dataptr()),
                                  static_cast<uint8_t*>(t[ps_out_ROI1_is_moving].get_dataptr()),
                                  n_ROI1,
                                  static_cast<motion_t*>(t[ps_out_motion_est1].get_dataptr()),

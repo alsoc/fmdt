@@ -298,11 +298,11 @@ int main(int argc, char** argv) {
     motion.set_custom_name("Motion");
     Tracking tracking(p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
                       p_fra_meteor_max, p_out_bb, p_out_mag, MAX_ROI_SIZE);
-    aff3ct::module::Delayer<uint16_t> delayer_ROI_id(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint16_t> delayer_ROI_xmin(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint16_t> delayer_ROI_xmax(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint16_t> delayer_ROI_ymin(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint16_t> delayer_ROI_ymax(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_ROI_id(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_ROI_xmin(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_ROI_xmax(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_ROI_ymin(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_ROI_ymax(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_ROI_S(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_ROI_Sx(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_ROI_Sy(MAX_ROI_SIZE, 0);

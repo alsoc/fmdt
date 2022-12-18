@@ -12,11 +12,11 @@ Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, co
     this->set_short_name(name);
 
     auto &p = this->create_task("write");
-    auto ps_in_ROI0_id = this->template create_socket_in<uint16_t>(p, "in_ROI0_id", max_ROI_size);
-    auto ps_in_ROI0_xmin = this->template create_socket_in<uint16_t>(p, "in_ROI0_xmin", max_ROI_size);
-    auto ps_in_ROI0_xmax = this->template create_socket_in<uint16_t>(p, "in_ROI0_xmax", max_ROI_size);
-    auto ps_in_ROI0_ymin = this->template create_socket_in<uint16_t>(p, "in_ROI0_ymin", max_ROI_size);
-    auto ps_in_ROI0_ymax = this->template create_socket_in<uint16_t>(p, "in_ROI0_ymax", max_ROI_size);
+    auto ps_in_ROI0_id = this->template create_socket_in<uint32_t>(p, "in_ROI0_id", max_ROI_size);
+    auto ps_in_ROI0_xmin = this->template create_socket_in<uint32_t>(p, "in_ROI0_xmin", max_ROI_size);
+    auto ps_in_ROI0_xmax = this->template create_socket_in<uint32_t>(p, "in_ROI0_xmax", max_ROI_size);
+    auto ps_in_ROI0_ymin = this->template create_socket_in<uint32_t>(p, "in_ROI0_ymin", max_ROI_size);
+    auto ps_in_ROI0_ymax = this->template create_socket_in<uint32_t>(p, "in_ROI0_ymax", max_ROI_size);
     auto ps_in_ROI0_S = this->template create_socket_in<uint32_t>(p, "in_ROI0_S", max_ROI_size);
     auto ps_in_ROI0_Sx = this->template create_socket_in<uint32_t>(p, "in_ROI0_Sx", max_ROI_size);
     auto ps_in_ROI0_Sy = this->template create_socket_in<uint32_t>(p, "in_ROI0_Sy", max_ROI_size);
@@ -25,11 +25,11 @@ Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, co
     auto ps_in_ROI0_magnitude = this->template create_socket_in<uint32_t>(p, "in_ROI0_magnitude", max_ROI_size);
     auto ps_in_n_ROI0 = this->template create_socket_in<uint32_t>(p, "in_n_ROI0", 1);
 
-    auto ps_in_ROI1_id = this->template create_socket_in<uint16_t>(p, "in_ROI1_id", max_ROI_size);
-    auto ps_in_ROI1_xmin = this->template create_socket_in<uint16_t>(p, "in_ROI1_xmin", max_ROI_size);
-    auto ps_in_ROI1_xmax = this->template create_socket_in<uint16_t>(p, "in_ROI1_xmax", max_ROI_size);
-    auto ps_in_ROI1_ymin = this->template create_socket_in<uint16_t>(p, "in_ROI1_ymin", max_ROI_size);
-    auto ps_in_ROI1_ymax = this->template create_socket_in<uint16_t>(p, "in_ROI1_ymax", max_ROI_size);
+    auto ps_in_ROI1_id = this->template create_socket_in<uint32_t>(p, "in_ROI1_id", max_ROI_size);
+    auto ps_in_ROI1_xmin = this->template create_socket_in<uint32_t>(p, "in_ROI1_xmin", max_ROI_size);
+    auto ps_in_ROI1_xmax = this->template create_socket_in<uint32_t>(p, "in_ROI1_xmax", max_ROI_size);
+    auto ps_in_ROI1_ymin = this->template create_socket_in<uint32_t>(p, "in_ROI1_ymin", max_ROI_size);
+    auto ps_in_ROI1_ymax = this->template create_socket_in<uint32_t>(p, "in_ROI1_ymax", max_ROI_size);
     auto ps_in_ROI1_S = this->template create_socket_in<uint32_t>(p, "in_ROI1_S", max_ROI_size);
     auto ps_in_ROI1_Sx = this->template create_socket_in<uint32_t>(p, "in_ROI1_Sx", max_ROI_size);
     auto ps_in_ROI1_Sy = this->template create_socket_in<uint32_t>(p, "in_ROI1_Sy", max_ROI_size);
@@ -56,11 +56,11 @@ Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, co
             snprintf(file_path, sizeof(file_path), "%s/%05u_%05u.txt", lgr_roi.ROI_path.c_str(), frame -1, frame);
             FILE* file = fopen(file_path, "w");
             _features_ROI0_ROI1_write(file, frame,
-                                      static_cast<const uint16_t*>(t[ps_in_ROI0_id].get_dataptr()),
-                                      static_cast<const uint16_t*>(t[ps_in_ROI0_xmin].get_dataptr()),
-                                      static_cast<const uint16_t*>(t[ps_in_ROI0_xmax].get_dataptr()),
-                                      static_cast<const uint16_t*>(t[ps_in_ROI0_ymin].get_dataptr()),
-                                      static_cast<const uint16_t*>(t[ps_in_ROI0_ymax].get_dataptr()),
+                                      static_cast<const uint32_t*>(t[ps_in_ROI0_id].get_dataptr()),
+                                      static_cast<const uint32_t*>(t[ps_in_ROI0_xmin].get_dataptr()),
+                                      static_cast<const uint32_t*>(t[ps_in_ROI0_xmax].get_dataptr()),
+                                      static_cast<const uint32_t*>(t[ps_in_ROI0_ymin].get_dataptr()),
+                                      static_cast<const uint32_t*>(t[ps_in_ROI0_ymax].get_dataptr()),
                                       static_cast<const uint32_t*>(t[ps_in_ROI0_S].get_dataptr()),
                                       static_cast<const uint32_t*>(t[ps_in_ROI0_Sx].get_dataptr()),
                                       static_cast<const uint32_t*>(t[ps_in_ROI0_Sy].get_dataptr()),
@@ -68,11 +68,11 @@ Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, co
                                       static_cast<const float*>(t[ps_in_ROI0_y].get_dataptr()),
                                       static_cast<const uint32_t*>(t[ps_in_ROI0_magnitude].get_dataptr()),
                                       *static_cast<const uint32_t*>(t[ps_in_n_ROI0].get_dataptr()),
-                                      static_cast<const uint16_t*>(t[ps_in_ROI1_id].get_dataptr()),
-                                      static_cast<const uint16_t*>(t[ps_in_ROI1_xmin].get_dataptr()),
-                                      static_cast<const uint16_t*>(t[ps_in_ROI1_xmax].get_dataptr()),
-                                      static_cast<const uint16_t*>(t[ps_in_ROI1_ymin].get_dataptr()),
-                                      static_cast<const uint16_t*>(t[ps_in_ROI1_ymax].get_dataptr()),
+                                      static_cast<const uint32_t*>(t[ps_in_ROI1_id].get_dataptr()),
+                                      static_cast<const uint32_t*>(t[ps_in_ROI1_xmin].get_dataptr()),
+                                      static_cast<const uint32_t*>(t[ps_in_ROI1_xmax].get_dataptr()),
+                                      static_cast<const uint32_t*>(t[ps_in_ROI1_ymin].get_dataptr()),
+                                      static_cast<const uint32_t*>(t[ps_in_ROI1_ymax].get_dataptr()),
                                       static_cast<const uint32_t*>(t[ps_in_ROI1_S].get_dataptr()),
                                       static_cast<const uint32_t*>(t[ps_in_ROI1_Sx].get_dataptr()),
                                       static_cast<const uint32_t*>(t[ps_in_ROI1_Sy].get_dataptr()),

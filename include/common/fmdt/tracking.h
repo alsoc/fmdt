@@ -31,38 +31,38 @@ typedef uint32_t* vec_uint32_t;
 
 typedef struct BB_t {
     uint32_t frame_id;
-    uint16_t track_id;
-    uint16_t bb_x;
-    uint16_t bb_y;
-    uint16_t rx;
-    uint16_t ry;
+    uint32_t track_id;
+    uint32_t bb_x;
+    uint32_t bb_y;
+    uint32_t rx;
+    uint32_t ry;
     int is_extrapolated;
 } BB_t;
 
 typedef BB_t* vec_BB_t;
 
 typedef struct ROI_light {
-    uint16_t id;
+    uint32_t id;
     uint32_t frame;
-    uint16_t xmin;
-    uint16_t xmax;
-    uint16_t ymin;
-    uint16_t ymax;
+    uint32_t xmin;
+    uint32_t xmax;
+    uint32_t ymin;
+    uint32_t ymax;
     float x;
     float y;
     float dx;
     float dy;
     float error;
-    int32_t time;
-    int32_t time_motion;
-    int32_t prev_id;
-    int32_t next_id;
+    uint32_t time;
+    uint32_t time_motion;
+    uint32_t prev_id;
+    uint32_t next_id;
     uint8_t is_extrapolated;
     uint32_t magnitude;
 } ROI_light_t;
 
 typedef struct track {
-    uint16_t id;
+    uint32_t id;
     ROI_light_t begin;
     ROI_light_t end;
     float extrapol_x;
@@ -101,9 +101,9 @@ void tracking_free_data(tracking_data_t* tracking_data);
 
 void tracking_init_global_data();
 enum obj_e tracking_string_to_obj_type(const char* string);
-void _tracking_perform(tracking_data_t* tracking_data, const uint16_t* ROI_id, const uint16_t* ROI_xmin,
-                       const uint16_t* ROI_xmax, const uint16_t* ROI_ymin, const uint16_t* ROI_ymax, const float* ROI_x,
-                       const float* ROI_y, const float* ROI_error, const int32_t* ROI_prev_id,
+void _tracking_perform(tracking_data_t* tracking_data, const uint32_t* ROI_id, const uint32_t* ROI_xmin,
+                       const uint32_t* ROI_xmax, const uint32_t* ROI_ymin, const uint32_t* ROI_ymax, const float* ROI_x,
+                       const float* ROI_y, const float* ROI_error, const uint32_t* ROI_prev_id,
                        const uint32_t* ROI_magnitude, const size_t n_ROI1, vec_BB_t** BB_array, const size_t frame,
                        const motion_t* motion_est, const size_t r_extrapol, const float angle_max, const float diff_dev,
                        const int track_all, const size_t fra_star_min, const size_t fra_meteor_min,

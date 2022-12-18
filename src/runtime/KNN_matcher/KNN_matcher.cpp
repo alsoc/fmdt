@@ -18,18 +18,18 @@ KNN_matcher::KNN_matcher(const size_t i0, const int i1, const int j0, const int 
 
     auto &p = this->create_task("match");
 
-    auto ps_in_ROI0_id = this->template create_socket_in<uint16_t>(p, "in_ROI0_id", max_ROI_size);
+    auto ps_in_ROI0_id = this->template create_socket_in<uint32_t>(p, "in_ROI0_id", max_ROI_size);
     auto ps_in_ROI0_x = this->template create_socket_in<float>(p, "in_ROI0_x", max_ROI_size);
     auto ps_in_ROI0_y = this->template create_socket_in<float>(p, "in_ROI0_y", max_ROI_size);
     auto ps_in_n_ROI0 = this->template create_socket_in<uint32_t>(p, "in_n_ROI0", 1);
-    auto ps_in_ROI1_id = this->template create_socket_in<uint16_t>(p, "in_ROI1_id", max_ROI_size);
+    auto ps_in_ROI1_id = this->template create_socket_in<uint32_t>(p, "in_ROI1_id", max_ROI_size);
     auto ps_in_ROI1_x = this->template create_socket_in<float>(p, "in_ROI1_x", max_ROI_size);
     auto ps_in_ROI1_y = this->template create_socket_in<float>(p, "in_ROI1_y", max_ROI_size);
     auto ps_in_n_ROI1 = this->template create_socket_in<uint32_t>(p, "in_n_ROI1", 1);
 
     const size_t d_socket_size = ((i1 - i0) + 1) * ((j1 - j0) + 1);
-    auto ps_out_ROI0_next_id = this->template create_socket_out<int32_t>(p, "out_ROI0_next_id", max_ROI_size);
-    auto ps_out_ROI1_prev_id = this->template create_socket_out<int32_t>(p, "out_ROI1_prev_id", max_ROI_size);
+    auto ps_out_ROI0_next_id = this->template create_socket_out<uint32_t>(p, "out_ROI0_next_id", max_ROI_size);
+    auto ps_out_ROI1_prev_id = this->template create_socket_out<uint32_t>(p, "out_ROI1_prev_id", max_ROI_size);
     auto ps_out_data_nearest = this->template create_socket_out<uint32_t>(p, "out_data_nearest", d_socket_size);
     auto ps_out_data_distances = this->template create_socket_out<float>(p, "out_data_distances", d_socket_size);
     auto ps_out_data_conflicts = this->template create_socket_out<uint32_t>(p, "out_data_conflicts", j1 - j0 + 1);
@@ -54,15 +54,15 @@ KNN_matcher::KNN_matcher(const size_t i0, const int i1, const int j0, const int 
         _KNN_match(knn.out_data_nearest,
                    knn.out_data_distances,
                    static_cast<uint32_t*>(t[ps_out_data_conflicts].get_dataptr()),
-                   static_cast<const uint16_t*>(t[ps_in_ROI0_id].get_dataptr()),
+                   static_cast<const uint32_t*>(t[ps_in_ROI0_id].get_dataptr()),
                    static_cast<const float*>(t[ps_in_ROI0_x].get_dataptr()),
                    static_cast<const float*>(t[ps_in_ROI0_y].get_dataptr()),
-                   static_cast<int32_t*>(t[ps_out_ROI0_next_id].get_dataptr()),
+                   static_cast<uint32_t*>(t[ps_out_ROI0_next_id].get_dataptr()),
                    n_ROI0,
-                   static_cast<const uint16_t*>(t[ps_in_ROI1_id].get_dataptr()),
+                   static_cast<const uint32_t*>(t[ps_in_ROI1_id].get_dataptr()),
                    static_cast<const float*>(t[ps_in_ROI1_x].get_dataptr()),
                    static_cast<const float*>(t[ps_in_ROI1_y].get_dataptr()),
-                   static_cast<int32_t*>(t[ps_out_ROI1_prev_id].get_dataptr()),
+                   static_cast<uint32_t*>(t[ps_out_ROI1_prev_id].get_dataptr()),
                    n_ROI1, knn.k, knn.max_dist_square);
 
         return aff3ct::runtime::status_t::SUCCESS;

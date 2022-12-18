@@ -18,10 +18,10 @@ Features_magnitude::Features_magnitude(const int i0, const int i1, const int j0,
     auto ps_in_img = this->template create_socket_in<uint8_t>(p, "in_img", socket_img_size);
     auto ps_in_labels = this->template create_socket_in<uint32_t>(p, "in_labels", socket_img_size);
 
-    auto ps_in_ROI_xmin = this->template create_socket_in<uint16_t>(p, "in_ROI_xmin", max_ROI_size);
-    auto ps_in_ROI_xmax = this->template create_socket_in<uint16_t>(p, "in_ROI_xmax", max_ROI_size);
-    auto ps_in_ROI_ymin = this->template create_socket_in<uint16_t>(p, "in_ROI_ymin", max_ROI_size);
-    auto ps_in_ROI_ymax = this->template create_socket_in<uint16_t>(p, "in_ROI_ymax", max_ROI_size);
+    auto ps_in_ROI_xmin = this->template create_socket_in<uint32_t>(p, "in_ROI_xmin", max_ROI_size);
+    auto ps_in_ROI_xmax = this->template create_socket_in<uint32_t>(p, "in_ROI_xmax", max_ROI_size);
+    auto ps_in_ROI_ymin = this->template create_socket_in<uint32_t>(p, "in_ROI_ymin", max_ROI_size);
+    auto ps_in_ROI_ymax = this->template create_socket_in<uint32_t>(p, "in_ROI_ymax", max_ROI_size);
     auto ps_in_ROI_S = this->template create_socket_in<uint32_t>(p, "in_ROI_S", max_ROI_size);
     auto ps_in_n_ROI = this->template create_socket_in<uint32_t>(p, "in_n_ROI", 1);
 
@@ -45,10 +45,10 @@ Features_magnitude::Features_magnitude(const int i0, const int i1, const int j0,
                                     mgn.j1,
                                     mgn.i1,
                                     mgn.in_labels,
-                                    static_cast<const uint16_t*>(t[ps_in_ROI_xmin].get_dataptr()),
-                                    static_cast<const uint16_t*>(t[ps_in_ROI_xmax].get_dataptr()),
-                                    static_cast<const uint16_t*>(t[ps_in_ROI_ymin].get_dataptr()),
-                                    static_cast<const uint16_t*>(t[ps_in_ROI_ymax].get_dataptr()),
+                                    static_cast<const uint32_t*>(t[ps_in_ROI_xmin].get_dataptr()),
+                                    static_cast<const uint32_t*>(t[ps_in_ROI_xmax].get_dataptr()),
+                                    static_cast<const uint32_t*>(t[ps_in_ROI_ymin].get_dataptr()),
+                                    static_cast<const uint32_t*>(t[ps_in_ROI_ymax].get_dataptr()),
                                     static_cast<const uint32_t*>(t[ps_in_ROI_S].get_dataptr()),
                                     static_cast<uint32_t*>(t[ps_out_ROI_magnitude].get_dataptr()),
                                     in_n_ROI);

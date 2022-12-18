@@ -17,11 +17,11 @@ Features_extractor::Features_extractor(const int i0, const int i1, const int j0,
     auto &p = this->create_task("extract");
     auto ps_in_img = this->template create_socket_in<uint32_t>(p, "in_img", socket_img_size);
     auto ps_in_n_ROI = this->template create_socket_in<uint32_t>(p, "in_n_ROI", 1);
-    auto ps_out_ROI_id = this->template create_socket_out<uint16_t>(p, "out_ROI_id", max_ROI_size);
-    auto ps_out_ROI_xmin = this->template create_socket_out<uint16_t>(p, "out_ROI_xmin", max_ROI_size);
-    auto ps_out_ROI_xmax = this->template create_socket_out<uint16_t>(p, "out_ROI_xmax", max_ROI_size);
-    auto ps_out_ROI_ymin = this->template create_socket_out<uint16_t>(p, "out_ROI_ymin", max_ROI_size);
-    auto ps_out_ROI_ymax = this->template create_socket_out<uint16_t>(p, "out_ROI_ymax", max_ROI_size);
+    auto ps_out_ROI_id = this->template create_socket_out<uint32_t>(p, "out_ROI_id", max_ROI_size);
+    auto ps_out_ROI_xmin = this->template create_socket_out<uint32_t>(p, "out_ROI_xmin", max_ROI_size);
+    auto ps_out_ROI_xmax = this->template create_socket_out<uint32_t>(p, "out_ROI_xmax", max_ROI_size);
+    auto ps_out_ROI_ymin = this->template create_socket_out<uint32_t>(p, "out_ROI_ymin", max_ROI_size);
+    auto ps_out_ROI_ymax = this->template create_socket_out<uint32_t>(p, "out_ROI_ymax", max_ROI_size);
     auto ps_out_ROI_S = this->template create_socket_out<uint32_t>(p, "out_ROI_S", max_ROI_size);
     auto ps_out_ROI_Sx = this->template create_socket_out<uint32_t>(p, "out_ROI_Sx", max_ROI_size);
     auto ps_out_ROI_Sy = this->template create_socket_out<uint32_t>(p, "out_ROI_Sy", max_ROI_size);
@@ -40,11 +40,11 @@ Features_extractor::Features_extractor(const int i0, const int i1, const int j0,
         uint32_t n_ROI = *static_cast<uint32_t*>(t[ps_in_n_ROI].get_dataptr());
 
         _features_extract(ext.in_img, ext.i0, ext.i1, ext.j0, ext.j1,
-                          static_cast<uint16_t*>(t[ps_out_ROI_id].get_dataptr()),
-                          static_cast<uint16_t*>(t[ps_out_ROI_xmin].get_dataptr()),
-                          static_cast<uint16_t*>(t[ps_out_ROI_xmax].get_dataptr()),
-                          static_cast<uint16_t*>(t[ps_out_ROI_ymin].get_dataptr()),
-                          static_cast<uint16_t*>(t[ps_out_ROI_ymax].get_dataptr()),
+                          static_cast<uint32_t*>(t[ps_out_ROI_id].get_dataptr()),
+                          static_cast<uint32_t*>(t[ps_out_ROI_xmin].get_dataptr()),
+                          static_cast<uint32_t*>(t[ps_out_ROI_xmax].get_dataptr()),
+                          static_cast<uint32_t*>(t[ps_out_ROI_ymin].get_dataptr()),
+                          static_cast<uint32_t*>(t[ps_out_ROI_ymax].get_dataptr()),
                           static_cast<uint32_t*>(t[ps_out_ROI_S].get_dataptr()),
                           static_cast<uint32_t*>(t[ps_out_ROI_Sx].get_dataptr()),
                           static_cast<uint32_t*>(t[ps_out_ROI_Sy].get_dataptr()),

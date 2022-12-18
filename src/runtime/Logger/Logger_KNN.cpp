@@ -22,8 +22,8 @@ Logger_KNN::Logger_KNN(const std::string KNN_path, const size_t i0, const int i1
     auto ps_in_data_distances = this->template create_socket_in<float>(p, "in_data_distances", d_socket_size);
     auto ps_in_data_conflicts = this->template create_socket_in<uint32_t>(p, "in_data_conflicts", j1 - j0 + 1);
 
-    auto ps_in_ROI0_id = this->template create_socket_in<uint16_t>(p, "in_ROI0_id", max_ROI_size);
-    auto ps_in_ROI0_next_id = this->template create_socket_in<int32_t>(p, "in_ROI0_next_id", max_ROI_size);
+    auto ps_in_ROI0_id = this->template create_socket_in<uint32_t>(p, "in_ROI0_id", max_ROI_size);
+    auto ps_in_ROI0_next_id = this->template create_socket_in<uint32_t>(p, "in_ROI0_next_id", max_ROI_size);
     auto ps_in_n_ROI0 = this->template create_socket_in<uint32_t>(p, "in_n_ROI0", 1);
     auto ps_in_ROI1_dx = this->template create_socket_in<float>(p, "in_ROI1_dx", max_ROI_size);
     auto ps_in_ROI1_dy = this->template create_socket_in<float>(p, "in_ROI1_dy", max_ROI_size);
@@ -56,8 +56,8 @@ Logger_KNN::Logger_KNN(const std::string KNN_path, const size_t i0, const int i1
             fprintf(file, "#\n");
             _KNN_asso_conflicts_write(file, lgr_knn.in_data_nearest, lgr_knn.in_data_distances,
                                       static_cast<const uint32_t*>(t[ps_in_data_conflicts].get_dataptr()),
-                                      static_cast<const uint16_t*>(t[ps_in_ROI0_id].get_dataptr()),
-                                      static_cast<const int32_t*>(t[ps_in_ROI0_next_id].get_dataptr()),
+                                      static_cast<const uint32_t*>(t[ps_in_ROI0_id].get_dataptr()),
+                                      static_cast<const uint32_t*>(t[ps_in_ROI0_next_id].get_dataptr()),
                                       *static_cast<const uint32_t*>(t[ps_in_n_ROI0].get_dataptr()),
                                       static_cast<const float*>(t[ps_in_ROI1_dx].get_dataptr()),
                                       static_cast<const float*>(t[ps_in_ROI1_dy].get_dataptr()),

@@ -102,8 +102,9 @@ void _KNN_match1(const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, 
     }
 }
 
-void _KNN_match2(const uint32_t** data_nearest, const float** distances, const uint16_t* ROI0_id, int32_t* ROI0_next_id,
-                 const size_t n_ROI0, const uint16_t* ROI1_id, int32_t* ROI1_prev_id, const size_t n_ROI1) {
+void _KNN_match2(const uint32_t** data_nearest, const float** distances, const uint32_t* ROI0_id,
+                 uint32_t* ROI0_next_id, const size_t n_ROI0, const uint32_t* ROI1_id, uint32_t* ROI1_prev_id,
+                 const size_t n_ROI1) {
     uint32_t rank = 1;
     for (size_t i = 0; i < n_ROI0; i++) {
     change:
@@ -131,9 +132,9 @@ void _KNN_match2(const uint32_t** data_nearest, const float** distances, const u
     }
 }
 
-void _KNN_match(uint32_t** data_nearest, float** data_distances, uint32_t* data_conflicts, const uint16_t* ROI0_id,
-                const float* ROI0_x, const float* ROI0_y, int32_t* ROI0_next_id, const size_t n_ROI0,
-                const uint16_t* ROI1_id, const float* ROI1_x, const float* ROI1_y, int32_t* ROI1_prev_id, const
+void _KNN_match(uint32_t** data_nearest, float** data_distances, uint32_t* data_conflicts, const uint32_t* ROI0_id,
+                const float* ROI0_x, const float* ROI0_y, uint32_t* ROI0_next_id, const size_t n_ROI0,
+                const uint32_t* ROI1_id, const float* ROI1_x, const float* ROI1_y, uint32_t* ROI1_prev_id, const
                 size_t n_ROI1, const int k, const uint32_t max_dist_square) {
     memset(ROI0_next_id, 0, n_ROI0 * sizeof(int32_t));
     memset(ROI1_prev_id, 0, n_ROI1 * sizeof(int32_t));
@@ -185,7 +186,7 @@ void _KNN_conflicts_write(FILE* f, const uint32_t* KNN_data_conflicts, const flo
 }
 
 void _KNN_asso_conflicts_write(FILE* f, const uint32_t** KNN_data_nearest, const float** KNN_data_distances,
-                               const uint32_t* KNN_data_conflicts, const uint16_t* ROI0_id, const int32_t* ROI0_next_id,
+                               const uint32_t* KNN_data_conflicts, const uint32_t* ROI0_id, const uint32_t* ROI0_next_id,
                                const size_t n_ROI0, const float* ROI1_dx, const float* ROI1_dy, const float* ROI1_error,
                                const uint8_t* ROI1_is_moving, const size_t n_ROI1) {
     // Asso

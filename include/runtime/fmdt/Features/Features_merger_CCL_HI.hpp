@@ -23,7 +23,7 @@ protected:
     const uint32_t** in_labels;
     const uint8_t** in_img_HI;
     uint32_t** out_labels;
-    uint16_t* tmp_in_ROI_id;
+    uint32_t* tmp_in_ROI_id;
 public:
     Features_merger_CCL_HI(const int i0, const int i1, const int j0, const int j1, const int b, const uint32_t S_min,
                            const uint32_t S_max, const size_t max_in_ROI_size, const size_t max_out_ROI_size);

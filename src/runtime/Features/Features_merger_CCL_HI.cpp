@@ -21,11 +21,11 @@ Features_merger_CCL_HI::Features_merger_CCL_HI(const int i0, const int i1, const
     auto ps_in_labels = this->template create_socket_in<uint32_t>(p, "in_labels", socket_img_size);
     auto ps_in_img_HI = this->template create_socket_in<uint8_t>(p, "in_img_HI", socket_img_size);
 
-    auto ps_in_ROI_id = this->template create_socket_in<uint16_t>(p, "in_ROI_id", max_in_ROI_size);
-    auto ps_in_ROI_xmin = this->template create_socket_in<uint16_t>(p, "in_ROI_xmin", max_in_ROI_size);
-    auto ps_in_ROI_xmax = this->template create_socket_in<uint16_t>(p, "in_ROI_xmax", max_in_ROI_size);
-    auto ps_in_ROI_ymin = this->template create_socket_in<uint16_t>(p, "in_ROI_ymin", max_in_ROI_size);
-    auto ps_in_ROI_ymax = this->template create_socket_in<uint16_t>(p, "in_ROI_ymax", max_in_ROI_size);
+    auto ps_in_ROI_id = this->template create_socket_in<uint32_t>(p, "in_ROI_id", max_in_ROI_size);
+    auto ps_in_ROI_xmin = this->template create_socket_in<uint32_t>(p, "in_ROI_xmin", max_in_ROI_size);
+    auto ps_in_ROI_xmax = this->template create_socket_in<uint32_t>(p, "in_ROI_xmax", max_in_ROI_size);
+    auto ps_in_ROI_ymin = this->template create_socket_in<uint32_t>(p, "in_ROI_ymin", max_in_ROI_size);
+    auto ps_in_ROI_ymax = this->template create_socket_in<uint32_t>(p, "in_ROI_ymax", max_in_ROI_size);
     auto ps_in_ROI_S = this->template create_socket_in<uint32_t>(p, "in_ROI_S", max_in_ROI_size);
     auto ps_in_ROI_Sx = this->template create_socket_in<uint32_t>(p, "in_ROI_Sx", max_in_ROI_size);
     auto ps_in_ROI_Sy = this->template create_socket_in<uint32_t>(p, "in_ROI_Sy", max_in_ROI_size);
@@ -33,11 +33,11 @@ Features_merger_CCL_HI::Features_merger_CCL_HI(const int i0, const int i1, const
     auto ps_in_ROI_y = this->template create_socket_in<float>(p, "in_ROI_y", max_in_ROI_size);
     auto ps_in_n_ROI = this->template create_socket_in<uint32_t>(p, "in_n_ROI", 1);
 
-    auto ps_out_ROI_id = this->template create_socket_out<uint16_t>(p, "out_ROI_id", max_out_ROI_size);
-    auto ps_out_ROI_xmin = this->template create_socket_out<uint16_t>(p, "out_ROI_xmin", max_out_ROI_size);
-    auto ps_out_ROI_xmax = this->template create_socket_out<uint16_t>(p, "out_ROI_xmax", max_out_ROI_size);
-    auto ps_out_ROI_ymin = this->template create_socket_out<uint16_t>(p, "out_ROI_ymin", max_out_ROI_size);
-    auto ps_out_ROI_ymax = this->template create_socket_out<uint16_t>(p, "out_ROI_ymax", max_out_ROI_size);
+    auto ps_out_ROI_id = this->template create_socket_out<uint32_t>(p, "out_ROI_id", max_out_ROI_size);
+    auto ps_out_ROI_xmin = this->template create_socket_out<uint32_t>(p, "out_ROI_xmin", max_out_ROI_size);
+    auto ps_out_ROI_xmax = this->template create_socket_out<uint32_t>(p, "out_ROI_xmax", max_out_ROI_size);
+    auto ps_out_ROI_ymin = this->template create_socket_out<uint32_t>(p, "out_ROI_ymin", max_out_ROI_size);
+    auto ps_out_ROI_ymax = this->template create_socket_out<uint32_t>(p, "out_ROI_ymax", max_out_ROI_size);
     auto ps_out_ROI_S = this->template create_socket_out<uint32_t>(p, "out_ROI_S", max_out_ROI_size);
     auto ps_out_ROI_Sx = this->template create_socket_out<uint32_t>(p, "out_ROI_Sx", max_out_ROI_size);
     auto ps_out_ROI_Sy = this->template create_socket_out<uint32_t>(p, "out_ROI_Sy", max_out_ROI_size);
@@ -67,34 +67,34 @@ Features_merger_CCL_HI::Features_merger_CCL_HI(const int i0, const int i1, const
 
         const uint32_t in_n_ROI = *static_cast<const uint32_t*>(t[ps_in_n_ROI].get_dataptr());
 
-        std::copy_n(static_cast<const uint16_t*>(t[ps_in_ROI_id].get_dataptr()), in_n_ROI, mrg.tmp_in_ROI_id);
+        std::copy_n(static_cast<const uint32_t*>(t[ps_in_ROI_id].get_dataptr()), in_n_ROI, mrg.tmp_in_ROI_id);
 
         _features_merge_CCL_HI_v2(mrg.in_labels, mrg.in_img_HI, mrg.out_labels, mrg.i0, mrg.i1, mrg.j0, mrg.j1,
                                   mrg.tmp_in_ROI_id,
-                                  static_cast<const uint16_t*>(t[ps_in_ROI_xmin].get_dataptr()),
-                                  static_cast<const uint16_t*>(t[ps_in_ROI_xmax].get_dataptr()),
-                                  static_cast<const uint16_t*>(t[ps_in_ROI_ymin].get_dataptr()),
-                                  static_cast<const uint16_t*>(t[ps_in_ROI_ymax].get_dataptr()),
+                                  static_cast<const uint32_t*>(t[ps_in_ROI_xmin].get_dataptr()),
+                                  static_cast<const uint32_t*>(t[ps_in_ROI_xmax].get_dataptr()),
+                                  static_cast<const uint32_t*>(t[ps_in_ROI_ymin].get_dataptr()),
+                                  static_cast<const uint32_t*>(t[ps_in_ROI_ymax].get_dataptr()),
                                   static_cast<const uint32_t*>(t[ps_in_ROI_S].get_dataptr()),
                                   in_n_ROI,
                                   mrg.S_min, mrg.S_max);
 
         size_t out_n_ROI = _features_shrink_ROI_array(mrg.tmp_in_ROI_id,
-                                                      static_cast<const uint16_t*>(t[ps_in_ROI_xmin].get_dataptr()),
-                                                      static_cast<const uint16_t*>(t[ps_in_ROI_xmax].get_dataptr()),
-                                                      static_cast<const uint16_t*>(t[ps_in_ROI_ymin].get_dataptr()),
-                                                      static_cast<const uint16_t*>(t[ps_in_ROI_ymax].get_dataptr()),
+                                                      static_cast<const uint32_t*>(t[ps_in_ROI_xmin].get_dataptr()),
+                                                      static_cast<const uint32_t*>(t[ps_in_ROI_xmax].get_dataptr()),
+                                                      static_cast<const uint32_t*>(t[ps_in_ROI_ymin].get_dataptr()),
+                                                      static_cast<const uint32_t*>(t[ps_in_ROI_ymax].get_dataptr()),
                                                       static_cast<const uint32_t*>(t[ps_in_ROI_S].get_dataptr()),
                                                       static_cast<const uint32_t*>(t[ps_in_ROI_Sx].get_dataptr()),
                                                       static_cast<const uint32_t*>(t[ps_in_ROI_Sy].get_dataptr()),
                                                       static_cast<const float*>(t[ps_in_ROI_x].get_dataptr()),
                                                       static_cast<const float*>(t[ps_in_ROI_y].get_dataptr()),
                                                       in_n_ROI,
-                                                      static_cast<uint16_t*>(t[ps_out_ROI_id].get_dataptr()),
-                                                      static_cast<uint16_t*>(t[ps_out_ROI_xmin].get_dataptr()),
-                                                      static_cast<uint16_t*>(t[ps_out_ROI_xmax].get_dataptr()),
-                                                      static_cast<uint16_t*>(t[ps_out_ROI_ymin].get_dataptr()),
-                                                      static_cast<uint16_t*>(t[ps_out_ROI_ymax].get_dataptr()),
+                                                      static_cast<uint32_t*>(t[ps_out_ROI_id].get_dataptr()),
+                                                      static_cast<uint32_t*>(t[ps_out_ROI_xmin].get_dataptr()),
+                                                      static_cast<uint32_t*>(t[ps_out_ROI_xmax].get_dataptr()),
+                                                      static_cast<uint32_t*>(t[ps_out_ROI_ymin].get_dataptr()),
+                                                      static_cast<uint32_t*>(t[ps_out_ROI_ymax].get_dataptr()),
                                                       static_cast<uint32_t*>(t[ps_out_ROI_S].get_dataptr()),
                                                       static_cast<uint32_t*>(t[ps_out_ROI_Sx].get_dataptr()),
                                                       static_cast<uint32_t*>(t[ps_out_ROI_Sy].get_dataptr()),
@@ -108,7 +108,7 @@ Features_merger_CCL_HI::Features_merger_CCL_HI(const int i0, const int i1, const
 }
 
 void Features_merger_CCL_HI::init_data() {
-    this->tmp_in_ROI_id = (uint16_t*)malloc(this->max_in_ROI_size * sizeof(uint16_t));
+    this->tmp_in_ROI_id = (uint32_t*)malloc(this->max_in_ROI_size * sizeof(uint32_t));
     this->in_labels = (const uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint32_t*)));
     this->in_img_HI = (const uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint8_t*)));
     this->out_labels = (uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint32_t*)));

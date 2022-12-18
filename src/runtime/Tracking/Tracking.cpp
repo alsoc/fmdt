@@ -22,15 +22,15 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
 
     auto ps_in_frame = this->template create_socket_in<uint32_t>(p, "in_frame", 1);
 
-    auto ps_in_ROI_id = this->template create_socket_in<uint16_t>(p, "in_ROI_id", max_ROI_size);
-    auto ps_in_ROI_xmin = this->template create_socket_in<uint16_t>(p, "in_ROI_xmin", max_ROI_size);
-    auto ps_in_ROI_xmax = this->template create_socket_in<uint16_t>(p, "in_ROI_xmax", max_ROI_size);
-    auto ps_in_ROI_ymin = this->template create_socket_in<uint16_t>(p, "in_ROI_ymin", max_ROI_size);
-    auto ps_in_ROI_ymax = this->template create_socket_in<uint16_t>(p, "in_ROI_ymax", max_ROI_size);
+    auto ps_in_ROI_id = this->template create_socket_in<uint32_t>(p, "in_ROI_id", max_ROI_size);
+    auto ps_in_ROI_xmin = this->template create_socket_in<uint32_t>(p, "in_ROI_xmin", max_ROI_size);
+    auto ps_in_ROI_xmax = this->template create_socket_in<uint32_t>(p, "in_ROI_xmax", max_ROI_size);
+    auto ps_in_ROI_ymin = this->template create_socket_in<uint32_t>(p, "in_ROI_ymin", max_ROI_size);
+    auto ps_in_ROI_ymax = this->template create_socket_in<uint32_t>(p, "in_ROI_ymax", max_ROI_size);
     auto ps_in_ROI_x = this->template create_socket_in<float>(p, "in_ROI_x", max_ROI_size);
     auto ps_in_ROI_y = this->template create_socket_in<float>(p, "in_ROI_y", max_ROI_size);
     auto ps_in_ROI_error = this->template create_socket_in<float>(p, "in_ROI_error", max_ROI_size);
-    auto ps_in_ROI_prev_id = this->template create_socket_in<int32_t>(p, "in_ROI_prev_id", max_ROI_size);
+    auto ps_in_ROI_prev_id = this->template create_socket_in<uint32_t>(p, "in_ROI_prev_id", max_ROI_size);
     auto ps_in_ROI_magnitude = this->template create_socket_in<uint32_t>(p, "in_ROI_magnitude", max_ROI_size);
     auto ps_in_n_ROI = this->template create_socket_in<uint32_t>(p, "in_n_ROI", 1);
 
@@ -46,15 +46,15 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
 
         _tracking_perform(trk.tracking_data,
-                          static_cast<const uint16_t*>(t[ps_in_ROI_id].get_dataptr()),
-                          static_cast<const uint16_t*>(t[ps_in_ROI_xmin].get_dataptr()),
-                          static_cast<const uint16_t*>(t[ps_in_ROI_xmax].get_dataptr()),
-                          static_cast<const uint16_t*>(t[ps_in_ROI_ymin].get_dataptr()),
-                          static_cast<const uint16_t*>(t[ps_in_ROI_ymax].get_dataptr()),
+                          static_cast<const uint32_t*>(t[ps_in_ROI_id].get_dataptr()),
+                          static_cast<const uint32_t*>(t[ps_in_ROI_xmin].get_dataptr()),
+                          static_cast<const uint32_t*>(t[ps_in_ROI_xmax].get_dataptr()),
+                          static_cast<const uint32_t*>(t[ps_in_ROI_ymin].get_dataptr()),
+                          static_cast<const uint32_t*>(t[ps_in_ROI_ymax].get_dataptr()),
                           static_cast<const float*>(t[ps_in_ROI_x].get_dataptr()),
                           static_cast<const float*>(t[ps_in_ROI_y].get_dataptr()),
                           static_cast<const float*>(t[ps_in_ROI_error].get_dataptr()),
-                          static_cast<const int32_t*>(t[ps_in_ROI_prev_id].get_dataptr()),
+                          static_cast<const uint32_t*>(t[ps_in_ROI_prev_id].get_dataptr()),
                           static_cast<const uint32_t*>(t[ps_in_ROI_magnitude].get_dataptr()),
                           n_ROI,
                           &trk.BB_array,

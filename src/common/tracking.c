@@ -204,14 +204,14 @@ void track_extrapolate(vec_track_t track_array, const size_t t, float theta, flo
     _track_extrapolate(&track_array[t].end, &track_array[t].extrapol_x, &track_array[t].extrapol_y, theta, tx, ty);
 }
 
-void _update_bounding_box(vec_BB_t* BB_array, const int track_id, const uint16_t ROI_xmin, const uint16_t ROI_xmax,
-                          const uint16_t ROI_ymin, const uint16_t ROI_ymax, int frame, int is_extrapolated) {
+void _update_bounding_box(vec_BB_t* BB_array, const int track_id, const uint32_t ROI_xmin, const uint32_t ROI_xmax,
+                          const uint32_t ROI_ymin, const uint32_t ROI_ymax, int frame, int is_extrapolated) {
     assert(ROI_xmin || ROI_xmax || ROI_ymin || ROI_ymax);
 
-    uint16_t bb_x = (uint16_t)ceilf((float)(ROI_xmin + ROI_xmax) / 2.f);
-    uint16_t bb_y = (uint16_t)ceilf((float)(ROI_ymin + ROI_ymax) / 2.f);
-    uint16_t rx = (bb_x - ROI_xmin);
-    uint16_t ry = (bb_y - ROI_ymin);
+    uint32_t bb_x = (uint32_t)ceilf((float)(ROI_xmin + ROI_xmax) / 2.f);
+    uint32_t bb_y = (uint32_t)ceilf((float)(ROI_ymin + ROI_ymax) / 2.f);
+    uint32_t rx = (bb_x - ROI_xmin);
+    uint32_t ry = (bb_y - ROI_ymin);
 
     BB_t* tmp_bb = vector_add_asg(BB_array);
     tmp_bb->frame_id = frame;
@@ -246,12 +246,12 @@ void _update_existing_tracks(ROI_history_t* ROI_history, vec_track_t track_array
                             (ROI_history->array[0][j].y > cur_track->extrapol_y - r_extrapol)) {
 
                             if (BB_array != NULL) {
-                                uint16_t height_extrapol = cur_track->end.ymax - cur_track->end.ymin;
-                                uint16_t width_extrapol = cur_track->end.xmax - cur_track->end.xmin;
-                                uint16_t xmin_extrapol = cur_track->extrapol_x - (width_extrapol / 2);
-                                uint16_t xmax_extrapol = cur_track->extrapol_x + (width_extrapol / 2);
-                                uint16_t ymin_extrapol = cur_track->extrapol_y - (height_extrapol / 2);
-                                uint16_t ymax_extrapol = cur_track->extrapol_y + (height_extrapol / 2);
+                                uint32_t height_extrapol = cur_track->end.ymax - cur_track->end.ymin;
+                                uint32_t width_extrapol = cur_track->end.xmax - cur_track->end.xmin;
+                                uint32_t xmin_extrapol = cur_track->extrapol_x - (width_extrapol / 2);
+                                uint32_t xmax_extrapol = cur_track->extrapol_x + (width_extrapol / 2);
+                                uint32_t ymin_extrapol = cur_track->extrapol_y - (height_extrapol / 2);
+                                uint32_t ymax_extrapol = cur_track->extrapol_y + (height_extrapol / 2);
                                 size_t vs = vector_size(BB_array);
                                 _update_bounding_box(&BB_array[vs - 2], cur_track->id, xmin_extrapol, xmax_extrapol,
                                                      ymin_extrapol, ymax_extrapol, frame - 1,
@@ -432,10 +432,10 @@ void _create_new_tracks(ROI_history_t* ROI_history, ROI_light_t* ROI_list, vec_t
     }
 }
 
-void _light_copy_ROI_array(const uint16_t* ROI_src_id, const uint32_t ROI_src_frame, const uint16_t* ROI_src_xmin,
-                           const uint16_t* ROI_src_xmax, const uint16_t* ROI_src_ymin, const uint16_t* ROI_src_ymax,
+void _light_copy_ROI_array(const uint32_t* ROI_src_id, const uint32_t ROI_src_frame, const uint32_t* ROI_src_xmin,
+                           const uint32_t* ROI_src_xmax, const uint32_t* ROI_src_ymin, const uint32_t* ROI_src_ymax,
                            const float* ROI_src_x, const float* ROI_src_y, const float* ROI_src_error,
-                           const int32_t* ROI_src_prev_id, const uint32_t* ROI_magnitude, const size_t n_ROI_src,
+                           const uint32_t* ROI_src_prev_id, const uint32_t* ROI_magnitude, const size_t n_ROI_src,
                            ROI_light_t* ROI_dest) {
     for (size_t i = 0; i < n_ROI_src; i++) {
         ROI_dest[i].id = ROI_src_id[i];
@@ -462,15 +462,15 @@ void light_copy_ROI_array(const ROI_t* ROI_array_src, const uint32_t ROI_src_fra
                           ROI_array_dest);
 }
 
-void _update_ROI_array_next_id(const int32_t* ROI_prev_id, ROI_light_t* ROI_dest, const size_t n_ROI) {
+void _update_ROI_array_next_id(const uint32_t* ROI_prev_id, ROI_light_t* ROI_dest, const size_t n_ROI) {
     for (size_t i = 0; i < n_ROI; i++)
         if (ROI_prev_id[i])
             ROI_dest[ROI_prev_id[i] - 1].next_id = i + 1;
 }
 
-void _tracking_perform(tracking_data_t* tracking_data, const uint16_t* ROI_id, const uint16_t* ROI_xmin,
-                       const uint16_t* ROI_xmax, const uint16_t* ROI_ymin, const uint16_t* ROI_ymax,
-                       const float* ROI_x, const float* ROI_y, const float* ROI_error, const int32_t* ROI_prev_id,
+void _tracking_perform(tracking_data_t* tracking_data, const uint32_t* ROI_id, const uint32_t* ROI_xmin,
+                       const uint32_t* ROI_xmax, const uint32_t* ROI_ymin, const uint32_t* ROI_ymax,
+                       const float* ROI_x, const float* ROI_y, const float* ROI_error, const uint32_t* ROI_prev_id,
                        const uint32_t* ROI_magnitude, const size_t n_ROI1, vec_BB_t** BB_array, const size_t frame,
                        const motion_t* motion_est, const size_t r_extrapol, const float angle_max, const float diff_dev,
                        const int track_all, const size_t fra_star_min, const size_t fra_meteor_min,
