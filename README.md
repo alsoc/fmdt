@@ -585,16 +585,20 @@ here we focus only on extra columns:
 
 ## List of Contributors
 
-This toolbox is developed by the [LIP6](https://www.lip6.fr/) laboratory 
+This toolbox is mainly developed by the [LIP6](https://www.lip6.fr/) laboratory 
 ([ALSOC](https://www.lip6.fr/recherche/team.php?acronyme=ALSOC) team) of 
-[Sorbonne University](https://www.sorbonne-universite.fr/) in Paris.
-Any external contributions are more than welcome.
+[Sorbonne University](https://www.sorbonne-universite.fr/) in Paris. Some parts 
+are also developed by the [IMCCE](https://www.imcce.fr/) institute 
+(*l'Observatoire de Paris*). Any external contributions are more than welcome.
 
-Here is the list of contributors:
+**Active contributors:**
  * Clara CIOCAN, *Master student*
  * Mathuran KANDEEPAN, *Master student*
  * Maxime MILLET, *PhD student*
+ * [Adrien CASSAGNE](https://lip6.fr/adrien.cassagne/), *Associate professor*
+ * [Jérémie VAUBAILLON](https://www.cnrs.fr/fr/personne/jeremie-vaubaillon), *Astronomer*
+ * [Lionel LACASSAGNE](https://lip6.fr/Lionel.Lacassagne/), *Full professor*
+
+**Former contributors:**
  * Florian LEMAÎTRE, *PhD*
  * Arthur HENNEQUIN, *PhD*
- * Adrien CASSAGNE, *Associate professor*
- * Lionel LACASSAGNE, *Full professor*
