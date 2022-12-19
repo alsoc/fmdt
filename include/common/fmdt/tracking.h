@@ -77,6 +77,7 @@ typedef track_t* vec_track_t;
 
 typedef struct {
     ROI_light_t** array;
+    motion_t* motion;
     uint32_t* n_ROI;
     uint32_t _max_n_ROI;
     size_t _size; // current size/utilization of the 'ROI_history_t.array' field
@@ -86,6 +87,7 @@ typedef struct {
 typedef struct {
     vec_track_t tracks;
     ROI_history_t* ROI_history;
+    motion_t* motion_history;
     ROI_light_t* ROI_list;
 } tracking_data_t;
 
