@@ -20,8 +20,13 @@
 
 *Fast Meteor Detection Toolbox* or **FMDT** is derived from a software which was 
 **designed to detect meteors** on board ISS or a Cubesat. FMDT is foreseen to be 
-applied to airborne camera systems, e.g. in atmospheric balloons or aircraft. It 
-is robust to camera movements by a motion compensation algorithm.
+applied to airborne camera systems, e.g. in atmospheric balloons or aircraft. 
+**It is robust to camera movements by a motion compensation algorithm.**
+
+**FMDT is ready for real-time processing on small boards like Raspberry Pi 4** 
+or Nvidia Jetson Nano for embedded systems. For instance, on the Raspberry Pi 4 
+(@ 1.5 GHz), FMDT is able to compute **30 frames per second** on a HD video 
+sequence while the instant power is only **around 4 Watts**.
 
 ![Detection Chain](doc/figs/detection_chain.svg)
 
