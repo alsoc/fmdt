@@ -18,12 +18,12 @@
 
 ## Purpose and Scientific Background
 
-![Detection Chain](doc/figs/detection_chain.svg)
-
 *Fast Meteor Detection Toolbox* or **FMDT** is derived from a software which was 
 **designed to detect meteors** on board ISS or a Cubesat. FMDT is foreseen to be 
 applied to airborne camera systems, e.g. in atmospheric balloons or aircraft. It 
 is robust to camera movements by a motion compensation algorithm.
+
+![Detection Chain](doc/figs/detection_chain.svg)
 
 The previous figure presents the whole FMDT's detection chain. For each pair of 
 images, **an intensity hysteresis threshold**, **a connected component 
