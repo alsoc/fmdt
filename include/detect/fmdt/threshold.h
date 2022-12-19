@@ -4,10 +4,10 @@
 
 void threshold(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
                const uint8_t threshold);
-void threshold_low(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
-                   const uint8_t threshold);
-void threshold_high(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
-                    const uint8_t threshold);
+// void threshold_low(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
+//                    const uint8_t threshold);
+// void threshold_high(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
+//                     const uint8_t threshold);
 // float max_norme(float** U, float** V, int i0, int i1, int j0, int j1);
 // void threshold_norme_compact_bigend(float** U, float** V, uint8_t** out, int w, int h, float threshold);
 // void threshold_compact_bigend(uint8_t** in, uint8_t** out, int w, int h, uint8_t threshold);
