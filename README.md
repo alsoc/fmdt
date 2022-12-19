@@ -36,7 +36,7 @@ labeling and an analysis algorithm** are applied to get a list of connected
 components (CCs) with their bounding boxes and surface. Moreover, it also 
 provides the first raw moments to compute the centroid $(x_G,y_G)=(S_x/S,S_y/S)$ 
 of each blob of pixels. **A morphological threshold** is then done on the 
-surface $S$ to reject small and big CCs. **A $k$-nearest neighbour ($k$-NN) 
+surface $S$ to reject small and big CCs. **A $k$-nearest neighbour (k-NN) 
 matching** is applied to extract pairs of CCs from image $I_{t+0}$ and $I_{t+1}$ 
 with $t$ the image number in the video sequence. These matches are used to 
 perform **a first global motion estimation** (rigid registration). Note that CCs 
@@ -49,7 +49,7 @@ $k$, $\bar{e_t}$ the average error of compensation of all CCs of image $I_t$ and
 $\sigma_t$ the standard deviation of the error. **A second motion estimation** 
 is done with only still star CCs, to get a more accurate motion estimation and a 
 more robust classification. Finally **a piece-wise tracking** is done by 
-extending the ($t+0$,$t+1$) matching with ($t+1$,$t+2$) matching (and so on) to 
+extending the $(t+0,t+1)$ matching with $(t+1,t+2)$ matching (and so on) to 
 reduce the amount of false positive detection.
 
 ## Dependencies
