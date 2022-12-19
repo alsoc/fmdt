@@ -43,7 +43,7 @@ $k$, $\bar{e_t}$ the average error of compensation of all CCs of image $I_t$ and
 $\sigma_t$ the standard deviation of the error. A second motion estimation is 
 done with only still star CCs, to get a more accurate motion estimation and a 
 more robust classification. Finally a piece-wise tracking is done by extending 
-the ($t+0,t+1$) matching with ($t+1,t+2$) matching and so on to reduce the 
+the ($t+0$,$t+1$) matching with ($t+1$,$t+2$) matching (and so on) to reduce the 
 amount of false positive detection.
 
 ## Dependencies
