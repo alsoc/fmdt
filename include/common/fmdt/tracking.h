@@ -67,6 +67,9 @@ typedef struct track {
     ROI_light_t end;
     float extrapol_x;
     float extrapol_y;
+    float extrapol_u;
+    float extrapol_v;
+    uint8_t extrapol_order;
     enum state_e state;
     enum obj_e obj_type;
     enum change_state_reason_e change_state_reason;
@@ -109,11 +112,11 @@ void _tracking_perform(tracking_data_t* tracking_data, const uint32_t* ROI_id, c
                        const uint32_t* ROI_magnitude, const size_t n_ROI1, vec_BB_t** BB_array, const size_t frame,
                        const motion_t* motion_est, const size_t r_extrapol, const float angle_max, const float diff_dev,
                        const int track_all, const size_t fra_star_min, const size_t fra_meteor_min,
-                       const size_t fra_meteor_max, const int magnitude);
+                       const size_t fra_meteor_max, const int magnitude, const uint8_t extrapol_order_max);
 void tracking_perform(tracking_data_t* tracking_data, const ROI_t* ROI_array, vec_BB_t** BB_array, size_t frame,
                       const motion_t* motion_est, const size_t r_extrapol, const float angle_max, const float diff_dev,
                       const int track_all, const size_t fra_star_min, const size_t fra_meteor_min,
-                      const size_t fra_meteor_max, const int magnitude);
+                      const size_t fra_meteor_max, const int magnitude, const uint8_t extrapol_order_max);
 // return the real number of tracks
 size_t tracking_count_objects(const vec_track_t track_array, unsigned* n_stars, unsigned* n_meteors, unsigned* n_noise);
 void tracking_track_array_write(FILE* f, const vec_track_t track_array);

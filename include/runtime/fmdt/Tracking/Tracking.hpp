@@ -21,6 +21,7 @@ protected:
     const float diff_dev;
     const int track_all;
     const int magnitude;
+    const uint8_t extrapol_order_max;
     const size_t fra_star_min;
     const size_t fra_meteor_min;
     const size_t fra_meteor_max;
@@ -30,7 +31,7 @@ protected:
 public:
     Tracking(const size_t r_extrapol, const float angle_max, const float diff_dev, const int track_all,
              const size_t fra_star_min, const size_t fra_meteor_min, const size_t fra_meteor_max,
-             const bool out_bb, const bool magnitude, const size_t max_ROI_size);
+             const bool out_bb, const bool magnitude, const uint8_t extrapol_order_max, const size_t max_ROI_size);
     virtual ~Tracking();
     inline tracking_data_t* get_data();
     inline vec_BB_t* get_BB_array();

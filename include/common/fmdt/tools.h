@@ -31,3 +31,8 @@ void tools_linear_2d_nrc_ui32matrix(const uint32_t* X, const int i0, const int i
 void tools_linear_2d_nrc_f32matrix(const float* X, const int i0, const int i1, const int j0, const int j1,
                                    const float** Y);
 int tools_is_dir(const char *path);
+
+void _tools_draw_text_bw(uint8_t** img, const int img_width, const int img_height, const uint32_t* ROI_id,
+                         const uint32_t* ROI_xmax, const uint32_t* ROI_ymin, const uint32_t* ROI_ymax,
+                         const size_t n_ROI);
+void tools_draw_text_bw(uint8_t** img, const int img_width, const int img_height, const ROI_t* ROI_array);

@@ -437,7 +437,6 @@ void _features_motion_extraction(const float* ROI0_x, const float* ROI0_y, const
             x = cosf(theta) * (xp - tx) + sinf(theta) * (yp - ty);
             y = cosf(theta) * (yp - ty) - sinf(theta) * (xp - tx);
 
-            // pas besoin de stocker dx et dy (juste pour l'affichage du debug)
             dx = x - ROI0_x[cc0 - 1];
             dy = y - ROI0_y[cc0 - 1];
             ROI1_dx[i] = dx;

@@ -5,10 +5,11 @@
 
 Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float diff_dev, const int track_all,
                    const size_t fra_star_min, const size_t fra_meteor_min, const size_t fra_meteor_max,
-                   const bool out_bb, const bool magnitude, const size_t max_ROI_size)
+                   const bool out_bb, const bool magnitude, const uint8_t extrapol_order_max, const size_t max_ROI_size)
 : Module(), r_extrapol(r_extrapol), angle_max(angle_max), diff_dev(diff_dev), track_all(track_all),
-  magnitude(magnitude), fra_star_min(fra_star_min), fra_meteor_min(fra_meteor_min), fra_meteor_max(fra_meteor_max),
-  max_ROI_size(max_ROI_size), tracking_data(nullptr), BB_array(nullptr) {
+  magnitude(magnitude), extrapol_order_max(extrapol_order_max), fra_star_min(fra_star_min),
+  fra_meteor_min(fra_meteor_min), fra_meteor_max(fra_meteor_max), max_ROI_size(max_ROI_size), tracking_data(nullptr),
+  BB_array(nullptr) {
     const std::string name = "Tracking";
     this->set_name(name);
     this->set_short_name(name);
@@ -61,7 +62,7 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                           frame,
                           static_cast<const motion_t*>(t[ps_in_motion_est].get_dataptr()),
                           trk.r_extrapol, trk.angle_max, trk.diff_dev, trk.track_all, trk.fra_star_min,
-                          trk.fra_meteor_min, trk.fra_meteor_max, trk.magnitude);
+                          trk.fra_meteor_min, trk.fra_meteor_max, trk.magnitude, trk.extrapol_order_max);
 
         return aff3ct::runtime::status_t::SUCCESS;
     });

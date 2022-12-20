@@ -119,8 +119,8 @@ The `CMake` file comes with several options:
    project using debugging prints: these additional prints will be output on 
    `stderr` and prefixed by `(DBG)`.
  * `-DFMDT_OPENCV_LINK`    [default=`OFF`] {possible:`ON`,`OFF`}: link with 
-   OpenCV library (required to enable `--show-id` option in `fmdt-visu` 
-   executable).
+   OpenCV library (required to enable `--show-id` option in `fmdt-xxx` 
+   executables).
  * `-DFMDT_AFF3CT_RUNTIME` [default=`OFF`] {possible:`ON`,`OFF`}: link with 
    AFF3CT runtime and produce multi-threaded detection executable 
    (`fmdt-detect-rt`).
@@ -159,7 +159,8 @@ The list of available arguments:
 | `--surface-max`    | int      | 1000        | No      | Maximum surface of the CCs in pixel. |
 | `-k`               | int      | 3           | No      | Maximum number of neighbors considered in k-nearest neighbor matching (k-NN algorithm). |
 | `--max-dist`       | int      | 10          | No      | Maximum number of pixels between two images (k-NN algorithm). |
-| `--r-extrapol`     | int      | 5           | No      | Search radius for CC extrapolation (piece-wise tracking). |
+| `--r-extrapol`     | int      | 10          | No      | Search radius in pixels for CC extrapolation (piece-wise tracking). |
+| `--extrapol-order` | int      | 3           | No      | Maximum number of frames to extrapolate for lost objects (linear extrapolation). |
 | `--angle-max`      | float    | 20.0        | No      | Tracking angle max between two consecutive meteor moving points (in degree). |
 | `--diff-dev`       | float    | 4.0         | No      | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
 | `--track-all`      | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`meteor`, `star` or `noise`). |
@@ -169,6 +170,7 @@ The list of available arguments:
 | `--video-buff`     | bool     | -           | No      | Bufferize all the video in global memory before executing the chain (for now it only works with `--in-video` as a folder of PGM images). |
 | `--video-loop`     | int      | 1           | No      | Number of times the video is read in loop  (for now it only works with `--in-video` as a folder of PGM images). |
 | `--ffmpeg-threads` | int      | 0           | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
+| `--show-id`        | bool     | -           | No      | Show the ROI/CC ids on the output frames (to combine with `--out-frames` parameter). Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
 
 Output text formats are detailed in the 
 [Input and Output Text Formats](#input-and-output-text-formats) section.

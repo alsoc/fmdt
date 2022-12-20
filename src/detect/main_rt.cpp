@@ -42,7 +42,8 @@ int main(int argc, char** argv) {
     int def_p_surface_max = 1000;
     int def_p_k = 3;
     int def_p_max_dist = 10;
-    int def_p_r_extrapol = 5;
+    int def_p_r_extrapol = 10;
+    int def_p_extrapol_order = 3;
     float def_p_angle_max = 20;
     int def_p_fra_star_min = 15;
     int def_p_fra_meteor_min = 3;
@@ -108,6 +109,9 @@ int main(int argc, char** argv) {
                 "  --r-extrapol        Search radius for the next CC in case of extrapolation                 [%d]\n",
                 def_p_r_extrapol);
         fprintf(stderr,
+                "  --extrapol-order    Maximum number of frames to extrapolate objects (linear extrapolation) [%d]\n",
+                def_p_extrapol_order);
+        fprintf(stderr,
                 "  --angle-max         Tracking angle max between two consecutive meteor moving points        [%f]\n",
                 def_p_angle_max);
         fprintf(stderr,
@@ -136,6 +140,10 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --ffmpeg-threads    Select the number of threads to use to decode video input (in ffmpeg)  [%d]\n",
                 def_p_ffmpeg_threads);
+#ifdef OPENCV_LINK
+        fprintf(stderr,
+                "  --show-id           Show the ROI/CC ids on the ouptut frames                                   \n");
+#endif
         fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
@@ -152,6 +160,7 @@ int main(int argc, char** argv) {
     const int p_k = args_find_int_min(argc, argv, "-k", def_p_k, 0);
     const int p_max_dist = args_find_int_min(argc, argv, "--max-dist", def_p_max_dist, 0);
     const int p_r_extrapol = args_find_int_min(argc, argv, "--r-extrapol", def_p_r_extrapol, 0);
+    const int p_extrapol_order = args_find_int_min_max(argc, argv, "--extrapol-order", def_p_extrapol_order, 0, 255);
     const float p_angle_max = args_find_float_min_max(argc, argv, "--angle-max", def_p_angle_max, 0.f, 360.f);
     const int p_fra_star_min = args_find_int_min(argc, argv, "--fra-star-min", def_p_fra_star_min, 2);
     const int p_fra_meteor_min = args_find_int_min(argc, argv, "--fra-meteor-min", def_p_fra_meteor_min, 2);
@@ -168,6 +177,9 @@ int main(int argc, char** argv) {
     const int p_video_loop = args_find_int_min(argc, argv, "--video-loop", def_p_video_loop, 1);
     const int p_task_stats = args_find(argc, argv, "--task-stats");
     const char* p_out_probes = args_find_char(argc, argv, "--out-probes", def_p_out_probes);
+#ifdef OPENCV_LINK
+    const int p_show_id = args_find(argc, argv, "--show-id");
+#endif
 
     // heading display
     printf("#  ---------------------\n");
@@ -194,6 +206,7 @@ int main(int argc, char** argv) {
     printf("#  * k              = %d\n", p_k);
     printf("#  * max-dist       = %d\n", p_max_dist);
     printf("#  * r-extrapol     = %d\n", p_r_extrapol);
+    printf("#  * extrapol-order = %d\n", p_extrapol_order);
     printf("#  * angle-max      = %f\n", p_angle_max);
     printf("#  * fra-star-min   = %d\n", p_fra_star_min);
     printf("#  * fra-meteor-min = %d\n", p_fra_meteor_min);
@@ -204,6 +217,9 @@ int main(int argc, char** argv) {
     printf("#  * video-buff     = %d\n", p_video_buff);
     printf("#  * video-loop     = %d\n", p_video_loop);
     printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
+#ifdef OPENCV_LINK
+    printf("#  * show-id        = %d\n", p_show_id);
+#endif
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
     printf("#  * Runtime mode   = Pipeline\n");
@@ -238,6 +254,10 @@ int main(int argc, char** argv) {
 #ifndef FMDT_ENABLE_PIPELINE
     if (p_out_probes)
         fprintf(stderr, "(WW) Using '--out-probes' without pipeline is not very useful...\n");
+#endif
+#ifdef OPENCV_LINK
+    if (p_show_id && !p_out_frames)
+        fprintf(stderr, "(WW) '--show-id' has to be combined with the '--out-frames' parameter\n");
 #endif
 
     // -------------------------------- //
@@ -285,7 +305,7 @@ int main(int argc, char** argv) {
     Features_motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
-                      p_fra_meteor_max, p_out_bb, p_out_mag, MAX_ROI_SIZE);
+                      p_fra_meteor_max, p_out_bb, p_out_mag, p_extrapol_order, MAX_ROI_SIZE);
     aff3ct::module::Delayer<uint32_t> delayer_ROI_id(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_ROI_xmin(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_ROI_xmax(MAX_ROI_SIZE, 0);
@@ -314,7 +334,11 @@ int main(int argc, char** argv) {
     Logger_KNN log_KNN(p_out_stats ? p_out_stats : "", i0, i1, j0, j1, MAX_ROI_SIZE);
     Logger_motion log_motion(p_out_stats ? p_out_stats : "");
     Logger_track log_track(p_out_stats ? p_out_stats : "", tracking.get_data());
+#ifdef OPENCV_LINK
+    Logger_frame log_frame(p_out_frames ? p_out_frames : "", i0, i1, j0, j1, b, p_show_id, MAX_ROI_SIZE);
+#else
     Logger_frame log_frame(p_out_frames ? p_out_frames : "", i0, i1, j0, j1, b);
+#endif
     log_motion.set_custom_name("Logger_motio");
 
     // create reporters and probes for the real-time probes file
@@ -533,6 +557,13 @@ int main(int argc, char** argv) {
     if (p_out_frames) {
         log_frame[lgr_fra::sck::write::in_labels] = merger[ftr_mrg::sck::merge::out_labels];
         log_frame[lgr_fra::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
+#ifdef OPENCV_LINK
+        log_frame[lgr_fra::sck::write::in_ROI_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
+        log_frame[lgr_fra::sck::write::in_ROI_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
+        log_frame[lgr_fra::sck::write::in_ROI_ymin] = merger[ftr_mrg::sck::merge::out_ROI_ymin];
+        log_frame[lgr_fra::sck::write::in_ROI_ymax] = merger[ftr_mrg::sck::merge::out_ROI_ymax];
+        log_frame[lgr_fra::sck::write::in_n_ROI] = merger[ftr_mrg::sck::merge::out_n_ROI];
+#endif
     }
 
     if (p_out_probes) {

@@ -35,7 +35,8 @@ int main(int argc, char** argv) {
     int def_p_surface_max = 1000;
     int def_p_k = 3;
     int def_p_max_dist = 10;
-    int def_p_r_extrapol = 5;
+    int def_p_r_extrapol = 10;
+    int def_p_extrapol_order = 3;
     float def_p_angle_max = 20;
     int def_p_fra_star_min = 15;
     int def_p_fra_meteor_min = 3;
@@ -97,6 +98,9 @@ int main(int argc, char** argv) {
                 "  --r-extrapol        Search radius for the next CC in case of extrapolation                 [%d]\n",
                 def_p_r_extrapol);
         fprintf(stderr,
+                "  --extrapol-order    Maximum number of frames to extrapolate objects (linear extrapolation) [%d]\n",
+                def_p_extrapol_order);
+        fprintf(stderr,
                 "  --angle-max         Tracking angle max between two consecutive meteor moving points        [%f]\n",
                 def_p_angle_max);
         fprintf(stderr,
@@ -123,6 +127,10 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --ffmpeg-threads    Select the number of threads to use to decode video input (in ffmpeg)  [%d]\n",
                 def_p_ffmpeg_threads);
+#ifdef OPENCV_LINK
+        fprintf(stderr,
+                "  --show-id           Show the ROI/CC ids on the ouptut frames                                   \n");
+#endif
         fprintf(stderr,
                 "  -h                  This help                                                                  \n");
         exit(1);
@@ -139,6 +147,7 @@ int main(int argc, char** argv) {
     const int p_k = args_find_int_min(argc, argv, "-k", def_p_k, 0);
     const int p_max_dist = args_find_int_min(argc, argv, "--max-dist", def_p_max_dist, 0);
     const int p_r_extrapol = args_find_int_min(argc, argv, "--r-extrapol", def_p_r_extrapol, 0);
+    const int p_extrapol_order = args_find_int_min_max(argc, argv, "--extrapol-order", def_p_extrapol_order, 0, 255);
     const float p_angle_max = args_find_float_min_max(argc, argv, "--angle-max", def_p_angle_max, 0.f, 360.f);
     const int p_fra_star_min = args_find_int_min(argc, argv, "--fra-star-min", def_p_fra_star_min, 2);
     const int p_fra_meteor_min = args_find_int_min(argc, argv, "--fra-meteor-min", def_p_fra_meteor_min, 2);
@@ -153,6 +162,9 @@ int main(int argc, char** argv) {
     const int p_ffmpeg_threads = args_find_int_min(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads, 0);
     const int p_video_buff = args_find(argc, argv, "--video-buff");
     const int p_video_loop = args_find_int_min(argc, argv, "--video-loop", def_p_video_loop, 1);
+#ifdef OPENCV_LINK
+    const int p_show_id = args_find(argc, argv, "--show-id");
+#endif
 
     // heading display
     printf("#  ---------------------\n");
@@ -178,6 +190,7 @@ int main(int argc, char** argv) {
     printf("#  * k              = %d\n", p_k);
     printf("#  * max-dist       = %d\n", p_max_dist);
     printf("#  * r-extrapol     = %d\n", p_r_extrapol);
+    printf("#  * extrapol-order = %d\n", p_extrapol_order);
     printf("#  * angle-max      = %f\n", p_angle_max);
     printf("#  * fra-star-min   = %d\n", p_fra_star_min);
     printf("#  * fra-meteor-min = %d\n", p_fra_meteor_min);
@@ -187,6 +200,9 @@ int main(int argc, char** argv) {
     printf("#  * video-buff     = %d\n", p_video_buff);
     printf("#  * video-loop     = %d\n", p_video_loop);
     printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
+#ifdef OPENCV_LINK
+    printf("#  * show-id        = %d\n", p_show_id);
+#endif
     printf("#\n");
 
     // arguments checking
@@ -212,6 +228,10 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--video-loop' has no effect when '--in-video' is a video file\n");
     if (p_ffmpeg_threads && tools_is_dir(p_in_video))
         fprintf(stderr, "(WW) '--ffmpeg-threads' has no effect when '--in-video' is a folder of images\n");
+#ifdef OPENCV_LINK
+    if (p_show_id && !p_out_frames)
+        fprintf(stderr, "(WW) '--show-id' has to be combined with the '--out-frames' parameter\n");
+#endif
 
     // -------------------------- //
     // -- VIDEO INITIALISATION -- //
@@ -300,7 +320,7 @@ int main(int argc, char** argv) {
         // step 6: tracking
         tracking_perform(tracking_data, (const ROI_t*)ROI_array1, &BB_array, cur_fra, &motion_est2,
                          p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
-                         p_fra_meteor_max, p_out_mag != NULL);
+                         p_fra_meteor_max, p_out_mag != NULL, p_extrapol_order);
 
         // save frames (CCs)
         if (p_out_frames) {
@@ -311,6 +331,10 @@ int main(int argc, char** argv) {
             for (int i = i0; i <= i1; i++)
                 for (int j = j0; j <= j1; j++)
                     IT[i][j] = (L2[i][j] == 0) ? 0 : 255;
+#ifdef OPENCV_LINK
+            if (p_show_id)
+                tools_draw_text_bw(IT, j1, i1, (const ROI_t*)ROI_array1);
+#endif
             SavePGM_ui8matrix((uint8**)IT, i0, i1, j0, j1, (char*)filename);
         }
 

@@ -89,18 +89,18 @@ rgb8_t tools_get_color(enum color_e color) {
 
 #ifdef OPENCV_LINK // this is C++ code (because OpenCV API is C++ now)
 void tools_draw_legend_squares(rgb8_t** img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
-    //                     ymin      ymax      xmin      xmax     color
+    //                     ymin      ymax      xmin      xmax      color
     std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned, rgb8_t>> box_list;
 
     for (int i = 0; i < N_OBJECTS; i++)
-        box_list.push_back(std::make_tuple((i + 1) * v_space + (i + 0) * box_size,    // ymin
-                                           (i + 1) * v_space + (i + 1) * box_size,    // ymax
-                                           (+1) * h_space + (+0) * box_size,          // xmin
-                                           (+1) * h_space + (+1) * box_size,          // xmax
-                                           tools_get_color(g_obj_to_color[i]))); // color
+        box_list.push_back(std::make_tuple((i + 1) * v_space + (i + 0) * box_size, // ymin
+                                           (i + 1) * v_space + (i + 1) * box_size, // ymax
+                                           (+1) * h_space + (+0) * box_size,       // xmin
+                                           (+1) * h_space + (+1) * box_size,       // xmax
+                                           tools_get_color(g_obj_to_color[i])));   // color
 
     if (validation)
-        // add false positve meteor
+        // add false positive meteor
         box_list.push_back(std::make_tuple((N_OBJECTS + 2) * v_space + (N_OBJECTS + 1) * box_size, // ymin
                                            (N_OBJECTS + 2) * v_space + (N_OBJECTS + 2) * box_size, // ymax
                                            (+1) * h_space + (+0) * box_size,                       // xmin
@@ -228,6 +228,81 @@ void tools_draw_text(rgb8_t** img, const int img_width, const int img_height, co
             img[i][j].b = cv_img.at<cv::Vec3b>(i, j)[0];
         }
     }
+}
+
+void _tools_draw_ROI_ids(cv::Mat& cv_img, const uint32_t* ROI_id, const uint32_t* ROI_xmax, const uint32_t* ROI_ymin,
+                         const uint32_t* ROI_ymax, const size_t n_ROI) {
+    //                       x    y  list of ids
+    std::vector<std::tuple<int, int, std::vector<int>>> list_of_ids_grouped_by_pos;
+    for (int i = 0; i < n_ROI; i++) {
+        int x = ROI_xmax[i] + 3;
+        int y = ROI_ymin[i] + (ROI_ymax[i] - ROI_ymin[i]) / 2;
+
+        bool found = false;
+        for (auto& l : list_of_ids_grouped_by_pos) {
+            if (std::get<0>(l) == x && std::get<1>(l) == y) {
+                std::get<2>(l).push_back(ROI_id[i]);
+                found = true;
+            }
+        }
+
+        if (!found) {
+            std::vector<int> v;
+            v.push_back(ROI_id[i]);
+            list_of_ids_grouped_by_pos.push_back(std::make_tuple(x, y, v));
+        }
+    }
+
+    for (auto id : list_of_ids_grouped_by_pos) {
+        std::string txt = std::to_string(std::get<2>(id)[std::get<2>(id).size() - 1]);
+        for (int s = std::get<2>(id).size() - 2; s >= 0; s--)
+            txt += "," + std::to_string(std::get<2>(id)[s]);
+
+        const int x = std::get<0>(id);
+        const int y = std::get<1>(id);
+
+        // writing 'txt' over the image
+        cv::Point org(x, y);
+        cv::putText(cv_img, txt.c_str(), org, cv::FONT_HERSHEY_DUPLEX, 0.7, cv::Scalar(255, 255, 255), 1,
+                    cv::LINE_AA);
+    }
+}
+
+void _tools_draw_text_bw(uint8_t** img, const int img_width, const int img_height, const uint32_t* ROI_id,
+                         const uint32_t* ROI_xmax, const uint32_t* ROI_ymin, const uint32_t* ROI_ymax,
+                         const size_t n_ROI) {
+    // create a blank image of size
+    // (img_width x img_height) with white background
+    // (B, G, R) : (255, 255, 255)
+    cv::Mat cv_img(img_height, img_width, CV_8UC3, cv::Scalar(255, 255, 255));
+
+    // check if the image is created successfully
+    if (!cv_img.data) {
+        std::cerr << "(EE) Could not open or find the image" << std::endl;
+        std::exit(-1);
+    }
+
+    // convert: 'img' into 'cv::Mat'
+    for (int i = 0; i < img_height; i++)
+        for (int j = 0; j < img_width; j++) {
+            cv_img.at<cv::Vec3b>(i, j)[2] = img[i][j];
+            cv_img.at<cv::Vec3b>(i, j)[1] = img[i][j];
+            cv_img.at<cv::Vec3b>(i, j)[0] = img[i][j];
+        }
+
+    _tools_draw_ROI_ids(cv_img, ROI_id, ROI_xmax, ROI_ymin, ROI_ymax, n_ROI);
+
+    // convert back: 'cv::Mat' into 'img'
+    for (int i = 0; i < img_height; i++) {
+        for (int j = 0; j < img_width; j++) {
+            img[i][j] = cv_img.at<cv::Vec3b>(i, j)[0];
+        }
+    }
+}
+
+void tools_draw_text_bw(uint8_t** img, const int img_width, const int img_height, const ROI_t* ROI_array) {
+    _tools_draw_text_bw(img, img_width, img_height, ROI_array->id, ROI_array->xmax, ROI_array->ymin, ROI_array->ymax,
+                        ROI_array->_size);
 }
 #endif
 
