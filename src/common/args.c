@@ -81,7 +81,7 @@ float args_find_float(int argc, char** argv, const char* arg, float def) {
     return def;
 }
 
-int args_find_float_min_max(int argc, char** argv, const char* arg, float def, float min, float max) {
+float args_find_float_min_max(int argc, char** argv, const char* arg, float def, float min, float max) {
     float arg_val = args_find_float(argc, argv, arg, def);
     if (arg_val < min || arg_val > max) {
         fprintf(stderr, "(EE) '%s' CLI argument does not match the constraint: "
@@ -91,7 +91,7 @@ int args_find_float_min_max(int argc, char** argv, const char* arg, float def, f
     return arg_val;
 }
 
-int args_find_float_min(int argc, char** argv, const char* arg, float def, float min) {
+float args_find_float_min(int argc, char** argv, const char* arg, float def, float min) {
     float arg_val = args_find_float(argc, argv, arg, def);
     if (arg_val < min) {
         fprintf(stderr, "(EE) '%s' CLI argument does not match the constraint: "
@@ -101,7 +101,7 @@ int args_find_float_min(int argc, char** argv, const char* arg, float def, float
     return arg_val;
 }
 
-int args_find_float_max(int argc, char** argv, const char* arg, float def, float max) {
+float args_find_float_max(int argc, char** argv, const char* arg, float def, float max) {
     float arg_val = args_find_float(argc, argv, arg, def);
     if (arg_val > max) {
         fprintf(stderr, "(EE) '%s' CLI argument does not match the constraint: "
