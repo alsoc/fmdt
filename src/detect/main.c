@@ -35,6 +35,7 @@ int main(int argc, char** argv) {
     int def_p_surface_max = 1000;
     int def_p_k = 3;
     int def_p_max_dist = 10;
+    float def_p_min_ratio_s = 0.125f;
     int def_p_r_extrapol = 10;
     int def_p_extrapol_order = 3;
     float def_p_angle_max = 20;
@@ -95,6 +96,9 @@ int main(int argc, char** argv) {
                 "  --max-dist          Maximum number of pixels between two images (in k-NN)                  [%d]\n",
                 def_p_max_dist);
         fprintf(stderr,
+                "  --min-ratio-s       Minimum surface ratio to match two CCs in k-NN                         [%f]\n",
+                def_p_min_ratio_s);
+        fprintf(stderr,
                 "  --r-extrapol        Search radius for the next CC in case of extrapolation                 [%d]\n",
                 def_p_r_extrapol);
         fprintf(stderr,
@@ -146,6 +150,7 @@ int main(int argc, char** argv) {
     const int p_surface_max = args_find_int_min(argc, argv, "--surface-max", def_p_surface_max, 0);
     const int p_k = args_find_int_min(argc, argv, "-k", def_p_k, 0);
     const int p_max_dist = args_find_int_min(argc, argv, "--max-dist", def_p_max_dist, 0);
+    const float p_min_ratio_s = args_find_float_min_max(argc, argv, "--min-ratio-s", def_p_min_ratio_s, 0.f, 1.f);
     const int p_r_extrapol = args_find_int_min(argc, argv, "--r-extrapol", def_p_r_extrapol, 0);
     const int p_extrapol_order = args_find_int_min_max(argc, argv, "--extrapol-order", def_p_extrapol_order, 0, 255);
     const float p_angle_max = args_find_float_min_max(argc, argv, "--angle-max", def_p_angle_max, 0.f, 360.f);
@@ -189,6 +194,7 @@ int main(int argc, char** argv) {
     printf("#  * surface-max    = %d\n", p_surface_max);
     printf("#  * k              = %d\n", p_k);
     printf("#  * max-dist       = %d\n", p_max_dist);
+    printf("#  * min-ratio-s    = %1.3f\n", p_min_ratio_s);
     printf("#  * r-extrapol     = %d\n", p_r_extrapol);
     printf("#  * extrapol-order = %d\n", p_extrapol_order);
     printf("#  * angle-max      = %f\n", p_angle_max);
@@ -311,7 +317,7 @@ int main(int argc, char** argv) {
         features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L2, ROI_array1);
 
         // step 4: k-NN matching
-        KNN_match(knn_data, ROI_array0, ROI_array1, p_k, p_max_dist * p_max_dist);
+        KNN_match(knn_data, ROI_array0, ROI_array1, p_k, p_max_dist, p_min_ratio_s);
 
         // step 5: motion estimation
         motion_t motion_est1, motion_est2;
@@ -320,7 +326,7 @@ int main(int argc, char** argv) {
         // step 6: tracking
         tracking_perform(tracking_data, (const ROI_t*)ROI_array1, &BB_array, cur_fra, &motion_est2,
                          p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
-                         p_fra_meteor_max, p_out_mag != NULL, p_extrapol_order);
+                         p_fra_meteor_max, p_out_mag != NULL, p_extrapol_order, p_min_ratio_s);
 
         // save frames (CCs)
         if (p_out_frames) {

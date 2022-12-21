@@ -62,7 +62,7 @@ void compute_distance(float** distances, const ROI_t* ROI_array0, const ROI_t* R
 
 void _KNN_match1(const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, const float* ROI1_x,
                  const float* ROI1_y, const size_t n_ROI1, uint32_t** data_nearest, float** distances,
-                 uint32_t* data_conflicts, const int k, const uint32_t max_dist_square) {
+                 uint32_t* data_conflicts, const int k, const uint32_t max_dist) {
 #ifdef ENABLE_DEBUG
     // vecteur de conflits pour debug
     zero_ui32vector(data_conflicts, 0, n_ROI1);
@@ -71,6 +71,8 @@ void _KNN_match1(const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, 
 
     // calculs de toutes les distances euclidiennes au carré entre nc0 et nc1
     _compute_distance(ROI0_x, ROI0_y, n_ROI0, ROI1_x, ROI1_y, n_ROI1, distances);
+
+    float max_dist_square = (float)max_dist * (float)max_dist;
 
     // les k plus proches voisins dans l'ordre croissant
     for (int rank = 1; rank <= k; rank++) {
@@ -102,9 +104,13 @@ void _KNN_match1(const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, 
     }
 }
 
+float _compute_ratio_S(const uint32_t S0, const uint32_t S1) {
+    return S0 < S1 ? (float)S0 / (float)S1 : (float)S1 / (float)S0;
+}
+
 void _KNN_match2(const uint32_t** data_nearest, const float** distances, const uint32_t* ROI0_id,
-                 uint32_t* ROI0_next_id, const size_t n_ROI0, const uint32_t* ROI1_id, uint32_t* ROI1_prev_id,
-                 const size_t n_ROI1) {
+                 const uint32_t* ROI0_S, uint32_t* ROI0_next_id, const size_t n_ROI0, const uint32_t* ROI1_id,
+                 const uint32_t* ROI1_S, uint32_t* ROI1_prev_id, const size_t n_ROI1, const float min_ratio_S) {
     uint32_t rank = 1;
     for (size_t i = 0; i < n_ROI0; i++) {
     change:
@@ -116,15 +122,22 @@ void _KNN_match2(const uint32_t** data_nearest, const float** distances, const u
                     float dist_ij = distances[i][j];
                     // test s'il existe une autre CC de ROI0 de mm rang et plus proche
                     for (size_t l = i + 1; l < n_ROI0; l++) {
-                        if (data_nearest[l][j] == rank && distances[l][j] < dist_ij) {
+                        if (data_nearest[l][j] == rank && distances[l][j] < dist_ij &&
+                            _compute_ratio_S(ROI0_S[l], ROI1_S[j]) >= min_ratio_S) {
                             rank++;
                             goto change;
                         }
                     }
-                    // association
-                    ROI0_next_id[i] = ROI1_id[j];
-                    ROI1_prev_id[j] = ROI0_id[i];
-                    break;
+
+                    if (_compute_ratio_S(ROI0_S[i], ROI1_S[j]) >= min_ratio_S) {
+                        // association
+                        ROI0_next_id[i] = ROI1_id[j];
+                        ROI1_prev_id[j] = ROI0_id[i];
+                        break;
+                    } else {
+                        rank++;
+                        goto change;
+                    }
                 }
             }
         }
@@ -133,22 +146,25 @@ void _KNN_match2(const uint32_t** data_nearest, const float** distances, const u
 }
 
 void _KNN_match(uint32_t** data_nearest, float** data_distances, uint32_t* data_conflicts, const uint32_t* ROI0_id,
-                const float* ROI0_x, const float* ROI0_y, uint32_t* ROI0_next_id, const size_t n_ROI0,
-                const uint32_t* ROI1_id, const float* ROI1_x, const float* ROI1_y, uint32_t* ROI1_prev_id, const
-                size_t n_ROI1, const int k, const uint32_t max_dist_square) {
+                const uint32_t* ROI0_S, const float* ROI0_x, const float* ROI0_y, uint32_t* ROI0_next_id,
+                const size_t n_ROI0, const uint32_t* ROI1_id, const uint32_t* ROI1_S, const float* ROI1_x,
+                const float* ROI1_y, uint32_t* ROI1_prev_id, const size_t n_ROI1, const int k,
+                const uint32_t max_dist, const float min_ratio_S) {
     memset(ROI0_next_id, 0, n_ROI0 * sizeof(int32_t));
     memset(ROI1_prev_id, 0, n_ROI1 * sizeof(int32_t));
+    assert(min_ratio_S >= 0.f && min_ratio_S <= 1.f);
 
     _KNN_match1(ROI0_x, ROI0_y, n_ROI0, ROI1_x, ROI1_y, n_ROI1, data_nearest, data_distances, data_conflicts, k,
-                max_dist_square);
-    _KNN_match2((const uint32_t**)data_nearest, (const float**)data_distances, ROI0_id, ROI0_next_id, n_ROI0, ROI1_id,
-                ROI1_prev_id, n_ROI1);
+                max_dist);
+    _KNN_match2((const uint32_t**)data_nearest, (const float**)data_distances, ROI0_id, ROI0_S, ROI0_next_id, n_ROI0,
+                ROI1_id, ROI1_S, ROI1_prev_id, n_ROI1, min_ratio_S);
 }
 
-void KNN_match(KNN_data_t* data, ROI_t* ROI_array0, ROI_t* ROI_array1, const int k, const uint32_t max_dist_square) {
-    _KNN_match(data->nearest, data->distances, data->conflicts, ROI_array0->id, ROI_array0->x, ROI_array0->y,
-               ROI_array0->next_id, ROI_array0->_size, ROI_array1->id, ROI_array1->x, ROI_array1->y,
-               ROI_array1->prev_id, ROI_array1->_size, k, max_dist_square);
+void KNN_match(KNN_data_t* data, ROI_t* ROI_array0, ROI_t* ROI_array1, const int k, const uint32_t max_dist,
+               const float min_ratio_S) {
+    _KNN_match(data->nearest, data->distances, data->conflicts, ROI_array0->id, ROI_array0->S, ROI_array0->x,
+               ROI_array0->y, ROI_array0->next_id, ROI_array0->_size, ROI_array1->id, ROI_array1->S, ROI_array1->x,
+               ROI_array1->y, ROI_array1->prev_id, ROI_array1->_size, k, max_dist, min_ratio_S);
 }
 
 void _KNN_conflicts_write(FILE* f, const uint32_t* KNN_data_conflicts, const float** KNN_data_distances,

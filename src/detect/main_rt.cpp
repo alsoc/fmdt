@@ -42,6 +42,7 @@ int main(int argc, char** argv) {
     int def_p_surface_max = 1000;
     int def_p_k = 3;
     int def_p_max_dist = 10;
+    float def_p_min_ratio_s = 0.125f;
     int def_p_r_extrapol = 10;
     int def_p_extrapol_order = 3;
     float def_p_angle_max = 20;
@@ -106,6 +107,9 @@ int main(int argc, char** argv) {
                 "  --max-dist          Maximum number of pixels between two images (in k-NN)                  [%d]\n",
                 def_p_max_dist);
         fprintf(stderr,
+                "  --min-ratio-s       Minimum surface ratio to match two CCs in k-NN                         [%f]\n",
+                def_p_min_ratio_s);
+        fprintf(stderr,
                 "  --r-extrapol        Search radius for the next CC in case of extrapolation                 [%d]\n",
                 def_p_r_extrapol);
         fprintf(stderr,
@@ -159,6 +163,7 @@ int main(int argc, char** argv) {
     const int p_surface_max = args_find_int_min(argc, argv, "--surface-max", def_p_surface_max, 0);
     const int p_k = args_find_int_min(argc, argv, "-k", def_p_k, 0);
     const int p_max_dist = args_find_int_min(argc, argv, "--max-dist", def_p_max_dist, 0);
+    const float p_min_ratio_s = args_find_float_min_max(argc, argv, "--min-ratio-s", def_p_min_ratio_s, 0.f, 1.f);
     const int p_r_extrapol = args_find_int_min(argc, argv, "--r-extrapol", def_p_r_extrapol, 0);
     const int p_extrapol_order = args_find_int_min_max(argc, argv, "--extrapol-order", def_p_extrapol_order, 0, 255);
     const float p_angle_max = args_find_float_min_max(argc, argv, "--angle-max", def_p_angle_max, 0.f, 360.f);
@@ -205,6 +210,7 @@ int main(int argc, char** argv) {
     printf("#  * surface-max    = %d\n", p_surface_max);
     printf("#  * k              = %d\n", p_k);
     printf("#  * max-dist       = %d\n", p_max_dist);
+    printf("#  * min-ratio-s    = %1.3f\n", p_min_ratio_s);
     printf("#  * r-extrapol     = %d\n", p_r_extrapol);
     printf("#  * extrapol-order = %d\n", p_extrapol_order);
     printf("#  * angle-max      = %f\n", p_angle_max);
@@ -301,11 +307,11 @@ int main(int argc, char** argv) {
     merger.set_custom_name("Merger");
     Features_magnitude magnitude(i0, i1, j0, j1, b, MAX_ROI_SIZE);
     magnitude.set_custom_name("Magnitude");
-    KNN_matcher matcher(i0, i1, j0, j1, p_k, p_max_dist, MAX_ROI_SIZE);
+    KNN_matcher matcher(i0, i1, j0, j1, p_k, p_max_dist, p_min_ratio_s, MAX_ROI_SIZE);
     Features_motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
-                      p_fra_meteor_max, p_out_bb, p_out_mag, p_extrapol_order, MAX_ROI_SIZE);
+                      p_fra_meteor_max, p_out_bb, p_out_mag, p_extrapol_order, p_min_ratio_s, MAX_ROI_SIZE);
     aff3ct::module::Delayer<uint32_t> delayer_ROI_id(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_ROI_xmin(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_ROI_xmax(MAX_ROI_SIZE, 0);
@@ -463,10 +469,12 @@ int main(int argc, char** argv) {
 
     // step 4: k-NN matching
     matcher[knn::sck::match::in_ROI0_id] = delayer_ROI_id[aff3ct::module::dly::sck::produce::out];
+    matcher[knn::sck::match::in_ROI0_S] = delayer_ROI_S[aff3ct::module::dly::sck::produce::out];
     matcher[knn::sck::match::in_ROI0_x] = delayer_ROI_x[aff3ct::module::dly::sck::produce::out];
     matcher[knn::sck::match::in_ROI0_y] = delayer_ROI_y[aff3ct::module::dly::sck::produce::out];
     matcher[knn::sck::match::in_n_ROI0] = delayer_n_ROI[aff3ct::module::dly::sck::produce::out];
     matcher[knn::sck::match::in_ROI1_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
+    matcher[knn::sck::match::in_ROI1_S] = merger[ftr_mrg::sck::merge::out_ROI_S];
     matcher[knn::sck::match::in_ROI1_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
     matcher[knn::sck::match::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
     matcher[knn::sck::match::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
@@ -486,6 +494,7 @@ int main(int argc, char** argv) {
     tracking[trk::sck::perform::in_ROI_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
     tracking[trk::sck::perform::in_ROI_ymin] = merger[ftr_mrg::sck::merge::out_ROI_ymin];
     tracking[trk::sck::perform::in_ROI_ymax] = merger[ftr_mrg::sck::merge::out_ROI_ymax];
+    tracking[trk::sck::perform::in_ROI_S] = merger[ftr_mrg::sck::merge::out_ROI_S];
     tracking[trk::sck::perform::in_ROI_x] = merger[ftr_mrg::sck::merge::out_ROI_x];
     tracking[trk::sck::perform::in_ROI_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
     tracking[trk::sck::perform::in_ROI_error] = motion[ftr_mtn::sck::compute::out_ROI1_error];
