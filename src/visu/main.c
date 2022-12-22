@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
     const char* p_img_ext = args_find_char(argc, argv, "--img-ext", def_p_img_ext);
 #else
     const int p_show_id = 0;
-    const char[] p_img_ext = "pgm";
+    const char p_img_ext[] = "pgm";
 #endif
     const int p_only_meteor = args_find(argc, argv, "--only-meteor");
     const int p_ffmpeg_threads = args_find_int_min(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads, 0);

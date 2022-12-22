@@ -193,7 +193,7 @@ int main(int argc, char** argv) {
     const char* p_img_ext = args_find_char(argc, argv, "--img-ext", def_p_img_ext);
 #else
     const int p_show_id = 0;
-    const char[] p_img_ext = "pgm";
+    const char p_img_ext[] = "pgm";
 #endif
 
     // heading display

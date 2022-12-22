@@ -240,8 +240,7 @@ void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_H
 
 void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
                               const int i1, const int j0, const int j1, ROI_t* ROI_array, const uint32_t S_min,
-                              const uint32_t S_max)
-{
+                              const uint32_t S_max) {
     _features_merge_CCL_HI_v2(in_labels, img_HI, out_labels, i0,i1, j0, j1, ROI_array->id, ROI_array->xmin,
                               ROI_array->xmax, ROI_array->ymin, ROI_array->ymax, ROI_array->S, ROI_array->_size, S_min,
                               S_max);
