@@ -254,7 +254,7 @@ void _tools_draw_ROI_ids(cv::Mat& cv_img, const uint32_t* ROI_id, const uint32_t
                          const uint32_t* ROI_ymax, const size_t n_ROI) {
     //                       x    y  list of ids
     std::vector<std::tuple<int, int, std::vector<int>>> list_of_ids_grouped_by_pos;
-    for (int i = 0; i < n_ROI; i++) {
+    for (size_t i = 0; i < n_ROI; i++) {
         int x = ROI_xmax[i] + 3;
         int y = ROI_ymin[i] + (ROI_ymax[i] - ROI_ymin[i]) / 2;
 
@@ -827,13 +827,13 @@ void _tools_grayscale_image_writer_write(img_data_t* img_data, const char* filen
 }
 
 void tools_grayscale_image_writer_write1(img_data_t* img_data, const size_t frame) {
-    char filename[1024];
+    char filename[2048];
     snprintf(filename, sizeof(filename), "%s/%05d.%s", img_data->path, (int)frame, img_data->ext);
     _tools_grayscale_image_writer_write(img_data, filename);
 }
 
 void tools_grayscale_image_writer_write2(img_data_t* img_data, const char* filename) {
-    char filename_with_ext[1024];
+    char filename_with_ext[2048];
     snprintf(filename_with_ext, sizeof(filename_with_ext), "%s.%s", filename, img_data->ext);
     _tools_grayscale_image_writer_write(img_data, filename_with_ext);
 }
@@ -938,13 +938,13 @@ void _tools_color_image_writer_write(img_data_t* img_data, const char* filepath)
 }
 
 void tools_color_image_writer_write1(img_data_t* img_data, const size_t frame) {
-    char filename[1024];
+    char filename[2048];
     snprintf(filename, sizeof(filename), "%s/%05d.%s", img_data->path, (int)frame, img_data->ext);
     _tools_color_image_writer_write(img_data, filename);
 }
 
 void tools_color_image_writer_write2(img_data_t* img_data, const char* filename) {
-    char filename_with_ext[1024];
+    char filename_with_ext[2048];
     snprintf(filename_with_ext, sizeof(filename_with_ext), "%s.%s", filename, img_data->ext);
     _tools_color_image_writer_write(img_data, filename_with_ext);
 }
