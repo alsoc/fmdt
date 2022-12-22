@@ -144,10 +144,13 @@ void features_init_ROI(ROI_t* stats, int n) {
 void _features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1, uint32_t* ROI_id,
                        uint32_t* ROI_xmin, uint32_t* ROI_xmax, uint32_t* ROI_ymin, uint32_t* ROI_ymax, uint32_t* ROI_S,
                        uint32_t* ROI_Sx, uint32_t* ROI_Sy, float* ROI_x, float* ROI_y, const size_t n_ROI) {
-    memset(ROI_xmin, j1, n_ROI * sizeof(uint32_t));
-    memset(ROI_xmax, j0, n_ROI * sizeof(uint32_t));
-    memset(ROI_ymin, i1, n_ROI * sizeof(uint32_t));
-    memset(ROI_ymax, i0, n_ROI * sizeof(uint32_t));
+    for (size_t i = 0; i < n_ROI; i++) {
+        ROI_xmin[i] = j1;
+        ROI_xmax[i] = j0;
+        ROI_ymin[i] = i1;
+        ROI_ymax[i] = i0;
+    }
+
     memset(ROI_S, 0, n_ROI * sizeof(uint32_t));
     memset(ROI_Sx, 0, n_ROI * sizeof(uint32_t));
     memset(ROI_Sy, 0, n_ROI * sizeof(uint32_t));

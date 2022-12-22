@@ -779,8 +779,8 @@ img_data_t* tools_grayscale_image_writer_alloc2(const size_t img_width, const si
 }
 
 void _tools_grayscale_image_writer_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* ROI_id,
-                                                  const uint32_t* ROI_xmax, const uint32_t* ROI_ymin,
-                                                  const uint32_t* ROI_ymax, const size_t n_ROI) {
+                                               const uint32_t* ROI_xmax, const uint32_t* ROI_ymin,
+                                               const uint32_t* ROI_ymax, const size_t n_ROI) {
 #ifdef OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     // convert labels to black & white image: white if there is a CC, black otherwise
