@@ -784,16 +784,16 @@ void _tools_grayscale_image_writer_draw_labels(img_data_t* img_data, const uint3
 #ifdef OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     // convert labels to black & white image: white if there is a CC, black otherwise
-    for (int i = 0; i < pixels->rows; i++)
-        for (int j = 0; j < pixels->cols; j++)
+    for (size_t i = 0; i < (size_t)pixels->rows; i++)
+        for (size_t j = 0; j < (size_t)pixels->cols; j++)
             pixels->at<uint8_t>(i, j) = (labels[i][j] == 0) ? 0 : 255;
     if (img_data->show_id)
         _tools_draw_ROI_ids(*pixels, ROI_id, ROI_xmax, ROI_ymin, ROI_ymax, n_ROI);
 #else
     uint8_t** pixels = (uint8_t**)img_data->pixels;
     // convert labels to black & white image: white if there is a CC, black otherwise
-    for (int i = 0; i <= img_data->height; i++)
-        for (int j = 0; j <= img_data->width; j++)
+    for (size_t i = 0; i < img_data->height; i++)
+        for (size_t j = 0; j < img_data->width; j++)
             pixels[i][j] = (labels[i][j] == 0) ? 0 : 255;
 #endif
 }
@@ -890,8 +890,8 @@ void tools_color_image_writer_draw_BB(img_data_t* img_data, const uint8_t** img,
     rgb8_t* raw_data = NULL;
 #ifdef OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
-    for (int i = 0; i < pixels->rows; i++) {
-        for (int j = 0; j < pixels->cols; j++) {
+    for (size_t i = 0; i < (size_t)pixels->rows; i++) {
+        for (size_t j = 0; j < (size_t)pixels->cols; j++) {
             pixels->at<cv::Vec3b>(i, j)[2] = img[i][j];
             pixels->at<cv::Vec3b>(i, j)[1] = img[i][j];
             pixels->at<cv::Vec3b>(i, j)[0] = img[i][j];
@@ -900,8 +900,8 @@ void tools_color_image_writer_draw_BB(img_data_t* img_data, const uint8_t** img,
     raw_data = (rgb8_t*)pixels->data;
 #else
     rgb8_t** pixels = (rgb8_t**)img_data->pixels;
-    for (int i = 0; i < img_data->height; i++) {
-        for (int j = 0; j < img_data->width; j++) {
+    for (size_t i = 0; i < img_data->height; i++) {
+        for (size_t j = 0; j < img_data->width; j++) {
             pixels[i][j].r = img[i][j];
             pixels[i][j].g = img[i][j];
             pixels[i][j].b = img[i][j];

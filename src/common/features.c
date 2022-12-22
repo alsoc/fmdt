@@ -162,13 +162,13 @@ void _features_extract(const uint32_t** img, const int i0, const int i1, const i
                 ROI_id[r] = e;
                 ROI_Sx[r] += j;
                 ROI_Sy[r] += i;
-                if (j < ROI_xmin[r])
+                if (j < (int)ROI_xmin[r])
                     ROI_xmin[r] = j;
-                if (j > ROI_xmax[r])
+                if (j > (int)ROI_xmax[r])
                     ROI_xmax[r] = j;
-                if (i < ROI_ymin[r])
+                if (i < (int)ROI_ymin[r])
                     ROI_ymin[r] = i;
-                if (i > ROI_ymax[r])
+                if (i > (int)ROI_ymax[r])
                     ROI_ymax[r] = i;
             }
         }
@@ -209,16 +209,16 @@ void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_H
             y1 = ROI_xmax[i];
             if (S_min > ROI_S[i] || ROI_S[i] > S_max) {
                 ROI_id[i] = 0;
-                for (int k = x0; k <= x1; k++) {
-                    for (int l = y0; l <= y1; l++) {
+                for (uint32_t k = x0; k <= x1; k++) {
+                    for (uint32_t l = y0; l <= y1; l++) {
                         if (in_labels[k][l] == id)
                             out_labels[k][l] = 0;
                     }
                 }
                 continue;
             }
-            for (int k = x0; k <= x1; k++) {
-                for (int l = y0; l <= y1; l++) {
+            for (uint32_t k = x0; k <= x1; k++) {
+                for (uint32_t l = y0; l <= y1; l++) {
                     if (out_labels[k][l]) {
                         for (k = x0; k <= x1; k++) {
                             for (l = y0; l <= y1; l++) {
