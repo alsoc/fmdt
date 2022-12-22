@@ -58,6 +58,9 @@ int main(int argc, char** argv) {
     char* def_p_out_probes = NULL;
     int def_p_video_loop = 1;
     int def_p_ffmpeg_threads = 0;
+#ifdef OPENCV_LINK
+    char def_p_img_ext[] = "pgm";
+#endif
 
     // help
     if (args_find(argc, argv, "-h")) {
@@ -147,6 +150,9 @@ int main(int argc, char** argv) {
 #ifdef OPENCV_LINK
         fprintf(stderr,
                 "  --show-id           Show the ROI/CC ids on the ouptut frames                                   \n");
+        fprintf(stderr,
+                "  --img-ext           Image extension of saved frames ('jpg', 'png', 'tiff', ...)            [%s]\n",
+                def_p_img_ext);
 #endif
         fprintf(stderr,
                 "  -h                  This help                                                                  \n");
@@ -184,6 +190,10 @@ int main(int argc, char** argv) {
     const char* p_out_probes = args_find_char(argc, argv, "--out-probes", def_p_out_probes);
 #ifdef OPENCV_LINK
     const int p_show_id = args_find(argc, argv, "--show-id");
+    const char* p_img_ext = args_find_char(argc, argv, "--img-ext", def_p_img_ext);
+#else
+    const int p_show_id = 0;
+    const char[] p_img_ext = "pgm";
 #endif
 
     // heading display
@@ -225,6 +235,7 @@ int main(int argc, char** argv) {
     printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
 #ifdef OPENCV_LINK
     printf("#  * show-id        = %d\n", p_show_id);
+    printf("#  * img-ext        = %s\n", p_img_ext);
 #endif
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
@@ -264,6 +275,8 @@ int main(int argc, char** argv) {
 #ifdef OPENCV_LINK
     if (p_show_id && !p_out_frames)
         fprintf(stderr, "(WW) '--show-id' has to be combined with the '--out-frames' parameter\n");
+    if (p_img_ext && !p_out_frames)
+        fprintf(stderr, "(WW) '--img-ext' has to be combined with the '--out-frames' parameter\n");
 #endif
 
     // -------------------------------- //
@@ -339,13 +352,11 @@ int main(int argc, char** argv) {
     Logger_ROI log_ROI(p_out_stats ? p_out_stats : "", MAX_ROI_SIZE, tracking.get_data());
     Logger_KNN log_KNN(p_out_stats ? p_out_stats : "", i0, i1, j0, j1, MAX_ROI_SIZE);
     Logger_motion log_motion(p_out_stats ? p_out_stats : "");
-    Logger_track log_track(p_out_stats ? p_out_stats : "", tracking.get_data());
-#ifdef OPENCV_LINK
-    Logger_frame log_frame(p_out_frames ? p_out_frames : "", i0, i1, j0, j1, b, p_show_id, MAX_ROI_SIZE);
-#else
-    Logger_frame log_frame(p_out_frames ? p_out_frames : "", i0, i1, j0, j1, b);
-#endif
     log_motion.set_custom_name("Logger_motio");
+    Logger_track log_track(p_out_stats ? p_out_stats : "", tracking.get_data());
+    std::unique_ptr<Logger_frame> log_frame;
+    if (p_out_frames)
+        log_frame.reset(new Logger_frame(p_out_frames, p_img_ext, p_show_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
 
     // create reporters and probes for the real-time probes file
     size_t inter_frame_lvl = 1;
@@ -564,15 +575,13 @@ int main(int argc, char** argv) {
     }
 
     if (p_out_frames) {
-        log_frame[lgr_fra::sck::write::in_labels] = merger[ftr_mrg::sck::merge::out_labels];
-        log_frame[lgr_fra::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
-#ifdef OPENCV_LINK
-        log_frame[lgr_fra::sck::write::in_ROI_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
-        log_frame[lgr_fra::sck::write::in_ROI_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
-        log_frame[lgr_fra::sck::write::in_ROI_ymin] = merger[ftr_mrg::sck::merge::out_ROI_ymin];
-        log_frame[lgr_fra::sck::write::in_ROI_ymax] = merger[ftr_mrg::sck::merge::out_ROI_ymax];
-        log_frame[lgr_fra::sck::write::in_n_ROI] = merger[ftr_mrg::sck::merge::out_n_ROI];
-#endif
+        (*log_frame)[lgr_fra::sck::write::in_labels] = merger[ftr_mrg::sck::merge::out_labels];
+        (*log_frame)[lgr_fra::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
+        (*log_frame)[lgr_fra::sck::write::in_ROI_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
+        (*log_frame)[lgr_fra::sck::write::in_ROI_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
+        (*log_frame)[lgr_fra::sck::write::in_ROI_ymin] = merger[ftr_mrg::sck::merge::out_ROI_ymin];
+        (*log_frame)[lgr_fra::sck::write::in_ROI_ymax] = merger[ftr_mrg::sck::merge::out_ROI_ymax];
+        (*log_frame)[lgr_fra::sck::write::in_n_ROI] = merger[ftr_mrg::sck::merge::out_n_ROI];
     }
 
     if (p_out_probes) {
@@ -581,7 +590,7 @@ int main(int argc, char** argv) {
         (*prb_thr_lat )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
         (*prb_thr_time)[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
         if (p_out_frames)
-            (*prb_ts_s3e)[aff3ct::module::prb::tsk::probe] = log_frame[lgr_fra::sck::write::status];
+            (*prb_ts_s3e)[aff3ct::module::prb::tsk::probe] = (*log_frame)[lgr_fra::sck::write::status];
         else if (p_out_stats)
             (*prb_ts_s3e)[aff3ct::module::prb::tsk::probe] = log_track[lgr_trk::sck::write::status];
         else
@@ -713,7 +722,7 @@ int main(int argc, char** argv) {
     }
 
     if (p_out_frames) {
-        std::get<0>(sep_stages[2]).push_back(&log_frame[lgr_fra::tsk::write]);
+        std::get<0>(sep_stages[2]).push_back(&(*log_frame)[lgr_fra::tsk::write]);
     }
 
     aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence

@@ -50,6 +50,9 @@ int main(int argc, char** argv) {
     char* def_p_out_mag = NULL;
     int def_p_video_loop = 1;
     int def_p_ffmpeg_threads = 0;
+#ifdef OPENCV_LINK
+    char def_p_img_ext[] = "pgm";
+#endif
 
     // help
     if (args_find(argc, argv, "-h")) {
@@ -134,6 +137,9 @@ int main(int argc, char** argv) {
 #ifdef OPENCV_LINK
         fprintf(stderr,
                 "  --show-id           Show the ROI/CC ids on the ouptut frames                                   \n");
+        fprintf(stderr,
+                "  --img-ext           Image extension of saved frames ('jpg', 'png', 'tiff', ...)            [%s]\n",
+                def_p_img_ext);
 #endif
         fprintf(stderr,
                 "  -h                  This help                                                                  \n");
@@ -169,6 +175,10 @@ int main(int argc, char** argv) {
     const int p_video_loop = args_find_int_min(argc, argv, "--video-loop", def_p_video_loop, 1);
 #ifdef OPENCV_LINK
     const int p_show_id = args_find(argc, argv, "--show-id");
+    const char* p_img_ext = args_find_char(argc, argv, "--img-ext", def_p_img_ext);
+#else
+    const int p_show_id = 0;
+    const char[] p_img_ext = "pgm";
 #endif
 
     // heading display
@@ -208,6 +218,7 @@ int main(int argc, char** argv) {
     printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
 #ifdef OPENCV_LINK
     printf("#  * show-id        = %d\n", p_show_id);
+    printf("#  * img-ext        = %s\n", p_img_ext);
 #endif
     printf("#\n");
 
@@ -237,6 +248,8 @@ int main(int argc, char** argv) {
 #ifdef OPENCV_LINK
     if (p_show_id && !p_out_frames)
         fprintf(stderr, "(WW) '--show-id' has to be combined with the '--out-frames' parameter\n");
+    if (p_img_ext && !p_out_frames)
+        fprintf(stderr, "(WW) '--img-ext' has to be combined with the '--out-frames' parameter\n");
 #endif
 
     // -------------------------- //
@@ -272,7 +285,6 @@ int main(int argc, char** argv) {
     uint8_t **IH = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold high)
     uint32_t **L1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL)
     uint32_t **L2 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL + hysteresis)
-    uint8_t **IT = p_out_frames ? ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b) : NULL; // img tmp to write labels
 
     // --------------------------- //
     // -- MATRIX INITIALISATION -- //
@@ -290,6 +302,9 @@ int main(int argc, char** argv) {
     zero_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
+    img_data_t* img_data = NULL;
+    if (p_out_frames)
+        img_data = tools_grayscale_image_writer_alloc1(j1, i1, p_out_frames, p_img_ext, p_show_id);
 
     // ----------------//
     // -- PROCESSING --//
@@ -329,19 +344,9 @@ int main(int argc, char** argv) {
                          p_fra_meteor_max, p_out_mag != NULL, p_extrapol_order, p_min_ratio_s);
 
         // save frames (CCs)
-        if (p_out_frames) {
-            tools_create_folder(p_out_frames);
-            char filename[1024];
-            snprintf(filename, sizeof(filename), "%s/%05d.pgm", p_out_frames, cur_fra);
-            // convert labels to black & white image: white if there is a CC, black otherwise
-            for (int i = i0; i <= i1; i++)
-                for (int j = j0; j <= j1; j++)
-                    IT[i][j] = (L2[i][j] == 0) ? 0 : 255;
-#ifdef OPENCV_LINK
-            if (p_show_id)
-                tools_draw_text_bw(IT, j1, i1, (const ROI_t*)ROI_array1);
-#endif
-            SavePGM_ui8matrix((uint8**)IT, i0, i1, j0, j1, (char*)filename);
+        if (img_data) {
+            tools_grayscale_image_writer_draw_labels(img_data, (const uint32_t**)L2, (const ROI_t*)ROI_array1);
+            tools_grayscale_image_writer_write1(img_data, cur_fra);
         }
 
         // save stats
@@ -415,8 +420,6 @@ int main(int argc, char** argv) {
     free_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
-    if (IT)
-        free_ui8matrix(IT, i0 - b, i1 + b, j0 - b, j1 + b);
     features_free_ROI_array(ROI_array_tmp);
     features_free_ROI_array(ROI_array0);
     features_free_ROI_array(ROI_array1);
@@ -424,6 +427,8 @@ int main(int argc, char** argv) {
         video_free(video);
     if (images)
         images_free(images);
+    if (img_data)
+        tools_grayscale_image_writer_free(img_data);
     CCL_LSL_free_data(ccl_data);
     KNN_free_data(knn_data);
     if (BB_array) {

@@ -87,8 +87,60 @@ rgb8_t tools_get_color(enum color_e color) {
     return red;
 }
 
+void tools_plot_bounding_box(rgb8_t* img, const size_t width, int ymin, int ymax, int xmin, int xmax, int border,
+                             rgb8_t color, int is_dashed) {
+#ifdef OPENCV_LINK
+    rgb8_t color_tmp = color;
+    color.r = color_tmp.b;
+    color.b = color_tmp.r;
+#endif
+    for (int b = 0; b < border; b++) {
+        ymin++;
+        ymax--;
+        xmin++;
+        xmax--;
+
+        const int limit = 3;
+        int counter = b % limit;
+        int draw = 1;
+
+        for (int i = ymin; i <= ymax; i++) {
+            if (draw) {
+                img[i * width + xmin] = color;
+                img[i * width + xmax] = color;
+            }
+
+            if (is_dashed) {
+                counter++;
+                int draw_before = draw;
+                draw = counter == limit ? !draw : draw;
+                if (draw != draw_before)
+                    counter = 0;
+            }
+        }
+
+        counter = b % limit;
+        draw = 1;
+        for (int j = xmin; j <= xmax; j++) {
+            if (draw) {
+                img[ymin * width + j] = color;
+                img[ymax * width + j] = color;
+            }
+
+            if (is_dashed) {
+                counter++;
+                int draw_before = draw;
+                draw = counter == limit ? !draw : draw;
+                if (draw != draw_before)
+                    counter = 0;
+            }
+        }
+    }
+}
+
 #ifdef OPENCV_LINK // this is C++ code (because OpenCV API is C++ now)
-void tools_draw_legend_squares(rgb8_t** img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
+void tools_draw_legend_squares(rgb8_t* img, const size_t width, unsigned box_size, unsigned h_space, unsigned v_space,
+                               int validation) {
     //                     ymin      ymax      xmin      xmax      color
     std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned, rgb8_t>> box_list;
 
@@ -108,7 +160,7 @@ void tools_draw_legend_squares(rgb8_t** img, unsigned box_size, unsigned h_space
                                            tools_get_color(RED)));                                 // color
 
     for (auto& box : box_list)
-        tools_plot_bounding_box(img, std::get<0>(box), std::get<1>(box), std::get<2>(box), std::get<3>(box), 2,
+        tools_plot_bounding_box(img, width, std::get<0>(box), std::get<1>(box), std::get<2>(box), std::get<3>(box), 2,
                                 std::get<4>(box), /* is_dashed = */ 0);
 }
 
@@ -188,46 +240,14 @@ void tools_draw_track_id(cv::Mat& cv_img, const BB_t* BB_list, const enum color_
     }
 }
 
-void tools_draw_text(rgb8_t** img, const int img_width, const int img_height, const BB_t* BB_list,
-                     const enum color_e* BB_list_color, const int nBB, int validation, int show_id) {
+void tools_draw_text(cv::Mat* pixels, const BB_t* BB_list, const enum color_e* BB_list_color, const int nBB,
+                     int validation, int show_id) {
     unsigned box_size = 20, h_space = 10, v_space = 10;
-    tools_draw_legend_squares(img, box_size, h_space, v_space, validation);
-
-    // create a blank image of size
-    // (img_width x img_height) with white background
-    // (B, G, R) : (255, 255, 255)
-    cv::Mat cv_img(img_height, img_width, CV_8UC3, cv::Scalar(255, 255, 255));
-
-    // check if the image is created successfully
-    if (!cv_img.data) {
-        std::cerr << "(EE) Could not open or find the image" << std::endl;
-        std::exit(-1);
-    }
-
-    // convert: 'img' into 'cv::Mat'
-    for (int i = 0; i < img_height; i++)
-        for (int j = 0; j < img_width; j++) {
-            cv_img.at<cv::Vec3b>(i, j)[2] = img[i][j].r;
-            cv_img.at<cv::Vec3b>(i, j)[1] = img[i][j].g;
-            cv_img.at<cv::Vec3b>(i, j)[0] = img[i][j].b;
-        }
+    tools_draw_legend_squares((rgb8_t*)pixels->data, pixels->cols, box_size, h_space, v_space, validation);
 
     if (show_id)
-        tools_draw_track_id(cv_img, BB_list, BB_list_color, nBB);
-    tools_draw_legend_text(cv_img, box_size, h_space, v_space, validation);
-
-    // // debug: show image inside a window.
-    // cv::imshow("Output", cv_img);
-    // cv::waitKey(0);
-
-    // convert back: 'cv::Mat' into 'img'
-    for (int i = 0; i < img_height; i++) {
-        for (int j = 0; j < img_width; j++) {
-            img[i][j].r = cv_img.at<cv::Vec3b>(i, j)[2];
-            img[i][j].g = cv_img.at<cv::Vec3b>(i, j)[1];
-            img[i][j].b = cv_img.at<cv::Vec3b>(i, j)[0];
-        }
-    }
+        tools_draw_track_id(*pixels, BB_list, BB_list_color, nBB);
+    tools_draw_legend_text(*pixels, box_size, h_space, v_space, validation);
 }
 
 void _tools_draw_ROI_ids(cv::Mat& cv_img, const uint32_t* ROI_id, const uint32_t* ROI_xmax, const uint32_t* ROI_ymin,
@@ -263,60 +283,12 @@ void _tools_draw_ROI_ids(cv::Mat& cv_img, const uint32_t* ROI_id, const uint32_t
 
         // writing 'txt' over the image
         cv::Point org(x, y);
-        cv::putText(cv_img, txt.c_str(), org, cv::FONT_HERSHEY_DUPLEX, 0.7, cv::Scalar(255, 255, 255), 1,
-                    cv::LINE_AA);
+        cv::putText(cv_img, txt.c_str(), org, cv::FONT_HERSHEY_DUPLEX, 0.7, 255, 1, cv::LINE_AA);
     }
-}
-
-void _tools_draw_text_bw(uint8_t** img, const int img_width, const int img_height, const uint32_t* ROI_id,
-                         const uint32_t* ROI_xmax, const uint32_t* ROI_ymin, const uint32_t* ROI_ymax,
-                         const size_t n_ROI) {
-    // create a blank image of size
-    // (img_width x img_height) with white background
-    // (B, G, R) : (255, 255, 255)
-    cv::Mat cv_img(img_height, img_width, CV_8UC3, cv::Scalar(255, 255, 255));
-
-    // check if the image is created successfully
-    if (!cv_img.data) {
-        std::cerr << "(EE) Could not open or find the image" << std::endl;
-        std::exit(-1);
-    }
-
-    // convert: 'img' into 'cv::Mat'
-    for (int i = 0; i < img_height; i++)
-        for (int j = 0; j < img_width; j++) {
-            cv_img.at<cv::Vec3b>(i, j)[2] = img[i][j];
-            cv_img.at<cv::Vec3b>(i, j)[1] = img[i][j];
-            cv_img.at<cv::Vec3b>(i, j)[0] = img[i][j];
-        }
-
-    _tools_draw_ROI_ids(cv_img, ROI_id, ROI_xmax, ROI_ymin, ROI_ymax, n_ROI);
-
-    // convert back: 'cv::Mat' into 'img'
-    for (int i = 0; i < img_height; i++) {
-        for (int j = 0; j < img_width; j++) {
-            img[i][j] = cv_img.at<cv::Vec3b>(i, j)[0];
-        }
-    }
-}
-
-void tools_draw_text_bw(uint8_t** img, const int img_width, const int img_height, const ROI_t* ROI_array) {
-    _tools_draw_text_bw(img, img_width, img_height, ROI_array->id, ROI_array->xmax, ROI_array->ymin, ROI_array->ymax,
-                        ROI_array->_size);
 }
 #endif
 
-void tools_convert_img_grayscale_to_rgb(const uint8** I, rgb8_t** I_bb, int i0, int i1, int j0, int j1) {
-    for (int i = i0; i <= i1; i++) {
-        for (int j = j0; j <= j1; j++) {
-            I_bb[i][j].r = I[i][j];
-            I_bb[i][j].g = I[i][j];
-            I_bb[i][j].b = I[i][j];
-        }
-    }
-}
-
-void tools_draw_BB(rgb8_t** I_bb, const BB_t* BB_list, const enum color_e* BB_list_color, int n_BB, int w, int h) {
+void tools_draw_BB(rgb8_t* I_bb, const BB_t* BB_list, const enum color_e* BB_list_color, int n_BB, int w, int h) {
     int border = 2;
     for (int i = 0; i < n_BB; i++) {
         int ymin = BB_list[i].bb_y - (BB_list[i].ry + DELTA_BB);
@@ -329,7 +301,7 @@ void tools_draw_BB(rgb8_t** I_bb, const BB_t* BB_list, const enum color_e* BB_li
         int xmin_fix = CLAMP(xmin, border + 1, w - (border + 2));
         int xmax_fix = CLAMP(xmax, border + 1, w - (border + 2));
 
-        tools_plot_bounding_box(I_bb, ymin_fix, ymax_fix, xmin_fix, xmax_fix, border, tools_get_color(BB_list_color[i]),
+        tools_plot_bounding_box(I_bb, w, ymin_fix, ymax_fix, xmin_fix, xmax_fix, border, tools_get_color(BB_list_color[i]),
                                 BB_list[i].is_extrapolated);
     }
 }
@@ -362,52 +334,6 @@ void tools_save_bounding_box(const char* filename, uint16 rx, uint16 ry, uint16 
     }
     fprintf(f, "%4d \t %4d \t %4d \t %4d \t %4d \n", frame, rx, ry, bb_x, bb_y);
     fclose(f);
-}
-
-void tools_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8_t color,
-                             int is_dashed) {
-    for (int b = 0; b < border; b++) {
-        ymin++;
-        ymax--;
-        xmin++;
-        xmax--;
-
-        const int limit = 3;
-        int counter = b % limit;
-        int draw = 1;
-
-        for (int i = ymin; i <= ymax; i++) {
-            if (draw) {
-                img[i][xmin] = color;
-                img[i][xmax] = color;
-            }
-
-            if (is_dashed) {
-                counter++;
-                int draw_before = draw;
-                draw = counter == limit ? !draw : draw;
-                if (draw != draw_before)
-                    counter = 0;
-            }
-        }
-
-        counter = b % limit;
-        draw = 1;
-        for (int j = xmin; j <= xmax; j++) {
-            if (draw) {
-                img[ymin][j] = color;
-                img[ymax][j] = color;
-            }
-
-            if (is_dashed) {
-                counter++;
-                int draw_before = draw;
-                draw = counter == limit ? !draw : draw;
-                if (draw != draw_before)
-                    counter = 0;
-            }
-        }
-    }
 }
 
 void tools_filter_speed_binarize(uint32** in, int i0, int i1, int j0, int j1, uint8** out, ROI_t* stats) {
@@ -809,9 +735,227 @@ void tools_linear_2d_nrc_f32matrix(const float* X, const int i0, const int i1, c
     for (int i = i0 + 1; i <= i1 ; i++)
         Y[i] = Y[i - 1] + ((j1 - j0) + 1);
 }
+
 int tools_is_dir(const char *path)
 {
     struct stat path_stat;
     stat(path, &path_stat);
     return S_ISDIR(path_stat.st_mode);
+}
+
+img_data_t* tools_grayscale_image_writer_alloc1(const size_t img_width, const size_t img_height, const char* path,
+                                                const char* ext, const uint8_t show_id) {
+    img_data_t* img_data = (img_data_t*)malloc(sizeof(img_data_t));
+    snprintf(img_data->ext, sizeof(img_data->ext), "%s", ext);
+    snprintf(img_data->path, sizeof(img_data->path), "%s", path);
+    if (strlen(path))
+        tools_create_folder(img_data->path);
+    img_data->show_id = show_id;
+#ifndef OPENCV_LINK
+    if (strcmp(img_data->ext, "pgm") != 0) {
+        fprintf(stderr, "(EE) 'grayscale_image_writer' only supports 'pgm' image format, you need to link with OpenCV "
+                        "to unlock other image formats.");
+        exit(1);
+    }
+    if (show_id) {
+        fprintf(stderr, "(EE) 'grayscale_image_writer' does not support 'show_id = 1', you need to link with OpenCV "
+                        "to unlock this feature.");
+        exit(1);
+    }
+#endif
+    img_data->width = img_width;
+    img_data->height = img_height;
+#ifdef OPENCV_LINK
+    img_data->pixels = (void*) new cv::Mat(img_data->height, img_data->width, CV_8U, cv::Scalar(255));
+#else
+    img_data->pixels = (void*) ui8matrix(0, img_data->height, 0, img_data->width);
+#endif
+    return img_data;
+}
+
+img_data_t* tools_grayscale_image_writer_alloc2(const size_t img_width, const size_t img_height, const char* ext,
+                                                const uint8_t show_id) {
+    return tools_grayscale_image_writer_alloc1(img_width, img_height, "", ext, show_id);
+}
+
+void _tools_grayscale_image_writer_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* ROI_id,
+                                                  const uint32_t* ROI_xmax, const uint32_t* ROI_ymin,
+                                                  const uint32_t* ROI_ymax, const size_t n_ROI) {
+#ifdef OPENCV_LINK
+    cv::Mat* pixels = (cv::Mat*)img_data->pixels;
+    // convert labels to black & white image: white if there is a CC, black otherwise
+    for (int i = 0; i < pixels->rows; i++)
+        for (int j = 0; j < pixels->cols; j++)
+            pixels->at<uint8_t>(i, j) = (labels[i][j] == 0) ? 0 : 255;
+    if (img_data->show_id)
+        _tools_draw_ROI_ids(*pixels, ROI_id, ROI_xmax, ROI_ymin, ROI_ymax, n_ROI);
+#else
+    uint8_t** pixels = (uint8_t**)img_data->pixels;
+    // convert labels to black & white image: white if there is a CC, black otherwise
+    for (int i = 0; i <= img_data->height; i++)
+        for (int j = 0; j <= img_data->width; j++)
+            pixels[i][j] = (labels[i][j] == 0) ? 0 : 255;
+#endif
+}
+
+void tools_grayscale_image_writer_draw_labels(img_data_t* img_data, const uint32_t** labels, const ROI_t* ROI_array)
+{
+    _tools_grayscale_image_writer_draw_labels(img_data, labels, ROI_array->id, ROI_array->xmax, ROI_array->ymin,
+                                              ROI_array->ymax, ROI_array->_size);
+}
+
+uint8_t* tools_grayscale_image_get_pixels(img_data_t* img_data) {
+    uint8_t* raw_data = NULL;
+#ifdef OPENCV_LINK
+    cv::Mat* pixels = (cv::Mat*)img_data->pixels;
+    raw_data = (uint8_t*)pixels->data;
+#else
+    uint8_t** pixels = (uint8_t**)img_data->pixels;
+    raw_data = pixels[0];
+#endif
+    return raw_data;
+}
+
+void _tools_grayscale_image_writer_write(img_data_t* img_data, const char* filename) {
+#ifdef OPENCV_LINK
+    cv::Mat* pixels = (cv::Mat*)img_data->pixels;
+    cv::imwrite(filename, *pixels);
+#else
+    uint8_t** pixels = (uint8_t**)img_data->pixels;
+    SavePGM_ui8matrix((uint8**)pixels, 0, img_data->height, 0, img_data->width, (char*)filename);
+#endif
+}
+
+void tools_grayscale_image_writer_write1(img_data_t* img_data, const size_t frame) {
+    char filename[1024];
+    snprintf(filename, sizeof(filename), "%s/%05d.%s", img_data->path, (int)frame, img_data->ext);
+    _tools_grayscale_image_writer_write(img_data, filename);
+}
+
+void tools_grayscale_image_writer_write2(img_data_t* img_data, const char* filename) {
+    char filename_with_ext[1024];
+    snprintf(filename_with_ext, sizeof(filename_with_ext), "%s.%s", filename, img_data->ext);
+    _tools_grayscale_image_writer_write(img_data, filename_with_ext);
+}
+
+void tools_grayscale_image_writer_free(img_data_t* img_data) {
+#ifdef OPENCV_LINK
+    cv::Mat* pixels = (cv::Mat*)img_data->pixels;
+    delete pixels;
+#else
+    uint8_t** pixels = (uint8_t**)img_data->pixels;
+    free_ui8matrix(pixels, 0, img_data->height, 0, img_data->width);
+#endif
+    free(img_data);
+}
+
+img_data_t* tools_color_image_writer_alloc1(const size_t img_width, const size_t img_height, const char* path,
+                                           const char* ext, const uint8_t show_id) {
+    img_data_t* img_data = (img_data_t*)malloc(sizeof(img_data_t));
+    snprintf(img_data->ext, sizeof(img_data->ext), "%s", ext);
+    snprintf(img_data->path, sizeof(img_data->path), "%s", path);
+
+    if (strlen(path))
+        tools_create_folder(img_data->path);
+    img_data->show_id = show_id;
+#ifndef OPENCV_LINK
+    if (strcmp(img_data->ext, "ppm") != 0) {
+        fprintf(stderr, "(EE) 'color_image_writer' only supports 'ppm' image format, you need to link with OpenCV "
+                        "to unlock other image formats.");
+        exit(1);
+    }
+    if (show_id) {
+        fprintf(stderr, "(EE) 'color_image_writer' does not support 'show_id = 1', you need to link with OpenCV "
+                        "to unlock this feature.");
+        exit(1);
+    }
+#endif
+    img_data->width = img_width;
+    img_data->height = img_height;
+#ifdef OPENCV_LINK
+    img_data->pixels = (void*) new cv::Mat(img_data->height, img_data->width, CV_8UC3, cv::Scalar(255, 255, 255));
+#else
+    img_data->pixels = (void*) rgb8matrix(0, img_data->height, 0, img_data->width);
+#endif
+    return img_data;
+}
+
+img_data_t* tools_color_image_writer_alloc2(const size_t img_width, const size_t img_height, const char* ext,
+                                            const uint8_t show_id) {
+    return tools_color_image_writer_alloc1(img_width, img_height, "", ext, show_id);
+}
+
+void tools_color_image_writer_draw_BB(img_data_t* img_data, const uint8_t** img, const BB_t* BB_list,
+                                      const enum color_e* BB_list_color, const size_t n_BB, const uint8_t is_gt) {
+    rgb8_t* raw_data = NULL;
+#ifdef OPENCV_LINK
+    cv::Mat* pixels = (cv::Mat*)img_data->pixels;
+    for (int i = 0; i < pixels->rows; i++) {
+        for (int j = 0; j < pixels->cols; j++) {
+            pixels->at<cv::Vec3b>(i, j)[2] = img[i][j];
+            pixels->at<cv::Vec3b>(i, j)[1] = img[i][j];
+            pixels->at<cv::Vec3b>(i, j)[0] = img[i][j];
+        }
+    }
+    raw_data = (rgb8_t*)pixels->data;
+#else
+    rgb8_t** pixels = (rgb8_t**)img_data->pixels;
+    for (int i = 0; i < img_data->height; i++) {
+        for (int j = 0; j < img_data->width; j++) {
+            pixels[i][j].r = img[i][j];
+            pixels[i][j].g = img[i][j];
+            pixels[i][j].b = img[i][j];
+        }
+    }
+    raw_data = pixels[0];
+#endif
+    tools_draw_BB(raw_data, BB_list, BB_list_color, n_BB, img_data->width, img_data->height);
+#ifdef OPENCV_LINK
+    tools_draw_text(pixels, BB_list, BB_list_color, n_BB, is_gt, img_data->show_id);
+#endif
+}
+
+rgb8_t* tools_color_image_get_pixels(img_data_t* img_data) {
+    rgb8_t* raw_data = NULL;
+#ifdef OPENCV_LINK
+    cv::Mat* pixels = (cv::Mat*)img_data->pixels;
+    raw_data = (rgb8_t*)pixels->data;
+#else
+    rgb8_t** pixels = (rgb8_t**)img_data->pixels;
+    raw_data = pixels[0];
+#endif
+    return raw_data;
+}
+
+void _tools_color_image_writer_write(img_data_t* img_data, const char* filepath) {
+#ifdef OPENCV_LINK
+    cv::Mat* pixels = (cv::Mat*)img_data->pixels;
+    cv::imwrite(filepath, *pixels);
+#else
+    rgb8_t** pixels = (rgb8_t**)img_data->pixels;
+    tools_save_frame(filepath, (const rgb8_t**)pixels, img_data->height, img_data->width);
+#endif
+}
+
+void tools_color_image_writer_write1(img_data_t* img_data, const size_t frame) {
+    char filename[1024];
+    snprintf(filename, sizeof(filename), "%s/%05d.%s", img_data->path, (int)frame, img_data->ext);
+    _tools_color_image_writer_write(img_data, filename);
+}
+
+void tools_color_image_writer_write2(img_data_t* img_data, const char* filename) {
+    char filename_with_ext[1024];
+    snprintf(filename_with_ext, sizeof(filename_with_ext), "%s.%s", filename, img_data->ext);
+    _tools_color_image_writer_write(img_data, filename_with_ext);
+}
+
+void tools_color_image_writer_free(img_data_t* img_data) {
+#ifdef OPENCV_LINK
+    cv::Mat* pixels = (cv::Mat*)img_data->pixels;
+    delete pixels;
+#else
+    rgb8_t** pixels = (rgb8_t**)img_data->pixels;
+    free_rgb8matrix((rgb8**)pixels, 0, img_data->height, 0, img_data->width);
+#endif
+    free(img_data);
 }

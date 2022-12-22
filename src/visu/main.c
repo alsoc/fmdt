@@ -4,6 +4,10 @@
 #include <string.h>
 #include <nrc2.h>
 #include <ffmpeg-io/writer.h>
+#ifdef OPENCV_LINK
+#include <opencv2/core/core.hpp>
+#include <opencv2/imgproc.hpp>
+#endif
 
 #include "fmdt/macros.h"
 #include "fmdt/args.h"
@@ -57,12 +61,15 @@ int main(int argc, char** argv) {
     char* def_p_in_tracks = NULL;
     char* def_p_in_bb = NULL;
     char* def_p_in_video = NULL;
-    char def_p_out_video[256] = "./out_visu.mp4";
+    char* def_p_out_video = NULL;
     char* def_p_out_frames = NULL;
     char* def_p_in_gt = NULL;
     int def_p_ffmpeg_threads = 0;
     int def_p_fra_start = 0;
     int def_p_fra_end = 0;
+#ifdef OPENCV_LINK
+    char def_p_img_ext[] = "ppm";
+#endif
 
     // help
     if (args_find(argc, argv, "-h")) {
@@ -75,12 +82,14 @@ int main(int argc, char** argv) {
         fprintf(stderr, "  --in-gt           Path to ground truth file                            [%s]\n",
                 def_p_in_gt ? def_p_in_gt : "NULL");
         fprintf(stderr, "  --out-video       Path to the output video file (MPEG-4 format)        [%s]\n",
-                def_p_out_video);
+                def_p_out_video ? def_p_out_video : "NULL");
         fprintf(stderr, "  --out-frames      Path to the frames output folder                     [%s]\n",
                 def_p_out_frames ? def_p_out_frames : "NULL");
 #ifdef OPENCV_LINK
         fprintf(stderr, "  --show-id         Show the object ids on the output video and frames       \n");
         fprintf(stderr, "  --nat-num         Natural numbering of the object ids                      \n");
+        fprintf(stderr, "  --img-ext         Image extension of saved frames ('jpg', 'png', ...)  [%s]\n",
+                def_p_img_ext);
 #endif
         fprintf(stderr, "  --only-meteor     Show only meteors                                        \n");
         fprintf(stderr, "  --ffmpeg-threads  Select the number of threads to use to decode video  [%d]\n"
@@ -104,6 +113,10 @@ int main(int argc, char** argv) {
 #ifdef OPENCV_LINK
     const int p_show_id = args_find(argc, argv, "--show-id");
     const int p_nat_num = args_find(argc, argv, "--nat-num");
+    const char* p_img_ext = args_find_char(argc, argv, "--img-ext", def_p_img_ext);
+#else
+    const int p_show_id = 0;
+    const char[] p_img_ext = "pgm";
 #endif
     const int p_only_meteor = args_find(argc, argv, "--only-meteor");
     const int p_ffmpeg_threads = args_find_int_min(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads, 0);
@@ -128,6 +141,7 @@ int main(int argc, char** argv) {
 #ifdef OPENCV_LINK
     printf("#  * show-id        = %d\n", p_show_id);
     printf("#  * nat-num        = %d\n", p_nat_num);
+    printf("#  * img-ext        = %s\n", p_img_ext);
 #endif
     printf("#  * only-meteor    = %d\n", p_only_meteor);
     printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
@@ -148,15 +162,15 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--in-bb' is missing\n");
         exit(1);
     }
-    if (!p_out_video) {
-        fprintf(stderr, "(EE) '--out-video' is missing\n");
+    if (!p_out_video && !p_out_frames) {
+        fprintf(stderr, "(EE) No output specified, '--out-video' or '--out-frames' parameter has to be set\n");
         exit(1);
     }
-    if (!p_out_frames)
-        fprintf(stderr, "(II) '--out-frames' is missing -> no frames will be saved\n");
 #ifdef OPENCV_LINK
     if (!p_show_id && p_nat_num)
         fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set.\n");
+    if (p_img_ext && !p_out_frames)
+        fprintf(stderr, "(WW) '--img-ext' has to be combined with the '--out-frames' parameter\n");
 #endif
     if (p_ffmpeg_threads < 0) {
         fprintf(stderr, "(EE) '--ffmpeg-threads' has to be bigger or equal to 0\n");
@@ -208,6 +222,8 @@ int main(int argc, char** argv) {
         i0 = images->i0; i1 = images->i1; j0 = images->j0; j1 = images->j1;
     }
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
+    img_data_t* img_data = tools_color_image_writer_alloc1(j1, i1, p_out_frames ? p_out_frames : "", p_img_ext,
+                                                           p_show_id);
 
     // validation pour établir si une track est vrai/faux positif
     if (p_in_gt) {
@@ -226,22 +242,23 @@ int main(int argc, char** argv) {
 
     printf("# The program is running...\n");
 
-    ffmpeg_handle writer_video_out;
-    ffmpeg_init(&writer_video_out);
+    ffmpeg_handle writer_video;
+    if (p_out_video) {
+        ffmpeg_init(&writer_video);
 
-    // set the number of output threads to 4 for ffmpeg-io
-    ffmpeg_options ffmpeg_opts;
-    ffmpeg_options_init(&ffmpeg_opts);
-    ffmpeg_opts.threads_output = 4;
+        // set the number of output threads to 4 for ffmpeg-io
+        ffmpeg_options ffmpeg_opts;
+        ffmpeg_options_init(&ffmpeg_opts);
+        ffmpeg_opts.threads_output = 4;
 
-    writer_video_out.input.width = j1 - j0 + 1;
-    writer_video_out.input.height = i1 - i0 + 1;
-    writer_video_out.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
-    if (!ffmpeg_start_writer(&writer_video_out, p_out_video, &ffmpeg_opts)) {
-        fprintf(stderr, "(EE) Something went wrong when starting to write output video.");
-        exit(-1);
+        writer_video.input.width = j1 - j0 + 1;
+        writer_video.input.height = i1 - i0 + 1;
+        writer_video.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
+        if (!ffmpeg_start_writer(&writer_video, p_out_video, &ffmpeg_opts)) {
+            fprintf(stderr, "(EE) Something went wrong when starting to write output video.");
+            exit(-1);
+        }
     }
-    rgb8_t** img_bb = (rgb8_t**)rgb8matrix(0, i1, 0, j1);
 
     // parcours de la video
     enum color_e color = MISC;
@@ -303,24 +320,27 @@ int main(int argc, char** argv) {
             sscanf(lines, "%d %d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id, &is_extrapolated);
         }
 
-        tools_convert_img_grayscale_to_rgb((const uint8_t**)I0, img_bb, i0, i1, j0, j1);
-        tools_draw_BB(img_bb, BB_list, BB_list_color, cpt, j1, i1);
+        tools_color_image_writer_draw_BB(img_data, (const uint8_t**)I0, (const BB_t*)BB_list,
+                                         (const enum color_e*)BB_list_color, cpt, p_in_gt ? 1 : 0);
+        if (p_out_video) {
 #ifdef OPENCV_LINK
-        tools_draw_text(img_bb, j1, i1, BB_list, BB_list_color, cpt, p_in_gt ? 1 : 0, p_show_id);
+            cv::Mat img_rgb;
+            // convert BGR to RGB format
+            cv::cvtColor(*(cv::Mat*)img_data->pixels, img_rgb, cv::COLOR_BGR2RGB);
+            rgb8_t* pixels = (rgb8_t*)img_rgb.data;
+#else
+            rgb8_t* pixels = (rgb8_t*)img_data->pixels;
 #endif
-        if (!ffmpeg_write2d(&writer_video_out, (uint8_t**)img_bb)) {
-            fprintf(stderr, "(EE) ffmpeg_write2d: %s, frame: %d\n", ffmpeg_error2str(writer_video_out.error), frame);
-            exit(-1);
+            if (!ffmpeg_write1d(&writer_video, (uint8_t*)pixels, img_data->width * 3)) {
+                fprintf(stderr, "(EE) ffmpeg_write1d: %s, frame: %d\n", ffmpeg_error2str(writer_video.error), frame);
+                exit(-1);
+            }
         }
-        if (p_out_frames) {
-            tools_create_folder(p_out_frames);
-            char filename_cur_frame[256];
-            snprintf(filename_cur_frame, sizeof(filename_cur_frame), "%s/%05d.ppm", p_out_frames, frame);
-            tools_save_frame(filename_cur_frame, (const rgb8_t**)img_bb, j1, i1);
-        }
+        if (p_out_frames)
+            tools_color_image_writer_write1(img_data, frame);
     }
-    free_rgb8matrix((rgb8**)img_bb, 0, i1, 0, j1);
-    ffmpeg_stop_writer(&writer_video_out);
+    if (p_out_video)
+        ffmpeg_stop_writer(&writer_video);
     free_ui8matrix(I0, i0 - b, i1 + b, j0 - b, j1 + b);
     vector_free(track_array);
     free(LUT_tracks_id);
@@ -335,8 +355,8 @@ int main(int argc, char** argv) {
         images_free(images);
     if (file_bb)
         fclose(file_bb);
+    tools_color_image_writer_free(img_data);
 
-    printf("# The video has been written.\n");
     printf("# End of the program, exiting.\n");
 
     return EXIT_SUCCESS;
