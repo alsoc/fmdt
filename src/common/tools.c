@@ -674,46 +674,35 @@ void tools_write_PNM_row(const uint8* line, const int width, FILE* file) {
     fwrite(&(line[0]), sizeof(byte), 3 * sizeof(byte) * width, file);
 }
 
+#define TOOLS_LINEAR_2D_NRC(X, i0, i1, j0, j1, Y) \
+    assert(X != NULL);                            \
+    assert(Y != NULL);                            \
+    assert(i0 <= 0);                              \
+    assert(j0 <= 0);                              \
+    assert(i1 > i0 && i1 > 0);                    \
+    assert(j1 > j0 && j1 > 0);                    \
+    Y[i0] = X - j0;                               \
+    for (int i = i0 + 1; i <= i1 ; i++)           \
+        Y[i] = Y[i - 1] + ((j1 - j0) + 1);
+
 void tools_linear_2d_nrc_ui8matrix(const uint8_t* X, const int i0, const int i1, const int j0, const int j1, 
                          const uint8_t** Y) {
-    assert(X != NULL);
-    assert(Y != NULL);
-    assert(i0 <= 0);
-    assert(j0 <= 0);
-    assert(i1 > i0 && i1 > 0); // i1 > 0
-    assert(j1 > j0 && j1 > 0); // j1 > 0
-    
-    Y[i0] = X - j0;
-    for (int i = i0 + 1; i <= i1 ; i++)
-        Y[i] = Y[i - 1] + ((j1 - j0) + 1);
+    TOOLS_LINEAR_2D_NRC(X, i0, i1, j0, j1, Y)
 }
 
 void tools_linear_2d_nrc_ui32matrix(const uint32_t* X, const int i0, const int i1, const int j0, const int j1, 
                          const uint32_t** Y) {
-    assert(X != NULL);
-    assert(Y != NULL);
-    assert(i0 <= 0);
-    assert(j0 <= 0);
-    assert(i1 > i0 && i1 > 0); // i1 > 0
-    assert(j1 > j0 && j1 > 0); // j1 > 0
-    
-    Y[i0] = X - j0;
-    for (int i = i0 + 1; i <= i1 ; i++)
-        Y[i] = Y[i - 1] + ((j1 - j0) + 1);
+    TOOLS_LINEAR_2D_NRC(X, i0, i1, j0, j1, Y)
 }
 
 void tools_linear_2d_nrc_f32matrix(const float* X, const int i0, const int i1, const int j0, const int j1, 
                                    const float** Y) {
-    assert(X != NULL);
-    assert(Y != NULL);
-    assert(i0 <= 0);
-    assert(j0 <= 0);
-    assert(i1 > i0 && i1 > 0); // i1 > 0
-    assert(j1 > j0 && j1 > 0); // j1 > 0
-    
-    Y[i0] = X - j0;
-    for (int i = i0 + 1; i <= i1 ; i++)
-        Y[i] = Y[i - 1] + ((j1 - j0) + 1);
+    TOOLS_LINEAR_2D_NRC(X, i0, i1, j0, j1, Y)
+}
+
+void tools_linear_2d_nrc_rgb8matrix(const rgb8_t* X, const int i0, const int i1, const int j0, const int j1,
+                                    const rgb8_t** Y) {
+    TOOLS_LINEAR_2D_NRC(X, i0, i1, j0, j1, Y)
 }
 
 int tools_is_dir(const char *path)
@@ -747,8 +736,13 @@ img_data_t* tools_grayscale_image_writer_alloc1(const size_t img_width, const si
     img_data->height = img_height;
 #ifdef OPENCV_LINK
     img_data->pixels = (void*) new cv::Mat(img_data->height, img_data->width, CV_8U, cv::Scalar(255));
+    uint8_t** container_2d = (uint8_t**) malloc(sizeof(uint8_t*) * img_data->height);
+    tools_linear_2d_nrc_ui8matrix((const uint8_t*)tools_grayscale_image_get_pixels(img_data), 0, img_data->height - 1,
+                                  0, img_data->width - 1, (const uint8_t**)container_2d);
+    img_data->container_2d = (void*)container_2d;
 #else
     img_data->pixels = (void*) ui8matrix(0, img_data->height -1, 0, img_data->width -1);
+    img_data->container_2d = img_data->pixels;
 #endif
     return img_data;
 }
@@ -796,6 +790,10 @@ uint8_t* tools_grayscale_image_get_pixels(img_data_t* img_data) {
     return raw_data;
 }
 
+uint8_t** tools_grayscale_image_get_pixels_2d(img_data_t* img_data) {
+    return (uint8_t**)img_data->container_2d;
+}
+
 void _tools_grayscale_image_writer_write(img_data_t* img_data, const char* filename) {
 #ifdef OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
@@ -822,6 +820,7 @@ void tools_grayscale_image_writer_free(img_data_t* img_data) {
 #ifdef OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     delete pixels;
+    free((uint8_t**)img_data->container_2d);
 #else
     uint8_t** pixels = (uint8_t**)img_data->pixels;
     free_ui8matrix(pixels, 0, img_data->height -1, 0, img_data->width -1);
@@ -854,8 +853,13 @@ img_data_t* tools_color_image_writer_alloc1(const size_t img_width, const size_t
     img_data->height = img_height;
 #ifdef OPENCV_LINK
     img_data->pixels = (void*) new cv::Mat(img_data->height, img_data->width, CV_8UC3, cv::Scalar(255, 255, 255));
+    rgb8_t** container_2d = (rgb8_t**) malloc(sizeof(rgb8_t*) * img_data->height);
+    tools_linear_2d_nrc_rgb8matrix((const rgb8_t*)tools_color_image_get_pixels(img_data), 0, img_data->height - 1,
+                                   0, img_data->width - 1, (const rgb8_t**)container_2d);
+    img_data->container_2d = (void*)container_2d;
 #else
     img_data->pixels = (void*) rgb8matrix(0, img_data->height -1, 0, img_data->width -1);
+    img_data->container_2d = img_data->pixels;
 #endif
     return img_data;
 }
@@ -907,6 +911,10 @@ rgb8_t* tools_color_image_get_pixels(img_data_t* img_data) {
     return raw_data;
 }
 
+rgb8_t** tools_color_image_get_pixels_2d(img_data_t* img_data) {
+    return (rgb8_t**)img_data->container_2d;
+}
+
 void _tools_color_image_writer_write(img_data_t* img_data, const char* filepath) {
 #ifdef OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
@@ -933,6 +941,7 @@ void tools_color_image_writer_free(img_data_t* img_data) {
 #ifdef OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     delete pixels;
+    free((rgb8_t**)img_data->container_2d);
 #else
     rgb8_t** pixels = (rgb8_t**)img_data->pixels;
     free_rgb8matrix((rgb8**)pixels, 0, img_data->height -1, 0, img_data->width -1);
