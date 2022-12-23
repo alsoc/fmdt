@@ -306,26 +306,6 @@ void tools_draw_BB(rgb8_t* I_bb, const BB_t* BB_list, const enum color_e* BB_lis
     }
 }
 
-void tools_save_frame(const char* filename, const rgb8_t** I_bb, int w, int h) {
-    char buffer[80];
-
-    FILE* file;
-    file = fopen(filename, "wb");
-    if (file == NULL) {
-        fprintf(stderr, "(EE) Failed opening '%s' file\n", filename);
-        exit(-1);
-    }
-
-    /* enregistrement de l'image au format rpgm */
-    snprintf(buffer, sizeof(buffer), "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
-    fwrite(buffer, strlen(buffer), 1, file);
-    for (int i = 0; i < h; i++)
-        tools_write_PNM_row((uint8*)I_bb[i], w - 1, file);
-
-    /* fermeture du fichier */
-    fclose(file);
-}
-
 void tools_save_bounding_box(const char* filename, uint16 rx, uint16 ry, uint16 bb_x, uint16 bb_y, int frame) {
     FILE* f = fopen(filename, "a");
     if (f == NULL) {
@@ -768,7 +748,7 @@ img_data_t* tools_grayscale_image_writer_alloc1(const size_t img_width, const si
 #ifdef OPENCV_LINK
     img_data->pixels = (void*) new cv::Mat(img_data->height, img_data->width, CV_8U, cv::Scalar(255));
 #else
-    img_data->pixels = (void*) ui8matrix(0, img_data->height, 0, img_data->width);
+    img_data->pixels = (void*) ui8matrix(0, img_data->height -1, 0, img_data->width -1);
 #endif
     return img_data;
 }
@@ -822,7 +802,7 @@ void _tools_grayscale_image_writer_write(img_data_t* img_data, const char* filen
     cv::imwrite(filename, *pixels);
 #else
     uint8_t** pixels = (uint8_t**)img_data->pixels;
-    SavePGM_ui8matrix((uint8**)pixels, 0, img_data->height, 0, img_data->width, (char*)filename);
+    SavePGM_ui8matrix((uint8**)pixels, 0, img_data->height -1, 0, img_data->width -1, (char*)filename);
 #endif
 }
 
@@ -844,7 +824,7 @@ void tools_grayscale_image_writer_free(img_data_t* img_data) {
     delete pixels;
 #else
     uint8_t** pixels = (uint8_t**)img_data->pixels;
-    free_ui8matrix(pixels, 0, img_data->height, 0, img_data->width);
+    free_ui8matrix(pixels, 0, img_data->height -1, 0, img_data->width -1);
 #endif
     free(img_data);
 }
@@ -875,7 +855,7 @@ img_data_t* tools_color_image_writer_alloc1(const size_t img_width, const size_t
 #ifdef OPENCV_LINK
     img_data->pixels = (void*) new cv::Mat(img_data->height, img_data->width, CV_8UC3, cv::Scalar(255, 255, 255));
 #else
-    img_data->pixels = (void*) rgb8matrix(0, img_data->height, 0, img_data->width);
+    img_data->pixels = (void*) rgb8matrix(0, img_data->height -1, 0, img_data->width -1);
 #endif
     return img_data;
 }
@@ -933,7 +913,7 @@ void _tools_color_image_writer_write(img_data_t* img_data, const char* filepath)
     cv::imwrite(filepath, *pixels);
 #else
     rgb8_t** pixels = (rgb8_t**)img_data->pixels;
-    tools_save_frame(filepath, (const rgb8_t**)pixels, img_data->height, img_data->width);
+    SavePPM_rgb8matrix((rgb8**)pixels, 0, img_data->height -1, 0, img_data->width -1, (char*)filepath);
 #endif
 }
 
@@ -955,7 +935,7 @@ void tools_color_image_writer_free(img_data_t* img_data) {
     delete pixels;
 #else
     rgb8_t** pixels = (rgb8_t**)img_data->pixels;
-    free_rgb8matrix((rgb8**)pixels, 0, img_data->height, 0, img_data->width);
+    free_rgb8matrix((rgb8**)pixels, 0, img_data->height -1, 0, img_data->width -1);
 #endif
     free(img_data);
 }

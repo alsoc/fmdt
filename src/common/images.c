@@ -183,8 +183,8 @@ int images_get_next_frame(images_t* images, uint8_t** I) {
             images->frame_current = 0;
         }
         if (images->buffer_files) {
-            for (int l = 0; l < images->i1; l++)
-                memcpy(I[l], images->buffer_files[images->frame_current][l], images->j1);
+            for (int l = images->i0; l <= images->i1; l++)
+                memcpy(I[l], images->buffer_files[images->frame_current][l], (images->j1 - images->j0) + 1);
         }
         else
             MLoadPGM_ui8matrix(images->path_files[images->frame_current], images->i0, images->i1, images->j0,

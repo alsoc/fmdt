@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
     const char* p_img_ext = args_find_char(argc, argv, "--img-ext", def_p_img_ext);
 #else
     const int p_show_id = 0;
-    const char p_img_ext[] = "pgm";
+    const char p_img_ext[] = "ppm";
 #endif
     const int p_only_meteor = args_find(argc, argv, "--only-meteor");
     const int p_ffmpeg_threads = args_find_int_min(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads, 0);
@@ -222,8 +222,8 @@ int main(int argc, char** argv) {
         i0 = images->i0; i1 = images->i1; j0 = images->j0; j1 = images->j1;
     }
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
-    img_data_t* img_data = tools_color_image_writer_alloc1(j1, i1, p_out_frames ? p_out_frames : "", p_img_ext,
-                                                           p_show_id);
+    img_data_t* img_data = tools_color_image_writer_alloc1((j1 - j0) - 1, (i1 - i0) + 1,
+                                                           p_out_frames ? p_out_frames : "", p_img_ext, p_show_id);
 
     // validation pour établir si une track est vrai/faux positif
     if (p_in_gt) {
@@ -329,7 +329,7 @@ int main(int argc, char** argv) {
             cv::cvtColor(*(cv::Mat*)img_data->pixels, img_rgb, cv::COLOR_BGR2RGB);
             rgb8_t* pixels = (rgb8_t*)img_rgb.data;
 #else
-            rgb8_t* pixels = (rgb8_t*)img_data->pixels;
+            rgb8_t* pixels = tools_color_image_get_pixels(img_data);
 #endif
             if (!ffmpeg_write1d(&writer_video, (uint8_t*)pixels, img_data->width * 3)) {
                 fprintf(stderr, "(EE) ffmpeg_write1d: %s, frame: %d\n", ffmpeg_error2str(writer_video.error), frame);

@@ -12,7 +12,8 @@ Logger_frame::Logger_frame(const std::string frames_path, const std::string ext,
     this->in_labels = (const uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint32_t*)));
     this->in_labels -= i0 - b;
 
-    this->img_data = tools_grayscale_image_writer_alloc1(j1, i1, frames_path.c_str(), ext.c_str(), show_id);
+    this->img_data = tools_grayscale_image_writer_alloc1((j1 - j0) + 1, (i1 - i0) + 1, frames_path.c_str(), ext.c_str(),
+                                                         show_id);
 
     auto socket_img_size = ((i1 - i0) + 1 + 2 * b) * ((j1 - j0) + 1 + 2 * b);
 

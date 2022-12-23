@@ -8,7 +8,6 @@
 typedef struct { uint8_t r; uint8_t g; uint8_t b; } rgb8_t;
 
 rgb8_t tools_get_color(enum color_e color);
-void tools_save_frame(const char* filename, const rgb8_t** I_bb, int w, int h);
 void tools_create_folder(const char* folder_path);
 void tools_copy_ui8matrix_ui8matrix(const uint8_t** X, const int i0, const int i1, const int j0, const int j1,
                                     uint8_t** Y);

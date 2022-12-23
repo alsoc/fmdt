@@ -169,7 +169,7 @@ int main(int argc, char** argv) {
             fprintf(stderr, "(WW) Image format has been forced from PGM to PPM because the output will be in "
                             "color.\n");
         }
-        img_data = tools_color_image_writer_alloc2(j1, i1, ext, p_show_id);
+        img_data = tools_color_image_writer_alloc2((j1 - j0) + 1, (i1 - i0) + 1, ext, p_show_id);
     } else {
         char ext[32];
         snprintf(ext, sizeof(ext), "%s", p_img_ext);
@@ -178,7 +178,7 @@ int main(int argc, char** argv) {
             fprintf(stderr, "(WW) Image format has been forced from PPM to PGM because the output will be in "
                             "grayscale.\n");
         }
-        img_data = tools_grayscale_image_writer_alloc2(j1, i1, ext, 0);
+        img_data = tools_grayscale_image_writer_alloc2((j1 - j0) + 1, (i1 - i0) + 1, ext, 0);
     }
 
     // ----------------//
@@ -260,8 +260,8 @@ int main(int argc, char** argv) {
     } else {
         uint8_t* pixels = tools_grayscale_image_get_pixels(img_data);
         // these copy could be avoided...
-        for (int i = i0; i < i1; i++)
-            for (int j = j0; j < j1; j++)
+        for (int i = i0; i <= i1; i++)
+            for (int j = j0; j <= j1; j++)
                 pixels[i * img_data->width + j] = Max[i][j];
         tools_grayscale_image_writer_write2(img_data, p_out_frame);
     }

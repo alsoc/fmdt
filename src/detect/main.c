@@ -304,7 +304,8 @@ int main(int argc, char** argv) {
     zero_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
     img_data_t* img_data = NULL;
     if (p_out_frames)
-        img_data = tools_grayscale_image_writer_alloc1(j1, i1, p_out_frames, p_img_ext, p_show_id);
+        img_data = tools_grayscale_image_writer_alloc1((j1 - j0) + 1, (i1 - i0) + 1, p_out_frames, p_img_ext,
+                                                       p_show_id);
 
     // ----------------//
     // -- PROCESSING --//
