@@ -687,67 +687,6 @@ void features_ROI_write(FILE* f, const int frame, const ROI_t* ROI_array, const 
 }
 
 void features_motion_write(FILE* f, const motion_t* motion_est1, const motion_t* motion_est2) {
-    char theta1_str[64];
-    char tx1_str[64];
-    char ty1_str[64];
-    char mean_err1_str[64];
-    char std_dev1_str[64];
-    char theta2_str[64];
-    char tx2_str[64];
-    char ty2_str[64];
-    char mean_err2_str[64];
-    char std_dev2_str[64];
-
-    if (motion_est1->theta >= 0)
-        snprintf(theta1_str, sizeof(theta1_str), " %1.5f", motion_est1->theta);
-    else
-        snprintf(theta1_str, sizeof(theta1_str), "%1.5f", motion_est1->theta);
-
-    if (motion_est1->tx >= 0)
-        snprintf(tx1_str, sizeof(tx1_str), " %2.4f", motion_est1->tx);
-    else
-        snprintf(tx1_str, sizeof(tx1_str), "%2.4f", motion_est1->tx);
-
-    if (motion_est1->ty >= 0)
-        snprintf(ty1_str, sizeof(ty1_str), " %2.4f", motion_est1->ty);
-    else
-        snprintf(ty1_str, sizeof(ty1_str), "%2.4f", motion_est1->ty);
-
-    if (motion_est1->mean_error >= 0)
-        snprintf(mean_err1_str, sizeof(mean_err1_str), "  %2.4f", motion_est1->mean_error);
-    else
-        snprintf(mean_err1_str, sizeof(mean_err1_str), " %2.4f", motion_est1->mean_error);
-
-    if (motion_est1->std_deviation >= 0)
-        snprintf(std_dev1_str, sizeof(std_dev1_str), " %2.4f", motion_est1->std_deviation);
-    else
-        snprintf(std_dev1_str, sizeof(std_dev1_str), "%2.4f", motion_est1->std_deviation);
-
-    if (motion_est2->theta >= 0)
-        snprintf(theta2_str, sizeof(theta2_str), " %1.5f", motion_est2->theta);
-    else
-        snprintf(theta2_str, sizeof(theta2_str), "%1.5f", motion_est2->theta);
-
-    if (motion_est2->tx >= 0)
-        snprintf(tx2_str, sizeof(tx2_str), " %2.4f", motion_est2->tx);
-    else
-        snprintf(tx2_str, sizeof(tx2_str), "%2.4f", motion_est2->tx);
-
-    if (motion_est2->ty >= 0)
-        snprintf(ty2_str, sizeof(ty2_str), " %2.4f", motion_est2->ty);
-    else
-        snprintf(ty2_str, sizeof(ty2_str), "%2.4f", motion_est2->ty);
-
-    if (motion_est2->mean_error >= 0)
-        snprintf(mean_err2_str, sizeof(mean_err2_str), "  %2.4f", motion_est2->mean_error);
-    else
-        snprintf(mean_err2_str, sizeof(mean_err2_str), " %2.4f", motion_est2->mean_error);
-
-    if (motion_est2->std_deviation >= 0)
-        snprintf(std_dev2_str, sizeof(std_dev2_str), " %2.4f", motion_est2->std_deviation);
-    else
-        snprintf(std_dev2_str, sizeof(std_dev2_str), "%2.4f", motion_est2->std_deviation);
-
     fprintf(f, "# Motion:\n");
     fprintf(f, "# ---------------------------------------------------||---------------------------------------------------\n");
     fprintf(f, "#  First motion estimation (with all associated ROIs)||   Second motion estimation (exclude moving ROIs)  \n");
@@ -755,9 +694,9 @@ void features_motion_write(FILE* f, const motion_t* motion_est1, const motion_t*
     fprintf(f, "# ----------|---------|---------|----------|---------||----------|---------|---------|----------|---------\n");
     fprintf(f, "#     theta |      tx |      ty | mean err | std dev ||    theta |      tx |      ty | mean err | std dev \n");
     fprintf(f, "# ----------|---------|---------|----------|---------||----------|---------|---------|----------|---------\n");
-    fprintf(f, "   %s | %s | %s | %s | %s || %s | %s | %s | %s | %s \n",
-            theta1_str, tx1_str, ty1_str, mean_err1_str, std_dev1_str,
-            theta2_str, tx2_str, ty2_str, mean_err2_str, std_dev2_str);
+    fprintf(f, "   %8.5f | %7.4f | %7.4f | %8.4f | %7.4f || %8.5f | %7.4f | %7.4f | %8.4f | %7.4f \n",
+            motion_est1->theta, motion_est1->tx, motion_est1->ty, motion_est1->mean_error, motion_est1->std_deviation,
+            motion_est2->theta, motion_est2->tx, motion_est2->ty, motion_est2->mean_error, motion_est2->std_deviation);
 }
 
 void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint32_t* ROI0_id, const uint32_t* ROI0_xmin,

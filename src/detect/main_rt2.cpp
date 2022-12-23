@@ -246,8 +246,6 @@ int main(int argc, char** argv) {
 #ifdef OPENCV_LINK
     if (p_show_id && !p_out_frames)
         fprintf(stderr, "(WW) '--show-id' has to be combined with the '--out-frames' parameter\n");
-    if (p_img_ext && !p_out_frames)
-        fprintf(stderr, "(WW) '--img-ext' has to be combined with the '--out-frames' parameter\n");
 #endif
 
     // -------------------------------- //

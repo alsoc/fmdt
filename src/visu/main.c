@@ -169,8 +169,6 @@ int main(int argc, char** argv) {
 #ifdef OPENCV_LINK
     if (!p_show_id && p_nat_num)
         fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set.\n");
-    if (p_img_ext && !p_out_frames)
-        fprintf(stderr, "(WW) '--img-ext' has to be combined with the '--out-frames' parameter\n");
 #endif
     if (p_ffmpeg_threads < 0) {
         fprintf(stderr, "(EE) '--ffmpeg-threads' has to be bigger or equal to 0\n");
