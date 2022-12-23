@@ -772,8 +772,7 @@ void _tools_grayscale_image_writer_draw_labels(img_data_t* img_data, const uint3
 #endif
 }
 
-void tools_grayscale_image_writer_draw_labels(img_data_t* img_data, const uint32_t** labels, const ROI_t* ROI_array)
-{
+void tools_grayscale_image_writer_draw_labels(img_data_t* img_data, const uint32_t** labels, const ROI_t* ROI_array) {
     _tools_grayscale_image_writer_draw_labels(img_data, labels, ROI_array->id, ROI_array->xmax, ROI_array->ymin,
                                               ROI_array->ymax, ROI_array->_size);
 }
@@ -796,8 +795,13 @@ uint8_t** tools_grayscale_image_get_pixels_2d(img_data_t* img_data) {
 
 void _tools_grayscale_image_writer_write(img_data_t* img_data, const char* filename) {
 #ifdef OPENCV_LINK
-    cv::Mat* pixels = (cv::Mat*)img_data->pixels;
-    cv::imwrite(filename, *pixels);
+    if (strcmp(img_data->ext, "pgm") == 0) {
+        uint8_t** pixels = tools_grayscale_image_get_pixels_2d(img_data);
+        SavePGM_ui8matrix((uint8**)pixels, 0, img_data->height -1, 0, img_data->width -1, (char*)filename);
+    } else {
+        cv::Mat* pixels = (cv::Mat*)img_data->pixels;
+        cv::imwrite(filename, *pixels);
+    }
 #else
     uint8_t** pixels = (uint8_t**)img_data->pixels;
     SavePGM_ui8matrix((uint8**)pixels, 0, img_data->height -1, 0, img_data->width -1, (char*)filename);

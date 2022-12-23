@@ -36,7 +36,7 @@ build-linux-gcc-c:
     - ./ci/build-linux-macos.sh
     - tar -zcvf build_linux_gcc_c.tar.gz build_linux_gcc_c
 
-build-linux-gcc-x64-avx2:
+build-linux-gcc:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_gcc:v9.3.0
   stage: build
   variables:
@@ -48,19 +48,18 @@ build-linux-gcc-x64-avx2:
     - linux
     - docker
   artifacts:
-    name: build-linux-gcc-x64-avx2
+    name: build-linux-gcc
     paths:
-      - build_linux_gcc_x64_avx2.tar.gz
+      - build_linux_gcc.tar.gz
   script:
     - export CC="gcc"
     - export CXX="g++"
-    - export CFLAGS="-Wall -funroll-loops -m64 -mavx2 -mfma"
-    - export LFLAGS="-static -static-libgcc -static-libstdc++ -Wl,--whole-archive -lrt -lpthread -Wl,--no-whole-archive"
+    - export CFLAGS="-Wall -funroll-loops -msse4.2"
     - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON"
-    - export NAME="build_linux_gcc_x64_avx2"
+    - export NAME="build_linux_gcc"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
-    - tar -zcvf build_linux_gcc_x64_avx2.tar.gz build_linux_gcc_x64_avx2
+    - tar -zcvf build_linux_gcc.tar.gz build_linux_gcc
 
 build-linux-gcc-coverage:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_gcc:v9.3.0
@@ -80,9 +79,10 @@ build-linux-gcc-coverage:
     - export CXX="g++"
     - export CFLAGS="-Wall -funroll-loops -msse4.2 --coverage"
     - export LFLAGS="--coverage"
-    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON"
+    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_OPENCV_LINK=ON"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
+    - rm -rf build/lib
     - tar -zcvf build.tar.gz build
 
 build-linux-clang:
@@ -271,7 +271,7 @@ test-memory:
   except:
     - schedules
   needs:
-    - job: build-linux-gcc-coverage
+    - job: build-linux-gcc
       artifacts: true
     - job: build-linux-clang
       artifacts: true
@@ -281,12 +281,15 @@ test-memory:
     - linux
     - docker
   script:
-    - tar -xvvf build.tar.gz
+    - tar -xvvf build_linux_gcc.tar.gz
+    - mkdir build_gcc
+    - mkdir build_gcc/exe
+    - mv build_linux_gcc/* build_gcc/exe
     - tar -xvvf build_linux_clang.tar.gz
     - mkdir build_clang
     - mkdir build_clang/exe
     - mv build_linux_clang/* build_clang/exe
-    - ./ci/test-memory.sh build build_clang
+    - ./ci/test-memory.sh build_gcc build_clang
 
 coverage-linux:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_coverage

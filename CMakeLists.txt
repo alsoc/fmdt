@@ -195,7 +195,7 @@ macro(fmdt_set_source_files_properties files key value)
 	endforeach()
 endmacro()
 
-# force C++ language when linking with OpenCV
+# force C++ language when linking with OpenCV and/or AFF3CT
 if (FMDT_CPP)
 	fmdt_set_source_files_properties("${fmdt_src_list}" LANGUAGE CXX)
 endif()
@@ -270,7 +270,7 @@ fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SO
 fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/detect)
 fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${lib_dir}/c-vector)
 if (FMDT_OPENCV_LINK)
-	include_directories(${OpenCV_INCLUDE_DIRS})
+	fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${OpenCV_INCLUDE_DIRS})
 endif()
 if (FMDT_AFF3CT_RUNTIME)
 	fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/runtime)

@@ -2,12 +2,12 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
-#include <nrc2.h>
 #include <ffmpeg-io/writer.h>
 #ifdef OPENCV_LINK
 #include <opencv2/core/core.hpp>
 #include <opencv2/imgproc.hpp>
 #endif
+#include <nrc2.h>
 
 #include "fmdt/macros.h"
 #include "fmdt/args.h"
