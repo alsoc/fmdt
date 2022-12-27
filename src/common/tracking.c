@@ -231,15 +231,12 @@ void _compute_angle_and_norms(const ROI_history_t* ROI_history, const track_t* c
     float tx0 = ROI_history->motion[0].tx;
     float ty0 = ROI_history->motion[0].ty;
 
-    float x0_1 = cosf(theta0) * (x0_0 - tx0) + sinf(theta0) * (y0_0 - ty0);
-    float y0_1 = cosf(theta0) * (y0_0 - ty0) - sinf(theta0) * (x0_0 - tx0);
-
     float theta1 = ROI_history->motion[1].theta;
     float tx1 = ROI_history->motion[1].tx;
     float ty1 = ROI_history->motion[1].ty;
 
-    float x0_2 = cosf(theta1) * (x0_1 - tx1) + sinf(theta1) * (y0_1 - ty1);
-    float y0_2 = cosf(theta1) * (y0_1 - ty1) - sinf(theta1) * (x0_1 - tx1);
+    float x0_2 = cosf(theta0 + theta1) * (x0_0 - (tx1 + tx0)) + sinf(theta0 + theta1) * (y0_0 - (ty1 + ty0));
+    float y0_2 = cosf(theta0 + theta1) * (y0_0 - (ty1 + ty0)) - sinf(theta0 + theta1) * (x0_0 - (tx1 + tx0));
 
     float x1_2 = cosf(theta1) * (x1_1 - tx1) + sinf(theta1) * (y1_1 - ty1);
     float y1_2 = cosf(theta1) * (y1_1 - ty1) - sinf(theta1) * (x1_1 - tx1);
