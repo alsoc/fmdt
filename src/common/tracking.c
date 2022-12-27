@@ -347,15 +347,18 @@ void _update_existing_tracks(ROI_history_t* ROI_history, vec_track_t track_array
                             }
 
                             cur_track->state = TRACK_UPDATED;
-                            cur_track->extrapol_order = 0;
+
                             ROI_history->array[0][j].is_extrapolated = 1;
                             memcpy(&cur_track->end, &ROI_history->array[0][j], sizeof(ROI_track_t));
 
                             if (cur_track->magnitude != NULL) {
                                 // because we don't know the magnitude when ROI has been extrapolated
-                                vector_add(&cur_track->magnitude, (uint32_t)0);
+                                for (uint8_t e = cur_track->extrapol_order; e >= 1; e--)
+                                    vector_add(&cur_track->magnitude, (uint32_t)0);
                                 vector_add(&cur_track->magnitude, ROI_history->array[0][j].magnitude);
                             }
+
+                            cur_track->extrapol_order = 0;
 
                             if (BB_array != NULL) {
                                 size_t vs = vector_size(BB_array);
