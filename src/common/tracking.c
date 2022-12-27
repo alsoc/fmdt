@@ -261,20 +261,23 @@ void _compute_angle_and_norms(const ROI_history_t* ROI_history, const track_t* c
     // *angle_degree = fmodf(angle_degree, 360.f);
 }
 
-void _track_extrapolate(const ROI_history_t* ROI_history, const ROI_light_t* track_end, float* track_extrapol_x,
-                        float* track_extrapol_y, float* track_extrapol_u, float* track_extrapol_v, const float theta,
-                        const float tx, const float ty, uint8_t extrapol_order) {
+void _track_extrapolate(const ROI_track_t* track_end, float* track_extrapol_x, float* track_extrapol_y,
+                        float* track_extrapol_u, float* track_extrapol_v, const float theta, const float tx,
+                        const float ty, uint8_t extrapol_order) {
     assert(extrapol_order > 0);
 
     if (extrapol_order == 1) {
-        // compensation du mouvement + calcul vitesse entre t-1 et t
+        // track_end->x/y @ t -1 --- track_extrapol_x/y @ t -2
+        // (u, v) is the motion vector between t - 2 and t - 1
         *track_extrapol_u = track_end->x - track_end->dx - *track_extrapol_x;
         *track_extrapol_v = track_end->y - track_end->dy - *track_extrapol_y;
     }
 
+    // motion compensation from t - 1 to t
     float x = tx + track_end->x * cosf(theta) - track_end->y * sinf(theta);
     float y = ty + track_end->x * sinf(theta) + track_end->y * cosf(theta);
 
+    // extrapolate x and y @ t
     *track_extrapol_x = x + (float)extrapol_order * *track_extrapol_u;
     *track_extrapol_y = y + (float)extrapol_order * *track_extrapol_v;
 }
