@@ -41,7 +41,7 @@ typedef struct BB_t {
 
 typedef BB_t* vec_BB_t;
 
-typedef struct ROI_light {
+typedef struct ROI_track {
     uint32_t id;
     uint32_t frame;
     uint32_t xmin;
@@ -60,12 +60,12 @@ typedef struct ROI_light {
     uint32_t next_id;
     uint8_t is_extrapolated;
     uint32_t magnitude;
-} ROI_light_t;
+} ROI_track_t;
 
 typedef struct track {
     uint32_t id;
-    ROI_light_t begin;
-    ROI_light_t end;
+    ROI_track_t begin;
+    ROI_track_t end;
     float extrapol_x;
     float extrapol_y;
     float extrapol_u;
@@ -80,7 +80,7 @@ typedef struct track {
 typedef track_t* vec_track_t;
 
 typedef struct {
-    ROI_light_t** array;
+    ROI_track_t** array;
     motion_t* motion;
     uint32_t* n_ROI;
     uint32_t _max_n_ROI;
@@ -92,7 +92,7 @@ typedef struct {
     vec_track_t tracks;
     ROI_history_t* ROI_history;
     motion_t* motion_history;
-    ROI_light_t* ROI_list;
+    ROI_track_t* ROI_list;
 } tracking_data_t;
 
 extern enum color_e g_obj_to_color[N_OBJECTS];
