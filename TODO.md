@@ -1,7 +1,13 @@
 TODO list:
+- [ ] Support more image input formats
+- [ ] For each detection: extract meteor video sequence + - a few seconds: this 
+      way if we need to re-process it we don't have to run it through the whole 
+      video again
+- [ ] Put a saturation flag for each detected object: meteor and star -> this 
+      will help for photometry 
 - [ ] Add `--video-loop` and `--video-buff` support to the video module (based 
       on `ffmpeg-io`)
-- [ ] Extrapolate more than one frame in tracking
+- [x] Extrapolate more than one frame in tracking
 - [ ] Add CI tests with `fmdt-check` 
 - [x] Add memory check tests in the CI (valgrind --leak-check=full 
       --show-leak-kinds=all)
