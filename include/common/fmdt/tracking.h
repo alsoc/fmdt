@@ -7,7 +7,7 @@
 // Enums
 // enum obj_e { UNKNOWN = 0, METEOR, STAR, NOISE, N_OBJECTS }; // <= now defined in "fmdt/features.h"
 enum color_e { MISC = 0, GRAY, GREEN, RED, PURPLE, ORANGE, BLUE, YELLOW, N_COLORS };
-enum state_e { TRACK_NEW = 1, TRACK_UPDATED, TRACK_LOST, TRACK_FINISHED };
+enum state_e { TRACK_UPDATED = 1, TRACK_LOST, TRACK_FINISHED };
 // to remember why a 'meteor' object became a 'noise' object
 enum change_state_reason_e { REASON_TOO_BIG_ANGLE = 1, REASON_WRONG_DIRECTION, REASON_TOO_LONG_DURATION, N_REASONS };
 

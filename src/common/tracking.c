@@ -373,7 +373,7 @@ void _update_existing_tracks(ROI_history_t* ROI_history, vec_track_t track_array
                     }
                 }
             }
-            else if (cur_track->state == TRACK_UPDATED || cur_track->state == TRACK_NEW) {
+            else if (cur_track->state == TRACK_UPDATED) {
                 int next_id = ROI_history->array[1][cur_track->end.id - 1].next_id;
                 if (next_id) {
                     if (cur_track->obj_type == METEOR) {
@@ -395,9 +395,6 @@ void _update_existing_tracks(ROI_history_t* ROI_history, vec_track_t track_array
                     cur_track->extrapol_y = cur_track->end.y;
 
                     memcpy(&cur_track->end, &ROI_history->array[0][next_id - 1], sizeof(ROI_track_t));
-
-                    if (cur_track->state == TRACK_NEW) // because the right time has been set in 'insert_new_track'
-                        cur_track->state = TRACK_UPDATED;
 
                     if (cur_track->magnitude != NULL)
                         vector_add(&cur_track->magnitude, ROI_history->array[0][next_id - 1].magnitude);
@@ -448,7 +445,7 @@ void _insert_new_track(const ROI_track_t* ROI_list, const unsigned n_ROI, vec_tr
     tmp_track->id = track_id;
     memcpy(&tmp_track->begin, &ROI_list[n_ROI - 1], sizeof(ROI_track_t));
     memcpy(&tmp_track->end, &ROI_list[0], sizeof(ROI_track_t));
-    tmp_track->state = TRACK_NEW;
+    tmp_track->state = TRACK_UPDATED;
     tmp_track->obj_type = type;
     tmp_track->magnitude = NULL;
     tmp_track->extrapol_x = NAN;
