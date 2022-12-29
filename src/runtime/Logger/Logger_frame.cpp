@@ -12,8 +12,7 @@ Logger_frame::Logger_frame(const std::string frames_path, const std::string ext,
     this->in_labels = (const uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint32_t*)));
     this->in_labels -= i0 - b;
 
-    this->img_data = tools_grayscale_image_writer_alloc1((j1 - j0) + 1, (i1 - i0) + 1, frames_path.c_str(), ext.c_str(),
-                                                         show_id);
+    this->img_data = tools_gray_img_alloc1((j1 - j0) + 1, (i1 - i0) + 1, frames_path.c_str(), ext.c_str(), show_id);
 
     auto socket_img_size = ((i1 - i0) + 1 + 2 * b) * ((j1 - j0) + 1 + 2 * b);
 
@@ -37,14 +36,14 @@ Logger_frame::Logger_frame(const std::string frames_path, const std::string ext,
         tools_linear_2d_nrc_ui32matrix(m_in_labels, lgr_fra.i0 - lgr_fra.b, lgr_fra.i1 + lgr_fra.b,
                                        lgr_fra.j0 - lgr_fra.b, lgr_fra.j1 + lgr_fra.b, lgr_fra.in_labels);
 
-        _tools_grayscale_image_writer_draw_labels(lgr_fra.img_data,
-                                                  lgr_fra.in_labels,
-                                                  static_cast<const uint32_t*>(t[ps_in_ROI_id].get_dataptr()),
-                                                  static_cast<const uint32_t*>(t[ps_in_ROI_xmax].get_dataptr()),
-                                                  static_cast<const uint32_t*>(t[ps_in_ROI_ymin].get_dataptr()),
-                                                  static_cast<const uint32_t*>(t[ps_in_ROI_ymax].get_dataptr()),
-                                                  *static_cast<const uint32_t*>(t[ps_in_n_ROI].get_dataptr()));
-        tools_grayscale_image_writer_write1(lgr_fra.img_data, frame);
+        _tools_gray_img_draw_labels(lgr_fra.img_data,
+                                    lgr_fra.in_labels,
+                                    static_cast<const uint32_t*>(t[ps_in_ROI_id].get_dataptr()),
+                                    static_cast<const uint32_t*>(t[ps_in_ROI_xmax].get_dataptr()),
+                                    static_cast<const uint32_t*>(t[ps_in_ROI_ymin].get_dataptr()),
+                                    static_cast<const uint32_t*>(t[ps_in_ROI_ymax].get_dataptr()),
+                                    *static_cast<const uint32_t*>(t[ps_in_n_ROI].get_dataptr()));
+        tools_gray_img_write1(lgr_fra.img_data, frame);
 
         return aff3ct::runtime::status_t::SUCCESS;
     });
@@ -52,5 +51,5 @@ Logger_frame::Logger_frame(const std::string frames_path, const std::string ext,
 
 Logger_frame::~Logger_frame() {
     free(this->in_labels + this->i0 - this->b);
-    tools_grayscale_image_writer_free(this->img_data);
+    tools_gray_img_free(this->img_data);
 }

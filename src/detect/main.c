@@ -302,8 +302,7 @@ int main(int argc, char** argv) {
     zero_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
     img_data_t* img_data = NULL;
     if (p_out_frames)
-        img_data = tools_grayscale_image_writer_alloc1((j1 - j0) + 1, (i1 - i0) + 1, p_out_frames, p_img_ext,
-                                                       p_show_id);
+        img_data = tools_gray_img_alloc1((j1 - j0) + 1, (i1 - i0) + 1, p_out_frames, p_img_ext, p_show_id);
 
     // ----------------//
     // -- PROCESSING --//
@@ -344,8 +343,8 @@ int main(int argc, char** argv) {
 
         // save frames (CCs)
         if (img_data) {
-            tools_grayscale_image_writer_draw_labels(img_data, (const uint32_t**)L2, (const ROI_t*)ROI_array1);
-            tools_grayscale_image_writer_write1(img_data, cur_fra);
+            tools_gray_img_draw_labels(img_data, (const uint32_t**)L2, (const ROI_t*)ROI_array1);
+            tools_gray_img_write1(img_data, cur_fra);
         }
 
         // save stats
@@ -427,7 +426,7 @@ int main(int argc, char** argv) {
     if (images)
         images_free(images);
     if (img_data)
-        tools_grayscale_image_writer_free(img_data);
+        tools_gray_img_free(img_data);
     CCL_LSL_free_data(ccl_data);
     KNN_free_data(knn_data);
     if (BB_array) {

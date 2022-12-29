@@ -220,8 +220,8 @@ int main(int argc, char** argv) {
         i0 = images->i0; i1 = images->i1; j0 = images->j0; j1 = images->j1;
     }
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
-    img_data_t* img_data = tools_color_image_writer_alloc1((j1 - j0) - 1, (i1 - i0) + 1,
-                                                           p_out_frames ? p_out_frames : "", p_img_ext, p_show_id);
+    img_data_t* img_data = tools_color_img_alloc1((j1 - j0) - 1, (i1 - i0) + 1, p_out_frames ? p_out_frames : "",
+                                                  p_img_ext, p_show_id);
 
     // validation pour établir si une track est vrai/faux positif
     if (p_in_gt) {
@@ -318,8 +318,8 @@ int main(int argc, char** argv) {
             sscanf(lines, "%d %d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id, &is_extrapolated);
         }
 
-        tools_color_image_writer_draw_BB(img_data, (const uint8_t**)I0, (const BB_t*)BB_list,
-                                         (const enum color_e*)BB_list_color, cpt, p_in_gt ? 1 : 0);
+        tools_color_img_draw_BB(img_data, (const uint8_t**)I0, (const BB_t*)BB_list, (const enum color_e*)BB_list_color,
+                                cpt, p_in_gt ? 1 : 0);
         if (p_out_video) {
 #ifdef OPENCV_LINK
             cv::Mat img_rgb;
@@ -327,7 +327,7 @@ int main(int argc, char** argv) {
             cv::cvtColor(*(cv::Mat*)img_data->pixels, img_rgb, cv::COLOR_BGR2RGB);
             rgb8_t* pixels = (rgb8_t*)img_rgb.data;
 #else
-            rgb8_t* pixels = tools_color_image_get_pixels(img_data);
+            rgb8_t* pixels = tools_color_img_get_pixels(img_data);
 #endif
             if (!ffmpeg_write1d(&writer_video, (uint8_t*)pixels, img_data->width * 3)) {
                 fprintf(stderr, "(EE) ffmpeg_write1d: %s, frame: %d\n", ffmpeg_error2str(writer_video.error), frame);
@@ -335,7 +335,7 @@ int main(int argc, char** argv) {
             }
         }
         if (p_out_frames)
-            tools_color_image_writer_write1(img_data, frame);
+            tools_color_img_write1(img_data, frame);
     }
     if (p_out_video)
         ffmpeg_stop_writer(&writer_video);
@@ -353,7 +353,7 @@ int main(int argc, char** argv) {
         images_free(images);
     if (file_bb)
         fclose(file_bb);
-    tools_color_image_writer_free(img_data);
+    tools_color_img_free(img_data);
 
     printf("# End of the program, exiting.\n");
 

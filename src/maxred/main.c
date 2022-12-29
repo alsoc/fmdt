@@ -169,7 +169,7 @@ int main(int argc, char** argv) {
             fprintf(stderr, "(WW) Image format has been forced from PGM to PPM because the output will be in "
                             "color.\n");
         }
-        img_data = tools_color_image_writer_alloc2((j1 - j0) + 1, (i1 - i0) + 1, ext, p_show_id);
+        img_data = tools_color_img_alloc2((j1 - j0) + 1, (i1 - i0) + 1, ext, p_show_id);
     } else {
         char ext[32];
         snprintf(ext, sizeof(ext), "%s", p_img_ext);
@@ -178,7 +178,7 @@ int main(int argc, char** argv) {
             fprintf(stderr, "(WW) Image format has been forced from PPM to PGM because the output will be in "
                             "grayscale.\n");
         }
-        img_data = tools_grayscale_image_writer_alloc2((j1 - j0) + 1, (i1 - i0) + 1, ext, 0);
+        img_data = tools_gray_img_alloc2((j1 - j0) + 1, (i1 - i0) + 1, ext, 0);
     }
 
     // ----------------//
@@ -245,9 +245,9 @@ int main(int argc, char** argv) {
         }
 
         int n_BB = m;
-        tools_color_image_writer_draw_BB(img_data, (const uint8_t**)Max, (const BB_t*)BB_list,
-                                         (const enum color_e*)BB_list_color, n_BB, p_in_gt ? 1 : 0);
-        tools_color_image_writer_write2(img_data, p_out_frame);
+        tools_color_img_draw_BB(img_data, (const uint8_t**)Max, (const BB_t*)BB_list,
+                                (const enum color_e*)BB_list_color, n_BB, p_in_gt ? 1 : 0);
+        tools_color_img_write2(img_data, p_out_frame);
 
         vector_free(track_array);
 
@@ -258,12 +258,12 @@ int main(int argc, char** argv) {
         if (p_in_gt)
             validation_free();
     } else {
-        uint8_t* pixels = tools_grayscale_image_get_pixels(img_data);
+        uint8_t* pixels = tools_gray_img_get_pixels(img_data);
         // these copy could be avoided...
         for (int i = i0; i <= i1; i++)
             for (int j = j0; j <= j1; j++)
                 pixels[i * img_data->width + j] = Max[i][j];
-        tools_grayscale_image_writer_write2(img_data, p_out_frame);
+        tools_gray_img_write2(img_data, p_out_frame);
     }
 
     // ----------
@@ -272,9 +272,9 @@ int main(int argc, char** argv) {
     free_ui8matrix(img, i0, i1, j0, j1);
     free_ui8matrix(Max, i0, i1, j0, j1);
     if (p_in_tracks)
-        tools_color_image_writer_free(img_data);
+        tools_color_img_free(img_data);
     else
-        tools_grayscale_image_writer_free(img_data);
+        tools_gray_img_free(img_data);
     video_free(video);
 
     printf("# End of the program, exiting.\n");
