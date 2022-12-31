@@ -11,7 +11,7 @@
 
 video_t* video_init_from_path(const char* path, const size_t start, const size_t end, const size_t skip,
                               const int bufferize, const size_t n_ffmpeg_threads, int* i0, int* i1, int* j0, int* j1) {
-    assert(start <= end);
+    assert(!end || start <= end);
     video_t* video = (video_t*)malloc(sizeof(video_t));
     if (!video) {
         fprintf(stderr, "(EE) can't allocate video structure\n");
@@ -104,7 +104,7 @@ int video_get_next_frame(video_t* video, uint8_t** I) {
 retry:
     if (video->fra_buffer == NULL) {
         int r;
-        size_t skip = video->frame_skip;
+        size_t skip = video->frame_current == 0 ? 0 : video->frame_skip;
         do {
             r = video_get_frame(video, I);
             // restart reader

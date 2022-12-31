@@ -4,11 +4,11 @@ TODO list:
       video again
 - [ ] Put a saturation flag for each detected object: meteor and star -> this 
       will help for photometry 
+- [ ] Add CI tests with `fmdt-check` 
 - [x] Support more image input formats
 - [x] Add `--video-loop` and `--video-buff` support to the video module (based 
       on `ffmpeg-io`)
 - [x] Extrapolate more than one frame in tracking
-- [ ] Add CI tests with `fmdt-check` 
 - [x] Add memory check tests in the CI (valgrind --leak-check=full 
       --show-leak-kinds=all)
 - [x] Compute velocity of moving ROIs, add this to the statistics (no need to do 
