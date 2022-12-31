@@ -15,7 +15,6 @@
 #include "fmdt/tracking.h"
 #include "fmdt/validation.h"
 #include "fmdt/video.h"
-#include "fmdt/images.h"
 #include "vec.h"
 
 void add_to_BB_coord_list(vec_BB_t* BB_list, vec_color_e* BB_list_color, size_t elem, int rx, int ry, int bb_x,
@@ -46,14 +45,6 @@ void add_to_BB_coord_list(vec_BB_t* BB_list, vec_color_e* BB_list_color, size_t 
         vector_add(BB_list_color, MISC);
     enum color_e* BB_color_elem = &(*BB_list_color)[elem];
     *BB_color_elem = color;
-}
-
-int get_next_frame(video_t* video, images_t* images, uint8_t** I) {
-    if (video)
-        return video_get_next_frame(video, I);
-    else if (images)
-        return images_get_next_frame(images, I);
-    return 0;
 }
 
 int main(int argc, char** argv) {
@@ -211,14 +202,8 @@ int main(int argc, char** argv) {
     // init
     int b = 1;
     int i0, i1, j0, j1; // image dimension (y_min, y_max, x_min, x_max)
-    video_t* video = NULL;
-    images_t* images = NULL;
-    if (!tools_is_dir(p_in_video)) {
-        video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, 0, p_ffmpeg_threads, &i0, &i1, &j0, &j1);
-    } else {
-        images = images_init_from_path(p_in_video, p_fra_start, p_fra_end, 0, 0);
-        i0 = images->i0; i1 = images->i1; j0 = images->j0; j1 = images->j1;
-    }
+    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, 0, 0, p_ffmpeg_threads, &i0, &i1, &j0,
+                                          &j1);
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
     img_data_t* img_data = tools_color_img_alloc1((j1 - j0) - 1, (i1 - i0) + 1, p_out_frames ? p_out_frames : "",
                                                   p_img_ext, p_show_id);
@@ -264,7 +249,7 @@ int main(int argc, char** argv) {
     char lines[1000];
     int frame_bb = -1, rx, ry, bb_x, bb_y, track_id, is_extrapolated;
     int is_first_read = 1;
-    while ((frame = get_next_frame(video, images, I0)) != -1) {
+    while ((frame = video_get_next_frame(video, I0)) != -1) {
         fprintf(stderr, "(II) Frame n°%-4d\r", frame);
         fflush(stderr);
         int cpt = 0;
@@ -347,10 +332,7 @@ int main(int argc, char** argv) {
     vector_free(BB_list_color);
     if (p_in_gt)
         validation_free();
-    if (video)
-        video_free(video);
-    if (images)
-        images_free(images);
+    video_free(video);
     if (file_bb)
         fclose(file_bb);
     tools_color_img_free(img_data);

@@ -26,6 +26,10 @@ int Video::get_b() {
     return this->b;
 }
 
+void Video::set_loop_size(size_t loop_size) {
+    this->video->loop_size = loop_size;
+}
+
 aff3ct::runtime::Task& Video::operator[](const vid::tsk t) {
     return aff3ct::module::Module::operator[]((size_t)t);
 }

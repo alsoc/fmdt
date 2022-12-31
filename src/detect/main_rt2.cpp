@@ -58,7 +58,7 @@ int main(int argc, char** argv) {
     // Help
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr,
-                "  --in-video          Path to video file                                                     [%s]\n",
+                "  --in-video          Path to video file or to an images sequence                            [%s]\n",
                 def_p_in_video ? def_p_in_video : "NULL");
         fprintf(stderr,
                 "  --out-frames        Path to frames output folder                                           [%s]\n",
@@ -260,7 +260,7 @@ int main(int argc, char** argv) {
 
     // objects allocation
     const size_t b = 1; // image border
-    Video2 video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_ffmpeg_threads, b);
+    Video2 video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, 0, p_ffmpeg_threads, b);
     const size_t i0 = video.get_i0();
     const size_t i1 = video.get_i1();
     const size_t j0 = video.get_j0();

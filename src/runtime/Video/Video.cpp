@@ -4,14 +4,14 @@
 #include "fmdt/Video/Video.hpp"
 
 Video::Video(const std::string filename, const size_t frame_start, const size_t frame_end, const size_t frame_skip,
-             const size_t n_ffmpeg_threads, const int b)
+             const int bufferize, const size_t n_ffmpeg_threads, const int b)
 : Module(), i0(0), i1(0), j0(0), j1(0), b(b), video(nullptr), out_img(nullptr), done(false) {
     const std::string name = "Video";
     this->set_name(name);
     this->set_short_name(name);
 
-    this->video = video_init_from_file(filename.c_str(), frame_start, frame_end, frame_skip, n_ffmpeg_threads,
-                                       &this->i0, &this->i1, &this->j0, &this->j1);
+    this->video = video_init_from_file(filename.c_str(), frame_start, frame_end, frame_skip, bufferize,
+                                       n_ffmpeg_threads, &this->i0, &this->i1, &this->j0, &this->j1);
 
     this->out_img = (uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint8_t*)));
     this->out_img -= i0 - b;

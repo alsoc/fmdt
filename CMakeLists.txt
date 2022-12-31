@@ -77,7 +77,6 @@ set(src_common_files
     ${src_dir}/common/tracking.c
     ${src_dir}/common/validation.c
     ${src_dir}/common/video.c
-    ${src_dir}/common/images.c
     ${lib_dir}/c-vector/vec.c)
 list(APPEND fmdt_src_list ${src_common_files})
 
@@ -123,7 +122,6 @@ if(FMDT_DETECT_EXE)
 
         set(src_detectrt1_files
             ${src_dir}/runtime/Video/Video.cpp
-            ${src_dir}/runtime/Images/Images.cpp
             ${src_dir}/detect/main_rt.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt1_files})
         add_executable(fmdt-detect-rt-seq-exe

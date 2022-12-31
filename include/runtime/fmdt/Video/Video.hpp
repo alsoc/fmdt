@@ -21,7 +21,7 @@ protected:
     bool done;
 public:
     Video(const std::string filename, const size_t frame_start, const size_t frame_end, const size_t frame_skip,
-          const size_t n_ffmpeg_threads, const int b);
+          const int bufferize, const size_t n_ffmpeg_threads, const int b);
     virtual ~Video();
     virtual bool is_done() const;
     inline uint8_t** get_out_img();
@@ -30,6 +30,7 @@ public:
     inline int get_j0();
     inline int get_j1();
     inline int get_b();
+    inline void set_loop_size(size_t loop_size);
     inline aff3ct::runtime::Task& operator[](const vid::tsk t);
     inline aff3ct::runtime::Socket& operator[](const vid::sck::generate s);
 };

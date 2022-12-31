@@ -21,7 +21,6 @@
 #include "fmdt/Threshold/Threshold.hpp"
 #include "fmdt/Tracking/Tracking.hpp"
 #include "fmdt/Video/Video.hpp"
-#include "fmdt/Images/Images.hpp"
 #include "fmdt/Logger/Logger_ROI.hpp"
 #include "fmdt/Logger/Logger_KNN.hpp"
 #include "fmdt/Logger/Logger_motion.hpp"
@@ -65,7 +64,7 @@ int main(int argc, char** argv) {
     // help
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr,
-                "  --in-video          Path to video file                                                     [%s]\n",
+                "  --in-video          Path to video file or to an images sequence                            [%s]\n",
                 def_p_in_video ? def_p_in_video : "NULL");
         fprintf(stderr,
                 "  --out-frames        Path to frames output folder                                           [%s]\n",
@@ -262,12 +261,6 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--light-max' has to be higher than '--light-min'\n");
         exit(1);
     }
-    if (!tools_is_dir(p_in_video) && p_video_buff)
-        fprintf(stderr, "(WW) '--video-buff' has no effect when '--in-video' is a video file.\n");
-    if (!tools_is_dir(p_in_video) && p_video_loop > 1)
-        fprintf(stderr, "(WW) '--video-loop' has no effect when '--in-video' is a video file.\n");
-    if (p_ffmpeg_threads && tools_is_dir(p_in_video))
-        fprintf(stderr, "(WW) '--ffmpeg-threads' has no effect when '--in-video' is a folder of images\n");
 #ifndef FMDT_ENABLE_PIPELINE
     if (p_out_probes)
         fprintf(stderr, "(WW) Using '--out-probes' without pipeline is not very useful...\n");
@@ -289,23 +282,13 @@ int main(int argc, char** argv) {
 
     // objects allocation
     const size_t b = 1; // image border
-    std::unique_ptr<Video> video;
-    std::unique_ptr<Images> images;
     size_t i0, i1, j0, j1;
-    if (!tools_is_dir(p_in_video)) {
-        video.reset(new Video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_ffmpeg_threads, b));
-        i0 = video->get_i0();
-        i1 = video->get_i1();
-        j0 = video->get_j0();
-        j1 = video->get_j1();
-    } else {
-        images.reset(new Images(p_in_video, p_fra_start, p_fra_end, p_fra_skip, b, p_video_buff));
-        i0 = images->get_i0();
-        i1 = images->get_i1();
-        j0 = images->get_j0();
-        j1 = images->get_j1();
-        images->set_loop_size(p_video_loop);
-    }
+    Video video(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_video_buff, p_ffmpeg_threads, b);
+    i0 = video.get_i0();
+    i1 = video.get_i1();
+    j0 = video.get_j0();
+    j1 = video.get_j1();
+    video.set_loop_size(p_video_loop);
 
     Threshold threshold_min(i0, i1, j0, j1, b, p_light_min);
     Threshold threshold_max(i0, i1, j0, j1, b, p_light_max);
@@ -412,18 +395,14 @@ int main(int argc, char** argv) {
     // ------------------- //
 
     if (p_out_probes) {
-        if (video)
-            (*video)[vid::tsk::generate] = (*prb_ts_s1b)[aff3ct::module::prb::sck::probe_noin::status];
-        else
-            (*images)[img::tsk::generate] = (*prb_ts_s1b)[aff3ct::module::prb::sck::probe_noin::status];
-
-        (*prb_ts_s1e)[aff3ct::module::prb::tsk::probe] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
-        (*ts_s2b)("exec") = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
+        video[vid::tsk::generate] = (*prb_ts_s1b)[aff3ct::module::prb::sck::probe_noin::status];
+        (*prb_ts_s1e)[aff3ct::module::prb::tsk::probe] = video[vid::sck::generate::out_img];
+        (*ts_s2b)("exec") = video[vid::sck::generate::out_img];
         (*prb_ts_s2b)[aff3ct::module::prb::sck::probe::in] = (*ts_s2b)["exec::out"];
     }
 
     // step 1: threshold low
-    threshold_min[thr::sck::apply::in_img] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
+    threshold_min[thr::sck::apply::in_img] = video[vid::sck::generate::out_img];
 
     // step 2: CCL/CCA
     lsl[ccl::sck::apply::in_img] = threshold_min[thr::sck::apply::out_img];
@@ -431,7 +410,7 @@ int main(int argc, char** argv) {
     extractor[ftr_ext::sck::extract::in_n_ROI] = lsl[ccl::sck::apply::out_n_ROI];
 
     // step 3: hysteresis threshold & surface filtering
-    threshold_max[thr::sck::apply::in_img] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
+    threshold_max[thr::sck::apply::in_img] = video[vid::sck::generate::out_img];
     merger[ftr_mrg::sck::merge::in_labels] = lsl[ccl::sck::apply::out_labels];
     merger[ftr_mrg::sck::merge::in_img_HI] = threshold_max[thr::sck::apply::out_img];
     merger[ftr_mrg::sck::merge::in_ROI_id] = extractor[ftr_ext::sck::extract::out_ROI_id];
@@ -447,7 +426,7 @@ int main(int argc, char** argv) {
     merger[ftr_mrg::sck::merge::in_n_ROI] = lsl[ccl::sck::apply::out_n_ROI];
 
     // step 3.5 : compute magnitude for each ROI
-    magnitude[ftr_mgn::sck::compute::in_img] = video ? (*video)[vid::sck::generate::out_img] : (*images)[img::sck::generate::out_img];
+    magnitude[ftr_mgn::sck::compute::in_img] = video[vid::sck::generate::out_img];
     magnitude[ftr_mgn::sck::compute::in_labels] = merger[ftr_mrg::sck::merge::out_labels];
     magnitude[ftr_mgn::sck::compute::in_ROI_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
     magnitude[ftr_mgn::sck::compute::in_ROI_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
@@ -497,7 +476,7 @@ int main(int argc, char** argv) {
     motion[ftr_mtn::sck::compute::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
 
     // step 6 : tracking
-    tracking[trk::sck::perform::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
+    tracking[trk::sck::perform::in_frame] = video[vid::sck::generate::out_frame];
     tracking[trk::sck::perform::in_ROI_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
     tracking[trk::sck::perform::in_ROI_xmin] = merger[ftr_mrg::sck::merge::out_ROI_xmin];
     tracking[trk::sck::perform::in_ROI_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
@@ -550,7 +529,7 @@ int main(int argc, char** argv) {
         log_ROI[lgr_roi::sck::write::in_ROI1_y] = merger[ftr_mrg::sck::merge::out_ROI_y];
         log_ROI[lgr_roi::sck::write::in_ROI1_magnitude] = magnitude[ftr_mgn::sck::compute::out_ROI_magnitude];
         log_ROI[lgr_roi::sck::write::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
-        log_ROI[lgr_roi::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
+        log_ROI[lgr_roi::sck::write::in_frame] = video[vid::sck::generate::out_frame];
 
         log_KNN[lgr_knn::sck::write::in_data_nearest] = matcher[knn::sck::match::out_data_nearest];
         log_KNN[lgr_knn::sck::write::in_data_distances] = matcher[knn::sck::match::out_data_distances];
@@ -563,18 +542,18 @@ int main(int argc, char** argv) {
         log_KNN[lgr_knn::sck::write::in_ROI1_error] = motion[ftr_mtn::sck::compute::out_ROI1_error];
         log_KNN[lgr_knn::sck::write::in_ROI1_is_moving] = motion[ftr_mtn::sck::compute::out_ROI1_is_moving];
         log_KNN[lgr_knn::sck::write::in_n_ROI1] = merger[ftr_mrg::sck::merge::out_n_ROI];
-        log_KNN[lgr_knn::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
+        log_KNN[lgr_knn::sck::write::in_frame] = video[vid::sck::generate::out_frame];
 
         log_motion[lgr_mtn::sck::write::in_motion_est1] = motion[ftr_mtn::sck::compute::out_motion_est1];
         log_motion[lgr_mtn::sck::write::in_motion_est2] = motion[ftr_mtn::sck::compute::out_motion_est2];
-        log_motion[lgr_mtn::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
+        log_motion[lgr_mtn::sck::write::in_frame] = video[vid::sck::generate::out_frame];
 
-        log_track[lgr_trk::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
+        log_track[lgr_trk::sck::write::in_frame] = video[vid::sck::generate::out_frame];
     }
 
     if (p_out_frames) {
         (*log_frame)[lgr_fra::sck::write::in_labels] = merger[ftr_mrg::sck::merge::out_labels];
-        (*log_frame)[lgr_fra::sck::write::in_frame] = video ? (*video)[vid::sck::generate::out_frame] : (*images)[img::sck::generate::out_frame];
+        (*log_frame)[lgr_fra::sck::write::in_frame] = video[vid::sck::generate::out_frame];
         (*log_frame)[lgr_fra::sck::write::in_ROI_id] = merger[ftr_mrg::sck::merge::out_ROI_id];
         (*log_frame)[lgr_fra::sck::write::in_ROI_xmax] = merger[ftr_mrg::sck::merge::out_ROI_xmax];
         (*log_frame)[lgr_fra::sck::write::in_ROI_ymin] = merger[ftr_mrg::sck::merge::out_ROI_ymin];
@@ -604,7 +583,7 @@ int main(int argc, char** argv) {
     if (p_out_probes)
         first_task = &(*prb_ts_s1b)[aff3ct::module::prb::tsk::probe];
     else
-        first_task = video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate];
+        first_task = &video[vid::tsk::generate];
 
 #ifdef FMDT_ENABLE_PIPELINE
     // pipeline definition with separation stages
@@ -617,8 +596,8 @@ int main(int argc, char** argv) {
         { // pipeline stage 1
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                           std::vector<aff3ct::runtime::Task*>>(
-            { video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate], },
-            { video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate], },
+            { &video[vid::tsk::generate], },
+            { &video[vid::tsk::generate], },
             { /* no exclusions in this stage */ } ),
           // pipeline stage 2
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
@@ -666,7 +645,7 @@ int main(int argc, char** argv) {
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                           std::vector<aff3ct::runtime::Task*>>(
             { &(*prb_ts_s1b)[aff3ct::module::prb::tsk::probe], &(*prb_ts_s1e)[aff3ct::module::prb::tsk::probe] },
-            { video ? &(*video)[vid::tsk::generate] : &(*images)[img::tsk::generate], },
+            { &video[vid::tsk::generate], },
             { /* no exclusions in this stage */ } ),
           // pipeline stage 2
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
@@ -847,8 +826,7 @@ int main(int argc, char** argv) {
     if (p_task_stats) {
 #ifdef FMDT_ENABLE_PIPELINE
         auto stages = sequence_or_pipeline.get_stages();
-        for (size_t s = 0; s < stages.size(); s++)
-        {
+        for (size_t s = 0; s < stages.size(); s++) {
             const int n_threads = stages[s]->get_n_threads();
             std::cout << "#" << std::endl << "# Pipeline stage " << (s + 1) << " (" << n_threads << " thread(s)): "
                       << std::endl;

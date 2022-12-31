@@ -145,7 +145,7 @@ The list of available arguments:
 
 | **Argument**       | **Type** | **Default** | **Req** | **Description** |
 | :---               | :---     | :---        | :---    | :--- |
-| `--in-video`       | str      | None        | Yes     | Input video path where we want to detect meteors (supports also a path to a folder containing PGM images). |
+| `--in-video`       | str      | None        | Yes     | Input video path where we want to detect meteors (supports also a path to a sequence of images `path/basename_%05d.png`). |
 | `--out-bb`         | str      | None        | No      | Path to the bounding boxes file required by `fmdt-visu` to draw detection rectangles. |
 | `--out-frames`     | str      | None        | No      | Path of the output frames for debug (PGM format). |
 | `--out-stats`      | str      | None        | No      | Path of the output statistics, only required for debugging purpose. |
@@ -185,7 +185,7 @@ The list of available arguments:
 
 | **Argument**       | **Type** | **Default**    | **Req** | **Description** |
 | :---               | :---     | :---           | :---    | :--- |
-| `--in-video`       | str      | None           | Yes     | Input video path (supports also a path to a folder containing PGM images). |
+| `--in-video`       | str      | None           | Yes     | Input video path (supports also a path to a sequence of images `path/basename_%05d.png`). |
 | `--in-tracks`      | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-bb`          | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-gt`          | str      | None           | No      | File containing the ground truth. |
@@ -231,7 +231,7 @@ The list of available arguments:
 
 | **Argument**       | **Type** | **Default** | **Req** | **Description** |
 | :---               | :---     | :---        | :---    | :--- |
-| `--in-video`       | str      | None        | Yes     | Input video path. |
+| `--in-video`       | str      | None        | Yes     | Input video path (supports also a path to a sequence of images `path/basename_%05d.png`). |
 | `--in-tracks`      | str      | None        | No      | The tracks file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-gt`          | str      | None        | No      | File containing the ground truth. |
 | `--out-frame`      | str      | None        | Yes     | Path of the output frame (PGM format). |
@@ -253,7 +253,7 @@ The list of available arguments:
 
 | **Argument**       | **Type** | **Default** | **Req** | **Description** |
 | :---               | :---     | :---        | :---    | :--- |
-| `--in-video`       | str      | None        | Yes     | Input video path. |
+| `--in-video`       | str      | None        | Yes     | Input video path (supports also a path to a sequence of images `path/basename_%05d.png`). |
 | `--out-frames`     | str      | None        | Yes     | Path of the output frames (PGM format). |
 | `--fra-start`      | int      | 0           | No      | First frame id (included) to start the conversion. |
 | `--fra-end`        | int      | 0           | No      | Last frame id (included) to stop the conversion. If set to 0, read entire video. |

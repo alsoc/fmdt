@@ -12,17 +12,8 @@
 #include "fmdt/threshold.h"
 #include "fmdt/tracking.h"
 #include "fmdt/video.h"
-#include "fmdt/images.h"
 #include "fmdt/macros.h"
 #include "vec.h"
-
-int get_next_frame(video_t* video, images_t* images, uint8_t** I) {
-    if (video)
-        return video_get_next_frame(video, I);
-    else if (images)
-        return images_get_next_frame(images, I);
-    return 0;
-}
 
 int main(int argc, char** argv) {
     // default values
@@ -57,7 +48,7 @@ int main(int argc, char** argv) {
     // help
     if (args_find(argc, argv, "-h")) {
         fprintf(stderr,
-                "  --in-video          Path to video file or to a folder of PGM images                        [%s]\n",
+                "  --in-video          Path to video file or to an images sequence                            [%s]\n",
                 def_p_in_video ? def_p_in_video : "NULL");
         fprintf(stderr,
                 "  --out-frames        Path to frames output folder                                           [%s]\n",
@@ -239,12 +230,6 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--light-max' has to be higher than '--light-min'\n");
         exit(1);
     }
-    if (!tools_is_dir(p_in_video) && p_video_buff)
-        fprintf(stderr, "(WW) '--video-buff' has no effect when '--in-video' is a video file\n");
-    if (!tools_is_dir(p_in_video) && p_video_loop > 1)
-        fprintf(stderr, "(WW) '--video-loop' has no effect when '--in-video' is a video file\n");
-    if (p_ffmpeg_threads && tools_is_dir(p_in_video))
-        fprintf(stderr, "(WW) '--ffmpeg-threads' has no effect when '--in-video' is a folder of images\n");
 #ifdef OPENCV_LINK
     if (p_show_id && !p_out_frames)
         fprintf(stderr, "(WW) '--show-id' has to be combined with the '--out-frames' parameter\n");
@@ -255,16 +240,9 @@ int main(int argc, char** argv) {
     // -------------------------- //
 
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
-    video_t* video = NULL;
-    images_t* images = NULL;
-    if (!tools_is_dir(p_in_video)) {
-        video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_ffmpeg_threads, &i0, &i1, &j0,
-                                     &j1);
-    } else {
-        images = images_init_from_path(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_video_buff);
-        i0 = images->i0; i1 = images->i1; j0 = images->j0; j1 = images->j1;
-        images->loop_size = (size_t)(p_video_loop);
-    }
+    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_video_buff,
+                                          p_ffmpeg_threads, &i0, &i1, &j0, &j1);
+    video->loop_size = (size_t)(p_video_loop);
 
     // ---------------- //
     // -- ALLOCATION -- //
@@ -312,7 +290,7 @@ int main(int argc, char** argv) {
     size_t real_n_tracks = 0;
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     int cur_fra;
-    while ((cur_fra = get_next_frame(video, images, I)) != -1) {
+    while ((cur_fra = video_get_next_frame(video, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         // step 1: threshold low
@@ -421,10 +399,7 @@ int main(int argc, char** argv) {
     features_free_ROI_array(ROI_array_tmp);
     features_free_ROI_array(ROI_array0);
     features_free_ROI_array(ROI_array1);
-    if (video)
-        video_free(video);
-    if (images)
-        images_free(images);
+    video_free(video);
     if (img_data)
         tools_gray_img_free(img_data);
     CCL_LSL_free_data(ccl_data);
