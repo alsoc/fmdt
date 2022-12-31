@@ -202,7 +202,7 @@ int main(int argc, char** argv) {
     // init
     int b = 1;
     int i0, i1, j0, j1; // image dimension (y_min, y_max, x_min, x_max)
-    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, 0, 0, p_ffmpeg_threads, &i0, &i1, &j0,
+    video_t* video = video_init_from_path(p_in_video, p_fra_start, p_fra_end, 0, 0, p_ffmpeg_threads, &i0, &i1, &j0,
                                           &j1);
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
     img_data_t* img_data = tools_color_img_alloc1((j1 - j0) - 1, (i1 - i0) + 1, p_out_frames ? p_out_frames : "",

@@ -240,7 +240,7 @@ int main(int argc, char** argv) {
     // -------------------------- //
 
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
-    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_video_buff,
+    video_t* video = video_init_from_path(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_video_buff,
                                           p_ffmpeg_threads, &i0, &i1, &j0, &j1);
     video->loop_size = (size_t)(p_video_loop);
 

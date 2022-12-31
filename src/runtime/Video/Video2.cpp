@@ -10,7 +10,7 @@ Video2::Video2(const std::string filename, const size_t frame_start, const size_
     this->set_name(name);
     this->set_short_name(name);
 
-    this->video = video_init_from_file(filename.c_str(), frame_start, frame_end, frame_skip, bufferize,
+    this->video = video_init_from_path(filename.c_str(), frame_start, frame_end, frame_skip, bufferize,
                                        n_ffmpeg_threads, &this->i0, &this->i1, &this->j0, &this->j1);
 
     this->out_img0 = (uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint8_t*)));

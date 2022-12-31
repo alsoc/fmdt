@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
     // image
     // int b = 1;
     int i0, i1, j0, j1;
-    video_t* video = video_init_from_file(p_in_video, p_fra_start, p_fra_end, skip, 0, p_ffmpeg_threads, &i0, &i1, &j0,
+    video_t* video = video_init_from_path(p_in_video, p_fra_start, p_fra_end, skip, 0, p_ffmpeg_threads, &i0, &i1, &j0,
                                           &j1);
 
     // ---------------- //

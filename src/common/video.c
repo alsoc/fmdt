@@ -9,7 +9,7 @@
 
 #define MAX_BUFF_SIZE 16384
 
-video_t* video_init_from_file(const char* filename, const size_t start, const size_t end, const size_t skip,
+video_t* video_init_from_path(const char* path, const size_t start, const size_t end, const size_t skip,
                               const int bufferize, const size_t n_ffmpeg_threads, int* i0, int* i1, int* j0, int* j1) {
     assert(start <= end);
     video_t* video = (video_t*)malloc(sizeof(video_t));
@@ -18,7 +18,7 @@ video_t* video_init_from_file(const char* filename, const size_t start, const si
         exit(1);
     }
 
-    snprintf(video->filename, sizeof(video->filename), "%s", filename);
+    snprintf(video->path, sizeof(video->path), "%s", path);
 
     ffmpeg_options_init(&video->ffmpeg_opts);
     if (n_ffmpeg_threads)
@@ -29,8 +29,8 @@ video_t* video_init_from_file(const char* filename, const size_t start, const si
         video->ffmpeg_opts.vframes = (end - start) + 1;
 
     ffmpeg_init(&video->ffmpeg);
-    if (!ffmpeg_probe(&video->ffmpeg, video->filename, &video->ffmpeg_opts)) {
-        fprintf(stderr, "(EE) can't open file %s\n", video->filename);
+    if (!ffmpeg_probe(&video->ffmpeg, video->path, &video->ffmpeg_opts)) {
+        fprintf(stderr, "(EE) can't open file %s\n", video->path);
         free(video);
         exit(1);
     }
@@ -41,8 +41,8 @@ video_t* video_init_from_file(const char* filename, const size_t start, const si
     video->frame_current = 0;
     video->ffmpeg.output.pixfmt = ffmpeg_str2pixfmt("gray");
 
-    if (!ffmpeg_start_reader(&video->ffmpeg, video->filename, &video->ffmpeg_opts)) {
-        fprintf(stderr, "(EE) can't open file %s\n", video->filename);
+    if (!ffmpeg_start_reader(&video->ffmpeg, video->path, &video->ffmpeg_opts)) {
+        fprintf(stderr, "(EE) can't open file %s\n", video->path);
         free(video);
         exit(1);
     }
@@ -112,8 +112,8 @@ retry:
                 video->cur_loop++;
                 video->frame_current = 0;
                 ffmpeg_stop_reader(&video->ffmpeg);
-                if (!ffmpeg_start_reader(&video->ffmpeg, video->filename, &video->ffmpeg_opts)) {
-                    fprintf(stderr, "(EE) can't open file %s\n", video->filename);
+                if (!ffmpeg_start_reader(&video->ffmpeg, video->path, &video->ffmpeg_opts)) {
+                    fprintf(stderr, "(EE) can't open file %s\n", video->path);
                     exit(1);
                 }
                 goto retry;
