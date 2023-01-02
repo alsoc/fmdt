@@ -16,7 +16,7 @@ class Video : public aff3ct::module::Module, public aff3ct::tools::Interface_is_
 protected:
     int i0, i1, j0, j1;
     int b;
-    video_t* video;
+    video_reader_t* video;
     uint8_t** out_img;
     bool done;
 public:

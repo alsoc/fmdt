@@ -24,8 +24,9 @@ def main_exec(L_EXE):
     print("# EXE:")
     
     for i in L_EXE: 
+        os.mkdir(PATH_BUILD + "/" + i)
         out_bb     = " --out-bb "     + PATH_BUILD + "/" + i + "/" + "bb.txt"
-        out_frames = " --out-frames " + PATH_BUILD + "/" + i
+        out_frames = " --out-frames " + PATH_BUILD + "/" + i + "/" + "%05d.pgm"
         out_stats  = " --out-stats "  + PATH_BUILD + "/" + i
         bin        = PATH_EXE + "/" + i + " "
 

@@ -29,37 +29,26 @@ int tools_is_dir(const char *path);
 // ====================================================================================================================
 
 typedef struct img_data_t {
-    char ext[32];
-    char path[1024];
-    uint8_t show_id;
     size_t height;
     size_t width;
     void* pixels;
     void* container_2d;
 } img_data_t;
 
-img_data_t* tools_gray_img_alloc1(const size_t img_width, const size_t img_height, const char* path, const char* ext,
-                                  const uint8_t show_id);
-img_data_t* tools_gray_img_alloc2(const size_t img_width, const size_t img_height, const char* ext,
-                                  const uint8_t show_id);
-void _tools_gray_img_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* ROI_id,
-                                 const uint32_t* ROI_xmax, const uint32_t* ROI_ymin, const uint32_t* ROI_ymax,
-                                 const size_t n_ROI);
-void tools_gray_img_draw_labels(img_data_t* img_data, const uint32_t** labels, const ROI_t* ROI_array);
-uint8_t* tools_gray_img_get_pixels(img_data_t* img_data);
-uint8_t** tools_gray_img_get_pixels_2d(img_data_t* img_data);
-void tools_gray_img_write1(img_data_t* img_data, const size_t frame);
-void tools_gray_img_write2(img_data_t* img_data, const char* filename);
-void tools_gray_img_free(img_data_t* img_data);
+img_data_t* tools_gs_img_alloc(const size_t img_width, const size_t img_height);
+void _tools_gs_img_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* ROI_id,
+                               const uint32_t* ROI_xmax, const uint32_t* ROI_ymin, const uint32_t* ROI_ymax,
+                               const size_t n_ROI, const uint8_t show_id);
+void tools_gs_img_draw_labels(img_data_t* img_data, const uint32_t** labels, const ROI_t* ROI_array,
+                              const uint8_t show_id);
+uint8_t* tools_gs_img_get_pixels(img_data_t* img_data);
+uint8_t** tools_gs_img_get_pixels_2d(img_data_t* img_data);
+void tools_gs_img_free(img_data_t* img_data);
 
-img_data_t* tools_color_img_alloc1(const size_t img_width, const size_t img_height, const char* path, const char* ext,
-                                   const uint8_t show_id);
-img_data_t* tools_color_img_alloc2(const size_t img_width, const size_t img_height, const char* ext,
-                                   const uint8_t show_id);
+img_data_t* tools_color_img_alloc(const size_t img_width, const size_t img_height);
 void tools_color_img_draw_BB(img_data_t* img_data, const uint8_t** img, const BB_t* BB_list,
-                             const enum color_e* BB_list_color, const size_t n_BB, const uint8_t is_gt);
+                             const enum color_e* BB_list_color, const size_t n_BB, const uint8_t show_id,
+                             const uint8_t is_gt);
 rgb8_t* tools_color_img_get_pixels(img_data_t* img_data);
 rgb8_t** tools_color_img_get_pixels_2d(img_data_t* img_data);
-void tools_color_img_write1(img_data_t* img_data, const size_t frame);
-void tools_color_img_write2(img_data_t* img_data, const char* filename);
 void tools_color_img_free(img_data_t* img_data);

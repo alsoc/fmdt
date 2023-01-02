@@ -10,8 +10,8 @@ Video2::Video2(const std::string filename, const size_t frame_start, const size_
     this->set_name(name);
     this->set_short_name(name);
 
-    this->video = video_init_from_path(filename.c_str(), frame_start, frame_end, frame_skip, bufferize,
-                                       n_ffmpeg_threads, &this->i0, &this->i1, &this->j0, &this->j1);
+    this->video = video_reader_init(filename.c_str(), frame_start, frame_end, frame_skip, bufferize, n_ffmpeg_threads,
+                                    &this->i0, &this->i1, &this->j0, &this->j1);
 
     this->out_img0 = (uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint8_t*)));
     this->out_img0 -= i0 - b;
@@ -38,7 +38,7 @@ Video2::Video2(const std::string filename, const size_t frame_start, const size_
         tools_linear_2d_nrc_ui8matrix((const uint8_t*)m_out_img1, vid2.i0 - vid2.b, vid2.i1 + vid2.b, vid2.j0 - vid2.b, 
                                       vid2.j1 + vid2.b, (const uint8_t**)vid2.out_img0);
 
-        int cur_fra = video_get_next_frame(vid2.video, vid2.out_img0);
+        int cur_fra = video_reader_get_frame(vid2.video, vid2.out_img0);
         vid2.done = cur_fra == -1 ? true : false;
 
         memcpy(vid2.img_buf, &(vid2.out_img0[vid2.i0 - vid2.b][vid2.j0 - vid2.b]), vid2.size_image);
@@ -55,7 +55,7 @@ Video2::Video2(const std::string filename, const size_t frame_start, const size_
 Video2::~Video2() {
     free(this->out_img0 + this->i0 - this->b);
     free(this->img_buf);
-    video_free(this->video);
+    video_reader_free(this->video);
 }
 
 bool Video2::is_done() const {

@@ -113,8 +113,6 @@ The `CMake` file comes with several options:
    check executable.
  * `-DFMDT_MAXRED_EXE`     [default=`ON`]  {possible:`ON`,`OFF`}: compile the 
    max reduction executable.
- * `-DFMDT_VID2IMG_EXE`    [default=`ON`]  {possible:`ON`,`OFF`}: compile the 
-   video to images converter executable.
  * `-DFMDT_DEBUG`          [default=`OFF`] {possible:`ON`,`OFF`}: build the 
    project using debugging prints: these additional prints will be output on 
    `stderr` and prefixed by `(DBG)`.
@@ -133,7 +131,6 @@ This project generates different executables:
   - `fmdt-visu`: visualization of the detected meteors.
   - `fmdt-check`: validation of the detected meteors with the field truth.
   - `fmdt-maxred`: max reduction of grayscale pixels on a video.
-  - `fmdt-vid2img`: convert video input files into a series of grayscale images.
 
 The next sub-sections describe *how to use* the generated executables.
 
@@ -145,9 +142,9 @@ The list of available arguments:
 
 | **Argument**       | **Type** | **Default** | **Req** | **Description** |
 | :---               | :---     | :---        | :---    | :--- |
-| `--in-video`       | str      | None        | Yes     | Input video path where we want to detect meteors (supports also a path to a sequence of images `path/basename_%05d.png`). |
+| `--in-video`       | str      | None        | Yes     | Input video path where we want to detect meteors (supports also a path to a sequence of images `path/basename_%05d.jpg`). |
 | `--out-bb`         | str      | None        | No      | Path to the bounding boxes file required by `fmdt-visu` to draw detection rectangles. |
-| `--out-frames`     | str      | None        | No      | Path of the output frames for debug (PGM format). |
+| `--out-frames`     | str      | None        | No      | Path of the files for CC debug (`path/cc_%05d.jpg`). |
 | `--out-stats`      | str      | None        | No      | Path of the output statistics, only required for debugging purpose. |
 | `--out-mag`        | str      | None        | No      | Path to the output file containing magnitudes of the tracked objects. |
 | `--fra-start`      | int      | 0           | No      | First frame id (included) to start the detection in the video sequence. |
@@ -172,7 +169,6 @@ The list of available arguments:
 | `--video-loop`     | int      | 1           | No      | Number of times the video is read in loop  (for now it only works with `--in-video` as a folder of PGM images). |
 | `--ffmpeg-threads` | int      | 0           | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
 | `--show-id`        | bool     | -           | No      | Show the ROI/CC ids on the output frames (to combine with `--out-frames` parameter). Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
-| `--img-ext`        | str      | "pgm"       | No      | Image extension of saved frames ('jpg', 'png', 'tiff', ...). Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
 
 Output text formats are detailed in the 
 [Input and Output Text Formats](#input-and-output-text-formats) section.
@@ -189,15 +185,13 @@ The list of available arguments:
 | `--in-tracks`      | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-bb`          | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-gt`          | str      | None           | No      | File containing the ground truth. |
-| `--out-video`      | str      | None           | No      | Path of the output video (MPEG-4 format) with meteor tracking colored rectangles. If `--in-gt` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--in-gt` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
-| `--out-frames`     | str      | None           | No      | Path of the output frames for debug (PPM format). |
+| `--out-video`      | str      | None           | No      | Path of the output video (supports also a path to a sequence of images `path/basename_%05d.jpg`) with meteor tracking colored rectangles. If `--in-gt` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--in-gt` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
 | `--show-id`        | bool     | -              | No      | Show the object ids on the output video and frames. Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
 | `--nat-num`        | bool     | -              | No      | Natural numbering of the object ids, work only if `--show-id` is set. |
 | `--only-meteor`    | bool     | -              | No      | Show only meteors. |
 | `--ffmpeg-threads` | int      | 0              | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
 | `--fra-start`      | int      | 0              | No      | First frame id (included) to start the visualization in the video sequence. |
 | `--fra-end`        | int      | 0              | No      | Last frame id (included) to stop the visualization in the video sequence. If set to 0, read entire video. |
-| `--img-ext`        | str      | "ppm"          | No      | Image extension of saved frames ('jpg', 'png', 'tiff', ...). Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
 
 **Note**: to run `fmdt-visu`, it is required to run `fmdt-detect` before and on 
 the same input video. This will generate the required `tracks.txt` and 
@@ -234,29 +228,12 @@ The list of available arguments:
 | `--in-video`       | str      | None        | Yes     | Input video path (supports also a path to a sequence of images `path/basename_%05d.png`). |
 | `--in-tracks`      | str      | None        | No      | The tracks file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-gt`          | str      | None        | No      | File containing the ground truth. |
-| `--out-frame`      | str      | None        | Yes     | Path of the output frame (PGM format). |
+| `--out-frame`      | str      | None        | Yes     | Path of the output frame. |
 | `--fra-start`      | int      | 0           | No      | First frame id (included) to start the max-reduction in the video sequence. |
 | `--fra-end`        | int      | 0           | No      | Last frame id (included) to stop the max-reduction in the video sequence. If set to 0, read entire video. |
 | `--show-id`        | bool     | -           | No      | Show the object ids on the output video and frames, works only if `--in-tracks` is set. Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
 | `--nat-num`        | bool     | -           | No      | Natural numbering of the object ids, works only if `--show-id` is set. |
 | `--only-meteor`    | bool     | -           | No      | Show only meteors. |
-| `--ffmpeg-threads` | int      | 0           | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
-| `--img-ext`        | str      | "pgm"       | No      | Image extension of saved frame ('jpg', 'png', 'tiff', ...). Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
-
-### Video to Images Converter Executable
-
-The video to images converter program is located here: `./exe/fmdt-vid2img`.
-It's main interest is to directly work on images, thus removing the overhead of 
-the source decoding (achieved by `ffmpeg`).
-
-The list of available arguments:
-
-| **Argument**       | **Type** | **Default** | **Req** | **Description** |
-| :---               | :---     | :---        | :---    | :--- |
-| `--in-video`       | str      | None        | Yes     | Input video path (supports also a path to a sequence of images `path/basename_%05d.png`). |
-| `--out-frames`     | str      | None        | Yes     | Path of the output frames (PGM format). |
-| `--fra-start`      | int      | 0           | No      | First frame id (included) to start the conversion. |
-| `--fra-end`        | int      | 0           | No      | Last frame id (included) to stop the conversion. If set to 0, read entire video. |
 | `--ffmpeg-threads` | int      | 0           | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
 
 ### Examples of use

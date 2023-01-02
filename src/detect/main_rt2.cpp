@@ -51,9 +51,6 @@ int main(int argc, char** argv) {
     char* def_p_out_stats = NULL;
     char* def_p_out_mag = NULL;
     int def_p_ffmpeg_threads = 0;
-#ifdef OPENCV_LINK
-    char def_p_img_ext[] = "pgm";
-#endif
 
     // Help
     if (args_find(argc, argv, "-h")) {
@@ -135,9 +132,6 @@ int main(int argc, char** argv) {
 #ifdef OPENCV_LINK
         fprintf(stderr,
                 "  --show-id           Show the ROI/CC ids on the ouptut frames                                   \n");
-        fprintf(stderr,
-                "  --img-ext           Image extension of saved frames ('jpg', 'png', 'tiff', ...)            [%s]\n",
-                def_p_img_ext);
 #endif
         fprintf(stderr,
                 "  -h                  This help                                                                  \n");
@@ -172,10 +166,8 @@ int main(int argc, char** argv) {
     const int p_task_stats = args_find(argc, argv, "--task-stats");
 #ifdef OPENCV_LINK
     const int p_show_id = args_find(argc, argv, "--show-id");
-    const char* p_img_ext = args_find_char(argc, argv, "--img-ext", def_p_img_ext);
 #else
     const int p_show_id = 0;
-    const char p_img_ext[] = "pgm";
 #endif
 
     // heading display
@@ -214,7 +206,6 @@ int main(int argc, char** argv) {
     printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
 #ifdef OPENCV_LINK
     printf("#  * show-id        = %d\n", p_show_id);
-    printf("#  * img-ext        = %s\n", p_img_ext);
 #endif
 #ifdef ENABLE_PIPELINE
     printf("#  * Runtime mode   = Pipeline\n");
@@ -304,7 +295,7 @@ int main(int argc, char** argv) {
     Logger_track log_track(p_out_stats ? p_out_stats : "", tracking.get_data());
     std::unique_ptr<Logger_frame> log_frame;
     if (p_out_frames)
-        log_frame.reset(new Logger_frame(p_out_frames, p_img_ext, p_show_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
+        log_frame.reset(new Logger_frame(p_out_frames, p_show_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
 
     // ------------------- //
     // -- TASKS BINDING -- //
@@ -411,7 +402,6 @@ int main(int argc, char** argv) {
 
     if (p_out_frames) {
         (*log_frame)[lgr_fra::sck::write::in_labels] = merger1[ftr_mrg::sck::merge::out_labels];
-        (*log_frame)[lgr_fra::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
         (*log_frame)[lgr_fra::sck::write::in_ROI_id] = merger1[ftr_mrg::sck::merge::out_ROI_id];
         (*log_frame)[lgr_fra::sck::write::in_ROI_xmax] = merger1[ftr_mrg::sck::merge::out_ROI_xmax];
         (*log_frame)[lgr_fra::sck::write::in_ROI_ymin] = merger1[ftr_mrg::sck::merge::out_ROI_ymin];

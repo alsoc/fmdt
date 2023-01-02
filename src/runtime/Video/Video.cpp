@@ -10,8 +10,8 @@ Video::Video(const std::string filename, const size_t frame_start, const size_t 
     this->set_name(name);
     this->set_short_name(name);
 
-    this->video = video_init_from_path(filename.c_str(), frame_start, frame_end, frame_skip, bufferize,
-                                       n_ffmpeg_threads, &this->i0, &this->i1, &this->j0, &this->j1);
+    this->video = video_reader_init(filename.c_str(), frame_start, frame_end, frame_skip, bufferize, n_ffmpeg_threads,
+                                    &this->i0, &this->i1, &this->j0, &this->j1);
 
     this->out_img = (uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint8_t*)));
     this->out_img -= i0 - b;
@@ -29,7 +29,7 @@ Video::Video(const std::string filename, const size_t frame_start, const size_t 
         tools_linear_2d_nrc_ui8matrix((const uint8_t*)m_out_img, vid.i0 - vid.b, vid.i1 + vid.b, vid.j0 - vid.b, 
                                       vid.j1 + vid.b, (const uint8_t**)vid.out_img);
 
-        int cur_fra = video_get_next_frame(vid.video, vid.out_img);
+        int cur_fra = video_reader_get_frame(vid.video, vid.out_img);
         vid.done = cur_fra == -1 ? true : false;
         if (vid.done)
             throw aff3ct::tools::processing_aborted(__FILE__, __LINE__, __func__);
@@ -42,7 +42,7 @@ Video::Video(const std::string filename, const size_t frame_start, const size_t 
 
 Video::~Video() {
     free(this->out_img + this->i0 - this->b);
-    video_free(this->video);
+    video_reader_free(this->video);
 }
 
 bool Video::is_done() const {

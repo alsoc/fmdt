@@ -13,7 +13,7 @@
 #include "fmdt/video.h"
 #include "vec.h"
 
-void max_reduce(uint8_t** M, int i0, int i1, int j0, int j1, uint8_t** I) {
+void max_reduce(uint8_t** M, int i0, int i1, int j0, int j1, const uint8_t** I) {
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
             uint8_t x = I[i][j];
@@ -34,35 +34,30 @@ int main(int argc, char** argv) {
     int def_p_fra_end = 0;
     char* def_p_in_gt = NULL;
     int def_p_ffmpeg_threads = 0;
-#ifdef OPENCV_LINK
-    char def_p_img_ext[] = "pgm";
-#endif
 
     // help
     if (args_find(argc, argv, "-h")) {
-        fprintf(stderr, "  --in-video        Video source                                        [%s]\n",
+        fprintf(stderr, "  --in-video        Video source                             [%s]\n",
                 def_p_in_video ? def_p_in_video : "NULL");
-        fprintf(stderr, "  --in-tracks       Path to the tracks files                            [%s]\n",
+        fprintf(stderr, "  --in-tracks       Path to the tracks files                 [%s]\n",
                 def_p_in_tracks ? def_p_in_tracks : "NULL");
-        fprintf(stderr, "  --in-gt           File containing the ground truth                    [%s]\n",
+        fprintf(stderr, "  --in-gt           File containing the ground truth         [%s]\n",
                 def_p_in_gt ? def_p_in_gt : "NULL");
-        fprintf(stderr, "  --out-frame       Path to the frame output file                       [%s]\n",
+        fprintf(stderr, "  --out-frame       Path to the frame output file            [%s]\n",
                 def_p_out_frame ? def_p_out_frame : "NULL");
-        fprintf(stderr, "  --fra-start       Starting frame in the video                         [%d]\n",
+        fprintf(stderr, "  --fra-start       Starting frame in the video              [%d]\n",
                 def_p_fra_start);
-        fprintf(stderr, "  --fra-end         Ending frame in the video                           [%d]\n",
+        fprintf(stderr, "  --fra-end         Ending frame in the video                [%d]\n",
                 def_p_fra_end);
 #ifdef OPENCV_LINK
-        fprintf(stderr, "  --show-id         Show the object ids on the output frame                 \n");
-        fprintf(stderr, "  --nat-num         Natural numbering of the object ids                     \n");
-        fprintf(stderr, "  --img-ext         Image extension of saved frame ('jpg', 'png', ...)  [%s]\n",
-                def_p_img_ext);
+        fprintf(stderr, "  --show-id         Show the object ids on the output frame      \n");
+        fprintf(stderr, "  --nat-num         Natural numbering of the object ids          \n");
 #endif
-        fprintf(stderr, "  --only-meteor     Show only meteors                                       \n");
-        fprintf(stderr, "  --ffmpeg-threads  Select the number of threads to use to              [%d]\n"
-                        "                    decode video input (in ffmpeg)                          \n",
+        fprintf(stderr, "  --only-meteor     Show only meteors                            \n");
+        fprintf(stderr, "  --ffmpeg-threads  Select the number of threads to use to   [%d]\n"
+                        "                    decode video input (in ffmpeg)               \n",
                 def_p_ffmpeg_threads);
-        fprintf(stderr, "  -h                This help                                               \n");
+        fprintf(stderr, "  -h                This help                                    \n");
         exit(1);
     }
 
@@ -76,10 +71,8 @@ int main(int argc, char** argv) {
 #ifdef OPENCV_LINK
     const int p_show_id = args_find(argc, argv, "--show-id");
     const int p_nat_num = args_find(argc, argv, "--nat-num");
-    const char* p_img_ext = args_find_char(argc, argv, "--img-ext", def_p_img_ext);
 #else
     const int p_show_id = 0;
-    const char p_img_ext[] = "ppm";
 #endif
     const int p_only_meteor = args_find(argc, argv, "--only-meteor");
     const int p_ffmpeg_threads = args_find_int_min(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads, 0);
@@ -102,7 +95,6 @@ int main(int argc, char** argv) {
 #ifdef OPENCV_LINK
     printf("#  * show-id        = %d\n", p_show_id);
     printf("#  * nat-num        = %d\n", p_nat_num);
-    printf("#  * img-ext        = %s\n", p_img_ext);
 #endif
     printf("#  * only-meteor    = %d\n", p_only_meteor);
     printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
@@ -123,12 +115,12 @@ int main(int argc, char** argv) {
     }
 #ifdef OPENCV_LINK
     if (p_show_id && !p_in_tracks)
-        fprintf(stderr, "(WW) '--show-id' will not work because '--in-tracks' is not set.\n");
+        fprintf(stderr, "(WW) '--show-id' will not work because '--in-tracks' is not set\n");
     if (!p_show_id && p_nat_num)
-        fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set.\n");
+        fprintf(stderr, "(WW) '--nat-num' will not work because '--show-id' is not set\n");
 #endif
     if (p_in_gt && !p_in_tracks)
-        fprintf(stderr, "(WW) '--in-gt' will not work because '--in-tracks' is not set.\n");
+        fprintf(stderr, "(WW) '--in-gt' will not work because '--in-tracks' is not set\n");
     if (p_ffmpeg_threads < 0) {
         fprintf(stderr, "(EE) '--ffmpeg-threads' has to be bigger or equal to 0\n");
         exit(1);
@@ -138,56 +130,41 @@ int main(int argc, char** argv) {
 
     tracking_init_global_data();
 
-    // sequence
     int frame;
     int skip = 0;
-
-    // image
-    // int b = 1;
     int i0, i1, j0, j1;
 
     // ------------------------- //
     // -- INITIALISATION VIDEO-- //
     // ------------------------- //
     PUTS("INIT VIDEO");
-    video_t* video = video_init_from_path(p_in_video, p_fra_start, p_fra_end, skip, 0, p_ffmpeg_threads, &i0, &i1, &j0,
-                                          &j1);
+    video_reader_t* video = video_reader_init(p_in_video, p_fra_start, p_fra_end, skip, 0, p_ffmpeg_threads, &i0, &i1,
+                                              &j0, &j1);
 
     // ---------------- //
     // -- ALLOCATION -- //
     // ---------------- //
     PUTS("ALLOC");
-    uint8_t** img = (uint8_t**)ui8matrix(i0, i1, j0, j1);
-    uint8_t** Max = (uint8_t**)ui8matrix(i0, i1, j0, j1);
-    zero_ui8matrix(Max, i0, i1, j0, j1);
+    uint8_t** I = (uint8_t**)ui8matrix(i0, i1, j0, j1);
+    uint8_t** M = (uint8_t**)ui8matrix(i0, i1, j0, j1);
+    zero_ui8matrix(M, i0, i1, j0, j1);
     img_data_t* img_data = NULL;
+    video_writer_t* video_writer = NULL;
     if (p_in_tracks) {
-        char ext[32];
-        snprintf(ext, sizeof(ext), "%s", p_img_ext);
-        if (strcmp(ext, "pgm") == 0) {
-            snprintf(ext, sizeof(ext), "%s", "ppm");
-            fprintf(stderr, "(WW) Image format has been forced from PGM to PPM because the output will be in "
-                            "color.\n");
-        }
-        img_data = tools_color_img_alloc2((j1 - j0) + 1, (i1 - i0) + 1, ext, p_show_id);
+        img_data = tools_color_img_alloc((j1 - j0) + 1, (i1 - i0) + 1);
+        video_writer = video_writer_init(p_out_frame, 4, i1 - i0 + 1, j1 - j0 + 1, PIXFMT_RGB24);
     } else {
-        char ext[32];
-        snprintf(ext, sizeof(ext), "%s", p_img_ext);
-        if (strcmp(ext, "ppm") == 0) {
-            snprintf(ext, sizeof(ext), "%s", "pgm");
-            fprintf(stderr, "(WW) Image format has been forced from PPM to PGM because the output will be in "
-                            "grayscale.\n");
-        }
-        img_data = tools_gray_img_alloc2((j1 - j0) + 1, (i1 - i0) + 1, ext, 0);
+        img_data = tools_gs_img_alloc((j1 - j0) + 1, (i1 - i0) + 1);
+        video_writer = video_writer_init(p_out_frame, 4, i1 - i0 + 1, j1 - j0 + 1, PIXFMT_GRAY);
     }
 
     // ----------------//
     // -- TRAITEMENT --//
     // ----------------//
     PUTS("LOOP");
-    while ((frame = video_get_next_frame(video, img)) != -1) {
+    while ((frame = video_reader_get_frame(video, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d\r", frame);
-        max_reduce(Max, i0, i1, j0, j1, img);
+        max_reduce(M, i0, i1, j0, j1, (const uint8_t**)I);
     }
     fprintf(stderr, "\n");
 
@@ -203,10 +180,10 @@ int main(int argc, char** argv) {
         size_t n_tracks = vector_size(track_array);
         BB_t* BB_list = (BB_t*)malloc(sizeof(BB_t) * n_tracks);
         enum color_e* BB_list_color = (enum color_e*)malloc(sizeof(enum color_e) * n_tracks);
-        rgb8_t** img_bb = (rgb8_t**)rgb8matrix(i0, i1, j0, j1);
         size_t m = 0;
         for (size_t t = 0; t < n_tracks; t++) {
-            if (!p_only_meteor || track_array[t].obj_type == METEOR) {
+            if ((!p_only_meteor || track_array[t].obj_type == METEOR) &&
+                (track_array[t].end.frame >= (size_t)p_fra_start)) {
                 BB_list[m].frame_id = 0;
 #ifdef OPENCV_LINK
                 BB_list[m].track_id = p_nat_num ? (m + 1) : track_array[t].id;
@@ -245,37 +222,34 @@ int main(int argc, char** argv) {
         }
 
         int n_BB = m;
-        tools_color_img_draw_BB(img_data, (const uint8_t**)Max, (const BB_t*)BB_list,
-                                (const enum color_e*)BB_list_color, n_BB, p_in_gt ? 1 : 0);
-        tools_color_img_write2(img_data, p_out_frame);
-
+        tools_color_img_draw_BB(img_data, (const uint8_t**)M, (const BB_t*)BB_list, (const enum color_e*)BB_list_color,
+                                n_BB, p_show_id, p_in_gt ? 1 : 0);
+        video_writer_save_frame(video_writer, (const uint8_t**)tools_color_img_get_pixels_2d(img_data));
         vector_free(track_array);
-
-        free_rgb8matrix((rgb8**)img_bb, i0, i1, j0, j1);
         free(BB_list);
         free(BB_list_color);
-
         if (p_in_gt)
             validation_free();
     } else {
-        uint8_t* pixels = tools_gray_img_get_pixels(img_data);
-        // these copy could be avoided...
+        uint8_t* pixels = tools_gs_img_get_pixels(img_data);
+        // this copy could be avoided...
         for (int i = i0; i <= i1; i++)
             for (int j = j0; j <= j1; j++)
-                pixels[i * img_data->width + j] = Max[i][j];
-        tools_gray_img_write2(img_data, p_out_frame);
+                pixels[i * img_data->width + j] = M[i][j];
+        video_writer_save_frame(video_writer, (const uint8_t**)tools_gs_img_get_pixels_2d(img_data));
     }
 
     // ----------
     // -- free --
     // ----------
-    free_ui8matrix(img, i0, i1, j0, j1);
-    free_ui8matrix(Max, i0, i1, j0, j1);
+    free_ui8matrix(I, i0, i1, j0, j1);
+    free_ui8matrix(M, i0, i1, j0, j1);
     if (p_in_tracks)
         tools_color_img_free(img_data);
     else
-        tools_gray_img_free(img_data);
-    video_free(video);
+        tools_gs_img_free(img_data);
+    video_writer_free(video_writer);
+    video_reader_free(video);
 
     printf("# End of the program, exiting.\n");
 

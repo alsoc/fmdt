@@ -87,13 +87,8 @@ rgb8_t tools_get_color(enum color_e color) {
     return red;
 }
 
-void tools_plot_bounding_box(rgb8_t* img, const size_t width, int ymin, int ymax, int xmin, int xmax, int border,
-                             rgb8_t color, int is_dashed) {
-#ifdef OPENCV_LINK
-    rgb8_t color_tmp = color;
-    color.r = color_tmp.b;
-    color.b = color_tmp.r;
-#endif
+void tools_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8_t color,
+                             int is_dashed) {
     for (int b = 0; b < border; b++) {
         ymin++;
         ymax--;
@@ -106,8 +101,8 @@ void tools_plot_bounding_box(rgb8_t* img, const size_t width, int ymin, int ymax
 
         for (int i = ymin; i <= ymax; i++) {
             if (draw) {
-                img[i * width + xmin] = color;
-                img[i * width + xmax] = color;
+                img[i][xmin] = color;
+                img[i][xmax] = color;
             }
 
             if (is_dashed) {
@@ -123,8 +118,8 @@ void tools_plot_bounding_box(rgb8_t* img, const size_t width, int ymin, int ymax
         draw = 1;
         for (int j = xmin; j <= xmax; j++) {
             if (draw) {
-                img[ymin * width + j] = color;
-                img[ymax * width + j] = color;
+                img[ymin][j] = color;
+                img[ymax][j] = color;
             }
 
             if (is_dashed) {
@@ -139,8 +134,7 @@ void tools_plot_bounding_box(rgb8_t* img, const size_t width, int ymin, int ymax
 }
 
 #ifdef OPENCV_LINK // this is C++ code (because OpenCV API is C++ now)
-void tools_draw_legend_squares(rgb8_t* img, const size_t width, unsigned box_size, unsigned h_space, unsigned v_space,
-                               int validation) {
+void tools_draw_legend_squares(rgb8_t** img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
     //                     ymin      ymax      xmin      xmax      color
     std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned, rgb8_t>> box_list;
 
@@ -160,7 +154,7 @@ void tools_draw_legend_squares(rgb8_t* img, const size_t width, unsigned box_siz
                                            tools_get_color(RED)));                                 // color
 
     for (auto& box : box_list)
-        tools_plot_bounding_box(img, width, std::get<0>(box), std::get<1>(box), std::get<2>(box), std::get<3>(box), 2,
+        tools_plot_bounding_box(img, std::get<0>(box), std::get<1>(box), std::get<2>(box), std::get<3>(box), 2,
                                 std::get<4>(box), /* is_dashed = */ 0);
 }
 
@@ -171,7 +165,7 @@ void tools_draw_legend_text(cv::Mat& cv_img, unsigned box_size, unsigned h_space
         rgb8_t color = tools_get_color(g_obj_to_color[i]);
         unsigned x = 2 * h_space + box_size;
         unsigned y = ((i + 1) * v_space + (i + 1) * box_size) - 2;
-        txt_list.push_back(std::make_tuple(cv::Scalar(color.b, color.g, color.r), cv::Point(x, y),
+        txt_list.push_back(std::make_tuple(cv::Scalar(color.r, color.g, color.b), cv::Point(x, y),
                                            std::string(g_obj_to_string[i])));
     }
 
@@ -181,7 +175,7 @@ void tools_draw_legend_text(cv::Mat& cv_img, unsigned box_size, unsigned h_space
         unsigned x = 2 * h_space + box_size;
         unsigned y = ((N_OBJECTS + 2) * v_space + (N_OBJECTS + 2) * box_size) - 2;
         txt_list.push_back(
-            std::make_tuple(cv::Scalar(color.b, color.g, color.r), cv::Point(x, y), std::string("fp meteor")));
+            std::make_tuple(cv::Scalar(color.r, color.g, color.b), cv::Point(x, y), std::string("fp meteor")));
     }
 
     for (auto& txt : txt_list)
@@ -196,7 +190,7 @@ void tools_draw_legend_text(cv::Mat& cv_img, unsigned box_size, unsigned h_space
 }
 
 void tools_draw_track_id(cv::Mat& cv_img, const BB_t* BB_list, const enum color_e* BB_list_color, const int nBB) {
-    //                       x    y color        list of ids
+    //                       x    y   color       list of ids
     std::vector<std::tuple<int, int, rgb8_t, std::vector<int>>> list_of_ids_grouped_by_pos;
     for (int i = 0; i < nBB; i++) {
         int ymin = BB_list[i].bb_y - (BB_list[i].ry + DELTA_BB);
@@ -235,23 +229,23 @@ void tools_draw_track_id(cv::Mat& cv_img, const BB_t* BB_list, const enum color_
 
         // writing 'txt' over the image
         cv::Point org(x, y);
-        cv::putText(cv_img, txt.c_str(), org, cv::FONT_HERSHEY_DUPLEX, 0.7, cv::Scalar(color.b, color.g, color.r), 1,
+        cv::putText(cv_img, txt.c_str(), org, cv::FONT_HERSHEY_DUPLEX, 0.7, cv::Scalar(color.r, color.g, color.b), 1,
                     cv::LINE_AA);
     }
 }
 
-void tools_draw_text(cv::Mat* pixels, const BB_t* BB_list, const enum color_e* BB_list_color, const int nBB,
+void tools_draw_text(img_data_t* img_data, const BB_t* BB_list, const enum color_e* BB_list_color, const int nBB,
                      int validation, int show_id) {
     unsigned box_size = 20, h_space = 10, v_space = 10;
-    tools_draw_legend_squares((rgb8_t*)pixels->data, pixels->cols, box_size, h_space, v_space, validation);
-
+    tools_draw_legend_squares(tools_color_img_get_pixels_2d(img_data), box_size, h_space, v_space, validation);
+    cv::Mat* cv_mat = (cv::Mat*)img_data->pixels;
     if (show_id)
-        tools_draw_track_id(*pixels, BB_list, BB_list_color, nBB);
-    tools_draw_legend_text(*pixels, box_size, h_space, v_space, validation);
+        tools_draw_track_id(*cv_mat, BB_list, BB_list_color, nBB);
+    tools_draw_legend_text(*cv_mat, box_size, h_space, v_space, validation);
 }
 
-void _tools_draw_ROI_ids(cv::Mat& cv_img, const uint32_t* ROI_id, const uint32_t* ROI_xmax, const uint32_t* ROI_ymin,
-                         const uint32_t* ROI_ymax, const size_t n_ROI) {
+void _tools_draw_ROI_id(cv::Mat& cv_img, const uint32_t* ROI_id, const uint32_t* ROI_xmax, const uint32_t* ROI_ymin,
+                        const uint32_t* ROI_ymax, const size_t n_ROI) {
     //                       x    y  list of ids
     std::vector<std::tuple<int, int, std::vector<int>>> list_of_ids_grouped_by_pos;
     for (size_t i = 0; i < n_ROI; i++) {
@@ -288,7 +282,7 @@ void _tools_draw_ROI_ids(cv::Mat& cv_img, const uint32_t* ROI_id, const uint32_t
 }
 #endif
 
-void tools_draw_BB(rgb8_t* I_bb, const BB_t* BB_list, const enum color_e* BB_list_color, int n_BB, int w, int h) {
+void tools_draw_BB(rgb8_t** I_bb, const BB_t* BB_list, const enum color_e* BB_list_color, int n_BB, int w, int h) {
     int border = 2;
     for (int i = 0; i < n_BB; i++) {
         int ymin = BB_list[i].bb_y - (BB_list[i].ry + DELTA_BB);
@@ -301,7 +295,7 @@ void tools_draw_BB(rgb8_t* I_bb, const BB_t* BB_list, const enum color_e* BB_lis
         int xmin_fix = CLAMP(xmin, border + 1, w - (border + 2));
         int xmax_fix = CLAMP(xmax, border + 1, w - (border + 2));
 
-        tools_plot_bounding_box(I_bb, w, ymin_fix, ymax_fix, xmin_fix, xmax_fix, border, tools_get_color(BB_list_color[i]),
+        tools_plot_bounding_box(I_bb, ymin_fix, ymax_fix, xmin_fix, xmax_fix, border, tools_get_color(BB_list_color[i]),
                                 BB_list[i].is_extrapolated);
     }
 }
@@ -712,32 +706,14 @@ int tools_is_dir(const char *path)
     return S_ISDIR(path_stat.st_mode);
 }
 
-img_data_t* tools_gray_img_alloc1(const size_t img_width, const size_t img_height, const char* path, const char* ext,
-                                  const uint8_t show_id) {
+img_data_t* tools_gs_img_alloc(const size_t img_width, const size_t img_height) {
     img_data_t* img_data = (img_data_t*)malloc(sizeof(img_data_t));
-    snprintf(img_data->ext, sizeof(img_data->ext), "%s", ext);
-    snprintf(img_data->path, sizeof(img_data->path), "%s", path);
-    if (strlen(path))
-        tools_create_folder(img_data->path);
-    img_data->show_id = show_id;
-#ifndef OPENCV_LINK
-    if (strcmp(img_data->ext, "pgm") != 0) {
-        fprintf(stderr, "(EE) 'gray_img' only supports 'pgm' image format, you need to link with OpenCV "
-                        "to unlock other image formats.");
-        exit(1);
-    }
-    if (show_id) {
-        fprintf(stderr, "(EE) 'gray_img' does not support 'show_id = 1', you need to link with OpenCV "
-                        "to unlock this feature.");
-        exit(1);
-    }
-#endif
     img_data->width = img_width;
     img_data->height = img_height;
 #ifdef OPENCV_LINK
     img_data->pixels = (void*) new cv::Mat(img_data->height, img_data->width, CV_8U, cv::Scalar(255));
     uint8_t** container_2d = (uint8_t**) malloc(sizeof(uint8_t*) * img_data->height);
-    tools_linear_2d_nrc_ui8matrix((const uint8_t*)tools_gray_img_get_pixels(img_data), 0, img_data->height - 1,
+    tools_linear_2d_nrc_ui8matrix((const uint8_t*)tools_gs_img_get_pixels(img_data), 0, img_data->height - 1,
                                   0, img_data->width - 1, (const uint8_t**)container_2d);
     img_data->container_2d = (void*)container_2d;
 #else
@@ -747,22 +723,17 @@ img_data_t* tools_gray_img_alloc1(const size_t img_width, const size_t img_heigh
     return img_data;
 }
 
-img_data_t* tools_gray_img_alloc2(const size_t img_width, const size_t img_height, const char* ext,
-                                  const uint8_t show_id) {
-    return tools_gray_img_alloc1(img_width, img_height, "", ext, show_id);
-}
-
-void _tools_gray_img_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* ROI_id,
-                                 const uint32_t* ROI_xmax, const uint32_t* ROI_ymin, const uint32_t* ROI_ymax,
-                                 const size_t n_ROI) {
+void _tools_gs_img_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* ROI_id,
+                               const uint32_t* ROI_xmax, const uint32_t* ROI_ymin, const uint32_t* ROI_ymax,
+                               const size_t n_ROI, const uint8_t show_id) {
 #ifdef OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     // convert labels to black & white image: white if there is a CC, black otherwise
     for (size_t i = 0; i < (size_t)pixels->rows; i++)
         for (size_t j = 0; j < (size_t)pixels->cols; j++)
             pixels->at<uint8_t>(i, j) = (labels[i][j] == 0) ? 0 : 255;
-    if (img_data->show_id)
-        _tools_draw_ROI_ids(*pixels, ROI_id, ROI_xmax, ROI_ymin, ROI_ymax, n_ROI);
+    if (show_id)
+        _tools_draw_ROI_id(*pixels, ROI_id, ROI_xmax, ROI_ymin, ROI_ymax, n_ROI);
 #else
     uint8_t** pixels = (uint8_t**)img_data->pixels;
     // convert labels to black & white image: white if there is a CC, black otherwise
@@ -772,12 +743,13 @@ void _tools_gray_img_draw_labels(img_data_t* img_data, const uint32_t** labels, 
 #endif
 }
 
-void tools_gray_img_draw_labels(img_data_t* img_data, const uint32_t** labels, const ROI_t* ROI_array) {
-    _tools_gray_img_draw_labels(img_data, labels, ROI_array->id, ROI_array->xmax, ROI_array->ymin, ROI_array->ymax,
-                                ROI_array->_size);
+void tools_gs_img_draw_labels(img_data_t* img_data, const uint32_t** labels, const ROI_t* ROI_array,
+                              const uint8_t show_id) {
+    _tools_gs_img_draw_labels(img_data, labels, ROI_array->id, ROI_array->xmax, ROI_array->ymin, ROI_array->ymax,
+                              ROI_array->_size, show_id);
 }
 
-uint8_t* tools_gray_img_get_pixels(img_data_t* img_data) {
+uint8_t* tools_gs_img_get_pixels(img_data_t* img_data) {
     uint8_t* raw_data = NULL;
 #ifdef OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
@@ -789,38 +761,11 @@ uint8_t* tools_gray_img_get_pixels(img_data_t* img_data) {
     return raw_data;
 }
 
-uint8_t** tools_gray_img_get_pixels_2d(img_data_t* img_data) {
+uint8_t** tools_gs_img_get_pixels_2d(img_data_t* img_data) {
     return (uint8_t**)img_data->container_2d;
 }
 
-void _tools_gray_img_write(img_data_t* img_data, const char* filename) {
-#ifdef OPENCV_LINK
-    if (strcmp(img_data->ext, "pgm") == 0) {
-        uint8_t** pixels = tools_gray_img_get_pixels_2d(img_data);
-        SavePGM_ui8matrix((uint8**)pixels, 0, img_data->height -1, 0, img_data->width -1, (char*)filename);
-    } else {
-        cv::Mat* pixels = (cv::Mat*)img_data->pixels;
-        cv::imwrite(filename, *pixels);
-    }
-#else
-    uint8_t** pixels = (uint8_t**)img_data->pixels;
-    SavePGM_ui8matrix((uint8**)pixels, 0, img_data->height -1, 0, img_data->width -1, (char*)filename);
-#endif
-}
-
-void tools_gray_img_write1(img_data_t* img_data, const size_t frame) {
-    char filename[2048];
-    snprintf(filename, sizeof(filename), "%s/%05d.%s", img_data->path, (int)frame, img_data->ext);
-    _tools_gray_img_write(img_data, filename);
-}
-
-void tools_gray_img_write2(img_data_t* img_data, const char* filename) {
-    char filename_with_ext[2048];
-    snprintf(filename_with_ext, sizeof(filename_with_ext), "%s.%s", filename, img_data->ext);
-    _tools_gray_img_write(img_data, filename_with_ext);
-}
-
-void tools_gray_img_free(img_data_t* img_data) {
+void tools_gs_img_free(img_data_t* img_data) {
 #ifdef OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     delete pixels;
@@ -832,27 +777,8 @@ void tools_gray_img_free(img_data_t* img_data) {
     free(img_data);
 }
 
-img_data_t* tools_color_img_alloc1(const size_t img_width, const size_t img_height, const char* path, const char* ext,
-                                   const uint8_t show_id) {
+img_data_t* tools_color_img_alloc(const size_t img_width, const size_t img_height) {
     img_data_t* img_data = (img_data_t*)malloc(sizeof(img_data_t));
-    snprintf(img_data->ext, sizeof(img_data->ext), "%s", ext);
-    snprintf(img_data->path, sizeof(img_data->path), "%s", path);
-
-    if (strlen(path))
-        tools_create_folder(img_data->path);
-    img_data->show_id = show_id;
-#ifndef OPENCV_LINK
-    if (strcmp(img_data->ext, "ppm") != 0) {
-        fprintf(stderr, "(EE) 'color_img' only supports 'ppm' image format, you need to link with OpenCV "
-                        "to unlock other image formats.");
-        exit(1);
-    }
-    if (show_id) {
-        fprintf(stderr, "(EE) 'color_img' does not support 'show_id = 1', you need to link with OpenCV "
-                        "to unlock this feature.");
-        exit(1);
-    }
-#endif
     img_data->width = img_width;
     img_data->height = img_height;
 #ifdef OPENCV_LINK
@@ -862,20 +788,15 @@ img_data_t* tools_color_img_alloc1(const size_t img_width, const size_t img_heig
                                    img_data->width - 1, (const rgb8_t**)container_2d);
     img_data->container_2d = (void*)container_2d;
 #else
-    img_data->pixels = (void*) rgb8matrix(0, img_data->height -1, 0, img_data->width -1);
+    img_data->pixels = (void*)rgb8matrix(0, img_data->height -1, 0, img_data->width -1);
     img_data->container_2d = img_data->pixels;
 #endif
     return img_data;
 }
 
-img_data_t* tools_color_img_alloc2(const size_t img_width, const size_t img_height, const char* ext,
-                                   const uint8_t show_id) {
-    return tools_color_img_alloc1(img_width, img_height, "", ext, show_id);
-}
-
 void tools_color_img_draw_BB(img_data_t* img_data, const uint8_t** img, const BB_t* BB_list,
-                             const enum color_e* BB_list_color, const size_t n_BB, const uint8_t is_gt) {
-    rgb8_t* raw_data = NULL;
+                             const enum color_e* BB_list_color, const size_t n_BB, const uint8_t show_id,
+                             const uint8_t is_gt) {
 #ifdef OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     for (size_t i = 0; i < (size_t)pixels->rows; i++) {
@@ -885,7 +806,6 @@ void tools_color_img_draw_BB(img_data_t* img_data, const uint8_t** img, const BB
             pixels->at<cv::Vec3b>(i, j)[0] = img[i][j];
         }
     }
-    raw_data = (rgb8_t*)pixels->data;
 #else
     rgb8_t** pixels = (rgb8_t**)img_data->pixels;
     for (size_t i = 0; i < img_data->height; i++) {
@@ -895,11 +815,11 @@ void tools_color_img_draw_BB(img_data_t* img_data, const uint8_t** img, const BB
             pixels[i][j].b = img[i][j];
         }
     }
-    raw_data = pixels[0];
 #endif
-    tools_draw_BB(raw_data, BB_list, BB_list_color, n_BB, img_data->width, img_data->height);
+    tools_draw_BB(tools_color_img_get_pixels_2d(img_data), BB_list, BB_list_color, n_BB, img_data->width,
+                  img_data->height);
 #ifdef OPENCV_LINK
-    tools_draw_text(pixels, BB_list, BB_list_color, n_BB, is_gt, img_data->show_id);
+    tools_draw_text(img_data, BB_list, BB_list_color, n_BB, is_gt, show_id);
 #endif
 }
 
@@ -917,28 +837,6 @@ rgb8_t* tools_color_img_get_pixels(img_data_t* img_data) {
 
 rgb8_t** tools_color_img_get_pixels_2d(img_data_t* img_data) {
     return (rgb8_t**)img_data->container_2d;
-}
-
-void _tools_color_img_write(img_data_t* img_data, const char* filepath) {
-#ifdef OPENCV_LINK
-    cv::Mat* pixels = (cv::Mat*)img_data->pixels;
-    cv::imwrite(filepath, *pixels);
-#else
-    rgb8_t** pixels = (rgb8_t**)img_data->pixels;
-    SavePPM_rgb8matrix((rgb8**)pixels, 0, img_data->height -1, 0, img_data->width -1, (char*)filepath);
-#endif
-}
-
-void tools_color_img_write1(img_data_t* img_data, const size_t frame) {
-    char filename[2048];
-    snprintf(filename, sizeof(filename), "%s/%05d.%s", img_data->path, (int)frame, img_data->ext);
-    _tools_color_img_write(img_data, filename);
-}
-
-void tools_color_img_write2(img_data_t* img_data, const char* filename) {
-    char filename_with_ext[2048];
-    snprintf(filename_with_ext, sizeof(filename_with_ext), "%s.%s", filename, img_data->ext);
-    _tools_color_img_write(img_data, filename_with_ext);
 }
 
 void tools_color_img_free(img_data_t* img_data) {

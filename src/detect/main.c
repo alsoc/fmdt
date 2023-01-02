@@ -41,9 +41,6 @@ int main(int argc, char** argv) {
     char* def_p_out_mag = NULL;
     int def_p_video_loop = 1;
     int def_p_ffmpeg_threads = 0;
-#ifdef OPENCV_LINK
-    char def_p_img_ext[] = "pgm";
-#endif
 
     // help
     if (args_find(argc, argv, "-h")) {
@@ -128,9 +125,6 @@ int main(int argc, char** argv) {
 #ifdef OPENCV_LINK
         fprintf(stderr,
                 "  --show-id           Show the ROI/CC ids on the ouptut frames                                   \n");
-        fprintf(stderr,
-                "  --img-ext           Image extension of saved frames ('jpg', 'png', 'tiff', ...)            [%s]\n",
-                def_p_img_ext);
 #endif
         fprintf(stderr,
                 "  -h                  This help                                                                  \n");
@@ -166,10 +160,8 @@ int main(int argc, char** argv) {
     const int p_video_loop = args_find_int_min(argc, argv, "--video-loop", def_p_video_loop, 1);
 #ifdef OPENCV_LINK
     const int p_show_id = args_find(argc, argv, "--show-id");
-    const char* p_img_ext = args_find_char(argc, argv, "--img-ext", def_p_img_ext);
 #else
     const int p_show_id = 0;
-    const char p_img_ext[] = "pgm";
 #endif
 
     // heading display
@@ -209,7 +201,6 @@ int main(int argc, char** argv) {
     printf("#  * ffmpeg-threads = %d\n", p_ffmpeg_threads);
 #ifdef OPENCV_LINK
     printf("#  * show-id        = %d\n", p_show_id);
-    printf("#  * img-ext        = %s\n", p_img_ext);
 #endif
     printf("#\n");
 
@@ -240,8 +231,8 @@ int main(int argc, char** argv) {
     // -------------------------- //
 
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
-    video_t* video = video_init_from_path(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_video_buff,
-                                          p_ffmpeg_threads, &i0, &i1, &j0, &j1);
+    video_reader_t* video = video_reader_init(p_in_video, p_fra_start, p_fra_end, p_fra_skip, p_video_buff,
+                                              p_ffmpeg_threads, &i0, &i1, &j0, &j1);
     video->loop_size = (size_t)(p_video_loop);
 
     // ---------------- //
@@ -279,8 +270,12 @@ int main(int argc, char** argv) {
     zero_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
     img_data_t* img_data = NULL;
-    if (p_out_frames)
-        img_data = tools_gray_img_alloc1((j1 - j0) + 1, (i1 - i0) + 1, p_out_frames, p_img_ext, p_show_id);
+    video_writer_t* video_writer = NULL;
+    if (p_out_frames) {
+        img_data = tools_gs_img_alloc((j1 - j0) + 1, (i1 - i0) + 1);
+        const size_t n_threads = 1;
+        video_writer = video_writer_init(p_out_frames, n_threads, (i1 - i0) + 1, (j1 - j0) + 1, PIXFMT_GRAY);
+    }
 
     // ----------------//
     // -- PROCESSING --//
@@ -290,7 +285,7 @@ int main(int argc, char** argv) {
     size_t real_n_tracks = 0;
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     int cur_fra;
-    while ((cur_fra = video_get_next_frame(video, I)) != -1) {
+    while ((cur_fra = video_reader_get_frame(video, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         // step 1: threshold low
@@ -321,8 +316,8 @@ int main(int argc, char** argv) {
 
         // save frames (CCs)
         if (img_data) {
-            tools_gray_img_draw_labels(img_data, (const uint32_t**)L2, (const ROI_t*)ROI_array1);
-            tools_gray_img_write1(img_data, cur_fra);
+            tools_gs_img_draw_labels(img_data, (const uint32_t**)L2, (const ROI_t*)ROI_array1, p_show_id);
+            video_writer_save_frame(video_writer, (const uint8_t**)tools_gs_img_get_pixels_2d(img_data));
         }
 
         // save stats
@@ -399,9 +394,11 @@ int main(int argc, char** argv) {
     features_free_ROI_array(ROI_array_tmp);
     features_free_ROI_array(ROI_array0);
     features_free_ROI_array(ROI_array1);
-    video_free(video);
-    if (img_data)
-        tools_gray_img_free(img_data);
+    video_reader_free(video);
+    if (img_data) {
+        tools_gs_img_free(img_data);
+        video_writer_free(video_writer);
+    }
     CCL_LSL_free_data(ccl_data);
     KNN_free_data(knn_data);
     if (BB_array) {
