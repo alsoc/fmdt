@@ -11,7 +11,6 @@
 [4.2. Visualization Executable](#visualization-executable)  
 [4.3. Checking Executable](#checking-executable)  
 [4.4. Max-reduction Executable](#max-reduction-executable)  
-[4.5. Video to Images Converter Executable](#video-to-images-converter-executable)  
 [4.6. Examples of use](#examples-of-use)  
 [4.7. Input and Output Text Formats](#input-and-output-text-formats)  
 [5. List of Contributors](#list-of-contributors)
