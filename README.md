@@ -184,7 +184,7 @@ The list of available arguments:
 | `--in-tracks`      | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-bb`          | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `fmdt-detect`). |
 | `--in-gt`          | str      | None           | No      | File containing the ground truth. |
-| `--out-video`      | str      | None           | No      | Path of the output video (supports also a path to a sequence of images `path/basename_%05d.jpg`) with meteor tracking colored rectangles. If `--in-gt` is set then the bounding rectangles are red if *false positive* and green if *true positive*. If `--in-gt` is NOT set then the bounding rectangles are levels of green depending on the detection confidence. |
+| `--out-video`      | str      | None           | No      | Path of the output video (supports also a path to a sequence of images `path/basename_%05d.jpg`) with meteor tracking colored rectangles. If `--in-gt` is set then the bounding rectangles are red if *false positive* meteor and green if *true positive* meteor. |
 | `--show-id`        | bool     | -              | No      | Show the object ids on the output video and frames. Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
 | `--nat-num`        | bool     | -              | No      | Natural numbering of the object ids, work only if `--show-id` is set. |
 | `--only-meteor`    | bool     | -              | No      | Show only meteors. |
@@ -262,16 +262,14 @@ Write tracks and bounding boxes into text files for `fmdt-visu` and
 Visualization **WITHOUT** ground truth:
 
 ```shell
-./exe/fmdt-visu --in-video ./2022_05_31_tauh_34_meteors.mp4 --in-tracks ./out_detect_tracks.txt --in-bb ./out_detect_bb.txt
+./exe/fmdt-visu --in-video ./2022_05_31_tauh_34_meteors.mp4 --in-tracks ./out_detect_tracks.txt --in-bb ./out_detect_bb.txt --out-video out_visu.mp4
 ```
 
 Visualization **WITH** ground truth:
 
 ```shell
-./exe/fmdt-visu --in-video ./2022_05_31_tauh_34_meteors.mp4 --in-tracks ./out_detect_tracks.txt --in-bb ./out_detect_bb.txt --in-gt ../validation/2022_05_31_tauh_34_meteors.txt
+./exe/fmdt-visu --in-video ./2022_05_31_tauh_34_meteors.mp4 --in-tracks ./out_detect_tracks.txt --in-bb ./out_detect_bb.txt --in-gt ../validation/2022_05_31_tauh_34_meteors.txt --out-video out_visu.mp4
 ```
-
-**Note**: by default, the resulting video will be written in the `./out_visu.mp4` file (this behavior can be overloaded with the `--out-video` argument).
 
 #### Step 3: Offline checking
 
@@ -457,6 +455,10 @@ for the frame n°12 is: `00012.txt`. Each file contains 5 different tables:
   - Table 5: list of tracks since the beginning of the execution (final output 
     of the detection chain)
 
+Note that the first log file (usally named `00000.txt`) only contains the 
+table 2. This is normal because algorithms stating from k-NN require two 
+consecutive frames to work.
+
 ##### Table 1 and table 2: Regions Of Interest (ROIs)
 
 ```
@@ -515,7 +517,7 @@ Each line corresponds to an association between one ROI at `t - 1` and at `t`:
     the motion of an ROI is: abs(`{e}` - `{mean_err1}`) > `{std_dev1}`
 
 If `{mov}` = `yes` then, `{dx}`,`{dy}` is the velocity vector and `{e}` is the 
-velocity value in pixel.
+velocity norm in pixel.
 
 **Note that `{dx}`, `{dy}`, `{e}` and `{mov}` are computed after the second 
 motion estimation.**
