@@ -34,7 +34,7 @@ typedef struct {
     char path[2048];
 } video_writer_t;
 
-video_writer_t* video_writer_init(const char* path, const size_t n_ffmpeg_threads, const size_t img_height,
-                                  const size_t img_width, const enum pixfmt_e pixfmt);
+video_writer_t* video_writer_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
+                                  const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt);
 void video_writer_save_frame(video_writer_t* video, const uint8_t** I);
 void video_writer_free(video_writer_t* video);

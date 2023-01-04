@@ -445,10 +445,8 @@ happening during the execution.
 This option enables to log internal statistics of the different algorithms used 
 to detect meteors.
 
-The folder contains multiple files, one per frame (except for the very first 
-frame n°0). For instance, the file name for the frame n°12 is: 
-`00011_00012.txt`. `00011` stands for the `t - 1` frame and `00012` stands for 
-the `t` frame. Each file contains 5 different tables:
+The folder contains multiple files, one per frame. For instance, the file name 
+for the frame n°12 is: `00012.txt`. Each file contains 5 different tables:
   - Table 1: list of Regions Of Interest (ROIs) at `t - 1` (result of the 
     CCL/CCA + hysteresis algorithm at `t - 1`)
   - Table 2: list of Regions Of Interest (ROIs) at `t` (result of the CCL/CCA + 

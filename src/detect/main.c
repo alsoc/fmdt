@@ -274,7 +274,8 @@ int main(int argc, char** argv) {
     if (p_out_frames) {
         img_data = tools_gs_img_alloc((j1 - j0) + 1, (i1 - i0) + 1);
         const size_t n_threads = 1;
-        video_writer = video_writer_init(p_out_frames, n_threads, (i1 - i0) + 1, (j1 - j0) + 1, PIXFMT_GRAY);
+        video_writer = video_writer_init(p_out_frames, p_fra_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
+                                         PIXFMT_GRAY);
     }
 
     // ----------------//
@@ -321,23 +322,26 @@ int main(int argc, char** argv) {
         }
 
         // save stats
-        if (p_out_stats && n_frames) {
+        if (p_out_stats) {
             tools_create_folder(p_out_stats);
             char filename[1024];
-            snprintf(filename, sizeof(filename), "%s/%05d_%05d.txt", p_out_stats, cur_fra - 1, cur_fra);
+            snprintf(filename, sizeof(filename), "%s/%05d.txt", p_out_stats, cur_fra);
             FILE* f = fopen(filename, "w");
             if (f == NULL) {
                 fprintf(stderr, "(EE) error while opening '%s'\n", filename);
                 exit(1);
             }
             if (f) {
-                features_ROI0_ROI1_write(f, cur_fra, ROI_array0, ROI_array1, tracking_data->tracks);
-                fprintf(f, "#\n");
-                KNN_asso_conflicts_write(f, knn_data, ROI_array0, ROI_array1);
-                fprintf(f, "#\n");
-                features_motion_write(f, &motion_est1, &motion_est2);
-                fprintf(f, "#\n");
-                tracking_track_array_write_full(f, tracking_data->tracks);
+                int prev_fra = cur_fra > p_fra_start ? cur_fra - (p_fra_skip + 1) : -1;
+                features_ROI0_ROI1_write(f, prev_fra, cur_fra, ROI_array0, ROI_array1, tracking_data->tracks);
+                if (cur_fra > p_fra_start) {
+                    fprintf(f, "#\n");
+                    KNN_asso_conflicts_write(f, knn_data, ROI_array0, ROI_array1);
+                    fprintf(f, "#\n");
+                    features_motion_write(f, &motion_est1, &motion_est2);
+                    fprintf(f, "#\n");
+                    tracking_track_array_write_full(f, tracking_data->tracks);
+                }
                 fclose(f);
             } else {
                 fprintf(stderr, "(WW) cannot open '%s' file.", filename);

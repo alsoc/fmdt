@@ -4,8 +4,8 @@
 #include "fmdt/Logger/Logger_KNN.hpp"
 
 Logger_KNN::Logger_KNN(const std::string KNN_path, const size_t i0, const int i1, const int j0, const int j1,
-                       const size_t max_ROI_size)
-: Module(), KNN_path(KNN_path), i0(i0), i1(i1), j0(j0), j1(j1) {
+                       const size_t fra_start, const size_t max_ROI_size)
+: Module(), KNN_path(KNN_path), i0(i0), i1(i1), j0(j0), j1(j1), fra_start(fra_start) {
     const std::string name = "Logger_KNN";
     this->set_name(name);
     this->set_short_name(name);
@@ -49,9 +49,9 @@ Logger_KNN::Logger_KNN(const std::string KNN_path, const size_t i0, const int i1
                                       (const float**)lgr_knn.in_data_distances);
 
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
-        if (frame && !lgr_knn.KNN_path.empty()) {
+        if (frame > (uint32_t)lgr_knn.fra_start && !lgr_knn.KNN_path.empty()) {
             char file_path[256];
-            snprintf(file_path, sizeof(file_path), "%s/%05u_%05u.txt", lgr_knn.KNN_path.c_str(), frame -1, frame);
+            snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_knn.KNN_path.c_str(), frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
             _KNN_asso_conflicts_write(file, lgr_knn.in_data_nearest, lgr_knn.in_data_distances,

@@ -151,8 +151,8 @@ void video_reader_free(video_reader_t* video) {
     free(video);
 }
 
-video_writer_t* video_writer_init(const char* path, const size_t n_ffmpeg_threads, const size_t img_height,
-                                  const size_t img_width, const enum pixfmt_e pixfmt) {
+video_writer_t* video_writer_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
+                                  const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt) {
     video_writer_t* video = (video_writer_t*)malloc(sizeof(video_writer_t));
     if (!video) {
         fprintf(stderr, "(EE) can't allocate video structure\n");
@@ -162,6 +162,8 @@ video_writer_t* video_writer_init(const char* path, const size_t n_ffmpeg_thread
     snprintf(video->path, sizeof(video->path), "%s", path);
 
     ffmpeg_options_init(&video->ffmpeg_opts);
+    if (start)
+        video->ffmpeg_opts.start_number = start;
     if (n_ffmpeg_threads)
         video->ffmpeg_opts.threads_input = n_ffmpeg_threads;
 

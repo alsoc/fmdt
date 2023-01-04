@@ -321,14 +321,14 @@ int main(int argc, char** argv) {
     delayer_ROI_y.set_custom_name("D<ROI_y>");
     delayer_ROI_magnitude.set_custom_name("D<ROI_mag>");
     delayer_n_ROI.set_custom_name("D<n_ROI>");
-    Logger_ROI log_ROI(p_out_stats ? p_out_stats : "", MAX_ROI_SIZE, tracking.get_data());
-    Logger_KNN log_KNN(p_out_stats ? p_out_stats : "", i0, i1, j0, j1, MAX_ROI_SIZE);
-    Logger_motion log_motion(p_out_stats ? p_out_stats : "");
+    Logger_ROI log_ROI(p_out_stats ? p_out_stats : "", p_fra_start, p_fra_skip, MAX_ROI_SIZE, tracking.get_data());
+    Logger_KNN log_KNN(p_out_stats ? p_out_stats : "", i0, i1, j0, j1, p_fra_start, MAX_ROI_SIZE);
+    Logger_motion log_motion(p_out_stats ? p_out_stats : "", p_fra_start);
     log_motion.set_custom_name("Logger_motio");
-    Logger_track log_track(p_out_stats ? p_out_stats : "", tracking.get_data());
+    Logger_track log_track(p_out_stats ? p_out_stats : "", p_fra_start, tracking.get_data());
     std::unique_ptr<Logger_frame> log_frame;
     if (p_out_frames)
-        log_frame.reset(new Logger_frame(p_out_frames, p_show_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
+        log_frame.reset(new Logger_frame(p_out_frames, p_fra_start, p_show_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
 
     // create reporters and probes for the real-time probes file
     size_t inter_frame_lvl = 1;

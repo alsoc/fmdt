@@ -17,9 +17,12 @@ namespace lgr_roi {
 class Logger_ROI : public aff3ct::module::Module {
 protected:
     const std::string ROI_path;
+    const size_t fra_start;
+    const size_t fra_skip;
     const tracking_data_t* tracking_data;
 public:
-    Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, const tracking_data_t* tracking_data);
+    Logger_ROI(const std::string ROI_path, const size_t fra_start, const size_t frame_skip, const size_t max_ROI_size,
+               const tracking_data_t* tracking_data);
     virtual ~Logger_ROI();
     inline aff3ct::runtime::Task& operator[](const lgr_roi::tsk t);
     inline aff3ct::runtime::Socket& operator[](const lgr_roi::sck::write s);

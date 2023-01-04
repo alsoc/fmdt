@@ -26,8 +26,8 @@ protected:
     img_data_t* img_data;
     video_writer_t* video_writer;
 public:
-    Logger_frame(const std::string frames_path, const int show_id, const int i0, const int i1, const int j0,
-                 const int j1, const int b, const size_t max_ROI_size);
+    Logger_frame(const std::string frames_path, const size_t fra_start, const int show_id, const int i0, const int i1,
+                 const int j0, const int j1, const int b, const size_t max_ROI_size);
     virtual ~Logger_frame();
     inline aff3ct::runtime::Task& operator[](const lgr_fra::tsk t);
     inline aff3ct::runtime::Socket& operator[](const lgr_fra::sck::write s);

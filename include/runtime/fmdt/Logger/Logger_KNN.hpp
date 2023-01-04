@@ -19,12 +19,13 @@ protected:
     const int i1;
     const int j0;
     const int j1;
+    const size_t fra_start;
     const uint32_t** in_data_nearest;
     const float** in_data_distances;
 
 public:
     Logger_KNN(const std::string KNN_path, const size_t i0, const int i1, const int j0, const int j1,
-               const size_t max_ROI_size);
+               const size_t fra_start, const size_t max_ROI_size);
     virtual ~Logger_KNN();
     inline aff3ct::runtime::Task& operator[](const lgr_knn::tsk t);
     inline aff3ct::runtime::Socket& operator[](const lgr_knn::sck::write s);

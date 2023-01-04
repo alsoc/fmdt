@@ -2,8 +2,8 @@
 
 #include "fmdt/Logger/Logger_frame.hpp"
 
-Logger_frame::Logger_frame(const std::string frames_path, const int show_id, const int i0, const int i1, const int j0,
-                           const int j1, const int b, const size_t max_ROI_size)
+Logger_frame::Logger_frame(const std::string frames_path, const size_t fra_start, const int show_id, const int i0,
+                           const int i1, const int j0, const int j1, const int b, const size_t max_ROI_size)
 : Module(), i0(i0), i1(i1), j0(j0), j1(j1), b(b), show_id(show_id), in_labels(nullptr), img_data(nullptr),
   video_writer(nullptr) {
     const std::string name = "Logger_frame";
@@ -15,7 +15,8 @@ Logger_frame::Logger_frame(const std::string frames_path, const int show_id, con
 
     this->img_data = tools_gs_img_alloc((j1 - j0) + 1, (i1 - i0) + 1);
     const size_t n_threads = 1;
-    this->video_writer = video_writer_init(frames_path.c_str(), n_threads, (i1 - i0) + 1, (j1 - j0) + 1, PIXFMT_GRAY);
+    this->video_writer = video_writer_init(frames_path.c_str(), fra_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
+                                           PIXFMT_GRAY);
 
     auto socket_img_size = ((i1 - i0) + 1 + 2 * b) * ((j1 - j0) + 1 + 2 * b);
 

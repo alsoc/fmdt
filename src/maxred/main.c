@@ -130,38 +130,41 @@ int main(int argc, char** argv) {
 
     tracking_init_global_data();
 
-    int frame;
-    int skip = 0;
-    int i0, i1, j0, j1;
-
     // ------------------------- //
     // -- INITIALISATION VIDEO-- //
     // ------------------------- //
+
     PUTS("INIT VIDEO");
+    int skip = 0;
+    int i0, i1, j0, j1;
     video_reader_t* video = video_reader_init(p_in_video, p_fra_start, p_fra_end, skip, 0, p_ffmpeg_threads, &i0, &i1,
                                               &j0, &j1);
 
     // ---------------- //
     // -- ALLOCATION -- //
     // ---------------- //
+
     PUTS("ALLOC");
     uint8_t** I = (uint8_t**)ui8matrix(i0, i1, j0, j1);
     uint8_t** M = (uint8_t**)ui8matrix(i0, i1, j0, j1);
     zero_ui8matrix(M, i0, i1, j0, j1);
     img_data_t* img_data = NULL;
     video_writer_t* video_writer = NULL;
+    size_t n_threads = 4;
     if (p_in_tracks) {
         img_data = tools_color_img_alloc((j1 - j0) + 1, (i1 - i0) + 1);
-        video_writer = video_writer_init(p_out_frame, 4, i1 - i0 + 1, j1 - j0 + 1, PIXFMT_RGB24);
+        video_writer = video_writer_init(p_out_frame, p_fra_start, n_threads, i1 - i0 + 1, j1 - j0 + 1, PIXFMT_RGB24);
     } else {
         img_data = tools_gs_img_alloc((j1 - j0) + 1, (i1 - i0) + 1);
-        video_writer = video_writer_init(p_out_frame, 4, i1 - i0 + 1, j1 - j0 + 1, PIXFMT_GRAY);
+        video_writer = video_writer_init(p_out_frame, p_fra_start, n_threads, i1 - i0 + 1, j1 - j0 + 1, PIXFMT_GRAY);
     }
 
     // ----------------//
     // -- TRAITEMENT --//
     // ----------------//
+
     PUTS("LOOP");
+    int frame;
     while ((frame = video_reader_get_frame(video, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d\r", frame);
         max_reduce(M, i0, i1, j0, j1, (const uint8_t**)I);
@@ -242,6 +245,7 @@ int main(int argc, char** argv) {
     // ----------
     // -- free --
     // ----------
+
     free_ui8matrix(I, i0, i1, j0, j1);
     free_ui8matrix(M, i0, i1, j0, j1);
     if (p_in_tracks)

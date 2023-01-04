@@ -210,7 +210,9 @@ int main(int argc, char** argv) {
 
     printf("# The program is running...\n");
 
-    video_writer_t* video_writer = video_writer_init(p_out_video, 4, i1 - i0 + 1, j1 - j0 + 1, PIXFMT_RGB24);
+    size_t n_threads = 4;
+    video_writer_t* video_writer = video_writer_init(p_out_video, p_fra_start, n_threads, i1 - i0 + 1, j1 - j0 + 1,
+                                                     PIXFMT_RGB24);
 
     // parcours de la video
     enum color_e color = MISC;

@@ -13,8 +13,9 @@ namespace lgr_mtn {
 class Logger_motion : public aff3ct::module::Module {
 protected:
     const std::string motion_path;
+    const size_t fra_start;
 public:
-    Logger_motion(const std::string motion_path);
+    Logger_motion(const std::string motion_path, const size_t fra_start);
     virtual ~Logger_motion();
     inline aff3ct::runtime::Task& operator[](const lgr_mtn::tsk t);
     inline aff3ct::runtime::Socket& operator[](const lgr_mtn::sck::write s);

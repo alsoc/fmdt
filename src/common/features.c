@@ -699,31 +699,33 @@ void features_motion_write(FILE* f, const motion_t* motion_est1, const motion_t*
             motion_est2->theta, motion_est2->tx, motion_est2->ty, motion_est2->mean_error, motion_est2->std_deviation);
 }
 
-void _features_ROI0_ROI1_write(FILE* f, const int frame, const uint32_t* ROI0_id, const uint32_t* ROI0_xmin,
-                               const uint32_t* ROI0_xmax, const uint32_t* ROI0_ymin, const uint32_t* ROI0_ymax,
-                               const uint32_t* ROI0_S, const uint32_t* ROI0_Sx, const uint32_t* ROI0_Sy,
-                               const float* ROI0_x, const float* ROI0_y, const uint32_t* ROI0_magnitude,
-                               const size_t n_ROI0, const uint32_t* ROI1_id, const uint32_t* ROI1_xmin,
-                               const uint32_t* ROI1_xmax, const uint32_t* ROI1_ymin, const uint32_t* ROI1_ymax,
-                               const uint32_t* ROI1_S, const uint32_t* ROI1_Sx, const uint32_t* ROI1_Sy,
-                               const float* ROI1_x, const float* ROI1_y, const uint32_t* ROI1_magnitude,
-                               const size_t n_ROI1, const vec_track_t track_array) {
-    // stats
-    fprintf(f, "# Frame n°%05d (t-1) -- ", frame - 1);
-    _features_ROI_write(f, frame - 1, ROI0_id, ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax, ROI0_S, ROI0_Sx, ROI0_Sy,
-                        ROI0_x, ROI0_y, ROI0_magnitude, n_ROI0, track_array, 1);
+void _features_ROI0_ROI1_write(FILE* f, const int prev_frame, const int cur_frame, const uint32_t* ROI0_id,
+                               const uint32_t* ROI0_xmin, const uint32_t* ROI0_xmax, const uint32_t* ROI0_ymin,
+                               const uint32_t* ROI0_ymax, const uint32_t* ROI0_S, const uint32_t* ROI0_Sx,
+                               const uint32_t* ROI0_Sy, const float* ROI0_x, const float* ROI0_y,
+                               const uint32_t* ROI0_magnitude, const size_t n_ROI0, const uint32_t* ROI1_id,
+                               const uint32_t* ROI1_xmin, const uint32_t* ROI1_xmax, const uint32_t* ROI1_ymin,
+                               const uint32_t* ROI1_ymax, const uint32_t* ROI1_S, const uint32_t* ROI1_Sx,
+                               const uint32_t* ROI1_Sy, const float* ROI1_x, const float* ROI1_y,
+                               const uint32_t* ROI1_magnitude, const size_t n_ROI1, const vec_track_t track_array) {
+    if (prev_frame >= 0) {
+        fprintf(f, "# Frame n°%05d (t-1) -- ", prev_frame);
+        _features_ROI_write(f, prev_frame, ROI0_id, ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax, ROI0_S, ROI0_Sx,
+                            ROI0_Sy, ROI0_x, ROI0_y, ROI0_magnitude, n_ROI0, track_array, 1);
+        fprintf(f, "#\n");
+    }
 
-    fprintf(f, "#\n# Frame n°%05d (t) -- ", frame);
-    _features_ROI_write(f, frame, ROI1_id, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_S, ROI1_Sx, ROI1_Sy, ROI1_x,
-                        ROI1_y, ROI1_magnitude, n_ROI1, track_array, 0);
+    fprintf(f, "# Frame n°%05d (t) -- ", cur_frame);
+    _features_ROI_write(f, cur_frame, ROI1_id, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_S, ROI1_Sx, ROI1_Sy,
+                        ROI1_x, ROI1_y, ROI1_magnitude, n_ROI1, track_array, 0);
 }
 
-void features_ROI0_ROI1_write(FILE* f, const int frame, const ROI_t* ROI_array0, const ROI_t* ROI_array1,
-                              const vec_track_t track_array) {
-    _features_ROI0_ROI1_write(f, frame, ROI_array0->id, ROI_array0->xmin, ROI_array0->xmax, ROI_array0->ymin,
-                              ROI_array0->ymax, ROI_array0->S, ROI_array0->Sx, ROI_array0->Sy, ROI_array0->x,
-                              ROI_array0->y, ROI_array0->magnitude, ROI_array0->_size, ROI_array1->id, ROI_array1->xmin,
-                              ROI_array1->xmax, ROI_array1->ymin, ROI_array1->ymax, ROI_array1->S, ROI_array1->Sx, 
-                              ROI_array1->Sy, ROI_array1->x, ROI_array1->y, ROI_array1->magnitude, ROI_array1->_size,
-                              track_array);
+void features_ROI0_ROI1_write(FILE* f, const int prev_frame, const int cur_frame, const ROI_t* ROI_array0,
+                              const ROI_t* ROI_array1, const vec_track_t track_array) {
+    _features_ROI0_ROI1_write(f, prev_frame, cur_frame, ROI_array0->id, ROI_array0->xmin, ROI_array0->xmax,
+                              ROI_array0->ymin, ROI_array0->ymax, ROI_array0->S, ROI_array0->Sx, ROI_array0->Sy,
+                              ROI_array0->x, ROI_array0->y, ROI_array0->magnitude, ROI_array0->_size, ROI_array1->id,
+                              ROI_array1->xmin, ROI_array1->xmax, ROI_array1->ymin, ROI_array1->ymax, ROI_array1->S,
+                              ROI_array1->Sx, ROI_array1->Sy, ROI_array1->x, ROI_array1->y, ROI_array1->magnitude,
+                              ROI_array1->_size, track_array);
 }

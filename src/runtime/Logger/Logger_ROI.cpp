@@ -3,8 +3,9 @@
 
 #include "fmdt/Logger/Logger_ROI.hpp"
 
-Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, const tracking_data_t* tracking_data)
-: Module(), ROI_path(ROI_path),  tracking_data(tracking_data) {
+Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t fra_start, const size_t fra_skip,
+                       const size_t max_ROI_size, const tracking_data_t* tracking_data)
+: Module(), ROI_path(ROI_path), fra_start(fra_start), fra_skip(fra_skip), tracking_data(tracking_data) {
     assert(tracking_data != NULL);
 
     const std::string name = "Logger_ROI";
@@ -51,11 +52,14 @@ Logger_ROI::Logger_ROI(const std::string ROI_path, const size_t max_ROI_size, co
         auto &lgr_roi = static_cast<Logger_ROI&>(m);
 
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
-        if (frame && !lgr_roi.ROI_path.empty()) {
+        if (!lgr_roi.ROI_path.empty()) {
             char file_path[256];
-            snprintf(file_path, sizeof(file_path), "%s/%05u_%05u.txt", lgr_roi.ROI_path.c_str(), frame -1, frame);
+            snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_roi.ROI_path.c_str(), frame);
             FILE* file = fopen(file_path, "w");
-            _features_ROI0_ROI1_write(file, frame,
+
+            int prev_frame = frame > lgr_roi.fra_start ? (int)frame - (lgr_roi.fra_skip + 1) : -1;
+
+            _features_ROI0_ROI1_write(file, prev_frame, frame,
                                       static_cast<const uint32_t*>(t[ps_in_ROI0_id].get_dataptr()),
                                       static_cast<const uint32_t*>(t[ps_in_ROI0_xmin].get_dataptr()),
                                       static_cast<const uint32_t*>(t[ps_in_ROI0_xmax].get_dataptr()),

@@ -3,8 +3,8 @@
 
 #include "fmdt/Logger/Logger_motion.hpp"
 
-Logger_motion::Logger_motion(const std::string motion_path)
-: Module(), motion_path(motion_path) {
+Logger_motion::Logger_motion(const std::string motion_path, const size_t fra_start)
+: Module(), motion_path(motion_path), fra_start(fra_start) {
     const std::string name = "Logger_motion";
     this->set_name(name);
     this->set_short_name(name);
@@ -21,9 +21,9 @@ Logger_motion::Logger_motion(const std::string motion_path)
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_mtn = static_cast<Logger_motion&>(m);
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
-        if (frame && !lgr_mtn.motion_path.empty()) {
+        if (frame > (uint32_t)lgr_mtn.fra_start && !lgr_mtn.motion_path.empty()) {
             char file_path[256];
-            snprintf(file_path, sizeof(file_path), "%s/%05u_%05u.txt", lgr_mtn.motion_path.c_str(), frame -1, frame);
+            snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_mtn.motion_path.c_str(), frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
             features_motion_write(file,
