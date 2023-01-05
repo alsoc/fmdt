@@ -79,7 +79,7 @@ def read_bb(bb_file):
 
     """
     #col_names = ['id','Xr','Yr','Xc','Yc','trk']
-    col_names = ['frame','Xr','Yr','Xc','Yc','id']
+    col_names = ['frame','Xr','Yr','Xc','Yc','id','is_extrapolated']
     bb_data = QTable().read(bb_file,format='ascii.fast_no_header',names=col_names)
     return bb_data
 
