@@ -5,13 +5,13 @@
 #include "fmdt/features.h"
 
 typedef struct {
-    int i0, i1, j0, j1;
+    size_t max_size;
     uint32_t** nearest;
     float** distances;
     uint32_t* conflicts;
 } KNN_data_t;
 
-KNN_data_t* KNN_alloc_and_init_data(int i0, int i1, int j0, int j1);
+KNN_data_t* KNN_alloc_and_init_data(const size_t max_size);
 void _KNN_match(uint32_t** data_nearest, float** data_distances, uint32_t* data_conflicts, const uint32_t* ROI0_id,
                 const uint32_t* ROI0_S, const float* ROI0_x, const float* ROI0_y, uint32_t* ROI0_next_id,
                 const size_t n_ROI0, const uint32_t* ROI1_id, const uint32_t* ROI1_S, const float* ROI1_x,

@@ -15,17 +15,13 @@ namespace lgr_knn {
 class Logger_KNN : public aff3ct::module::Module {
 protected:
     const std::string KNN_path;
-    const int i0;
-    const int i1;
-    const int j0;
-    const int j1;
     const size_t fra_start;
+    const size_t max_size;
     const uint32_t** in_data_nearest;
     const float** in_data_distances;
 
 public:
-    Logger_KNN(const std::string KNN_path, const size_t i0, const int i1, const int j0, const int j1,
-               const size_t fra_start, const size_t max_ROI_size);
+    Logger_KNN(const std::string KNN_path, const size_t fra_start, const size_t max_size);
     virtual ~Logger_KNN();
     inline aff3ct::runtime::Task& operator[](const lgr_knn::tsk t);
     inline aff3ct::runtime::Socket& operator[](const lgr_knn::sck::write s);

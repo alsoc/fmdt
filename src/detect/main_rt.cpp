@@ -292,7 +292,7 @@ int main(int argc, char** argv) {
     merger.set_custom_name("Merger");
     Features_magnitude magnitude(i0, i1, j0, j1, b, MAX_ROI_SIZE);
     magnitude.set_custom_name("Magnitude");
-    KNN_matcher matcher(i0, i1, j0, j1, p_k, p_max_dist, p_min_ratio_s, MAX_ROI_SIZE);
+    KNN_matcher matcher(p_k, p_max_dist, p_min_ratio_s, MAX_ROI_SIZE);
     Features_motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
@@ -322,7 +322,7 @@ int main(int argc, char** argv) {
     delayer_ROI_magnitude.set_custom_name("D<ROI_mag>");
     delayer_n_ROI.set_custom_name("D<n_ROI>");
     Logger_ROI log_ROI(p_out_stats ? p_out_stats : "", p_fra_start, p_fra_skip, MAX_ROI_SIZE, tracking.get_data());
-    Logger_KNN log_KNN(p_out_stats ? p_out_stats : "", i0, i1, j0, j1, p_fra_start, MAX_ROI_SIZE);
+    Logger_KNN log_KNN(p_out_stats ? p_out_stats : "", p_fra_start, MAX_ROI_SIZE);
     Logger_motion log_motion(p_out_stats ? p_out_stats : "", p_fra_start);
     log_motion.set_custom_name("Logger_motio");
     Logger_track log_track(p_out_stats ? p_out_stats : "", p_fra_start, tracking.get_data());

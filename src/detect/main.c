@@ -258,7 +258,7 @@ int main(int argc, char** argv) {
     // --------------------------- //
 
     tracking_init_global_data();
-    KNN_data_t* knn_data = KNN_alloc_and_init_data(0, MAX_ROI_SIZE, 0, MAX_ROI_SIZE);
+    KNN_data_t* knn_data = KNN_alloc_and_init_data(MAX_ROI_SIZE);
     features_init_ROI_array(ROI_array_tmp);
     features_init_ROI_array(ROI_array0);
     features_init_ROI_array(ROI_array1);

@@ -164,8 +164,8 @@ The list of available arguments:
 | `--fra-star-min`   | int      | 15          | No      | Minimum number of frames required to track a star. |
 | `--fra-meteor-min` | int      | 3           | No      | Minimum number of frames required to track a meteor. |
 | `--fra-meteor-max` | int      | 100         | No      | Maximum number of frames required to track a meteor. |
-| `--video-buff`     | bool     | -           | No      | Bufferize all the video in global memory before executing the chain (for now it only works with `--in-video` as a folder of PGM images). |
-| `--video-loop`     | int      | 1           | No      | Number of times the video is read in loop  (for now it only works with `--in-video` as a folder of PGM images). |
+| `--video-buff`     | bool     | -           | No      | Bufferize all the video in global memory before executing the chain. |
+| `--video-loop`     | int      | 1           | No      | Number of times the video is read in loop. |
 | `--ffmpeg-threads` | int      | 0           | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
 | `--show-id`        | bool     | -           | No      | Show the ROI/CC ids on the output frames (to combine with `--out-frames` parameter). Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
 
