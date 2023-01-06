@@ -1,4 +1,8 @@
 TODO list:
+- [ ] Limit the detection to only a particular angular range (say +/- 30 deg 
+      from straight down)
+- [ ] Add zones to ignore for CCL (for instance, this can allow to do not take 
+      care of saturated zones)
 - [ ] For each detection: extract meteor video sequence + - a few seconds: this 
       way if we need to re-process it we don't have to run it through the whole 
       video again
