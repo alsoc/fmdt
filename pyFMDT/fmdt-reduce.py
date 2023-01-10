@@ -613,23 +613,27 @@ def fmdt_reduce(config_file):
             radec_met = wcs_obj.pixel_to_world(bb_met['Xc'][0],
                                                bb_met['Yc'][0])
             # match detected stars with catalog stars
-            matched_data = match_stars(astrometry_data,
-                                       wcs_obj,
-                                       radec_center,
-                                       [fov_width,fov_height],
-                                       maxsep=img_scale*u.pix*match_tol_fct,
-                                       LimMag=LimMag,
-                                       frame=frame,
-                                       opth=opth,
-                                       root=root)
-            # linear fit star magnitude with star flux and get meteor magnitude
-            met_flux = mag_data[met_id]['data'][frame-met['f_b']]
-            met_mag = make_photometry_fit(matched_data,
-                                          met_flux,
-                                          band=band,
-                                          frame=frame,
-                                          opth=opth,
-                                          root=root)
+            try:
+                matched_data = match_stars(astrometry_data,
+                                        wcs_obj,
+                                        radec_center,
+                                        [fov_width,fov_height],
+                                        maxsep=img_scale*u.pix*match_tol_fct,
+                                        LimMag=LimMag,
+                                        frame=frame,
+                                        opth=opth,
+                                        root=root)
+                # linear fit star magnitude with star flux and get meteor magnitude
+                met_flux = mag_data[met_id]['data'][frame-met['f_b']]
+                met_mag = make_photometry_fit(matched_data,
+                                            met_flux,
+                                            band=band,
+                                            frame=frame,
+                                            opth=opth,
+                                            root=root)
+            except:
+                met_flux = 0.0
+                met_mag = 0.0
             # add data to meteor table
             met_data.add_row([frame_time,frame,bb_met['Xc'][0],bb_met['Yc'][0],
                                  radec_met.ra.to('deg'),
