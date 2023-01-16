@@ -588,32 +588,32 @@ def fmdt_reduce(config_file):
             log.debug('There are '+str(len(bb_obj))+' objects in frame '+str(frame))
             # retrieve meteor bb data
             bb_met = bb_obj[bb_obj['id']==met_id]
-            # retrieve flux for all stars in the image
-            astrometry_data = make_astrometry_data(trk_data,
-                                                   bb_obj,
-                                                   mag_data,
-                                                   frame,
-                                                   avgflx=avgflx,
-                                                   opth=opth,
-                                                   root=root,
-                                                   read=read_astrometry)
-            # perform astrometry with astrometry.net
-            (wcs_obj,
-             radec_center,
-             [fov_width,fov_height]) = launch_astrometry(astrometry_data, 
-                                                         img_width, 
-                                                         img_height, 
-                                                         img_scale, 
-                                                         skycoo_c, 
-                                                         config['USER']['api_key'],
-                                                         frame=frame,
-                                                         opth=opth,root=root,
-                                                         read=read_astrometry)
-            # compute meteor sky coordinates
-            radec_met = wcs_obj.pixel_to_world(bb_met['Xc'][0],
-                                               bb_met['Yc'][0])
-            # match detected stars with catalog stars
             try:
+                # retrieve flux for all stars in the image
+                astrometry_data = make_astrometry_data(trk_data,
+                                                    bb_obj,
+                                                    mag_data,
+                                                    frame,
+                                                    avgflx=avgflx,
+                                                    opth=opth,
+                                                    root=root,
+                                                    read=read_astrometry)
+                # perform astrometry with astrometry.net
+                (wcs_obj,
+                radec_center,
+                [fov_width,fov_height]) = launch_astrometry(astrometry_data, 
+                                                            img_width, 
+                                                            img_height, 
+                                                            img_scale, 
+                                                            skycoo_c, 
+                                                            config['USER']['api_key'],
+                                                            frame=frame,
+                                                            opth=opth,root=root,
+                                                            read=read_astrometry)
+                # compute meteor sky coordinates
+                radec_met = wcs_obj.pixel_to_world(bb_met['Xc'][0],
+                                                bb_met['Yc'][0])
+                # match detected stars with catalog stars
                 matched_data = match_stars(astrometry_data,
                                         wcs_obj,
                                         radec_center,
@@ -631,19 +631,26 @@ def fmdt_reduce(config_file):
                                             frame=frame,
                                             opth=opth,
                                             root=root)
+                # add data to meteor table
+                met_data.add_row([frame_time,frame,bb_met['Xc'][0],bb_met['Yc'][0],
+                        radec_met.ra.to('deg'),
+                        radec_met.dec.to('deg'),
+                        met_flux,met_mag])
+                # log
+                log.debug('time: '+frame_time.isot+' frame: '+str(frame))
+                log.debug('bb_met[Xc]:'+str(bb_met['Xc'][0])+' bb_met[Yc]:'+str(bb_met['Yc'][0]))
+                log.debug('radec_met:'+str(radec_met))
+                log.debug('met_flux:'+str(met_flux)+' met_mag:'+str(met_mag))
             except:
-                met_flux = 0.0
-                met_mag = 0.0
-            # add data to meteor table
-            met_data.add_row([frame_time,frame,bb_met['Xc'][0],bb_met['Yc'][0],
-                                 radec_met.ra.to('deg'),
-                                 radec_met.dec.to('deg'),
-                                 met_flux,met_mag])
-            # log
-            log.debug('time: '+frame_time.isot+' frame: '+str(frame))
-            log.debug('bb_met[Xc]:'+str(bb_met['Xc'][0])+' bb_met[Yc]:'+str(bb_met['Yc'][0]))
-            log.debug('radec_met:'+str(radec_met))
-            log.debug('met_flux:'+str(met_flux)+' met_mag:'+str(met_mag))
+                # If any of the astronomy doesn't work, we fill with dummy, zero values
+                # add data to meteor table
+                met_data.add_row([frame_time,frame,bb_met['Xc'][0],bb_met['Yc'][0],
+                        0.0, 0.0, 0.0, 0.0])
+                # log
+                log.debug('time: '+frame_time.isot+' frame: '+str(frame))
+                log.debug('bb_met[Xc]:'+str(bb_met['Xc'][0])+' bb_met[Yc]:'+str(bb_met['Yc'][0]))
+                log.debug('radec_met:'+str(0.0))
+                log.debug('met_flux:'+str(0.0)+' met_mag:'+str(0.0))
         # save and plot meteor data
         save_n_plot_meteor(met_data,met_id,LimMag=LimMag,opth=opth,root=root)
             
