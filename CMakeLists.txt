@@ -228,6 +228,11 @@ if (FMDT_OPENCV_LINK)
 	find_package(OpenCV REQUIRED)
 endif()
 
+# LSL
+if (NOT TARGET lsl-slib)
+	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/lsl/)
+endif()
+
 # Add definitions -------------------------------------------------------------
 # -----------------------------------------------------------------------------
 macro(fmdt_target_compile_definitions targets privacy dir)
@@ -281,3 +286,4 @@ endif()
 if (FMDT_AFF3CT_RUNTIME)
 	fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC aff3ct-core-static-lib)
 endif()
+fmdt_target_link_libraries("${fmdt_targets_list}" PRIVATE lsl-slib)
