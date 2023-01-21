@@ -39,6 +39,7 @@ int main(int argc, char** argv) {
     char* def_p_out_bb = NULL;
     char* def_p_out_stats = NULL;
     char* def_p_out_mag = NULL;
+    char def_p_ccl_impl[16] = "LSLH";
     int def_p_video_loop = 1;
     int def_p_ffmpeg_threads = 0;
 
@@ -59,6 +60,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --out-mag           Path to the file containing magnitudes of the tracked objects          [%s]\n",
                 def_p_out_mag ? def_p_out_mag : "NULL");
+        fprintf(stderr,
+                "  --ccl-impl          Select the CCL implementation to use ('LSLH' or 'LSLM')                [%s]\n",
+                def_p_ccl_impl);
         fprintf(stderr,
                 "  --fra-start         Starting point of the video                                            [%d]\n",
                 def_p_fra_start);
@@ -154,6 +158,7 @@ int main(int argc, char** argv) {
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
     const char* p_out_mag = args_find_char(argc, argv, "--out-mag", def_p_out_mag);
+    const char* p_ccl_impl = args_find_char(argc, argv, "--ccl-impl", def_p_ccl_impl);
     const int p_track_all = args_find(argc, argv, "--track-all");
     const int p_ffmpeg_threads = args_find_int_min(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads, 0);
     const int p_video_buff = args_find(argc, argv, "--video-buff");
@@ -178,6 +183,7 @@ int main(int argc, char** argv) {
     printf("#  * out-frames     = %s\n", p_out_frames);
     printf("#  * out-stats      = %s\n", p_out_stats);
     printf("#  * out-mag        = %s\n", p_out_mag);
+    printf("#  * ccl-impl       = %s\n", p_ccl_impl);
     printf("#  * fra-start      = %d\n", p_fra_start);
     printf("#  * fra-end        = %d\n", p_fra_end);
     printf("#  * fra-skip       = %d\n", p_fra_skip);
@@ -263,7 +269,7 @@ int main(int argc, char** argv) {
     features_init_ROI_array(ROI_array0);
     features_init_ROI_array(ROI_array1);
     tracking_init_data(tracking_data);
-    CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
+    CCL_gen_data_t* ccl_data = CCL_alloc_and_init_data(CCL_str_to_enum(p_ccl_impl), i0, i1, j0, j1);
     zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -293,7 +299,7 @@ int main(int argc, char** argv) {
         threshold((const uint8_t**)I, IL, i0, i1, j0, j1, p_light_min);
 
         // step 2: CCL/CCA
-        const int n_ROI = CCL_LSL_apply(ccl_data, (const uint8_t**)IL, L1);
+        const int n_ROI = CCL_apply(ccl_data, (const uint8_t**)IL, L1);
         features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
 
         // step 3: hysteresis threshold & surface filtering (+ magnitude computations)
@@ -403,7 +409,7 @@ int main(int argc, char** argv) {
         tools_gs_img_free(img_data);
         video_writer_free(video_writer);
     }
-    CCL_LSL_free_data(ccl_data);
+    CCL_free_data(ccl_data);
     KNN_free_data(knn_data);
     if (BB_array) {
         size_t vs = vector_size(BB_array);

@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stdio.h>
 #include <nrc2.h>
 
 #include "fmdt/CCL.h"
@@ -166,4 +167,70 @@ uint32_t _CCL_LSL_apply(uint32_t** data_er, uint32_t** data_era, uint32_t** data
 uint32_t CCL_LSL_apply(CCL_data_t* data, const uint8_t** img, uint32_t** labels) {
     return _CCL_LSL_apply(data->er, data->era, data->rlc, data->eq, data->ner, img, labels, data->i0, data->i1,
                           data->j0, data->j1);
+}
+
+// ----------------------------------------------------------------------------
+// ----------------------------------------------------------------------------
+
+#include <flsl-lib.h>
+
+enum ccl_impl_e CCL_str_to_enum(const char* str) {
+    if (strcmp(str, "LSLH") == 0) {
+        return LSLH;
+    } else if (strcmp(str, "LSLM") == 0) {
+        return LSLM;
+    } else {
+        fprintf(stderr, "(EE) 'CCL_str_to_enum()' failed, unknown input ('%s').\n", str);
+        exit(-1);
+    }
+}
+
+CCL_gen_data_t* CCL_alloc_and_init_data(const enum ccl_impl_e impl, const int i0, const int i1, const int j0,
+                                        const int j1) {
+    CCL_gen_data_t* data = (CCL_gen_data_t*)malloc(sizeof(CCL_gen_data_t));
+    data->impl = impl;
+    switch (data->impl) {
+        case LSLH:
+            data->metadata = (void*)CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
+            break;
+        case LSLM:
+            // FLSL_Data* FLSL_FSM(long i0, long i1, long j0, long j1);
+            data->metadata = (void*)FLSL_FSM((long)i0, (long)i1, (long)j0, (long)j1);
+            break;
+        default:
+            fprintf(stderr, "(EE) This should never happen.\n");
+            exit(-1);
+    }
+    return data;
+}
+
+uint32_t CCL_apply(CCL_gen_data_t* data, const uint8_t** img, uint32_t** labels) {
+    switch (data->impl) {
+        case LSLH:
+            return CCL_LSL_apply((CCL_data_t*)data->metadata, img, labels);
+            break;
+        case LSLM:
+            // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
+            return (uint32_t)FLSL_FSM_start((uint8_t**)img, (int32_t**)labels, (FLSL_Data*)data->metadata);
+            break;
+        default:
+            fprintf(stderr, "(EE) This should never happen.\n");
+            exit(-1);
+    }
+}
+
+void CCL_free_data(CCL_gen_data_t* data) {
+        switch (data->impl) {
+        case LSLH:
+            CCL_LSL_free_data((CCL_data_t*)data->metadata);
+            break;
+        case LSLM:
+            // void FLSL_FSM_free(FLSL_Data* metadata);
+            FLSL_ER_free((FLSL_Data*)data->metadata);
+            break;
+        default:
+            fprintf(stderr, "(EE) This should never happen.\n");
+            exit(-1);
+    }
+    free(data);
 }
