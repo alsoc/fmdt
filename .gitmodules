@@ -10,3 +10,6 @@
 [submodule "lib/c-vector"]
 	path = lib/c-vector
 	url = https://github.com/kouchy/c-vector.git
+[submodule "lib/lsl"]
+	path = lib/lsl
+	url = ../lsl-lib
