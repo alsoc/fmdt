@@ -168,6 +168,7 @@ The list of available arguments:
 | `--video-loop`     | int      | 1           | No      | Number of times the video is read in loop. |
 | `--ffmpeg-threads` | int      | 0           | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
 | `--show-id`        | bool     | -           | No      | Show the ROI/CC ids on the output frames (to combine with `--out-frames` parameter). Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
+| `--ccl-impl`       | str      | LSLH        | No      | Select the CCL implementation (LSLH or LSLM). |
 
 Output text formats are detailed in the 
 [Input and Output Text Formats](#input-and-output-text-formats) section.

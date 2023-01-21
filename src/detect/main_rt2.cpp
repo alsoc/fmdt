@@ -50,6 +50,7 @@ int main(int argc, char** argv) {
     char* def_p_out_bb = NULL;
     char* def_p_out_stats = NULL;
     char* def_p_out_mag = NULL;
+    char def_p_ccl_impl[16] = "LSLH";
     int def_p_ffmpeg_threads = 0;
 
     // Help
@@ -69,6 +70,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --out-mag           Path to the file containing magnitudes of the tracked objects          [%s]\n",
                 def_p_out_mag ? def_p_out_mag : "NULL");
+        fprintf(stderr,
+                "  --ccl-impl          Select the CCL implementation to use ('LSLH' or 'LSLM')                [%s]\n",
+                def_p_ccl_impl);
         fprintf(stderr,
                 "  --fra-start         Starting point of the video                                            [%d]\n",
                 def_p_fra_start);
@@ -161,6 +165,7 @@ int main(int argc, char** argv) {
     const char* p_out_bb = args_find_char(argc, argv, "--out-bb", def_p_out_bb);
     const char* p_out_stats = args_find_char(argc, argv, "--out-stats", def_p_out_stats);
     const char* p_out_mag = args_find_char(argc, argv, "--out-mag", def_p_out_mag);
+    const char* p_ccl_impl = args_find_char(argc, argv, "--ccl-impl", def_p_ccl_impl);
     const int p_track_all = args_find(argc, argv, "--track-all");
     const int p_ffmpeg_threads = args_find_int_min(argc, argv, "--ffmpeg-threads", def_p_ffmpeg_threads, 0);
     const int p_task_stats = args_find(argc, argv, "--task-stats");
@@ -184,6 +189,7 @@ int main(int argc, char** argv) {
     printf("#  * out-frames     = %s\n", p_out_frames);
     printf("#  * out-stats      = %s\n", p_out_stats);
     printf("#  * out-mag        = %s\n", p_out_mag);
+    printf("#  * ccl-impl       = %s\n", p_ccl_impl);
     printf("#  * fra-start      = %d\n", p_fra_start);
     printf("#  * fra-end        = %d\n", p_fra_end);
     printf("#  * fra-skip       = %d\n", p_fra_skip);
@@ -261,7 +267,7 @@ int main(int argc, char** argv) {
     threshold_min0.set_custom_name("Thr0<min>");
     Threshold threshold_max0(i0, i1, j0, j1, b, p_light_max);
     threshold_max0.set_custom_name("Thr0<max>");
-    CCL_LSL lsl0(i0, i1, j0, j1, b);
+    CCL_LSL lsl0(i0, i1, j0, j1, b, CCL_str_to_enum(p_ccl_impl));
     lsl0.set_custom_name("CCL_LSL0");
     Features_extractor extractor0(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     extractor0.set_custom_name("Extractor0");
@@ -274,7 +280,7 @@ int main(int argc, char** argv) {
     threshold_min1.set_custom_name("Thr1<min>");
     Threshold threshold_max1(i0, i1, j0, j1, b, p_light_max);
     threshold_max1.set_custom_name("Thr1<max>");
-    CCL_LSL lsl1(i0, i1, j0, j1, b);
+    CCL_LSL lsl1(i0, i1, j0, j1, b, CCL_str_to_enum(p_ccl_impl));
     lsl1.set_custom_name("CCL_LSL1");
     Features_extractor extractor1(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     extractor1.set_custom_name("Extractor1");

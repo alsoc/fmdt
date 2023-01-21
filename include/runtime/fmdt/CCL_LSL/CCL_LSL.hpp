@@ -3,11 +3,12 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
+#include "fmdt/CCL.h"
+
 namespace ccl {
     enum class tsk : size_t { apply, SIZE };
     namespace sck {
-        enum class apply : size_t { in_img, out_labels, out_n_ROI, out_data_er, out_data_era, out_data_rlc, out_data_eq,
-                                    out_data_ner, status };
+        enum class apply : size_t { in_img, out_labels, out_n_ROI, status };
     }
 }
 
@@ -15,14 +16,12 @@ class CCL_LSL : public aff3ct::module::Module {
 protected:
     const int i0, i1, j0, j1;
     const int b;
-    // CCL_data_t *data;
+    CCL_gen_data_t *data;
     const uint8_t** in_img;
     uint32_t** out_labels;
-    uint32_t** out_data_er;
-    uint32_t** out_data_era;
-    uint32_t** out_data_rlc;
+
 public:
-    CCL_LSL(const int i0, const int i1, const int j0, const int j1, const int b);
+    CCL_LSL(const int i0, const int i1, const int j0, const int j1, const int b, const enum ccl_impl_e impl = LSLH);
     virtual ~CCL_LSL();
     virtual CCL_LSL* clone() const;
     inline uint32_t** get_out_labels();
@@ -30,7 +29,7 @@ public:
     inline aff3ct::runtime::Socket& operator[](const ccl::sck::apply s);
 
 protected:
-    void init_data();
+    void init_data(const enum ccl_impl_e impl);
     using Module::deep_copy;
     void deep_copy(const CCL_LSL &m);
 };
