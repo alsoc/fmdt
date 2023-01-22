@@ -209,7 +209,7 @@ uint32_t CCL_apply(CCL_gen_data_t* data, const uint8_t** img, uint32_t** labels)
         case LSLH:
             return CCL_LSL_apply((CCL_data_t*)data->metadata, img, labels);
             break;
-        case LSLM:
+        case LSLM: // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
             // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
             return (uint32_t)FLSL_FSM_start((uint8_t**)img, (int32_t**)labels, (FLSL_Data*)data->metadata);
             break;
