@@ -230,7 +230,12 @@ endif()
 
 # LSL
 if (NOT TARGET lsl-slib)
-	add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/lsl/)
+	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/lsl/include/flsl.h")
+		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/lsl/)
+	else()
+		message(FATAL_ERROR "'lsl' can't be found, try to init the submodule with the following cmd:\n"
+		                    "$ git submodule update --init -- ../lib/lsl/")
+	endif()
 endif()
 
 # Add definitions -------------------------------------------------------------
