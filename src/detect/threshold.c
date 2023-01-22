@@ -9,7 +9,7 @@
 //     int i, j;
 //     for (i = i0; i <= i1; i++)
 //         for (j = j0; j <= j1; j++)
-//             m_out[i][j] = (m_in[i][j] < threshold) ? 0 : 1;
+//             m_out[i][j] = (m_in[i][j] < threshold) ? 0 : 255;
 // }
 
 // TODO: these implementation with a 'if' in the loop, seems to be more efficient (there are less stores...)
@@ -20,7 +20,7 @@ void threshold(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1
         memset(m_out[i], 0, ((j1 - j0) + 1) * sizeof(uint8_t));
         for (j = j0; j <= j1; j++)
             if (m_in[i][j] >= threshold)
-                m_out[i][j] = 1;
+                m_out[i][j] = 255;
     }
 }
 
