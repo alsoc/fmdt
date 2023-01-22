@@ -226,7 +226,7 @@ void CCL_free_data(CCL_gen_data_t* data) {
             break;
         case LSLM:
             // void FLSL_FSM_free(FLSL_Data* metadata);
-            FLSL_ER_free((FLSL_Data*)data->metadata);
+            FLSL_FSM_free((FLSL_Data*)data->metadata);
             break;
         default:
             fprintf(stderr, "(EE) This should never happen.\n");
