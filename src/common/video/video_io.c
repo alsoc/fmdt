@@ -5,7 +5,7 @@
 #include <nrc2.h>
 #include <assert.h>
 
-#include "fmdt/video.h"
+#include "fmdt/video/video_io.h"
 
 #define MAX_BUFF_SIZE 16384
 

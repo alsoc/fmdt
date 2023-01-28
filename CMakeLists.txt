@@ -70,14 +70,23 @@ endif()
 # -----------------------------------------------------------------------------
 set(src_common_files
     ${src_dir}/common/args.c
-    ${src_dir}/common/CCL.c
-    ${src_dir}/common/features.c
-    ${src_dir}/common/KNN.c
-    ${src_dir}/common/threshold.c
     ${src_dir}/common/tools.c
-    ${src_dir}/common/tracking.c
-    ${src_dir}/common/validation.c
-    ${src_dir}/common/video.c
+    ${src_dir}/common/CCL/CCL_compute.c
+    ${src_dir}/common/features/features_compute.c
+    ${src_dir}/common/features/features_io.c
+    ${src_dir}/common/image/image_compute.c
+    ${src_dir}/common/image/image_io.c
+    ${src_dir}/common/KNN/KNN_compute.c
+    ${src_dir}/common/KNN/KNN_io.c
+    ${src_dir}/common/threshold/threshold_compute.c
+    ${src_dir}/common/tracking/tracking_compute.c
+    ${src_dir}/common/tracking/tracking_global.c
+    ${src_dir}/common/tracking/tracking_io.c
+    ${src_dir}/common/tracking/tracking_struct.c
+    ${src_dir}/common/validation/validation_compute.c
+    ${src_dir}/common/validation/validation_global.c
+    ${src_dir}/common/validation/validation_io.c
+    ${src_dir}/common/video/video_io.c
     ${lib_dir}/c-vector/vec.c)
 list(APPEND fmdt_src_list ${src_common_files})
 

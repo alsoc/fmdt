@@ -1,4 +1,4 @@
-#include "fmdt/KNN.h"
+#include "fmdt/KNN/KNN_compute.h"
 #include "fmdt/tools.h"
 
 #include "fmdt/aff3ct_wrapper/KNN_matcher/KNN_matcher.hpp"

@@ -1,4 +1,4 @@
-#include "fmdt/features.h"
+#include "fmdt/features/features_compute.h"
 #include "fmdt/tools.h"
 
 #include "fmdt/aff3ct_wrapper/Features/Features_extractor.hpp"

@@ -11,6 +11,8 @@
 #include "fmdt/args.h"
 #include "fmdt/tools.h"
 #include "fmdt/macros.h"
+#include "fmdt/tracking/tracking_global.h"
+#include "fmdt/tracking/tracking_io.h"
 
 #include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_LSL.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_extractor.hpp"

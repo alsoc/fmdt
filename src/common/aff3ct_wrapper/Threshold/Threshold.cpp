@@ -1,4 +1,4 @@
-#include "fmdt/threshold.h"
+#include "fmdt/threshold/threshold_compute.h"
 #include "fmdt/tools.h"
 
 #include "fmdt/aff3ct_wrapper/Threshold/Threshold.hpp"

@@ -1,4 +1,4 @@
-#include "fmdt/CCL.h"
+#include "fmdt/CCL/CCL_compute.h"
 #include "fmdt/tools.h"
 
 #include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_LSL.hpp"

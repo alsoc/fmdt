@@ -5,15 +5,17 @@
 #include <nrc2.h>
 
 #include "fmdt/args.h"
-#include "fmdt/CCL.h"
 #include "fmdt/tools.h"
-#include "fmdt/features.h"
-#include "fmdt/KNN.h"
-#include "fmdt/threshold.h"
-#include "fmdt/tracking.h"
-#include "fmdt/video.h"
 #include "fmdt/macros.h"
 #include "vec.h"
+
+#include "fmdt/CCL/CCL.h"
+#include "fmdt/features/features.h"
+#include "fmdt/KNN/KNN.h"
+#include "fmdt/threshold/threshold.h"
+#include "fmdt/tracking/tracking.h"
+#include "fmdt/video/video.h"
+#include "fmdt/image/image.h"
 
 int main(int argc, char** argv) {
     // default values
@@ -272,7 +274,7 @@ int main(int argc, char** argv) {
     img_data_t* img_data = NULL;
     video_writer_t* video_writer = NULL;
     if (p_out_frames) {
-        img_data = tools_gs_img_alloc((j1 - j0) + 1, (i1 - i0) + 1);
+        img_data = image_gs_alloc((j1 - j0) + 1, (i1 - i0) + 1);
         const size_t n_threads = 1;
         video_writer = video_writer_init(p_out_frames, p_fra_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
                                          PIXFMT_GRAY);
@@ -317,8 +319,8 @@ int main(int argc, char** argv) {
 
         // save frames (CCs)
         if (img_data) {
-            tools_gs_img_draw_labels(img_data, (const uint32_t**)L2, (const ROI_t*)ROI_array1, p_show_id);
-            video_writer_save_frame(video_writer, (const uint8_t**)tools_gs_img_get_pixels_2d(img_data));
+            image_gs_draw_labels(img_data, (const uint32_t**)L2, (const ROI_t*)ROI_array1, p_show_id);
+            video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
 
         // save stats
@@ -400,7 +402,7 @@ int main(int argc, char** argv) {
     features_free_ROI_array(ROI_array1);
     video_reader_free(video);
     if (img_data) {
-        tools_gs_img_free(img_data);
+        image_gs_free(img_data);
         video_writer_free(video_writer);
     }
     CCL_LSL_free_data(ccl_data);

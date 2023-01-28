@@ -1,5 +1,9 @@
 #include <nrc2.h>
 
+#include "fmdt/tools.h"
+#include "fmdt/image/image_compute.h"
+#include "fmdt/video/video_io.h"
+
 #include "fmdt/aff3ct_wrapper/Logger/Logger_frame.hpp"
 
 Logger_frame::Logger_frame(const std::string frames_path, const size_t fra_start, const int show_id, const int i0,
@@ -13,7 +17,7 @@ Logger_frame::Logger_frame(const std::string frames_path, const size_t fra_start
     this->in_labels = (const uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint32_t*)));
     this->in_labels -= i0 - b;
 
-    this->img_data = tools_gs_img_alloc((j1 - j0) + 1, (i1 - i0) + 1);
+    this->img_data = image_gs_alloc((j1 - j0) + 1, (i1 - i0) + 1);
     const size_t n_threads = 1;
     this->video_writer = video_writer_init(frames_path.c_str(), fra_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
                                            PIXFMT_GRAY);
@@ -37,15 +41,15 @@ Logger_frame::Logger_frame(const std::string frames_path, const size_t fra_start
         tools_linear_2d_nrc_ui32matrix(m_in_labels, lgr_fra.i0 - lgr_fra.b, lgr_fra.i1 + lgr_fra.b,
                                        lgr_fra.j0 - lgr_fra.b, lgr_fra.j1 + lgr_fra.b, lgr_fra.in_labels);
 
-        _tools_gs_img_draw_labels(lgr_fra.img_data,
-                                  lgr_fra.in_labels,
-                                  static_cast<const uint32_t*>(t[ps_in_ROI_id].get_dataptr()),
-                                  static_cast<const uint32_t*>(t[ps_in_ROI_xmax].get_dataptr()),
-                                  static_cast<const uint32_t*>(t[ps_in_ROI_ymin].get_dataptr()),
-                                  static_cast<const uint32_t*>(t[ps_in_ROI_ymax].get_dataptr()),
-                                  *static_cast<const uint32_t*>(t[ps_in_n_ROI].get_dataptr()),
-                                  lgr_fra.show_id);
-        video_writer_save_frame(lgr_fra.video_writer, (const uint8_t**)tools_gs_img_get_pixels_2d(lgr_fra.img_data));
+        _image_gs_draw_labels(lgr_fra.img_data,
+                              lgr_fra.in_labels,
+                              static_cast<const uint32_t*>(t[ps_in_ROI_id].get_dataptr()),
+                              static_cast<const uint32_t*>(t[ps_in_ROI_xmax].get_dataptr()),
+                              static_cast<const uint32_t*>(t[ps_in_ROI_ymin].get_dataptr()),
+                              static_cast<const uint32_t*>(t[ps_in_ROI_ymax].get_dataptr()),
+                              *static_cast<const uint32_t*>(t[ps_in_n_ROI].get_dataptr()),
+                              lgr_fra.show_id);
+        video_writer_save_frame(lgr_fra.video_writer, (const uint8_t**)image_gs_get_pixels_2d(lgr_fra.img_data));
 
         return aff3ct::runtime::status_t::SUCCESS;
     });
@@ -53,6 +57,6 @@ Logger_frame::Logger_frame(const std::string frames_path, const size_t fra_start
 
 Logger_frame::~Logger_frame() {
     free(this->in_labels + this->i0 - this->b);
-    tools_gs_img_free(this->img_data);
+    image_gs_free(this->img_data);
     video_writer_free(this->video_writer);
 }

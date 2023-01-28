@@ -3,9 +3,11 @@
 #include <stdlib.h>
 
 #include "fmdt/args.h"
-#include "fmdt/tracking.h"
-#include "fmdt/validation.h"
 #include "vec.h"
+
+#include "fmdt/tracking/tracking_global.h"
+#include "fmdt/tracking/tracking_io.h"
+#include "fmdt/validation/validation.h"
 
 int main(int argc, char** argv) {
     // default values

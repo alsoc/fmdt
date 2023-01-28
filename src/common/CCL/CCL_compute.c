@@ -3,7 +3,7 @@
 #include <string.h>
 #include <nrc2.h>
 
-#include "fmdt/CCL.h"
+#include "fmdt/CCL/CCL_compute.h"
 
 CCL_data_t* CCL_LSL_alloc_and_init_data(int i0, int i1, int j0, int j1) {
     CCL_data_t* data = (CCL_data_t*)malloc(sizeof(CCL_data_t));

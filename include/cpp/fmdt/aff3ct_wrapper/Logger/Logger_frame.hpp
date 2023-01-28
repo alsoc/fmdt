@@ -3,8 +3,8 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
-#include "fmdt/tools.h"
-#include "fmdt/video.h"
+#include "fmdt/image/image_struct.h"
+#include "fmdt/video/video_struct.h"
 
 namespace lgr_fra {
     enum class tsk : size_t { write, SIZE };

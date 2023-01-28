@@ -1,4 +1,4 @@
-#include "fmdt/KNN.h"
+#include "fmdt/KNN/KNN_io.h"
 #include "fmdt/tools.h"
 
 #include "fmdt/aff3ct_wrapper/Logger/Logger_KNN.hpp"

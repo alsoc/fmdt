@@ -2,7 +2,7 @@
 
 #include <stdint.h>
 
-#include "fmdt/tracking.h"
+#include "fmdt/tracking/tracking_struct.h"
 
 typedef struct validation_obj {
     // Debut
@@ -48,13 +48,3 @@ typedef struct validation_obj {
     uint16_t is_valid_last;
     enum obj_e obj_type;
 } validation_obj_t;
-
-#define MAX_TRACKS_SIZE 10000
-extern uint8_t g_is_valid_track[MAX_TRACKS_SIZE];
-
-int validation_init(const char* val_objects_file);
-void validation_print(const vec_track_t track_array);
-void validation_process(const vec_track_t track_array);
-void validation_free(void);
-unsigned validation_count_objects(const validation_obj_t* val_objects, const unsigned n_val_objects, unsigned* n_stars,
-                                  unsigned* n_meteors, unsigned* n_noise);

@@ -12,10 +12,13 @@
 #include "fmdt/macros.h"
 #include "fmdt/args.h"
 #include "fmdt/tools.h"
-#include "fmdt/tracking.h"
-#include "fmdt/validation.h"
-#include "fmdt/video.h"
 #include "vec.h"
+
+#include "fmdt/image/image_compute.h"
+#include "fmdt/tracking/tracking_io.h"
+#include "fmdt/tracking/tracking_global.h"
+#include "fmdt/validation/validation.h"
+#include "fmdt/video/video.h"
 
 void add_to_BB_coord_list(vec_BB_t* BB_list, vec_color_e* BB_list_color, size_t elem, int rx, int ry, int bb_x,
                           int bb_y, int frame_id, int track_id, int is_extrapolated, enum color_e color) {
@@ -191,7 +194,7 @@ int main(int argc, char** argv) {
     video_reader_t* video = video_reader_init(p_in_video, p_fra_start, p_fra_end, 0, 0, p_ffmpeg_threads, &i0, &i1, &j0,
                                               &j1);
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
-    img_data_t* img_data = tools_color_img_alloc((j1 - j0) - 1, (i1 - i0) + 1);
+    img_data_t* img_data = image_color_alloc((j1 - j0) - 1, (i1 - i0) + 1);
 
     // validation pour établir si une track est vrai/faux positif
     if (p_in_gt) {
@@ -274,9 +277,9 @@ int main(int argc, char** argv) {
             sscanf(lines, "%d %d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id, &is_extrapolated);
         }
 
-        tools_color_img_draw_BB(img_data, (const uint8_t**)I0, (const BB_t*)BB_list, (const enum color_e*)BB_list_color,
-                                cpt, p_show_id, p_in_gt ? 1 : 0);
-        video_writer_save_frame(video_writer, (const uint8_t**)tools_color_img_get_pixels_2d(img_data));
+        image_color_draw_BB(img_data, (const uint8_t**)I0, (const BB_t*)BB_list, (const enum color_e*)BB_list_color,
+                            cpt, p_show_id, p_in_gt ? 1 : 0);
+        video_writer_save_frame(video_writer, (const uint8_t**)image_color_get_pixels_2d(img_data));
     }
     video_writer_free(video_writer);
     free_ui8matrix(I0, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -290,7 +293,7 @@ int main(int argc, char** argv) {
     video_reader_free(video);
     if (file_bb)
         fclose(file_bb);
-    tools_color_img_free(img_data);
+    image_color_free(img_data);
 
     printf("# End of the program, exiting.\n");
 

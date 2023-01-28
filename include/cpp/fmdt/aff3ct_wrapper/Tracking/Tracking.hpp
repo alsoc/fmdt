@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
-#include "fmdt/tracking.h"
+#include "fmdt/tracking/tracking_struct.h"
 
 namespace trk {
     enum class tsk : size_t { perform, SIZE };

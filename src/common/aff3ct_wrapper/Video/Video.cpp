@@ -1,4 +1,4 @@
-#include "fmdt/video.h"
+#include "fmdt/video/video_io.h"
 #include "fmdt/tools.h"
 
 #include "fmdt/aff3ct_wrapper/Video/Video.hpp"

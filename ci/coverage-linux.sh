@@ -5,7 +5,7 @@ WD=$(pwd)
 build_root=build
 
 mkdir code_coverage_files || true
-for Exe in 'fmdt-common-obj' 'fmdt-detect-common-obj' 'fmdt-detect-rt-common-obj' 'fmdt-detect-exe' 'fmdt-detect-rt-pip-exe' 'fmdt-detect-rt-seq-exe'; do
+for Exe in 'fmdt-common-obj' 'fmdt-detect-rt-common-obj' 'fmdt-detect-exe' 'fmdt-detect-rt-pip-exe' 'fmdt-detect-rt-seq-exe'; do
     lcov --capture --directory $build_root/CMakeFiles/${Exe}.dir/src --output-file code_coverage_files/${Exe}.info
     rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
     cp code_coverage_files/${Exe}.info code_coverage_files/${Exe}2.info

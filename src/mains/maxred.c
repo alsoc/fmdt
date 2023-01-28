@@ -8,10 +8,14 @@
 #include "fmdt/macros.h"
 #include "fmdt/args.h"
 #include "fmdt/tools.h"
-#include "fmdt/tracking.h"
-#include "fmdt/validation.h"
-#include "fmdt/video.h"
 #include "vec.h"
+
+#include "fmdt/image/image_compute.h"
+#include "fmdt/tracking/tracking_global.h"
+#include "fmdt/tracking/tracking_io.h"
+#include "fmdt/validation/validation.h"
+#include "fmdt/video/video.h"
+
 
 void max_reduce(uint8_t** M, int i0, int i1, int j0, int j1, const uint8_t** I) {
     for (int i = i0; i <= i1; i++) {
@@ -152,10 +156,10 @@ int main(int argc, char** argv) {
     video_writer_t* video_writer = NULL;
     size_t n_threads = 4;
     if (p_in_tracks) {
-        img_data = tools_color_img_alloc((j1 - j0) + 1, (i1 - i0) + 1);
+        img_data = image_color_alloc((j1 - j0) + 1, (i1 - i0) + 1);
         video_writer = video_writer_init(p_out_frame, p_fra_start, n_threads, i1 - i0 + 1, j1 - j0 + 1, PIXFMT_RGB24);
     } else {
-        img_data = tools_gs_img_alloc((j1 - j0) + 1, (i1 - i0) + 1);
+        img_data = image_gs_alloc((j1 - j0) + 1, (i1 - i0) + 1);
         video_writer = video_writer_init(p_out_frame, p_fra_start, n_threads, i1 - i0 + 1, j1 - j0 + 1, PIXFMT_GRAY);
     }
 
@@ -225,21 +229,21 @@ int main(int argc, char** argv) {
         }
 
         int n_BB = m;
-        tools_color_img_draw_BB(img_data, (const uint8_t**)M, (const BB_t*)BB_list, (const enum color_e*)BB_list_color,
-                                n_BB, p_show_id, p_in_gt ? 1 : 0);
-        video_writer_save_frame(video_writer, (const uint8_t**)tools_color_img_get_pixels_2d(img_data));
+        image_color_draw_BB(img_data, (const uint8_t**)M, (const BB_t*)BB_list, (const enum color_e*)BB_list_color,
+                            n_BB, p_show_id, p_in_gt ? 1 : 0);
+        video_writer_save_frame(video_writer, (const uint8_t**)image_color_get_pixels_2d(img_data));
         vector_free(track_array);
         free(BB_list);
         free(BB_list_color);
         if (p_in_gt)
             validation_free();
     } else {
-        uint8_t* pixels = tools_gs_img_get_pixels(img_data);
+        uint8_t* pixels = image_gs_get_pixels(img_data);
         // this copy could be avoided...
         for (int i = i0; i <= i1; i++)
             for (int j = j0; j <= j1; j++)
                 pixels[i * img_data->width + j] = M[i][j];
-        video_writer_save_frame(video_writer, (const uint8_t**)tools_gs_img_get_pixels_2d(img_data));
+        video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
     }
 
     // ----------
@@ -249,9 +253,9 @@ int main(int argc, char** argv) {
     free_ui8matrix(I, i0, i1, j0, j1);
     free_ui8matrix(M, i0, i1, j0, j1);
     if (p_in_tracks)
-        tools_color_img_free(img_data);
+        image_color_free(img_data);
     else
-        tools_gs_img_free(img_data);
+        image_gs_free(img_data);
     video_writer_free(video_writer);
     video_reader_free(video);
 

@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
-#include "fmdt/video.h"
+#include "fmdt/video/video_struct.h"
 
 namespace vid2 {
     enum class tsk : size_t { generate, SIZE };

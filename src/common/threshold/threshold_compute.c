@@ -1,6 +1,6 @@
 #include <string.h>
 
-#include "fmdt/threshold.h"
+#include "fmdt/threshold/threshold_compute.h"
 
 #define GRAY_LEVEL 256
 
