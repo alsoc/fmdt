@@ -436,10 +436,11 @@ void _light_copy_ROI_array(const uint32_t* ROI_src_id, const uint32_t ROI_src_fr
 }
 
 void light_copy_ROI_array(const ROI_t* ROI_array_src, const uint32_t ROI_src_frame, ROI_track_t* ROI_array_dest) {
-    _light_copy_ROI_array(ROI_array_src->id, ROI_src_frame, ROI_array_src->xmin, ROI_array_src->xmax, 
-                          ROI_array_src->ymin, ROI_array_src->ymax, ROI_array_src->S, ROI_array_src->x,
-                          ROI_array_src->y, ROI_array_src->error, ROI_array_src->prev_id, ROI_array_src->magnitude,
-                          ROI_array_src->_size, ROI_array_dest);
+    _light_copy_ROI_array(ROI_array_src->id, ROI_src_frame, ROI_array_src->basic->xmin, ROI_array_src->basic->xmax,
+                          ROI_array_src->basic->ymin, ROI_array_src->basic->ymax, ROI_array_src->basic->S,
+                          ROI_array_src->basic->x, ROI_array_src->basic->y, ROI_array_src->motion->error,
+                          ROI_array_src->asso->prev_id, ROI_array_src->misc->magnitude, ROI_array_src->_size,
+                          ROI_array_dest);
 }
 
 void _update_ROI_array_next_id(const uint32_t* ROI_prev_id, ROI_track_t* ROI_dest, const size_t n_ROI) {
@@ -490,9 +491,9 @@ void tracking_perform(tracking_data_t* tracking_data, const ROI_t* ROI_array, ve
                       const int track_all, const size_t fra_star_min, const size_t fra_meteor_min,
                       const size_t fra_meteor_max, const int magnitude, const uint8_t extrapol_order_max,
                       const float min_extrapol_ratio_S) {
-    _tracking_perform(tracking_data, ROI_array->id, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin,
-                      ROI_array->ymax, ROI_array->S, ROI_array->x, ROI_array->y, ROI_array->error, ROI_array->prev_id,
-                      ROI_array->magnitude, ROI_array->_size, BB_array, frame, motion_est, r_extrapol, angle_max,
-                      diff_dev, track_all, fra_star_min, fra_meteor_min, fra_meteor_max, magnitude, extrapol_order_max,
-                      min_extrapol_ratio_S);
+    _tracking_perform(tracking_data, ROI_array->id, ROI_array->basic->xmin, ROI_array->basic->xmax, ROI_array->basic->ymin,
+                      ROI_array->basic->ymax, ROI_array->basic->S, ROI_array->basic->x, ROI_array->basic->y,
+                      ROI_array->motion->error, ROI_array->asso->prev_id, ROI_array->misc->magnitude, ROI_array->_size,
+                      BB_array, frame, motion_est, r_extrapol, angle_max, diff_dev, track_all, fra_star_min,
+                      fra_meteor_min, fra_meteor_max, magnitude, extrapol_order_max, min_extrapol_ratio_S);
 }

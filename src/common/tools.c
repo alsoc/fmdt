@@ -104,8 +104,8 @@ void tools_save_max(const char* filename, uint8_t** I, int i0, int i1, int j0, i
     fclose(f);
 }
 
-void tools_filter_speed_binarize(uint32_t** in, int i0, int i1, int j0, int j1, uint8_t** out, ROI_t* stats) {
-    for (int i = i0; i <= i1; i++)
-        for (int j = j0; j <= j1; j++)
-            out[i][j] = stats[in[i][j]].S ? 0xFF : 0;
-}
+// void tools_filter_speed_binarize(uint32_t** in, int i0, int i1, int j0, int j1, uint8_t** out, ROI_t* stats) {
+//     for (int i = i0; i <= i1; i++)
+//         for (int j = j0; j <= j1; j++)
+//             out[i][j] = stats[in[i][j]].S ? 0xFF : 0;
+// }

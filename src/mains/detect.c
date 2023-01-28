@@ -241,9 +241,9 @@ int main(int argc, char** argv) {
     // -- ALLOCATION -- //
     // ---------------- //
 
-    ROI_t* ROI_array_tmp = features_alloc_ROI_array(MAX_ROI_SIZE_BEFORE_SHRINK);
-    ROI_t* ROI_array0 = features_alloc_ROI_array(MAX_ROI_SIZE);
-    ROI_t* ROI_array1 = features_alloc_ROI_array(MAX_ROI_SIZE);
+    ROI_t* ROI_array_tmp = features_alloc_ROI(MAX_ROI_SIZE_BEFORE_SHRINK);
+    ROI_t* ROI_array0 = features_alloc_ROI(MAX_ROI_SIZE);
+    ROI_t* ROI_array1 = features_alloc_ROI(MAX_ROI_SIZE);
     vec_BB_t* BB_array = NULL;
     if (p_out_bb)
         BB_array = (vec_BB_t*)vector_create();
@@ -261,9 +261,9 @@ int main(int argc, char** argv) {
 
     tracking_init_global_data();
     KNN_data_t* knn_data = KNN_alloc_and_init_data(MAX_ROI_SIZE);
-    features_init_ROI_array(ROI_array_tmp);
-    features_init_ROI_array(ROI_array0);
-    features_init_ROI_array(ROI_array1);
+    features_init_ROI(ROI_array_tmp);
+    features_init_ROI(ROI_array0);
+    features_init_ROI(ROI_array1);
     tracking_init_data(tracking_data);
     CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
     zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -296,30 +296,33 @@ int main(int argc, char** argv) {
 
         // step 2: CCL/CCA
         const int n_ROI = CCL_LSL_apply(ccl_data, (const uint8_t**)IL, L1);
-        features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_ROI, ROI_array_tmp);
+        features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_ROI, ROI_array_tmp->basic);
 
         // step 3: hysteresis threshold & surface filtering (+ magnitude computations)
         threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_light_max);
-        features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, ROI_array_tmp,
+        features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, ROI_array_tmp->basic,
                                  p_surface_min, p_surface_max);
-        features_shrink_ROI_array((const ROI_t*)ROI_array_tmp, ROI_array1);
-        features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L2, ROI_array1);
+        features_shrink_ROI_array(ROI_array_tmp->basic, ROI_array1->basic);
+        features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L2, ROI_array1->basic,
+                                   ROI_array1->misc);
 
         // step 4: k-NN matching
-        KNN_match(knn_data, ROI_array0, ROI_array1, p_k, p_max_dist, p_min_ratio_s);
+        KNN_match(knn_data, ROI_array0->basic, ROI_array1->basic, ROI_array0->asso, ROI_array1->asso, p_k, p_max_dist,
+                  p_min_ratio_s);
 
         // step 5: motion estimation
         motion_t motion_est1, motion_est2;
-        features_compute_motion((const ROI_t*)ROI_array0, ROI_array1, &motion_est1, &motion_est2);
+        features_compute_motion(ROI_array0->basic, ROI_array1->basic, ROI_array1->asso, ROI_array1->motion,
+                                &motion_est1, &motion_est2);
 
         // step 6: tracking
-        tracking_perform(tracking_data, (const ROI_t*)ROI_array1, &BB_array, cur_fra, &motion_est2,
-                         p_r_extrapol, p_angle_max, p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min,
-                         p_fra_meteor_max, p_out_mag != NULL, p_extrapol_order, p_min_ratio_s);
+        tracking_perform(tracking_data, ROI_array1, &BB_array, cur_fra, &motion_est2, p_r_extrapol, p_angle_max,
+                         p_diff_dev, p_track_all, p_fra_star_min, p_fra_meteor_min, p_fra_meteor_max, p_out_mag != NULL,
+                         p_extrapol_order, p_min_ratio_s);
 
         // save frames (CCs)
         if (img_data) {
-            image_gs_draw_labels(img_data, (const uint32_t**)L2, (const ROI_t*)ROI_array1, p_show_id);
+            image_gs_draw_labels(img_data, (const uint32_t**)L2, ROI_array1->basic, p_show_id);
             video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
 
@@ -335,10 +338,11 @@ int main(int argc, char** argv) {
             }
             if (f) {
                 int prev_fra = cur_fra > p_fra_start ? cur_fra - (p_fra_skip + 1) : -1;
-                features_ROI0_ROI1_write(f, prev_fra, cur_fra, ROI_array0, ROI_array1, tracking_data->tracks);
+                features_ROI0_ROI1_write(f, prev_fra, cur_fra, ROI_array0->basic, ROI_array0->misc, ROI_array1->basic,
+                                         ROI_array1->misc, tracking_data->tracks);
                 if (cur_fra > p_fra_start) {
                     fprintf(f, "#\n");
-                    KNN_asso_conflicts_write(f, knn_data, ROI_array0, ROI_array1);
+                    KNN_asso_conflicts_write(f, knn_data, ROI_array0->asso, ROI_array1->asso, ROI_array1->motion);
                     fprintf(f, "#\n");
                     features_motion_write(f, &motion_est1, &motion_est2);
                     fprintf(f, "#\n");
@@ -397,9 +401,9 @@ int main(int argc, char** argv) {
     free_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
-    features_free_ROI_array(ROI_array_tmp);
-    features_free_ROI_array(ROI_array0);
-    features_free_ROI_array(ROI_array1);
+    features_free_ROI(ROI_array_tmp);
+    features_free_ROI(ROI_array0);
+    features_free_ROI(ROI_array1);
     video_reader_free(video);
     if (img_data) {
         image_gs_free(img_data);

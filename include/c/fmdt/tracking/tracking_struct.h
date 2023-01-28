@@ -2,10 +2,10 @@
 
 #include <stdint.h>
 
-#include "fmdt/features/features_struct.h"
+#include "fmdt/features/features_struct.h" // motion_t
 
 // Enums
-// enum obj_e { UNKNOWN = 0, METEOR, STAR, NOISE, N_OBJECTS }; // <= now defined in "fmdt/features/features_struct.h"
+enum obj_e { UNKNOWN = 0, METEOR, STAR, NOISE, N_OBJECTS };
 enum state_e { TRACK_UPDATED = 1, TRACK_LOST, TRACK_FINISHED };
 // to remember why a 'meteor' object became a 'noise' object
 enum change_state_reason_e { REASON_TOO_BIG_ANGLE = 1, REASON_WRONG_DIRECTION, REASON_TOO_LONG_DURATION, N_REASONS };

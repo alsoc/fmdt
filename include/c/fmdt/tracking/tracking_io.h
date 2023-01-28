@@ -1,5 +1,7 @@
 #pragma once
 
+#include <stdio.h>
+
 #include "fmdt/tracking/tracking_struct.h"
 
 void tracking_track_array_write(FILE* f, const vec_track_t track_array);

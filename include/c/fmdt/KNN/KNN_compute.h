@@ -11,6 +11,7 @@ void _KNN_match(uint32_t** data_nearest, float** data_distances, uint32_t* data_
                 const size_t n_ROI0, const uint32_t* ROI1_id, const uint32_t* ROI1_S, const float* ROI1_x,
                 const float* ROI1_y, uint32_t* ROI1_prev_id, const size_t n_ROI1, const int k, const uint32_t max_dist,
                 const float min_ratio_S);
-void KNN_match(KNN_data_t* data, ROI_t* ROI_array0, ROI_t* ROI_array1, const int k, const uint32_t max_dist,
+void KNN_match(KNN_data_t* data, const ROI_basic_t* ROI_basic_array0, const ROI_basic_t* ROI_basic_array1,
+               ROI_asso_t* ROI_asso_array0, ROI_asso_t* ROI_asso_array1, const int k, const uint32_t max_dist,
                const float min_ratio_S);
 void KNN_free_data(KNN_data_t* data);

@@ -81,9 +81,10 @@ void _KNN_asso_conflicts_write(FILE* f, const uint32_t** KNN_data_nearest, const
 }
 
 
-void KNN_asso_conflicts_write(FILE* f, const KNN_data_t* KNN_data, const ROI_t* ROI_array0, const ROI_t* ROI_array1) {
+void KNN_asso_conflicts_write(FILE* f, const KNN_data_t* KNN_data, const ROI_asso_t* ROI_asso_array0,
+                              const ROI_asso_t* ROI_asso_array1, const ROI_motion_t* ROI_motion_array1) {
     _KNN_asso_conflicts_write(f, (const uint32_t**)KNN_data->nearest, (const float**)KNN_data->distances,
-                              (const uint32_t*)KNN_data->conflicts, ROI_array0->id, ROI_array0->next_id,
-                              ROI_array0->_size, ROI_array1->dx, ROI_array1->dy, ROI_array1->error,
-                              ROI_array1->is_moving, ROI_array1->_size);
+                              (const uint32_t*)KNN_data->conflicts, ROI_asso_array0->id, ROI_asso_array0->next_id,
+                              *ROI_asso_array0->_size, ROI_motion_array1->dx, ROI_motion_array1->dy,
+                              ROI_motion_array1->error, ROI_motion_array1->is_moving, *ROI_asso_array1->_size);
 }

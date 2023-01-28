@@ -13,7 +13,7 @@
 void features_print_stats(ROI_t* stats, int n) {
     int cpt = 0;
     for (int i = 0; i < n; i++) {
-        if (stats->S[i] > 0) {
+        if (stats->id[i] > 0) {
             cpt++;
         }
     }
@@ -23,12 +23,13 @@ void features_print_stats(ROI_t* stats, int n) {
         return;
 
     for (int i = 0; i < n; i++) {
-        if (stats->S[i] > 0)
+        if (stats->id[i] > 0)
             printf("%4d \t %4d \t %4d \t %4d \t %4d \t %3d \t %4d \t %4d \t %7.1f \t %7.1f \t %4d \t %4d \t "
                    "%7.1f \t %d\n",
-                   stats->id[i], stats->xmin[i], stats->xmax[i], stats->ymin[i], stats->ymax[i], stats->S[i],
-                   stats->Sx[i], stats->Sy[i], stats->x[i], stats->y[i], stats->prev_id[i], stats->next_id[i],
-                   stats->error[i], stats->is_moving[i]);
+                   stats->id[i], stats->basic->xmin[i], stats->basic->xmax[i], stats->basic->ymin[i],
+                   stats->basic->ymax[i], stats->basic->S[i], stats->basic->Sx[i], stats->basic->Sy[i],
+                   stats->basic->x[i], stats->basic->y[i], stats->asso->prev_id[i], stats->asso->next_id[i],
+                   stats->motion->error[i], stats->motion->is_moving[i]);
     }
     printf("\n");
 }
@@ -55,20 +56,20 @@ void features_parse_stats(const char* filename, ROI_t* stats, int* n) {
         sscanf(lines, "%d %d %d %d %d %d %d %d %f %f %f %f %f %d %d", &id, &xmin, &xmax, &ymin, &ymax, &s, &sx, &sy,
                &x, &y, &dx, &dy, &error, &prev_id, &next_id);
         stats->id[id - 1] = id;
-        stats->xmin[id - 1] = xmin;
-        stats->xmax[id - 1] = xmax;
-        stats->ymin[id - 1] = ymin;
-        stats->ymax[id - 1] = ymax;
-        stats->S[id - 1] = s;
-        stats->Sx[id - 1] = sx;
-        stats->Sy[id - 1] = sy;
-        stats->x[id - 1] = x;
-        stats->y[id - 1] = y;
-        stats->dx[id - 1] = dx;
-        stats->dy[id - 1] = dy;
-        stats->error[id - 1] = error;
-        stats->prev_id[id - 1] = prev_id;
-        stats->next_id[id - 1] = next_id;
+        stats->basic->xmin[id - 1] = xmin;
+        stats->basic->xmax[id - 1] = xmax;
+        stats->basic->ymin[id - 1] = ymin;
+        stats->basic->ymax[id - 1] = ymax;
+        stats->basic->S[id - 1] = s;
+        stats->basic->Sx[id - 1] = sx;
+        stats->basic->Sy[id - 1] = sy;
+        stats->basic->x[id - 1] = x;
+        stats->basic->y[id - 1] = y;
+        stats->motion->dx[id - 1] = dx;
+        stats->motion->dy[id - 1] = dy;
+        stats->motion->error[id - 1] = error;
+        stats->asso->prev_id[id - 1] = prev_id;
+        stats->asso->next_id[id - 1] = next_id;
     }
     fclose(file);
 }
@@ -149,11 +150,12 @@ void _features_ROI_write(FILE* f, const int frame, const uint32_t* ROI_id, const
     }
 }
 
-void features_ROI_write(FILE* f, const int frame, const ROI_t* ROI_array, const vec_track_t track_array,
-                        const unsigned age) {
-    _features_ROI_write(f, frame, ROI_array->id, ROI_array->xmin, ROI_array->xmax, ROI_array->ymin, ROI_array->ymax,
-                        ROI_array->S, ROI_array->Sx, ROI_array->Sy, ROI_array->x, ROI_array->y, ROI_array->magnitude,
-                        ROI_array->_size, track_array, age);
+void features_ROI_write(FILE* f, const int frame, const ROI_basic_t* ROI_basic_array, const ROI_misc_t* ROI_misc_array,
+                        const vec_track_t track_array, const unsigned age) {
+    _features_ROI_write(f, frame, ROI_basic_array->id, ROI_basic_array->xmin, ROI_basic_array->xmax, ROI_basic_array->ymin,
+                        ROI_basic_array->ymax, ROI_basic_array->S, ROI_basic_array->Sx, ROI_basic_array->Sy,
+                        ROI_basic_array->x, ROI_basic_array->y, ROI_misc_array->magnitude, *ROI_basic_array->_size,
+                        track_array, age);
 }
 
 void features_motion_write(FILE* f, const motion_t* motion_est1, const motion_t* motion_est2) {
@@ -190,12 +192,15 @@ void _features_ROI0_ROI1_write(FILE* f, const int prev_frame, const int cur_fram
                         ROI1_x, ROI1_y, ROI1_magnitude, n_ROI1, track_array, 0);
 }
 
-void features_ROI0_ROI1_write(FILE* f, const int prev_frame, const int cur_frame, const ROI_t* ROI_array0,
-                              const ROI_t* ROI_array1, const vec_track_t track_array) {
-    _features_ROI0_ROI1_write(f, prev_frame, cur_frame, ROI_array0->id, ROI_array0->xmin, ROI_array0->xmax,
-                              ROI_array0->ymin, ROI_array0->ymax, ROI_array0->S, ROI_array0->Sx, ROI_array0->Sy,
-                              ROI_array0->x, ROI_array0->y, ROI_array0->magnitude, ROI_array0->_size, ROI_array1->id,
-                              ROI_array1->xmin, ROI_array1->xmax, ROI_array1->ymin, ROI_array1->ymax, ROI_array1->S,
-                              ROI_array1->Sx, ROI_array1->Sy, ROI_array1->x, ROI_array1->y, ROI_array1->magnitude,
-                              ROI_array1->_size, track_array);
+void features_ROI0_ROI1_write(FILE* f, const int prev_frame, const int cur_frame, const ROI_basic_t* ROI_basic_array0,
+                              const ROI_misc_t* ROI_misc_array0, const ROI_basic_t* ROI_basic_array1,
+                              const ROI_misc_t* ROI_misc_array1, const vec_track_t track_array) {
+    _features_ROI0_ROI1_write(f, prev_frame, cur_frame, ROI_basic_array0->id, ROI_basic_array0->xmin,
+                              ROI_basic_array0->xmax, ROI_basic_array0->ymin, ROI_basic_array0->ymax,
+                              ROI_basic_array0->S, ROI_basic_array0->Sx, ROI_basic_array0->Sy, ROI_basic_array0->x,
+                              ROI_basic_array0->y, ROI_misc_array0->magnitude, *ROI_basic_array0->_size,
+                              ROI_basic_array1->id, ROI_basic_array1->xmin, ROI_basic_array1->xmax,
+                              ROI_basic_array1->ymin, ROI_basic_array1->ymax, ROI_basic_array1->S, ROI_basic_array1->Sx,
+                              ROI_basic_array1->Sy, ROI_basic_array1->x, ROI_basic_array1->y,
+                              ROI_misc_array1->magnitude, *ROI_basic_array1->_size, track_array);
 }

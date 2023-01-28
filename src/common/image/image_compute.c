@@ -364,10 +364,10 @@ void _image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const 
 #endif
 }
 
-void image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const ROI_t* ROI_array,
+void image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const ROI_basic_t* ROI_basic_array,
                           const uint8_t show_id) {
-    _image_gs_draw_labels(img_data, labels, ROI_array->id, ROI_array->xmax, ROI_array->ymin, ROI_array->ymax,
-                          ROI_array->_size, show_id);
+    _image_gs_draw_labels(img_data, labels, ROI_basic_array->id, ROI_basic_array->xmax, ROI_basic_array->ymin,
+                          ROI_basic_array->ymax, *ROI_basic_array->_size, show_id);
 }
 
 uint8_t* image_gs_get_pixels(img_data_t* img_data) {
