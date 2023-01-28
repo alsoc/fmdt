@@ -17,8 +17,8 @@
 #include "fmdt/image/image_compute.h"
 #include "fmdt/tracking/tracking_io.h"
 #include "fmdt/tracking/tracking_global.h"
-#include "fmdt/validation/validation.h"
-#include "fmdt/video/video.h"
+#include "fmdt/validation.h"
+#include "fmdt/video.h"
 
 void add_to_BB_coord_list(vec_BB_t* BB_list, vec_color_e* BB_list_color, size_t elem, int rx, int ry, int bb_x,
                           int bb_y, int frame_id, int track_id, int is_extrapolated, enum color_e color) {

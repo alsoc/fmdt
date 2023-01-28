@@ -9,14 +9,14 @@
 #include "fmdt/macros.h"
 #include "vec.h"
 
-#include "fmdt/CCL/CCL.h"
-#include "fmdt/features/features.h"
-#include "fmdt/KNN/KNN.h"
-#include "fmdt/motion/motion.h"
-#include "fmdt/threshold/threshold.h"
-#include "fmdt/tracking/tracking.h"
-#include "fmdt/video/video.h"
-#include "fmdt/image/image.h"
+#include "fmdt/CCL.h"
+#include "fmdt/features.h"
+#include "fmdt/KNN.h"
+#include "fmdt/motion.h"
+#include "fmdt/threshold.h"
+#include "fmdt/tracking.h"
+#include "fmdt/video.h"
+#include "fmdt/image.h"
 
 int main(int argc, char** argv) {
     // default values

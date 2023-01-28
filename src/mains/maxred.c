@@ -13,8 +13,8 @@
 #include "fmdt/image/image_compute.h"
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/tracking/tracking_io.h"
-#include "fmdt/validation/validation.h"
-#include "fmdt/video/video.h"
+#include "fmdt/validation.h"
+#include "fmdt/video.h"
 
 
 void max_reduce(uint8_t** M, int i0, int i1, int j0, int j1, const uint8_t** I) {
