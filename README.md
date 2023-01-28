@@ -62,8 +62,8 @@ git submodule update --init --recursive
 
 Note that `ffmpeg-io` requires the `ffmpeg` executable: **you need to install 
 `ffmpeg` on your system** if you want to be able to read video files.
-In addition, if you want to enable text indications in generated videos/images 
-(`--show-id` option), the `OpenCV` library is required.
+In addition, if you want to enable text indications in generated videos/images, 
+the `OpenCV` library is required.
 
 On Debian like systems you can easily install these packages with the `apt` 
 package manager:
@@ -139,35 +139,35 @@ The meteors detection chain is located here: `./exe/fmdt-detect`.
 
 The list of available arguments:
 
-| **Argument**       | **Type** | **Default** | **Req** | **Description** |
-| :---               | :---     | :---        | :---    | :--- |
-| `--in-video`       | str      | None        | Yes     | Input video path where we want to detect meteors (supports also a path to a sequence of images `path/basename_%05d.jpg`). |
-| `--out-bb`         | str      | None        | No      | Path to the bounding boxes file required by `fmdt-visu` to draw detection rectangles. |
-| `--out-frames`     | str      | None        | No      | Path of the files for CC debug (`path/cc_%05d.jpg`). |
-| `--out-stats`      | str      | None        | No      | Path of the output statistics, only required for debugging purpose. |
-| `--out-mag`        | str      | None        | No      | Path to the output file containing magnitudes of the tracked objects. |
-| `--fra-start`      | int      | 0           | No      | First frame id (included) to start the detection in the video sequence. |
-| `--fra-end`        | int      | 0           | No      | Last frame id (included) to stop the detection in the video sequence. If set to 0, read entire video. |
-| `--fra-skip`       | int      | 0           | No      | Number of frames to skip. |
-| `--light-min`      | int      | 55          | No      | Minimum light intensity hysteresis threshold (grayscale [0;255]). |
-| `--light-max`      | int      | 80          | No      | Maximum light intensity hysteresis threshold (grayscale [0;255]). |
-| `--surface-min`    | int      | 3           | No      | Minimum surface of the CCs in pixel. |
-| `--surface-max`    | int      | 1000        | No      | Maximum surface of the CCs in pixel. |
-| `-k`               | int      | 3           | No      | Maximum number of neighbors considered in k-nearest neighbor matching (k-NN algorithm). |
-| `--max-dist`       | int      | 10          | No      | Maximum number of pixels between two images (k-NN algorithm). |
-| `--min-ratio-s`    | int      | 0.125       | No      | Minimum surface ratio to match two CCs in k-NN (0 matches alls, 1 matches nothing). This parameter is also used for extrapolation in the tracking. |
-| `--r-extrapol`     | int      | 10          | No      | Search radius in pixels for CC extrapolation (piece-wise tracking). |
-| `--extrapol-order` | int      | 3           | No      | Maximum number of frames to extrapolate for lost objects (linear extrapolation). |
-| `--angle-max`      | float    | 20.0        | No      | Tracking angle max between two consecutive meteor moving points (in degree). |
-| `--diff-dev`       | float    | 4.0         | No      | Multiplication factor of the standard deviation (CC error has to be higher than `diff deviation` x `standard deviation` to be considered in movement). |
-| `--track-all`      | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`meteor`, `star` or `noise`). |
-| `--fra-star-min`   | int      | 15          | No      | Minimum number of frames required to track a star. |
-| `--fra-meteor-min` | int      | 3           | No      | Minimum number of frames required to track a meteor. |
-| `--fra-meteor-max` | int      | 100         | No      | Maximum number of frames required to track a meteor. |
-| `--video-buff`     | bool     | -           | No      | Bufferize all the video in global memory before executing the chain. |
-| `--video-loop`     | int      | 1           | No      | Number of times the video is read in loop. |
-| `--ffmpeg-threads` | int      | 0           | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
-| `--show-id`        | bool     | -           | No      | Show the ROI/CC ids on the output frames (to combine with `--out-frames` parameter). Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
+| **Argument**       | **Deprecated**     | **Type** | **Default** | **Req** | **Description** |
+| :---               | :---               | :---     | :---        | :---    | :--- |
+| `--vid-in-path`    | `--in-video`       | str      | None        | Yes     | Input video path (supports also a path to a sequence of images `path/basename_%05d.jpg`). |
+| `--vid-in-start`   | `--fra-start`      | int      | 0           | No      | First frame id (included) to start the detection in the video sequence. |
+| `--vid-in-stop`    | `--fra-end`        | int      | 0           | No      | Last frame id (included) to stop the detection in the video sequence. If set to 0, read entire video. |
+| `--vid-in-skip`    | `--fra-skip`       | int      | 0           | No      | Number of frames to skip. |
+| `--vid-in-buff`    | `--video-buff`     | bool     | -           | No      | Bufferize all the video in global memory before executing the chain. |
+| `--vid-in-loop`    | `--video-loop`     | int      | 1           | No      | Number of times the video is read in loop. |
+| `--vid-in-threads` | `--ffmpeg-threads` | int      | 0           | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
+| `--ccl-hyst-lo`    | `--light-min`      | int      | 55          | No      | Minimum light intensity for hysteresis threshold (grayscale [0;255]). |
+| `--ccl-hyst-hi`    | `--light-max`      | int      | 80          | No      | Maximum light intensity for hysteresis threshold (grayscale [0;255]). |
+| `--ccl-fra-path`   | `--out-frames`     | str      | None        | No      | Path of the files for CC debug (`path/cc_%05d.png`). |
+| `--ccl-fra-id`     | `--show-id`        | bool     | -           | No      | Show the ROI/CC ids on the output frames (to combine with `--ccl-fra-path` parameter). Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
+| `--mrp-s-min`      | `--surface-min`    | int      | 3           | No      | Minimum surface of the CCs in pixels. |
+| `--mrp-s-max`      | `--surface-max`    | int      | 1000        | No      | Maximum surface of the CCs in pixels. |
+| `--knn-k`          | `-k`               | int      | 3           | No      | Maximum number of neighbors considered in k-nearest neighbor matching (k-NN algorithm). |
+| `--knn-d`          | `--max-dist`       | int      | 10          | No      | Maximum distance in pixels between two images (k-NN algorithm). |
+| `--knn-s`          | `--min-ratio-s`    | int      | 0.125       | No      | Minimum surface ratio to match two CCs in k-NN (0 matches alls, 1 matches nothing). This parameter is also used for extrapolation in the tracking. |
+| `--trk-ext-d`      | `--r-extrapol`     | int      | 10          | No      | Search radius in pixels for CC extrapolation (piece-wise tracking). |
+| `--trk-ext-o`      | `--extrapol-order` | int      | 3           | No      | Maximum number of frames to extrapolate for lost objects (linear extrapolation). |
+| `--trk-angle`      | `--angle-max`      | float    | 20.0        | No      | Tracking max angle between two meteors at t-1 and t (in degree). |
+| `--trk-star-min`   | `--fra-star-min`   | int      | 15          | No      | Minimum number of frames required to track a star. |
+| `--trk-meteor-min` | `--fra-meteor-min` | int      | 3           | No      | Minimum number of frames required to track a meteor. |
+| `--trk-meteor-max` | `--fra-meteor-max` | int      | 100         | No      | Maximum number of frames required to track a meteor. |
+| `--trk-ddev`       | `--diff-dev`       | float    | 4.0         | No      | Multiplication factor of the standard deviation (CC error has to be higher than `ddev` x `stddev` to be considered in movement). |
+| `--trk-all`        | `--track-all`      | bool     | -           | No      | By default the program only tracks `meteor` object type. If `--track-all` is set, all object types are tracked (`meteor`, `star` or `noise`). |
+| `--trk-bb-path`    | `--out-bb`         | str      | None        | No      | Path to the bounding boxes file required by `fmdt-visu` to draw detection rectangles. |
+| `--trk-mag-path`   | `--out-mag`        | str      | None        | No      | Path to the output file containing magnitudes of the tracked objects. |
+| `--log-path`       | `--out-stats`      | str      | None        | No      | Path of the output statistics, only required for debugging purpose. |
 
 Output text formats are detailed in the 
 [Input and Output Text Formats](#input-and-output-text-formats) section.
@@ -247,14 +247,14 @@ https://www.imcce.fr/recherche/campagnes-observations/meteors/2022the.
 #### Step 1: Meteors detection
 
 ```shell
-./exe/fmdt-detect --in-video ./2022_05_31_tauh_34_meteors.mp4
+./exe/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4
 ```
 
 Write tracks and bounding boxes into text files for `fmdt-visu` and 
 `fmdt-check`:
 
 ```shell
-./exe/fmdt-detect --in-video ./2022_05_31_tauh_34_meteors.mp4 --out-bb ./out_detect_bb.txt > ./out_detect_tracks.txt
+./exe/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-bb-path ./out_detect_bb.txt > ./out_detect_tracks.txt
 ```
 
 #### Step 2: Visualization
@@ -321,7 +321,7 @@ The tracks represent the detected objects in the video sequence.
 * `{yend}`: a positive real value of the y-axis coordinate (end of the track).
 * `{otype}`: a string of the object type, can be: `meteor`, `star` or `noise`.
 
-#### Bounding Boxes: `--out-bb` in `fmdt-detect` / `--in-bb` in `fmdt-visu`
+#### Bounding Boxes: `--trk-bb-path` in `fmdt-detect` / `--in-bb` in `fmdt-visu`
 
 The bounding boxes can be output by `fmdt-detect` (with the `--out-bb` argument) 
 and are required by `fmdt-visu`. Each bounding box defines the area of an 
@@ -334,7 +334,7 @@ Here is the corresponding line format:
 Each line corresponds to a frame and to an object, each value is separated by a 
 space character.
 
-#### Magnitudes: `--out-mag` in `fmdt-detect`
+#### Magnitudes: `--trk-mag-path` in `fmdt-detect`
 
 The magnitudes can be output by `fmdt-detect` (with the `--out-mag` argument) 
 and can be used for astrophotometry. For instance they are used as input in 
@@ -433,7 +433,7 @@ Statistics:
 For each line, the `meteor`, `star` and `noise` object types are considered.
 `all` stands for all types, sometime `all` can be mean-less.
 
-#### Statistics: `--out-stats` in `fmdt-detect`
+#### Logs / Statistics: `--log-path` in `fmdt-detect`
 
 **This section targets advanced users, some knowledge about the implemented 
 algorithms may be required!! You have been warned ;-).**
