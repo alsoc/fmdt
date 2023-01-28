@@ -158,19 +158,6 @@ void features_ROI_write(FILE* f, const int frame, const ROI_basic_t* ROI_basic_a
                         track_array, age);
 }
 
-void features_motion_write(FILE* f, const motion_t* motion_est1, const motion_t* motion_est2) {
-    fprintf(f, "# Motion:\n");
-    fprintf(f, "# ---------------------------------------------------||---------------------------------------------------\n");
-    fprintf(f, "#  First motion estimation (with all associated ROIs)||   Second motion estimation (exclude moving ROIs)  \n");
-    fprintf(f, "# ---------------------------------------------------||---------------------------------------------------\n");
-    fprintf(f, "# ----------|---------|---------|----------|---------||----------|---------|---------|----------|---------\n");
-    fprintf(f, "#     theta |      tx |      ty | mean err | std dev ||    theta |      tx |      ty | mean err | std dev \n");
-    fprintf(f, "# ----------|---------|---------|----------|---------||----------|---------|---------|----------|---------\n");
-    fprintf(f, "   %8.5f | %7.4f | %7.4f | %8.4f | %7.4f || %8.5f | %7.4f | %7.4f | %8.4f | %7.4f \n",
-            motion_est1->theta, motion_est1->tx, motion_est1->ty, motion_est1->mean_error, motion_est1->std_deviation,
-            motion_est2->theta, motion_est2->tx, motion_est2->ty, motion_est2->mean_error, motion_est2->std_deviation);
-}
-
 void _features_ROI0_ROI1_write(FILE* f, const int prev_frame, const int cur_frame, const uint32_t* ROI0_id,
                                const uint32_t* ROI0_xmin, const uint32_t* ROI0_xmax, const uint32_t* ROI0_ymin,
                                const uint32_t* ROI0_ymax, const uint32_t* ROI0_S, const uint32_t* ROI0_Sx,

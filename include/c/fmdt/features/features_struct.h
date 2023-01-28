@@ -61,11 +61,3 @@ typedef struct {
     size_t _size; // current size/utilization of the fields
     size_t _max_size; // maximum amount of data that can be contained in the fields
 } ROI_t;
-
-typedef struct {
-    float theta; // rotation angle
-    float tx; // translation vector x
-    float ty; // translation vector y
-    float mean_error;
-    float std_deviation;
-} motion_t;

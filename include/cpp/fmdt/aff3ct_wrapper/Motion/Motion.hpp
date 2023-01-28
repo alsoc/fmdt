@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
-namespace ftr_mtn {
+namespace mtn {
     enum class tsk : size_t { compute, SIZE };
     namespace sck {
         enum class compute : size_t { in_ROI0_x, in_ROI0_y, in_ROI1_x, in_ROI1_y, in_ROI1_prev_id, in_n_ROI1,
@@ -12,14 +12,14 @@ namespace ftr_mtn {
     }
 }
 
-class Features_motion : public aff3ct::module::Module {
+class Motion : public aff3ct::module::Module {
 protected:
     const size_t max_ROI_size;
 public:
-    Features_motion(const size_t max_ROI_size);
-    virtual ~Features_motion();
-    inline aff3ct::runtime::Task& operator[](const ftr_mtn::tsk t);
-    inline aff3ct::runtime::Socket& operator[](const ftr_mtn::sck::compute s);
+    Motion(const size_t max_ROI_size);
+    virtual ~Motion();
+    inline aff3ct::runtime::Task& operator[](const mtn::tsk t);
+    inline aff3ct::runtime::Socket& operator[](const mtn::sck::compute s);
 };
 
-#include "fmdt/aff3ct_wrapper/Features/Features_motion.hxx"
+#include "fmdt/aff3ct_wrapper/Motion/Motion.hxx"

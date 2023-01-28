@@ -1,5 +1,6 @@
 #pragma once
 
+#include "fmdt/features/features_struct.h"
 #include "fmdt/tracking/tracking_struct.h"
 
 tracking_data_t* tracking_alloc_data(const size_t max_history_size, const size_t max_ROI_size);

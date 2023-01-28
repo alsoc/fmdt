@@ -12,6 +12,7 @@
 #include "fmdt/CCL/CCL.h"
 #include "fmdt/features/features.h"
 #include "fmdt/KNN/KNN.h"
+#include "fmdt/motion/motion.h"
 #include "fmdt/threshold/threshold.h"
 #include "fmdt/tracking/tracking.h"
 #include "fmdt/video/video.h"
@@ -312,8 +313,8 @@ int main(int argc, char** argv) {
 
         // step 5: motion estimation
         motion_t motion_est1, motion_est2;
-        features_compute_motion(ROI_array0->basic, ROI_array1->basic, ROI_array1->asso, ROI_array1->motion,
-                                &motion_est1, &motion_est2);
+        motion_compute(ROI_array0->basic, ROI_array1->basic, ROI_array1->asso, ROI_array1->motion, &motion_est1,
+                       &motion_est2);
 
         // step 6: tracking
         tracking_perform(tracking_data, ROI_array1, &BB_array, cur_fra, &motion_est2, p_r_extrapol, p_angle_max,
@@ -344,7 +345,7 @@ int main(int argc, char** argv) {
                     fprintf(f, "#\n");
                     KNN_asso_conflicts_write(f, knn_data, ROI_array0->asso, ROI_array1->asso, ROI_array1->motion);
                     fprintf(f, "#\n");
-                    features_motion_write(f, &motion_est1, &motion_est2);
+                    motion_write(f, &motion_est1, &motion_est2);
                     fprintf(f, "#\n");
                     tracking_track_array_write_full(f, tracking_data->tracks);
                 }

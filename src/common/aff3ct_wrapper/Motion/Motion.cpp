@@ -1,10 +1,10 @@
-#include "fmdt/features/features_compute.h"
+#include "fmdt/motion/motion_compute.h"
 
-#include "fmdt/aff3ct_wrapper/Features/Features_motion.hpp"
+#include "fmdt/aff3ct_wrapper/Motion/Motion.hpp"
 
-Features_motion::Features_motion(const size_t max_ROI_size)
+Motion::Motion(const size_t max_ROI_size)
 : Module(), max_ROI_size(max_ROI_size) {
-    const std::string name = "Features_motion";
+    const std::string name = "Motion";
     this->set_name(name);
     this->set_short_name(name);
 
@@ -31,21 +31,21 @@ Features_motion::Features_motion(const size_t max_ROI_size)
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         const uint32_t n_ROI1 = *static_cast<const uint32_t*>(t[ps_in_n_ROI1].get_dataptr());
 
-        _features_compute_motion(static_cast<const float*>(t[ps_in_ROI0_x].get_dataptr()),
-                                 static_cast<const float*>(t[ps_in_ROI0_y].get_dataptr()),
-                                 static_cast<const float*>(t[ps_in_ROI1_x].get_dataptr()),
-                                 static_cast<const float*>(t[ps_in_ROI1_y].get_dataptr()),
-                                 static_cast<float*>(t[ps_out_ROI1_dx].get_dataptr()),
-                                 static_cast<float*>(t[ps_out_ROI1_dy].get_dataptr()),
-                                 static_cast<float*>(t[ps_out_ROI1_error].get_dataptr()),
-                                 static_cast<const uint32_t*>(t[ps_in_ROI1_prev_id].get_dataptr()),
-                                 static_cast<uint8_t*>(t[ps_out_ROI1_is_moving].get_dataptr()),
-                                 n_ROI1,
-                                 static_cast<motion_t*>(t[ps_out_motion_est1].get_dataptr()),
-                                 static_cast<motion_t*>(t[ps_out_motion_est2].get_dataptr()));
+        _motion_compute(static_cast<const float*>(t[ps_in_ROI0_x].get_dataptr()),
+                        static_cast<const float*>(t[ps_in_ROI0_y].get_dataptr()),
+                        static_cast<const float*>(t[ps_in_ROI1_x].get_dataptr()),
+                        static_cast<const float*>(t[ps_in_ROI1_y].get_dataptr()),
+                        static_cast<float*>(t[ps_out_ROI1_dx].get_dataptr()),
+                        static_cast<float*>(t[ps_out_ROI1_dy].get_dataptr()),
+                        static_cast<float*>(t[ps_out_ROI1_error].get_dataptr()),
+                        static_cast<const uint32_t*>(t[ps_in_ROI1_prev_id].get_dataptr()),
+                        static_cast<uint8_t*>(t[ps_out_ROI1_is_moving].get_dataptr()),
+                        n_ROI1,
+                        static_cast<motion_t*>(t[ps_out_motion_est1].get_dataptr()),
+                        static_cast<motion_t*>(t[ps_out_motion_est2].get_dataptr()));
 
         return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 
-Features_motion::~Features_motion() {}
+Motion::~Motion() {}

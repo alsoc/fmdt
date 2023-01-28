@@ -1,8 +1,9 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
 
-#include "fmdt/features/features_struct.h" // motion_t
+#include "fmdt/motion/motion_struct.h" // motion_t
 
 // Enums
 enum obj_e { UNKNOWN = 0, METEOR, STAR, NOISE, N_OBJECTS };

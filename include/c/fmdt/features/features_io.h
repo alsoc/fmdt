@@ -27,4 +27,3 @@ void _features_ROI0_ROI1_write(FILE* f, const int prev_frame, const int cur_fram
 void features_ROI0_ROI1_write(FILE* f, const int prev_frame, const int cur_frame, const ROI_basic_t* ROI_basic_array0,
                               const ROI_misc_t* ROI_misc_array0, const ROI_basic_t* ROI_basic_array1,
                               const ROI_misc_t* ROI_misc_array1, const vec_track_t track_array);
-void features_motion_write(FILE* f, const motion_t* motion_est1, const motion_t* motion_est2);

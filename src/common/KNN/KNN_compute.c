@@ -158,5 +158,5 @@ void KNN_match(KNN_data_t* data, const ROI_basic_t* ROI_basic_array0, const ROI_
     _KNN_match(data->nearest, data->distances, data->conflicts, ROI_basic_array0->id, ROI_basic_array0->S,
                ROI_basic_array0->x, ROI_basic_array0->y, ROI_asso_array0->next_id, *ROI_basic_array0->_size,
                ROI_basic_array1->id, ROI_basic_array1->S, ROI_basic_array1->x, ROI_basic_array1->y,
-               ROI_asso_array1->prev_id, *ROI_basic_array0->_size, k, max_dist, min_ratio_S);
+               ROI_asso_array1->prev_id, *ROI_basic_array1->_size, k, max_dist, min_ratio_S);
 }

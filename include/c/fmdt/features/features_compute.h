@@ -44,21 +44,6 @@ size_t _features_shrink_ROI_array(const uint32_t* ROI_src_id, const uint32_t* RO
                                   uint32_t* ROI_dest_S, uint32_t* ROI_dest_Sx, uint32_t* ROI_dest_Sy, float* ROI_dest_x,
                                   float* ROI_dest_y);
 void features_shrink_ROI_array(const ROI_basic_t* ROI_basic_array_src, ROI_basic_t* ROI_basic_array_dest);
-float _features_compute_mean_error(const float* ROI_error, const uint32_t* ROI_prev_id, const uint8_t* ROI_is_moving,
-                                   const size_t n_ROI);
-float features_compute_mean_error(const ROI_asso_t* ROI_asso_array, const ROI_motion_t* ROI_motion_array);
-float _features_compute_std_deviation(const float* ROI_error, const uint32_t* ROI_prev_id, const uint8_t* ROI_is_moving,
-                                      const size_t n_ROI, const float mean_error);
-float features_compute_std_deviation(const ROI_asso_t* ROI_asso_array, const ROI_motion_t* ROI_motion_array,
-                                     const float mean_error);
-void _features_compute_motion(const float* ROI0_x, const float* ROI0_y, const float* ROI1_x, const float* ROI1_y,
-                              float* ROI1_dx, float* ROI1_dy, float* ROI1_error, const uint32_t* ROI1_prev_id,
-                              uint8_t* ROI1_is_moving, const size_t n_ROI1, motion_t* motion_est1,
-                              motion_t* motion_est2);
-void features_compute_motion(const ROI_basic_t* ROI_basic_array0, const ROI_basic_t* ROI_basic_array1,
-                             const ROI_asso_t* ROI_asso_array1, ROI_motion_t* ROI_motion_array1,
-                             motion_t* motion_est1, motion_t* motion_est2);
-// void features_compute_motion(const ROI_t* ROI_array0, ROI_t* ROI_array1, motion_t* motion_est1, motion_t* motion_est2);
 void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
                                  const uint32_t** labels, const uint32_t* ROI_xmin, const uint32_t* ROI_xmax,
                                  const uint32_t* ROI_ymin, const uint32_t* ROI_ymax, const uint32_t* ROI_S,

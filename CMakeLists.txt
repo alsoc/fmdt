@@ -78,6 +78,8 @@ set(src_common_files
     ${src_dir}/common/image/image_io.c
     ${src_dir}/common/KNN/KNN_compute.c
     ${src_dir}/common/KNN/KNN_io.c
+    ${src_dir}/common/motion/motion_compute.c
+    ${src_dir}/common/motion/motion_io.c
     ${src_dir}/common/threshold/threshold_compute.c
     ${src_dir}/common/tracking/tracking_compute.c
     ${src_dir}/common/tracking/tracking_global.c
@@ -111,9 +113,9 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/common/aff3ct_wrapper/CCL_LSL/CCL_LSL.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Features/Features_extractor.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Features/Features_merger_CCL_HI.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Features/Features_motion.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Features/Features_magnitude.cpp
 		    ${src_dir}/common/aff3ct_wrapper/KNN_matcher/KNN_matcher.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Motion/Motion.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_frame.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_KNN.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_motion.cpp

@@ -1,4 +1,4 @@
-#include "fmdt/features/features_io.h"
+#include "fmdt/motion/motion_io.h"
 #include "fmdt/tools.h"
 
 #include "fmdt/aff3ct_wrapper/Logger/Logger_motion.hpp"
@@ -26,9 +26,9 @@ Logger_motion::Logger_motion(const std::string motion_path, const size_t fra_sta
             snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_mtn.motion_path.c_str(), frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
-            features_motion_write(file,
-                                  static_cast<const motion_t*>(t[ps_in_motion_est1].get_dataptr()),
-                                  static_cast<const motion_t*>(t[ps_in_motion_est2].get_dataptr()));
+            motion_write(file,
+                         static_cast<const motion_t*>(t[ps_in_motion_est1].get_dataptr()),
+                         static_cast<const motion_t*>(t[ps_in_motion_est2].get_dataptr()));
             fclose(file);
         }
         return aff3ct::runtime::status_t::SUCCESS;
