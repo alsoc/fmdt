@@ -116,8 +116,8 @@ The `CMake` file comes with several options:
    project using debugging prints: these additional prints will be output on 
    `stderr` and prefixed by `(DBG)`.
  * `-DFMDT_OPENCV_LINK`    [default=`OFF`] {possible:`ON`,`OFF`}: link with 
-   OpenCV library (required to enable `--show-id` option in `fmdt-xxx` 
-   executables).
+   OpenCV library (required to enable some options for better visualization in 
+   `fmdt-xxx` executables).
  * `-DFMDT_AFF3CT_RUNTIME` [default=`OFF`] {possible:`ON`,`OFF`}: link with 
    AFF3CT runtime and produce multi-threaded detection executable 
    (`fmdt-detect-rt`).
@@ -178,19 +178,19 @@ The meteors visualization program is located here: `./exe/fmdt-visu`.
 
 The list of available arguments:
 
-| **Argument**       | **Type** | **Default**    | **Req** | **Description** |
-| :---               | :---     | :---           | :---    | :--- |
-| `--in-video`       | str      | None           | Yes     | Input video path (supports also a path to a sequence of images `path/basename_%05d.png`). |
-| `--in-tracks`      | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `fmdt-detect`). |
-| `--in-bb`          | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `fmdt-detect`). |
-| `--in-gt`          | str      | None           | No      | File containing the ground truth. |
-| `--out-video`      | str      | None           | No      | Path of the output video (supports also a path to a sequence of images `path/basename_%05d.jpg`) with meteor tracking colored rectangles. If `--in-gt` is set then the bounding rectangles are red if *false positive* meteor and green if *true positive* meteor. |
-| `--show-id`        | bool     | -              | No      | Show the object ids on the output video and frames. Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
-| `--nat-num`        | bool     | -              | No      | Natural numbering of the object ids, work only if `--show-id` is set. |
-| `--only-meteor`    | bool     | -              | No      | Show only meteors. |
-| `--ffmpeg-threads` | int      | 0              | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
-| `--fra-start`      | int      | 0              | No      | First frame id (included) to start the visualization in the video sequence. |
-| `--fra-end`        | int      | 0              | No      | Last frame id (included) to stop the visualization in the video sequence. If set to 0, read entire video. |
+| **Argument**        | **Deprecated**     | **Type** | **Default**    | **Req** | **Description** |
+| :---                | :---               | :---     | :---           | :---    | :--- |
+| `--vid-in-path`     | `--in-video`       | str      | None           | Yes     | Input video path (supports also a path to a sequence of images `path/basename_%05d.png`). |
+| `--vid-in-start`    | `--fra-start`      | int      | 0              | No      | First frame id (included) to start the visualization in the video sequence. |
+| `--vid-in-stop`     | `--fra-end`        | int      | 0              | No      | Last frame id (included) to stop the visualization in the video sequence. If set to 0, read entire video. |
+| `--vid-in-threads`  | `--ffmpeg-threads` | int      | 0              | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
+| `--trk-path`        | `--in-tracks`      | str      | None           | Yes     | The tracks file corresponding to the input video (generated from `fmdt-detect`). |
+| `--trk-bb-path`     | `--in-bb`          | str      | None           | Yes     | The bounding boxes file corresponding to the input video (generated from `fmdt-detect`). |
+| `--trk-id`          | `--show-id`        | bool     | -              | No      | Show the object ids on the output video and frames. Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
+| `--trk-nat-num`     | `--nat-num`        | bool     | -              | No      | Natural numbering of the object ids, work only if `--trk-id` is set. |
+| `--trk-only-meteor` | `--only-meteor`    | bool     | -              | No      | Show only meteors. |
+| `--gt-path`         | `--in-gt`          | str      | None           | No      | File containing the ground truth. |
+| `--vid-out-path`    | `--out-video`      | str      | None           | No      | Path of the output video (supports also a path to a sequence of images `path/basename_%05d.jpg`) with meteor tracking colored rectangles. If `--gt-path` is set then the bounding rectangles are red if *false positive* meteor and green if *true positive* meteor. |
 
 **Note**: to run `fmdt-visu`, it is required to run `fmdt-detect` before and on 
 the same input video. This will generate the required `tracks.txt` and 
@@ -205,10 +205,10 @@ The meteors checking program is located here: `./exe/fmdt-check`.
 
 The list of available arguments:
 
-| **Argument**  | **Type** | **Default** | **Req** | **Description** |
-| :---          | :---     | :---        | :---    | :--- |
-| `--in-tracks` | str      | None        | Yes     | The track file corresponding to the input video (generated from `fmdt-detect`). |
-| `--in-gt`     | str      | None        | Yes     | File containing the ground truth. |
+| **Argument** | **Deprecated** | **Type** | **Default** | **Req** | **Description** |
+| :---         | :---           | :---     | :---        | :---    | :--- |
+| `--trk-path` | `--in-tracks`  | str      | None        | Yes     | The track file corresponding to the input video (generated from `fmdt-detect`). |
+| `--gt-path`  | `--in-gt`      | str      | None        | Yes     | File containing the ground truth. |
 
 **Note**: to run `fmdt-check`, it is required to run `fmdt-detect` before. This 
 will generate the required `tracks.txt` file.
@@ -222,18 +222,18 @@ The max-reduction generation program is located here: `./exe/fmdt-maxred`.
 
 The list of available arguments:
 
-| **Argument**       | **Type** | **Default** | **Req** | **Description** |
-| :---               | :---     | :---        | :---    | :--- |
-| `--in-video`       | str      | None        | Yes     | Input video path (supports also a path to a sequence of images `path/basename_%05d.png`). |
-| `--in-tracks`      | str      | None        | No      | The tracks file corresponding to the input video (generated from `fmdt-detect`). |
-| `--in-gt`          | str      | None        | No      | File containing the ground truth. |
-| `--out-frame`      | str      | None        | Yes     | Path of the output frame. |
-| `--fra-start`      | int      | 0           | No      | First frame id (included) to start the max-reduction in the video sequence. |
-| `--fra-end`        | int      | 0           | No      | Last frame id (included) to stop the max-reduction in the video sequence. If set to 0, read entire video. |
-| `--show-id`        | bool     | -           | No      | Show the object ids on the output video and frames, works only if `--in-tracks` is set. Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
-| `--nat-num`        | bool     | -           | No      | Natural numbering of the object ids, works only if `--show-id` is set. |
-| `--only-meteor`    | bool     | -           | No      | Show only meteors. |
-| `--ffmpeg-threads` | int      | 0           | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
+| **Argument**        | **Deprecated**     | **Type** | **Default** | **Req** | **Description** |
+| :---                | :---               | :---     | :---        | :---    | :--- |
+| `--vid-in-path`     | `--in-video`       | str      | None        | Yes     | Input video path (supports also a path to a sequence of images `path/basename_%05d.png`). |
+| `--vid-in-start`    | `--fra-start`      | int      | 0           | No      | First frame id (included) to start the max-reduction in the video sequence. |
+| `--vid-in-stop`     | `--fra-end`        | int      | 0           | No      | Last frame id (included) to stop the max-reduction in the video sequence. If set to 0, read entire video. |
+| `--vid-in-threads`  | `--ffmpeg-threads` | int      | 0           | No      | Select the number of threads to use to decode video input (in `ffmpeg`). If set to 0, `ffmpeg` chooses the number of threads automatically. |
+| `--trk-path`        | `--in-tracks`      | str      | None        | No      | The tracks file corresponding to the input video (generated from `fmdt-detect`). |
+| `--trk-id`          | `--show-id`        | bool     | -           | No      | Show the object ids on the output video and frames, works only if `--trk-path` is set. Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
+| `--trk-nat-num`     | `--nat-num`        | bool     | -           | No      | Natural numbering of the object ids, works only if `--trk-id` is set. |
+| `--trk-only-meteor` | `--only-meteor`    | bool     | -           | No      | Show only meteors. |
+| `--gt-path`         | `--in-gt`          | str      | None        | No      | File containing the ground truth. |
+| `--fra-out-path`    | `--out-frame`      | str      | None        | Yes     | Path of the output frame. |
 
 ### Examples of use
 
@@ -262,13 +262,13 @@ Write tracks and bounding boxes into text files for `fmdt-visu` and
 Visualization **WITHOUT** ground truth:
 
 ```shell
-./exe/fmdt-visu --in-video ./2022_05_31_tauh_34_meteors.mp4 --in-tracks ./out_detect_tracks.txt --in-bb ./out_detect_bb.txt --out-video out_visu.mp4
+./exe/fmdt-visu --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-path ./out_detect_tracks.txt --trk-bb-path ./out_detect_bb.txt --vid-out-path out_visu.mp4
 ```
 
 Visualization **WITH** ground truth:
 
 ```shell
-./exe/fmdt-visu --in-video ./2022_05_31_tauh_34_meteors.mp4 --in-tracks ./out_detect_tracks.txt --in-bb ./out_detect_bb.txt --in-gt ../validation/2022_05_31_tauh_34_meteors.txt --out-video out_visu.mp4
+./exe/fmdt-visu --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-path ./out_detect_tracks.txt --trk-bb-path ./out_detect_bb.txt --gt-path ../validation/2022_05_31_tauh_34_meteors.txt --vid-out-path out_visu.mp4
 ```
 
 #### Step 3: Offline checking
@@ -276,7 +276,7 @@ Visualization **WITH** ground truth:
 Use `fmdt-check` with the following arguments:
 
 ```shell
-./exe/fmdt-check --in-tracks ./out_detect_tracks.txt --in-gt ../validation/2022_05_31_tauh_34_meteors.txt
+./exe/fmdt-check --trk-path ./out_detect_tracks.txt --gt-path ../validation/2022_05_31_tauh_34_meteors.txt
 ```
 
 #### Step 4: Max reduction
@@ -284,7 +284,7 @@ Use `fmdt-check` with the following arguments:
 Use `fmdt-maxred` with the following arguments:
 
 ```shell
-./exe/fmdt-maxred --in-video ./2022_05_31_tauh_34_meteors.mp4 --out-frame out_maxred.pgm
+./exe/fmdt-maxred --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --fra-out-path out_maxred.pgm
 ```
 
 ### Input and Output Text Formats
@@ -293,7 +293,7 @@ This section details the various text formats used by the toolchain.
 For each text format, the `#` character can be used for comments (at the 
 beginning of a new line).
 
-#### Tracks: `stdout` of `fmdt-detect` / `--in-tracks` in `fmdt-visu` and `fmdt-check`
+#### Tracks: `stdout` of `fmdt-detect` / `--trk-path` in `fmdt-visu` and `fmdt-check`
 
 The tracks represent the detected objects in the video sequence.
 
@@ -321,11 +321,11 @@ The tracks represent the detected objects in the video sequence.
 * `{yend}`: a positive real value of the y-axis coordinate (end of the track).
 * `{otype}`: a string of the object type, can be: `meteor`, `star` or `noise`.
 
-#### Bounding Boxes: `--trk-bb-path` in `fmdt-detect` / `--in-bb` in `fmdt-visu`
+#### Bounding Boxes: `--trk-bb-path` in `fmdt-detect` and `fmdt-visu`
 
-The bounding boxes can be output by `fmdt-detect` (with the `--out-bb` argument) 
-and are required by `fmdt-visu`. Each bounding box defines the area of an 
-object, frame by frame.
+The bounding boxes can be output by `fmdt-detect` (with the `--trk-bb-path` 
+argument) and are required by `fmdt-visu`. Each bounding box defines the area of 
+an object, frame by frame.
 
 Here is the corresponding line format:
 ```
@@ -336,9 +336,9 @@ space character.
 
 #### Magnitudes: `--trk-mag-path` in `fmdt-detect`
 
-The magnitudes can be output by `fmdt-detect` (with the `--out-mag` argument) 
-and can be used for astrophotometry. For instance they are used as input in 
-[pyFMDT](pyFMDT/README.md).
+The magnitudes can be output by `fmdt-detect` (with the `--trk-mag-path` 
+argument) and can be used for astrophotometry. For instance they are used as 
+input in [pyFMDT](pyFMDT/README.md).
 
 Each line corresponds to a track/object and here is the corresponding line 
 format:
@@ -352,7 +352,7 @@ tracked). And so on, until the last magnitude value `magn`. Note that sometime
 the magnitude value can be `0`, it means that the object has been extrapolated 
 on this frame, thus the magnitude cannot be computed.
 
-#### Ground Truth: `--in-gt` in `fmdt-visu`, `fmdt-check` & `fmdt-maxred`
+#### Ground Truth: `--gt-path` in `fmdt-visu`, `fmdt-check` & `fmdt-maxred`
 
 Ground truth file gives objects positions over time. Here is the expected text 
 format of a line:
@@ -388,13 +388,13 @@ to an object of the ground truth (GT):
   truth track/object.
 * `{otype}`: a string of the object type, can be: `meteor`, `star` or `noise`.
 * `{dh}`: a positive integer value of the number of frames when the object is 
-  detected (from the tracks, `--in-tracks`).
+  detected (from the tracks, `--trk-path`).
 * `{gh}`: a positive integer value of the number of frame when the object is 
-  present (from the ground truth, `--in-gt`).
+  present (from the ground truth, `--gt-path`).
 * `{staf}`: a positive integer value of the frame start (from the ground truth, 
-  `--in-gt`).
+  `--gt-path`).
 * `{stof}`: a positive integer value of the frame stop (from the ground truth, 
-  `--in-gt`).
+  `--gt-path`).
 * `{nt}`: a positive integer value of the number of tracks that match the ground 
   truth object.
 
@@ -438,7 +438,7 @@ For each line, the `meteor`, `star` and `noise` object types are considered.
 **This section targets advanced users, some knowledge about the implemented 
 algorithms may be required!! You have been warned ;-).**
 
-`fmdt-detect` comes with the `--out-stats` option to help to understand what is 
+`fmdt-detect` comes with the `--log-path` option to help to understand what is 
 happening during the execution.
 This option enables to log internal statistics of the different algorithms used 
 to detect meteors.
