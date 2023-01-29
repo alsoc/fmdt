@@ -20,7 +20,7 @@ rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 rm refs/tracks.txt
 rm refs/mag.txt
 
-./compare.py --exe-args "--in-video ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --track-all" --list-exe "${list_exe}" --refs-path ${WD}/scripts/regression/refs
+./compare.py --exe-args "--vid-in-path ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --trk-all" --list-exe "${list_exe}" --refs-path ${WD}/scripts/regression/refs
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 cd ${WD}

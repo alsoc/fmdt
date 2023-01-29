@@ -12,28 +12,46 @@ void args_del(int argc, char** argv, int index) {
 }
 
 int args_find(int argc, char* argv[], const char* arg) {
-    for (int i = 0; i < argc; i++) {
-        if (!argv[i])
-            continue;
-        if (strcmp(argv[i], arg) == 0) {
-            // del(argc, argv, i);
-            return 1;
+    char arg_cpy[2048];
+    strncpy(arg_cpy, arg, sizeof(arg_cpy));
+    arg_cpy[sizeof(arg_cpy) - 1] = 0;
+    char *cur_arg = arg_cpy;
+    cur_arg = strtok(cur_arg, ",");
+
+    do {
+        for (int i = 0; i < argc; i++) {
+            if (!argv[i])
+                continue;
+            if (strcmp(argv[i], cur_arg) == 0) {
+                // del(argc, argv, i);
+                return 1;
+            }
         }
-    }
+    } while((cur_arg = strtok(NULL, ",")) != NULL);
+
     return 0;
 }
 
 int args_find_int(int argc, char** argv, const char* arg, int def) {
-    for (int i = 0; i < argc - 1; i++) {
-        if (!argv[i])
-            continue;
-        if (strcmp(argv[i], arg) == 0) {
-            def = atoi(argv[i + 1]);
-            // del(argc, argv, i);
-            // del(argc, argv, i);
-            break;
+    char arg_cpy[2048];
+    strncpy(arg_cpy, arg, sizeof(arg_cpy));
+    arg_cpy[sizeof(arg_cpy) - 1] = 0;
+    char *cur_arg = arg_cpy;
+    cur_arg = strtok(cur_arg, ",");
+
+    do {
+        for (int i = 0; i < argc - 1; i++) {
+            if (!argv[i])
+                continue;
+            if (strcmp(argv[i], cur_arg) == 0) {
+                def = atoi(argv[i + 1]);
+                // del(argc, argv, i);
+                // del(argc, argv, i);
+                break;
+            }
         }
-    }
+    } while((cur_arg = strtok(NULL, ",")) != NULL);
+
     return def;
 }
 
@@ -68,16 +86,25 @@ int args_find_int_max(int argc, char** argv, const char* arg, int def, int max) 
 }
 
 float args_find_float(int argc, char** argv, const char* arg, float def) {
-    for (int i = 0; i < argc - 1; i++) {
-        if (!argv[i])
-            continue;
-        if (strcmp(argv[i], arg) == 0) {
-            def = atof(argv[i + 1]);
-            // del(argc, argv, i);
-            // del(argc, argv, i);
-            break;
+    char arg_cpy[2048];
+    strncpy(arg_cpy, arg, sizeof(arg_cpy));
+    arg_cpy[sizeof(arg_cpy) - 1] = 0;
+    char *cur_arg = arg_cpy;
+    cur_arg = strtok(cur_arg, ",");
+
+    do {
+        for (int i = 0; i < argc - 1; i++) {
+            if (!argv[i])
+                continue;
+            if (strcmp(argv[i], cur_arg) == 0) {
+                def = atof(argv[i + 1]);
+                // del(argc, argv, i);
+                // del(argc, argv, i);
+                break;
+            }
         }
-    }
+    } while((cur_arg = strtok(NULL, ",")) != NULL);
+
     return def;
 }
 
@@ -112,15 +139,24 @@ float args_find_float_max(int argc, char** argv, const char* arg, float def, flo
 }
 
 char* args_find_char(int argc, char** argv, const char* arg, char* def) {
-    for (int i = 0; i < argc - 1; i++) {
-        if (!argv[i])
-            continue;
-        if (strcmp(argv[i], arg) == 0) {
-            def = argv[i + 1];
-            // del(argc, argv, i);
-            // del(argc, argv, i);
-            break;
+    char arg_cpy[2048];
+    strncpy(arg_cpy, arg, sizeof(arg_cpy));
+    arg_cpy[sizeof(arg_cpy) - 1] = 0;
+    char *cur_arg = arg_cpy;
+    cur_arg = strtok(cur_arg, ",");
+
+    do {
+        for (int i = 0; i < argc - 1; i++) {
+            if (!argv[i])
+                continue;
+            if (strcmp(argv[i], cur_arg) == 0) {
+                def = argv[i + 1];
+                // del(argc, argv, i);
+                // del(argc, argv, i);
+                break;
+            }
         }
-    }
+    } while((cur_arg = strtok(NULL, ",")) != NULL);
+
     return def;
 }
