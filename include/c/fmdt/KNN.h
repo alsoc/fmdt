@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief k-Nearest Neighbors (KNN) matching module.
+ */
+
 #pragma once
 
 #include "fmdt/KNN/KNN_struct.h"

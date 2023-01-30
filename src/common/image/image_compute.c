@@ -2,7 +2,7 @@
 #include <string.h>
 #include <stdlib.h>
 
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
 #include <tuple>
 #include <vector>
 #include <iostream>
@@ -133,7 +133,7 @@ void image_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xma
     }
 }
 
-#ifdef OPENCV_LINK // this is C++ code (because OpenCV API is C++ now)
+#ifdef FMDT_OPENCV_LINK // this is C++ code (because OpenCV API is C++ now)
 void image_draw_legend_squares(rgb8_t** img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
     //                     ymin      ymax      xmin      xmax      color
     std::vector<std::tuple<unsigned, unsigned, unsigned, unsigned, rgb8_t>> box_list;
@@ -331,7 +331,7 @@ img_data_t* image_gs_alloc(const size_t img_width, const size_t img_height) {
     img_data_t* img_data = (img_data_t*)malloc(sizeof(img_data_t));
     img_data->width = img_width;
     img_data->height = img_height;
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     img_data->pixels = (void*) new cv::Mat(img_data->height, img_data->width, CV_8U, cv::Scalar(255));
     uint8_t** container_2d = (uint8_t**) malloc(sizeof(uint8_t*) * img_data->height);
     tools_linear_2d_nrc_ui8matrix((const uint8_t*)image_gs_get_pixels(img_data), 0, img_data->height - 1,
@@ -347,7 +347,7 @@ img_data_t* image_gs_alloc(const size_t img_width, const size_t img_height) {
 void _image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* ROI_id,
                            const uint32_t* ROI_xmax, const uint32_t* ROI_ymin, const uint32_t* ROI_ymax,
                            const size_t n_ROI, const uint8_t show_id) {
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     // convert labels to black & white image: white if there is a CC, black otherwise
     for (size_t i = 0; i < (size_t)pixels->rows; i++)
@@ -372,7 +372,7 @@ void image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const R
 
 uint8_t* image_gs_get_pixels(img_data_t* img_data) {
     uint8_t* raw_data = NULL;
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     raw_data = (uint8_t*)pixels->data;
 #else
@@ -387,7 +387,7 @@ uint8_t** image_gs_get_pixels_2d(img_data_t* img_data) {
 }
 
 void image_gs_free(img_data_t* img_data) {
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     delete pixels;
     free((uint8_t**)img_data->container_2d);
@@ -402,7 +402,7 @@ img_data_t* image_color_alloc(const size_t img_width, const size_t img_height) {
     img_data_t* img_data = (img_data_t*)malloc(sizeof(img_data_t));
     img_data->width = img_width;
     img_data->height = img_height;
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     img_data->pixels = (void*) new cv::Mat(img_data->height, img_data->width, CV_8UC3, cv::Scalar(255, 255, 255));
     rgb8_t** container_2d = (rgb8_t**) malloc(sizeof(rgb8_t*) * img_data->height);
     tools_linear_2d_nrc_rgb8matrix((const rgb8_t*)image_color_get_pixels(img_data), 0, img_data->height - 1, 0,
@@ -418,7 +418,7 @@ img_data_t* image_color_alloc(const size_t img_width, const size_t img_height) {
 void image_color_draw_BB(img_data_t* img_data, const uint8_t** img, const BB_t* BB_list,
                          const enum color_e* BB_list_color, const size_t n_BB, const uint8_t show_id,
                          const uint8_t is_gt) {
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     for (size_t i = 0; i < (size_t)pixels->rows; i++) {
         for (size_t j = 0; j < (size_t)pixels->cols; j++) {
@@ -439,14 +439,14 @@ void image_color_draw_BB(img_data_t* img_data, const uint8_t** img, const BB_t* 
 #endif
     image_draw_BB(image_color_get_pixels_2d(img_data), BB_list, BB_list_color, n_BB, img_data->width,
                   img_data->height);
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     image_draw_text(img_data, BB_list, BB_list_color, n_BB, is_gt, show_id);
 #endif
 }
 
 rgb8_t* image_color_get_pixels(img_data_t* img_data) {
     rgb8_t* raw_data = NULL;
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     raw_data = (rgb8_t*)pixels->data;
 #else
@@ -461,7 +461,7 @@ rgb8_t** image_color_get_pixels_2d(img_data_t* img_data) {
 }
 
 void image_color_free(img_data_t* img_data) {
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     delete pixels;
     free((rgb8_t**)img_data->container_2d);

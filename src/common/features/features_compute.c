@@ -199,9 +199,10 @@ void features_free_ROI(ROI_t* ROI_array) {
     free(ROI_array);
 }
 
-void _features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1, uint32_t* ROI_id,
-                       uint32_t* ROI_xmin, uint32_t* ROI_xmax, uint32_t* ROI_ymin, uint32_t* ROI_ymax, uint32_t* ROI_S,
-                       uint32_t* ROI_Sx, uint32_t* ROI_Sy, float* ROI_x, float* ROI_y, const size_t n_ROI) {
+void _features_extract(const uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
+                       uint32_t* ROI_id, uint32_t* ROI_xmin, uint32_t* ROI_xmax, uint32_t* ROI_ymin, uint32_t* ROI_ymax,
+                       uint32_t* ROI_S, uint32_t* ROI_Sx, uint32_t* ROI_Sy, float* ROI_x, float* ROI_y,
+                       const size_t n_ROI) {
     for (size_t i = 0; i < n_ROI; i++) {
         ROI_xmin[i] = j1;
         ROI_xmax[i] = j0;
@@ -215,7 +216,7 @@ void _features_extract(const uint32_t** img, const int i0, const int i1, const i
 
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
-            uint32_t e = (uint32_t)img[i][j];
+            uint32_t e = (uint32_t)labels[i][j];
             if (e > 0) {
                 assert(e < MAX_ROI_SIZE_BEFORE_SHRINK);
                 uint32_t r = e - 1;
@@ -241,12 +242,12 @@ void _features_extract(const uint32_t** img, const int i0, const int i1, const i
     }
 }
 
-void features_extract(const uint32_t** img, const int i0, const int i1, const int j0, const int j1, const size_t n_ROI,
+void features_extract(const uint32_t** labels, const int i0, const int i1, const int j0, const int j1, const size_t n_ROI,
                       ROI_basic_t* ROI_basic_array) {
     const uint8_t init_id = 1;
     features_init_ROI_basic(ROI_basic_array, init_id);
     *ROI_basic_array->_size = n_ROI;
-    _features_extract(img, i0, i1, j0, j1, ROI_basic_array->id, ROI_basic_array->xmin, ROI_basic_array->xmax,
+    _features_extract(labels, i0, i1, j0, j1, ROI_basic_array->id, ROI_basic_array->xmin, ROI_basic_array->xmax,
                       ROI_basic_array->ymin, ROI_basic_array->ymax, ROI_basic_array->S, ROI_basic_array->Sx,
                       ROI_basic_array->Sy, ROI_basic_array->x, ROI_basic_array->y, *ROI_basic_array->_size);
 }

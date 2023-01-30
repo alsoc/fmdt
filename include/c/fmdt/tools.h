@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief System and conversion functions.
+ */
+
 #pragma once
 
 #include <stdint.h>

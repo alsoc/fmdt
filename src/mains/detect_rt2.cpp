@@ -80,7 +80,7 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --ccl-fra-path      Path of the files for CC debug frames                                  [%s]\n",
                 def_p_ccl_fra_path ? def_p_ccl_fra_path : "NULL");
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
         fprintf(stderr,
                 "  --ccl-fra-id        Show the ROI/CC ids on the ouptut CC frames                                \n");
 #endif
@@ -149,7 +149,7 @@ int main(int argc, char** argv) {
     const int p_ccl_hyst_lo = args_find_int_min_max(argc, argv, "--ccl-hyst-lo,--light-min", def_p_ccl_hyst_lo, 0, 255);
     const int p_ccl_hyst_hi = args_find_int_min_max(argc, argv, "--ccl-hyst-hi,--light-max", def_p_ccl_hyst_hi, 0, 255);
     const char* p_ccl_fra_path = args_find_char(argc, argv, "--ccl-fra-path,--out-frames", def_p_ccl_fra_path);
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     const int p_ccl_fra_id = args_find(argc, argv, "--ccl-fra-id,--show-id");
 #else
     const int p_ccl_fra_id = 0;
@@ -189,7 +189,7 @@ int main(int argc, char** argv) {
     printf("#  * ccl-hyst-lo    = %d\n", p_ccl_hyst_lo);
     printf("#  * ccl-hyst-hi    = %d\n", p_ccl_hyst_hi);
     printf("#  * ccl-fra-path   = %s\n", p_ccl_fra_path);
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     printf("#  * ccl-fra-id     = %d\n", p_ccl_fra_id);
 #endif
     printf("#  * mrp-s-min      = %d\n", p_mrp_s_min);
@@ -234,7 +234,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--ccl-hyst-hi' has to be higher than '--ccl-hyst-lo'\n");
         exit(1);
     }
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     if (p_ccl_fra_id && !p_ccl_fra_path)
         fprintf(stderr, "(WW) '--ccl-fra-id' has to be combined with the '--ccl-fra-path' parameter\n");
 #endif

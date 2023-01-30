@@ -72,7 +72,7 @@ int main(int argc, char** argv) {
                 def_p_trk_path ? def_p_trk_path : "NULL");
         fprintf(stderr, "  --trk-bb-path      Path the bounding boxes file                         [%s]\n",
                 def_p_trk_bb_path ? def_p_trk_bb_path : "NULL");
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
         fprintf(stderr, "  --trk-id           Show the object ids on the output video and frames       \n");
         fprintf(stderr, "  --trk-nat-num      Natural numbering of the object ids                      \n");
 #endif
@@ -92,7 +92,7 @@ int main(int argc, char** argv) {
     const int p_vid_in_threads = args_find_int_min(argc, argv, "--vid-in-threads,--ffmpeg-threads", def_p_vid_in_threads, 0);
     const char* p_trk_path = args_find_char(argc, argv, "--trk-path,--in-tracks", def_p_trk_path);
     const char* p_trk_bb_path = args_find_char(argc, argv, "--trk-bb-path,--in-bb", def_p_trk_bb_path);
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     const int p_trk_id = args_find(argc, argv, "--trk-id,--show-id");
     const int p_trk_nat_num = args_find(argc, argv, "--trk-nat-num,--nat-num");
 #else
@@ -117,7 +117,7 @@ int main(int argc, char** argv) {
     printf("#  * vid-in-threads  = %d\n", p_vid_in_threads);
     printf("#  * trk-path        = %s\n", p_trk_path);
     printf("#  * trk-bb-path     = %s\n", p_trk_bb_path);
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     printf("#  * trk-id          = %d\n", p_trk_id);
     printf("#  * trk-nat-num     = %d\n", p_trk_nat_num);
 #endif
@@ -144,7 +144,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) No output specified, '--vid-out-path' parameter has to be set\n");
         exit(1);
     }
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     if (!p_trk_id && p_trk_nat_num)
         fprintf(stderr, "(WW) '--trk-nat-num ' will not work because '--trk-id' is not set.\n");
 #endif
@@ -252,7 +252,7 @@ int main(int argc, char** argv) {
                 if (p_gt_path && g_is_valid_track[LUT_tracks_id[track_id]] == 2)
                     color = RED; // RED   = false positive 'meteor'
 
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
                 int display_track_id = p_trk_nat_num ? LUT_tracks_nat_num[track_id] : track_id;
 #else
                 int display_track_id = track_id;

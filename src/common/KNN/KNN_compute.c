@@ -15,7 +15,7 @@ KNN_data_t* KNN_alloc_and_init_data(const size_t max_size) {
     data->distances = (float**)f32matrix(0, max_size - 1, 0, max_size - 1);
     zero_ui32matrix(data->nearest, 0, max_size - 1, 0, max_size - 1);
     zero_f32matrix(data->distances, 0, max_size - 1, 0, max_size - 1);
-#ifdef ENABLE_DEBUG
+#ifdef FMDT_ENABLE_DEBUG
     data->conflicts = (uint32_t*)ui32vector(0, max_size - 1);
     zero_ui32vector(data->conflicts, 0, max_size - 1);
 #else
@@ -55,7 +55,7 @@ void _compute_distance(const float* ROI0_x, const float* ROI0_y, const size_t n_
 void _KNN_match1(const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, const float* ROI1_x,
                  const float* ROI1_y, const size_t n_ROI1, uint32_t** data_nearest, float** distances,
                  uint32_t* data_conflicts, const int k, const uint32_t max_dist) {
-#ifdef ENABLE_DEBUG
+#ifdef FMDT_ENABLE_DEBUG
     // vecteur de conflits pour debug
     zero_ui32vector(data_conflicts, 0, n_ROI1);
 #endif
@@ -83,7 +83,7 @@ void _KNN_match1(const float* ROI0_x, const float* ROI0_y, const size_t n_ROI0, 
                     // k-ième voisin
                     if (cpt < rank) {
                         data_nearest[i][j] = rank;
-#ifdef ENABLE_DEBUG
+#ifdef FMDT_ENABLE_DEBUG
                         // vecteur de conflits
                         if (rank == 1)
                            data_conflicts[j]++;

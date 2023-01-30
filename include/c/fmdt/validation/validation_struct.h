@@ -15,7 +15,7 @@ typedef struct validation_obj {
     float y1;
     int16_t t0_min;
     int16_t t1_max;
-#ifdef ENABLE_DEBUG
+#ifdef FMDT_ENABLE_DEBUG
     int track_t0;
     int track_t1;
     float track_y0;

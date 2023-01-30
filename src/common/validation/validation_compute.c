@@ -130,7 +130,7 @@ void validation_process(const vec_track_t track_array) {
                 g_val_objects[i].bb_y0 <= track_array[t].begin.y &&
                 track_array[t].end.y <= g_val_objects[i].bb_y1 &&
                 track_array[t].obj_type == g_val_objects[i].obj_type) {
-#ifdef ENABLE_DEBUG
+#ifdef FMDT_ENABLE_DEBUG
                 g_val_objects[i].track_t0 = track_array[t].begin.frame;
                 g_val_objects[i].track_t1 = track_array[t].end.frame;
                 g_val_objects[i].track_x0 = track_array[t].begin.x;

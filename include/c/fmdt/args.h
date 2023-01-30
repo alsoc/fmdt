@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief Command Line Interface (CLI) functions.
+ */
+
 #pragma once
 
 void args_del(int argc, char** argv, int index);

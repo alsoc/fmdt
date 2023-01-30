@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
                 def_p_vid_in_threads);
         fprintf(stderr, "  --trk-path         Path to the tracks files                 [%s]\n",
                 def_p_trk_path ? def_p_trk_path : "NULL");
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
         fprintf(stderr, "  --trk-id           Show the object ids on the output frame      \n");
         fprintf(stderr, "  --trk-nat-num      Natural numbering of the object ids          \n");
 #endif
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
     const int p_vid_in_stop = args_find_int_min(argc, argv, "--vid-in-stop,--fra-end", def_p_vid_in_stop, 0);
     const int p_vid_in_threads = args_find_int_min(argc, argv, "--vid-in-threads,--ffmpeg-threads", def_p_vid_in_threads, 0);
     const char* p_trk_path = args_find_char(argc, argv, "--trk-path,--in-tracks", def_p_trk_path);
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     const int p_trk_id = args_find(argc, argv, "--trk-id,--show-id");
     const int p_trk_nat_num = args_find(argc, argv, "--trk-nat-num,--nat-num");
 #else
@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
     printf("#  * vid-in-stop     = %d\n", p_vid_in_stop);
     printf("#  * vid-in-threads  = %d\n", p_vid_in_threads);
     printf("#  * trk-path        = %s\n", p_trk_path);
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     printf("#  * trk-id          = %d\n", p_trk_id);
     printf("#  * trk-nat-num     = %d\n", p_trk_nat_num);
 #endif
@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--vid-in-stop' has to be higher than '--vid-in-start'\n");
         exit(1);
     }
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     if (p_trk_id && !p_trk_path)
         fprintf(stderr, "(WW) '--trk-id' will not work because '--trk-path' is not set\n");
     if (!p_trk_id && p_trk_nat_num)
@@ -187,7 +187,7 @@ int main(int argc, char** argv) {
             if ((!p_trk_only_meteor || track_array[t].obj_type == METEOR) &&
                 (track_array[t].end.frame >= (size_t)p_vid_in_start)) {
                 BB_list[m].frame_id = 0;
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
                 BB_list[m].track_id = p_trk_nat_num ? (m + 1) : track_array[t].id;
 #else
                 BB_list[m].track_id = track_array[t].id;

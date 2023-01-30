@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief Meteor tracks validation module.
+ */
+
 #pragma once
 
 #include "fmdt/validation/validation_struct.h"

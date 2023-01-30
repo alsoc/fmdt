@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief Global motion estimation module.
+ */
+
 #pragma once
 
 #include "fmdt/motion/motion_struct.h"

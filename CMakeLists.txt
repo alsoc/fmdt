@@ -241,13 +241,13 @@ macro(fmdt_target_compile_definitions targets privacy dir)
 endmacro()
 
 if (FMDT_DEBUG)
-	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC ENABLE_DEBUG)
+	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_ENABLE_DEBUG)
 endif()
 if (FMDT_OPENCV_LINK)
-	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC OPENCV_LINK)
+	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_OPENCV_LINK)
 endif()
 if (FMDT_AFF3CT_RUNTIME)
-	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC AFF3CT_LINK)
+	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_AFF3CT_LINK)
 endif()
 
 # Set include directory -------------------------------------------------------
