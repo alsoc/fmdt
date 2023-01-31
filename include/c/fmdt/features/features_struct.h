@@ -44,7 +44,7 @@ typedef struct {
                         Note: this field a pointer but it has to be a scalar value. */
     size_t* _max_size; /**< Maximum capacity of each *feature* field (= maximum number of elements in the arrays).
                             Note: this field a pointer but it has to be a scalar value. */
-} RoI_basic_t;
+} RoIs_basic_t;
 
 /**
  *  Associations between RoIs. \f$RoI_{t - 1} \leftrightarrow RoI_{t}\f$ and \f$ RoI_{t} \leftrightarrow RoI_{t + 1}\f$.
@@ -62,7 +62,7 @@ typedef struct {
                         Note: this field a pointer but it has to be a scalar value. */
     size_t* _max_size; /**< Maximum capacity of each *feature* field (= maximum number of elements in the arrays).
                             Note: this field a pointer but it has to be a scalar value. */
-} RoI_asso_t;
+} RoIs_asso_t;
 
 /**
  *  Motion between RoI at \f$t - 1\f$ and \f$t\f$.
@@ -87,7 +87,7 @@ typedef struct {
                         Note: it is allocated on the heap but it represents only one value. */
     size_t* _max_size; /**< Maximum capacity of data that can be contained in the fields.
                             Note: it is allocated on the heap but it represents only one value. */
-} RoI_motion_t;
+} RoIs_motion_t;
 
 /**
  *  Miscellaneous features.
@@ -104,26 +104,26 @@ typedef struct {
                         Note: it is allocated on the heap but it represents only one value. */
     size_t* _max_size; /**< Maximum capacity of data that can be contained in the fields.
                             Note: it is allocated on the heap but it represents only one value. */
-} RoI_misc_t;
+} RoIs_misc_t;
 
 /**
  *  Structure of RoI structures.
  *  This structure contains all previously defined RoI structures.
  *  `id`, `_size` and `_max_size` fields are shared with the sub-structures.
- * @see RoI_basic_t.
- * @see RoI_asso_t.
- * @see RoI_motion_t.
- * @see RoI_misc_t.
+ * @see RoIs_basic_t.
+ * @see RoIs_asso_t.
+ * @see RoIs_motion_t.
+ * @see RoIs_misc_t.
  */
 typedef struct {
     uint32_t* id; /**< RoI unique identifiers. A RoI identifier should starts from 1 while 0 should be reserved for
                        uninitialized structure. */
 
-    RoI_basic_t* basic; /**< Basic features. */
-    RoI_asso_t* asso; /**< Association features. */
-    RoI_motion_t* motion; /**< Motion features. */
-    RoI_misc_t* misc; /**< Miscellaneous features. */
+    RoIs_basic_t* basic; /**< Basic features. */
+    RoIs_asso_t* asso; /**< Association features. */
+    RoIs_motion_t* motion; /**< Motion features. */
+    RoIs_misc_t* misc; /**< Miscellaneous features. */
 
     size_t _size; /**< Current size/utilization of the fields. */
     size_t _max_size; /**< Maximum capacity of data that can be contained in the fields. */
-} RoI_t;
+} RoIs_t;

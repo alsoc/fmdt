@@ -6,9 +6,9 @@
 namespace lgr_knn {
     enum class tsk : size_t { write, SIZE };
     namespace sck {
-        enum class write : size_t { in_data_nearest, in_data_distances, in_data_conflicts, in_RoI0_id, in_RoI0_next_id,
-                                    in_n_RoI0, in_RoI1_dx, in_RoI1_dy, in_RoI1_error, in_RoI1_is_moving, in_n_RoI1,
-                                    in_frame, status };
+        enum class write : size_t { in_data_nearest, in_data_distances, in_data_conflicts, in_RoIs0_id,
+                                    in_RoIs0_next_id, in_n_RoIs0, in_RoIs1_dx, in_RoIs1_dy, in_RoIs1_error,
+                                    in_RoIs1_is_moving, in_n_RoIs1, in_frame, status };
     }
 }
 

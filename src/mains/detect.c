@@ -243,12 +243,12 @@ int main(int argc, char** argv) {
     // -- ALLOCATION -- //
     // ---------------- //
 
-    RoI_t* RoI_array_tmp = features_alloc_RoI(MAX_ROI_SIZE_BEFORE_SHRINK);
-    RoI_t* RoI_array0 = features_alloc_RoI(MAX_ROI_SIZE);
-    RoI_t* RoI_array1 = features_alloc_RoI(MAX_ROI_SIZE);
-    vec_BB_t* BB_array = NULL;
+    RoIs_t* RoIs_tmp = features_alloc_RoIs(MAX_ROI_SIZE_BEFORE_SHRINK);
+    RoIs_t* RoIs0 = features_alloc_RoIs(MAX_ROI_SIZE);
+    RoIs_t* RoIs1 = features_alloc_RoIs(MAX_ROI_SIZE);
+    vec_BB_t* BBs = NULL;
     if (p_trk_bb_path)
-        BB_array = (vec_BB_t*)vector_create();
+        BBs = (vec_BB_t*)vector_create();
     tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_star_min, p_trk_meteor_min), MAX_ROI_SIZE);
     int b = 1; // image border
     uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // grayscale input image
@@ -263,9 +263,9 @@ int main(int argc, char** argv) {
 
     tracking_init_global_data();
     kNN_data_t* knn_data = kNN_alloc_and_init_data(MAX_ROI_SIZE);
-    features_init_RoI(RoI_array_tmp);
-    features_init_RoI(RoI_array0);
-    features_init_RoI(RoI_array1);
+    features_init_RoIs(RoIs_tmp);
+    features_init_RoIs(RoIs0);
+    features_init_RoIs(RoIs1);
     tracking_init_data(tracking_data);
     CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
     zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -298,33 +298,31 @@ int main(int argc, char** argv) {
 
         // step 2: CCL/CCA
         const int n_RoI = CCL_LSL_apply(ccl_data, (const uint8_t**)IL, L1);
-        features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoI, RoI_array_tmp->basic);
+        features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoI, RoIs_tmp->basic);
 
         // step 3: hysteresis threshold & surface filtering (+ magnitude computations)
         threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_ccl_hyst_hi);
-        features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, RoI_array_tmp->basic,
+        features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, RoIs_tmp->basic,
                                  p_mrp_s_min, p_mrp_s_max);
-        features_shrink(RoI_array_tmp->basic, RoI_array1->basic);
-        features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L2, RoI_array1->basic,
-                                   RoI_array1->misc);
+        features_shrink(RoIs_tmp->basic, RoIs1->basic);
+        features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L2, RoIs1->basic,
+                                   RoIs1->misc);
 
         // step 4: k-NN matching
-        kNN_match(knn_data, RoI_array0->basic, RoI_array1->basic, RoI_array0->asso, RoI_array1->asso, p_knn_k, p_knn_d,
-                  p_knn_s);
+        kNN_match(knn_data, RoIs0->basic, RoIs1->basic, RoIs0->asso, RoIs1->asso, p_knn_k, p_knn_d, p_knn_s);
 
         // step 5: motion estimation
         motion_t motion_est1, motion_est2;
-        motion_compute(RoI_array0->basic, RoI_array1->basic, RoI_array1->asso, RoI_array1->motion, &motion_est1,
-                       &motion_est2);
+        motion_compute(RoIs0->basic, RoIs1->basic, RoIs1->asso, RoIs1->motion, &motion_est1, &motion_est2);
 
         // step 6: tracking
-        tracking_perform(tracking_data, RoI_array1, &BB_array, cur_fra, &motion_est2, p_trk_ext_d, p_trk_angle,
+        tracking_perform(tracking_data, RoIs1, &BBs, cur_fra, &motion_est2, p_trk_ext_d, p_trk_angle,
                          p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min, p_trk_meteor_max,
                          p_trk_mag_path != NULL, p_trk_ext_o, p_knn_s);
 
         // save frames (CCs)
         if (img_data) {
-            image_gs_draw_labels(img_data, (const uint32_t**)L2, RoI_array1->basic, p_ccl_fra_id);
+            image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs1->basic, p_ccl_fra_id);
             video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
 
@@ -340,15 +338,15 @@ int main(int argc, char** argv) {
             }
             if (f) {
                 int prev_fra = cur_fra > p_vid_in_start ? cur_fra - (p_vid_in_skip + 1) : -1;
-                features_RoI0_RoI1_write(f, prev_fra, cur_fra, RoI_array0->basic, RoI_array0->misc, RoI_array1->basic,
-                                         RoI_array1->misc, tracking_data->tracks);
+                features_RoIs0_RoIs1_write(f, prev_fra, cur_fra, RoIs0->basic, RoIs0->misc, RoIs1->basic, RoIs1->misc,
+                                           tracking_data->tracks);
                 if (cur_fra > p_vid_in_start) {
                     fprintf(f, "#\n");
-                    kNN_asso_conflicts_write(f, knn_data, RoI_array0->asso, RoI_array1->asso, RoI_array1->motion);
+                    kNN_asso_conflicts_write(f, knn_data, RoIs0->asso, RoIs1->asso, RoIs1->motion);
                     fprintf(f, "#\n");
                     motion_write(f, &motion_est1, &motion_est2);
                     fprintf(f, "#\n");
-                    tracking_track_array_write_full(f, tracking_data->tracks);
+                    tracking_tracks_write_full(f, tracking_data->tracks);
                 }
                 fclose(f);
             } else {
@@ -362,19 +360,19 @@ int main(int argc, char** argv) {
                 n_noise, (unsigned long)real_n_tracks);
         fflush(stderr);
 
-        RoI_t* tmp = RoI_array0;
-        RoI_array0 = RoI_array1;
-        RoI_array1 = tmp;
+        RoIs_t* tmp = RoIs0;
+        RoIs0 = RoIs1;
+        RoIs1 = tmp;
     }
     fprintf(stderr, "\n");
 
-    if (BB_array) {
+    if (BBs) {
         FILE* f = fopen(p_trk_bb_path, "w");
         if (f == NULL) {
             fprintf(stderr, "(EE) error while opening '%s'\n", p_trk_bb_path);
             exit(1);
         }
-        tracking_BB_array_write(f, BB_array, tracking_data->tracks);
+        tracking_BBs_write(f, BBs, tracking_data->tracks);
         fclose(f);
     }
 
@@ -384,10 +382,10 @@ int main(int argc, char** argv) {
             fprintf(stderr, "(EE) error while opening '%s'\n", p_trk_mag_path);
             exit(1);
         }
-        tracking_track_array_magnitude_write(f, tracking_data->tracks);
+        tracking_tracks_magnitudes_write(f, tracking_data->tracks);
         fclose(f);
     }
-    tracking_track_array_write(stdout, tracking_data->tracks);
+    tracking_tracks_write(stdout, tracking_data->tracks);
 
     printf("# Tracks statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
@@ -403,9 +401,9 @@ int main(int argc, char** argv) {
     free_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
-    features_free_RoI(RoI_array_tmp);
-    features_free_RoI(RoI_array0);
-    features_free_RoI(RoI_array1);
+    features_free_RoIs(RoIs_tmp);
+    features_free_RoIs(RoIs0);
+    features_free_RoIs(RoIs1);
     video_reader_free(video);
     if (img_data) {
         image_gs_free(img_data);
@@ -413,11 +411,11 @@ int main(int argc, char** argv) {
     }
     CCL_LSL_free_data(ccl_data);
     kNN_free_data(knn_data);
-    if (BB_array) {
-        size_t vs = vector_size(BB_array);
+    if (BBs) {
+        size_t vs = vector_size(BBs);
         for (size_t i = 0; i < vs; i++)
-            vector_free(BB_array[i]);
-        vector_free(BB_array);
+            vector_free(BBs[i]);
+        vector_free(BBs);
     }
     tracking_free_data(tracking_data);
 

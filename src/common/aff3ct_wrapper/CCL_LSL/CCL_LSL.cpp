@@ -18,7 +18,7 @@ CCL_LSL::CCL_LSL(const int i0, const int i1, const int j0, const int j1, const i
     auto &p = this->create_task("apply");
     auto ps_in_img = this->template create_socket_in<uint8_t>(p, "in_img", i_socket_size);
     auto ps_out_labels = this->template create_socket_out<uint32_t>(p, "out_labels", i_socket_size);
-    auto ps_out_n_RoI = this->template create_socket_out<uint32_t>(p, "out_n_RoI", 1);
+    auto ps_out_n_RoIs = this->template create_socket_out<uint32_t>(p, "out_n_RoIs", 1);
 
     auto ps_out_data_er = this->template create_socket_out<uint32_t>(p, "out_data_er", d_socket_size);
     auto ps_out_data_era = this->template create_socket_out<uint32_t>(p, "out_data_era", d_socket_size);
@@ -26,7 +26,7 @@ CCL_LSL::CCL_LSL(const int i0, const int i1, const int j0, const int j1, const i
     auto ps_out_data_eq = this->template create_socket_out<uint32_t>(p, "out_data_eq", d_socket_size);
     auto ps_out_data_ner = this->template create_socket_out<uint32_t>(p, "out_data_ner", (i1 - i0) + 1);
 
-    this->create_codelet(p, [ps_in_img, ps_out_labels, ps_out_n_RoI, ps_out_data_er, ps_out_data_era, ps_out_data_rlc,
+    this->create_codelet(p, [ps_in_img, ps_out_labels, ps_out_n_RoIs, ps_out_data_er, ps_out_data_era, ps_out_data_rlc,
                              ps_out_data_eq, ps_out_data_ner]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lsl = static_cast<CCL_LSL&>(m);
@@ -47,13 +47,13 @@ CCL_LSL::CCL_LSL(const int i0, const int i1, const int j0, const int j1, const i
         tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_data_rlc, lsl.i0, lsl.i1, lsl.j0, lsl.j1,   
                                        (const uint32_t**)lsl.out_data_rlc);
 
-        uint32_t* m_out_n_RoI = static_cast<uint32_t*>(t[ps_out_n_RoI].get_dataptr());
-        *m_out_n_RoI = _CCL_LSL_apply(lsl.out_data_er,
-                                      lsl.out_data_era,
-                                      lsl.out_data_rlc,
-                                      static_cast<uint32_t*>(t[ps_out_data_eq].get_dataptr()),
-                                      static_cast<uint32_t*>(t[ps_out_data_ner].get_dataptr()),
-                                      lsl.in_img, lsl.out_labels, lsl.i0, lsl.i1, lsl.j0, lsl.j1);
+        uint32_t* m_out_n_RoIs = static_cast<uint32_t*>(t[ps_out_n_RoIs].get_dataptr());
+        *m_out_n_RoIs = _CCL_LSL_apply(lsl.out_data_er,
+                                       lsl.out_data_era,
+                                       lsl.out_data_rlc,
+                                       static_cast<uint32_t*>(t[ps_out_data_eq].get_dataptr()),
+                                       static_cast<uint32_t*>(t[ps_out_data_ner].get_dataptr()),
+                                       lsl.in_img, lsl.out_labels, lsl.i0, lsl.i1, lsl.j0, lsl.j1);
         return aff3ct::runtime::status_t::SUCCESS;
     });
 }

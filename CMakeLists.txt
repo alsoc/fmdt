@@ -119,8 +119,8 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_frame.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_kNN.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_motion.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_RoI.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_track.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_RoIs.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_tracks.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Threshold/Threshold.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Tracking/Tracking.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt_common_files})

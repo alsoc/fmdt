@@ -12,16 +12,16 @@ namespace lgr_trk {
     }
 }
 
-class Logger_track : public aff3ct::module::Module {
+class Logger_tracks : public aff3ct::module::Module {
 protected:
     const std::string tracks_path;
     const size_t fra_start;
     const tracking_data_t* tracking_data;
 public:
-    Logger_track(const std::string tracks_path, const size_t fra_start, const tracking_data_t* tracking_data);
-    virtual ~Logger_track();
+    Logger_tracks(const std::string tracks_path, const size_t fra_start, const tracking_data_t* tracking_data);
+    virtual ~Logger_tracks();
     inline aff3ct::runtime::Task& operator[](const lgr_trk::tsk t);
     inline aff3ct::runtime::Socket& operator[](const lgr_trk::sck::write s);
 };
 
-#include "fmdt/aff3ct_wrapper/Logger/Logger_track.hxx"
+#include "fmdt/aff3ct_wrapper/Logger/Logger_tracks.hxx"

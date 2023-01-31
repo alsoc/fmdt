@@ -7,10 +7,10 @@
 rgb8_t image_get_color(enum color_e color);
 
 img_data_t* image_gs_alloc(const size_t img_width, const size_t img_height);
-void _image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* RoI_id,
-                           const uint32_t* RoI_xmax, const uint32_t* RoI_ymin, const uint32_t* RoI_ymax,
+void _image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* RoIs_id,
+                           const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
                            const size_t n_RoI, const uint8_t show_id);
-void image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const RoI_basic_t* RoI_basic_array,
+void image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const RoIs_basic_t* RoIs_basic,
                           const uint8_t show_id);
 uint8_t* image_gs_get_pixels(img_data_t* img_data);
 uint8_t** image_gs_get_pixels_2d(img_data_t* img_data);

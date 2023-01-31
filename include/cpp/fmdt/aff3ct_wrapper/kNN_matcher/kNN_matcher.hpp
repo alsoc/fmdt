@@ -6,9 +6,10 @@
 namespace knn {
     enum class tsk : size_t { match, SIZE };
     namespace sck {
-        enum class match : size_t { in_RoI0_id, in_RoI0_S, in_RoI0_x, in_RoI0_y, in_n_RoI0, in_RoI1_id, in_RoI1_S,
-                                    in_RoI1_x, in_RoI1_y, in_n_RoI1, out_RoI0_next_id, out_RoI1_prev_id,
-                                    out_data_nearest, out_data_distances, out_data_conflicts, status };
+        enum class match : size_t { in_RoIs0_id, in_RoIs0_S, in_RoIs0_x, in_RoIs0_y, in_n_RoIs0, in_RoIs1_id,
+                                    in_RoIs1_S, in_RoIs1_x, in_RoIs1_y, in_n_RoIs1, out_RoIs0_next_id,
+                                    out_RoIs1_prev_id, out_data_nearest, out_data_distances, out_data_conflicts,
+                                    status };
     }
 }
 

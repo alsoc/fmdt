@@ -66,17 +66,17 @@ typedef track_t* vec_track_t;
 typedef struct {
     RoI_track_t** array;
     motion_t* motion;
-    uint32_t* n_RoI;
-    uint32_t _max_n_RoI;
-    size_t _size; // current size/utilization of the 'RoI_history_t.array' field
-    size_t _max_size; // maximum amount of data that can be contained in the 'RoI_history_t.array' field
-} RoI_history_t;
+    uint32_t* n_RoIs;
+    uint32_t _max_n_RoIs;
+    size_t _size; // current size/utilization of the 'RoIs_history_t.array' field
+    size_t _max_size; // maximum amount of data that can be contained in the 'RoIs_history_t.array' field
+} RoIs_history_t;
 
 typedef struct {
     vec_track_t tracks;
-    RoI_history_t* RoI_history;
+    RoIs_history_t* RoIs_history;
     motion_t* motion_history;
-    RoI_track_t* RoI_list;
+    RoI_track_t* RoIs_list;
 } tracking_data_t;
 
 size_t _tracking_get_track_time(const RoI_track_t track_begin, const RoI_track_t track_end);
