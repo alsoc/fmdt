@@ -288,29 +288,29 @@ int main(int argc, char** argv) {
     threshold_min.set_custom_name("Thr<min>");
     threshold_max.set_custom_name("Thr<max>");
     CCL_LSL lsl(i0, i1, j0, j1, b);
-    Features_extractor extractor(i0, i1, j0, j1, b, MAX_RoI_SIZE_BEFORE_SHRINK);
+    Features_extractor extractor(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     extractor.set_custom_name("Extractor");
-    Features_merger_CCL_HI merger(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_RoI_SIZE_BEFORE_SHRINK,
-                                  MAX_RoI_SIZE);
+    Features_merger_CCL_HI merger(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_ROI_SIZE_BEFORE_SHRINK,
+                                  MAX_ROI_SIZE);
     merger.set_custom_name("Merger");
-    Features_magnitude magnitude(i0, i1, j0, j1, b, MAX_RoI_SIZE);
+    Features_magnitude magnitude(i0, i1, j0, j1, b, MAX_ROI_SIZE);
     magnitude.set_custom_name("Magnitude");
-    kNN_matcher matcher(p_knn_k, p_knn_d, p_knn_s, MAX_RoI_SIZE);
-    Motion motion(MAX_RoI_SIZE);
+    kNN_matcher matcher(p_knn_k, p_knn_d, p_knn_s, MAX_ROI_SIZE);
+    Motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
-                      p_trk_meteor_max, p_trk_bb_path, p_trk_mag_path, p_trk_ext_o, p_knn_s, MAX_RoI_SIZE);
-    aff3ct::module::Delayer<uint32_t> delayer_RoI_id(MAX_RoI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoI_xmin(MAX_RoI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoI_xmax(MAX_RoI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoI_ymin(MAX_RoI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoI_ymax(MAX_RoI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoI_S(MAX_RoI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoI_Sx(MAX_RoI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoI_Sy(MAX_RoI_SIZE, 0);
-    aff3ct::module::Delayer<float> delayer_RoI_x(MAX_RoI_SIZE, 0.f);
-    aff3ct::module::Delayer<float> delayer_RoI_y(MAX_RoI_SIZE, 0.f);
-    aff3ct::module::Delayer<uint32_t> delayer_RoI_magnitude(MAX_RoI_SIZE, 0);
+                      p_trk_meteor_max, p_trk_bb_path, p_trk_mag_path, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
+    aff3ct::module::Delayer<uint32_t> delayer_RoI_id(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoI_xmin(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoI_xmax(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoI_ymin(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoI_ymax(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoI_S(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoI_Sx(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoI_Sy(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<float> delayer_RoI_x(MAX_ROI_SIZE, 0.f);
+    aff3ct::module::Delayer<float> delayer_RoI_y(MAX_ROI_SIZE, 0.f);
+    aff3ct::module::Delayer<uint32_t> delayer_RoI_magnitude(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_n_RoI(1, 0);
     delayer_RoI_id.set_custom_name("D<RoI_id>");
     delayer_RoI_xmin.set_custom_name("D<RoI_xmin>");
@@ -324,14 +324,14 @@ int main(int argc, char** argv) {
     delayer_RoI_y.set_custom_name("D<RoI_y>");
     delayer_RoI_magnitude.set_custom_name("D<RoI_mag>");
     delayer_n_RoI.set_custom_name("D<n_RoI>");
-    Logger_RoI log_RoI(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_RoI_SIZE, tracking.get_data());
-    Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_RoI_SIZE);
+    Logger_RoI log_RoI(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data());
+    Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_ROI_SIZE);
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");
     Logger_track log_track(p_log_path ? p_log_path : "", p_vid_in_start, tracking.get_data());
     std::unique_ptr<Logger_frame> log_frame;
     if (p_ccl_fra_path)
-        log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b, MAX_RoI_SIZE));
+        log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
 
     // create reporters and probes for the real-time probes file
     size_t inter_frame_lvl = 1;

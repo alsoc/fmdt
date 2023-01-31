@@ -243,13 +243,13 @@ int main(int argc, char** argv) {
     // -- ALLOCATION -- //
     // ---------------- //
 
-    RoI_t* RoI_array_tmp = features_alloc_RoI(MAX_RoI_SIZE_BEFORE_SHRINK);
-    RoI_t* RoI_array0 = features_alloc_RoI(MAX_RoI_SIZE);
-    RoI_t* RoI_array1 = features_alloc_RoI(MAX_RoI_SIZE);
+    RoI_t* RoI_array_tmp = features_alloc_RoI(MAX_ROI_SIZE_BEFORE_SHRINK);
+    RoI_t* RoI_array0 = features_alloc_RoI(MAX_ROI_SIZE);
+    RoI_t* RoI_array1 = features_alloc_RoI(MAX_ROI_SIZE);
     vec_BB_t* BB_array = NULL;
     if (p_trk_bb_path)
         BB_array = (vec_BB_t*)vector_create();
-    tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_star_min, p_trk_meteor_min), MAX_RoI_SIZE);
+    tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_star_min, p_trk_meteor_min), MAX_ROI_SIZE);
     int b = 1; // image border
     uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // grayscale input image
     uint8_t **IL = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold low)
@@ -262,7 +262,7 @@ int main(int argc, char** argv) {
     // --------------------------- //
 
     tracking_init_global_data();
-    kNN_data_t* knn_data = kNN_alloc_and_init_data(MAX_RoI_SIZE);
+    kNN_data_t* knn_data = kNN_alloc_and_init_data(MAX_ROI_SIZE);
     features_init_RoI(RoI_array_tmp);
     features_init_RoI(RoI_array0);
     features_init_RoI(RoI_array1);
@@ -304,7 +304,7 @@ int main(int argc, char** argv) {
         threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_ccl_hyst_hi);
         features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, RoI_array_tmp->basic,
                                  p_mrp_s_min, p_mrp_s_max);
-        features_shrink_RoI_array(RoI_array_tmp->basic, RoI_array1->basic);
+        features_shrink(RoI_array_tmp->basic, RoI_array1->basic);
         features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L2, RoI_array1->basic,
                                    RoI_array1->misc);
 

@@ -9,194 +9,194 @@
 #include "fmdt/features/features_compute.h"
 
 RoI_basic_t* features_alloc_RoI_basic(const size_t max_size, uint32_t* RoI_id) {
-    RoI_basic_t* RoI_basic_array = (RoI_basic_t*)malloc(sizeof(RoI_basic_t));
-    RoI_basic_array->id = (RoI_id == NULL) ? (uint32_t*)malloc(max_size * sizeof(uint32_t)) : RoI_id;
-    RoI_basic_array->xmin = (uint32_t*)malloc(max_size * sizeof(uint32_t));
-    RoI_basic_array->xmax = (uint32_t*)malloc(max_size * sizeof(uint32_t));
-    RoI_basic_array->ymin = (uint32_t*)malloc(max_size * sizeof(uint32_t));
-    RoI_basic_array->ymax = (uint32_t*)malloc(max_size * sizeof(uint32_t));
-    RoI_basic_array->S = (uint32_t*)malloc(max_size * sizeof(uint32_t));
-    RoI_basic_array->Sx = (uint32_t*)malloc(max_size * sizeof(uint32_t));
-    RoI_basic_array->Sy = (uint32_t*)malloc(max_size * sizeof(uint32_t));
-    RoI_basic_array->x = (float*)malloc(max_size * sizeof(float));
-    RoI_basic_array->y = (float*)malloc(max_size * sizeof(float));
+    RoI_basic_t* RoI_basic = (RoI_basic_t*)malloc(sizeof(RoI_basic_t));
+    RoI_basic->id = (RoI_id == NULL) ? (uint32_t*)malloc(max_size * sizeof(uint32_t)) : RoI_id;
+    RoI_basic->xmin = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoI_basic->xmax = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoI_basic->ymin = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoI_basic->ymax = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoI_basic->S = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoI_basic->Sx = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoI_basic->Sy = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoI_basic->x = (float*)malloc(max_size * sizeof(float));
+    RoI_basic->y = (float*)malloc(max_size * sizeof(float));
     if (RoI_id == NULL) {
-        RoI_basic_array->_max_size = (size_t*)malloc(sizeof(size_t));
-        RoI_basic_array->_size = (size_t*)malloc(sizeof(size_t));
-        *RoI_basic_array->_max_size = max_size;
+        RoI_basic->_max_size = (size_t*)malloc(sizeof(size_t));
+        RoI_basic->_size = (size_t*)malloc(sizeof(size_t));
+        *RoI_basic->_max_size = max_size;
     }
-    return RoI_basic_array;
+    return RoI_basic;
 }
 
-void features_init_RoI_basic(RoI_basic_t* RoI_basic_array, const uint8_t init_id) {
+void features_init_RoI_basic(RoI_basic_t* RoI_basic, const uint8_t init_id) {
     if (init_id)
-        memset(RoI_basic_array->id, 0, *RoI_basic_array->_max_size * sizeof(uint32_t));
-    memset(RoI_basic_array->xmin, 0, *RoI_basic_array->_max_size * sizeof(uint32_t));
-    memset(RoI_basic_array->xmax, 0, *RoI_basic_array->_max_size * sizeof(uint32_t));
-    memset(RoI_basic_array->ymin, 0, *RoI_basic_array->_max_size * sizeof(uint32_t));
-    memset(RoI_basic_array->ymax, 0, *RoI_basic_array->_max_size * sizeof(uint32_t));
-    memset(RoI_basic_array->S, 0, *RoI_basic_array->_max_size * sizeof(uint32_t));
-    memset(RoI_basic_array->Sx, 0, *RoI_basic_array->_max_size * sizeof(uint32_t));
-    memset(RoI_basic_array->Sy, 0, *RoI_basic_array->_max_size * sizeof(uint32_t));
-    memset(RoI_basic_array->x, 0, *RoI_basic_array->_max_size * sizeof(float));
-    memset(RoI_basic_array->y, 0, *RoI_basic_array->_max_size * sizeof(float));
-    *RoI_basic_array->_size = 0;
+        memset(RoI_basic->id, 0, *RoI_basic->_max_size * sizeof(uint32_t));
+    memset(RoI_basic->xmin, 0, *RoI_basic->_max_size * sizeof(uint32_t));
+    memset(RoI_basic->xmax, 0, *RoI_basic->_max_size * sizeof(uint32_t));
+    memset(RoI_basic->ymin, 0, *RoI_basic->_max_size * sizeof(uint32_t));
+    memset(RoI_basic->ymax, 0, *RoI_basic->_max_size * sizeof(uint32_t));
+    memset(RoI_basic->S, 0, *RoI_basic->_max_size * sizeof(uint32_t));
+    memset(RoI_basic->Sx, 0, *RoI_basic->_max_size * sizeof(uint32_t));
+    memset(RoI_basic->Sy, 0, *RoI_basic->_max_size * sizeof(uint32_t));
+    memset(RoI_basic->x, 0, *RoI_basic->_max_size * sizeof(float));
+    memset(RoI_basic->y, 0, *RoI_basic->_max_size * sizeof(float));
+    *RoI_basic->_size = 0;
 }
 
-void features_free_RoI_basic(RoI_basic_t* RoI_basic_array, const uint8_t free_id) {
+void features_free_RoI_basic(RoI_basic_t* RoI_basic, const uint8_t free_id) {
     if (free_id) {
-        free(RoI_basic_array->id);
-        free(RoI_basic_array->_size);
-        free(RoI_basic_array->_max_size);
+        free(RoI_basic->id);
+        free(RoI_basic->_size);
+        free(RoI_basic->_max_size);
     }
-    free(RoI_basic_array->xmin);
-    free(RoI_basic_array->xmax);
-    free(RoI_basic_array->ymin);
-    free(RoI_basic_array->ymax);
-    free(RoI_basic_array->S);
-    free(RoI_basic_array->Sx);
-    free(RoI_basic_array->Sy);
-    free(RoI_basic_array->x);
-    free(RoI_basic_array->y);
-    free(RoI_basic_array);
+    free(RoI_basic->xmin);
+    free(RoI_basic->xmax);
+    free(RoI_basic->ymin);
+    free(RoI_basic->ymax);
+    free(RoI_basic->S);
+    free(RoI_basic->Sx);
+    free(RoI_basic->Sy);
+    free(RoI_basic->x);
+    free(RoI_basic->y);
+    free(RoI_basic);
 }
 
 RoI_asso_t* features_alloc_RoI_asso(const size_t max_size, uint32_t* RoI_id) {
-    RoI_asso_t* RoI_asso_array = (RoI_asso_t*)malloc(sizeof(RoI_asso_t));
-    RoI_asso_array->id = (RoI_id == NULL) ? (uint32_t*)malloc(max_size * sizeof(uint32_t)) : RoI_id;
-    RoI_asso_array->prev_id = (uint32_t*)malloc(max_size * sizeof(uint32_t));
-    RoI_asso_array->next_id = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoI_asso_t* RoI_asso = (RoI_asso_t*)malloc(sizeof(RoI_asso_t));
+    RoI_asso->id = (RoI_id == NULL) ? (uint32_t*)malloc(max_size * sizeof(uint32_t)) : RoI_id;
+    RoI_asso->prev_id = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoI_asso->next_id = (uint32_t*)malloc(max_size * sizeof(uint32_t));
     if (RoI_id == NULL) {
-        RoI_asso_array->_max_size = (size_t*)malloc(sizeof(size_t));
-        RoI_asso_array->_size = (size_t*)malloc(sizeof(size_t));
-        *RoI_asso_array->_max_size = max_size;
+        RoI_asso->_max_size = (size_t*)malloc(sizeof(size_t));
+        RoI_asso->_size = (size_t*)malloc(sizeof(size_t));
+        *RoI_asso->_max_size = max_size;
     }
-    return RoI_asso_array;
+    return RoI_asso;
 }
 
-void features_init_RoI_asso(RoI_asso_t* RoI_asso_array, const uint8_t init_id) {
+void features_init_RoI_asso(RoI_asso_t* RoI_asso, const uint8_t init_id) {
     if (init_id)
-        memset(RoI_asso_array->id, 0, *RoI_asso_array->_max_size * sizeof(uint32_t));
-    memset(RoI_asso_array->prev_id, 0, *RoI_asso_array->_max_size * sizeof(uint32_t));
-    memset(RoI_asso_array->next_id, 0, *RoI_asso_array->_max_size * sizeof(uint32_t));
-    *RoI_asso_array->_size = 0;
+        memset(RoI_asso->id, 0, *RoI_asso->_max_size * sizeof(uint32_t));
+    memset(RoI_asso->prev_id, 0, *RoI_asso->_max_size * sizeof(uint32_t));
+    memset(RoI_asso->next_id, 0, *RoI_asso->_max_size * sizeof(uint32_t));
+    *RoI_asso->_size = 0;
 }
 
-void features_free_RoI_asso(RoI_asso_t* RoI_asso_array, const uint8_t free_id) {
+void features_free_RoI_asso(RoI_asso_t* RoI_asso, const uint8_t free_id) {
     if (free_id) {
-        free(RoI_asso_array->id);
-        free(RoI_asso_array->_size);
-        free(RoI_asso_array->_max_size);
+        free(RoI_asso->id);
+        free(RoI_asso->_size);
+        free(RoI_asso->_max_size);
     }
-    free(RoI_asso_array->prev_id);
-    free(RoI_asso_array->next_id);
-    free(RoI_asso_array);
+    free(RoI_asso->prev_id);
+    free(RoI_asso->next_id);
+    free(RoI_asso);
 }
 
 RoI_motion_t* features_alloc_RoI_motion(const size_t max_size, uint32_t* RoI_id) {
-    RoI_motion_t* RoI_motion_array = (RoI_motion_t*)malloc(sizeof(RoI_motion_t));
-    RoI_motion_array->id = (RoI_id == NULL) ? (uint32_t*)malloc(max_size * sizeof(uint32_t)) : RoI_id;
-    RoI_motion_array->dx = (float*)malloc(max_size * sizeof(float));
-    RoI_motion_array->dy = (float*)malloc(max_size * sizeof(float));
-    RoI_motion_array->error = (float*)malloc(max_size * sizeof(float));
-    RoI_motion_array->is_moving = (uint8_t*)malloc(max_size * sizeof(uint8_t));
+    RoI_motion_t* RoI_motion = (RoI_motion_t*)malloc(sizeof(RoI_motion_t));
+    RoI_motion->id = (RoI_id == NULL) ? (uint32_t*)malloc(max_size * sizeof(uint32_t)) : RoI_id;
+    RoI_motion->dx = (float*)malloc(max_size * sizeof(float));
+    RoI_motion->dy = (float*)malloc(max_size * sizeof(float));
+    RoI_motion->error = (float*)malloc(max_size * sizeof(float));
+    RoI_motion->is_moving = (uint8_t*)malloc(max_size * sizeof(uint8_t));
     if (RoI_id == NULL) {
-        RoI_motion_array->_max_size = (size_t*)malloc(sizeof(size_t));
-        RoI_motion_array->_size = (size_t*)malloc(sizeof(size_t));
-        *RoI_motion_array->_max_size = max_size;
+        RoI_motion->_max_size = (size_t*)malloc(sizeof(size_t));
+        RoI_motion->_size = (size_t*)malloc(sizeof(size_t));
+        *RoI_motion->_max_size = max_size;
     }
-    return RoI_motion_array;
+    return RoI_motion;
 }
 
-void features_init_RoI_motion(RoI_motion_t* RoI_motion_array, const uint8_t init_id) {
+void features_init_RoI_motion(RoI_motion_t* RoI_motion, const uint8_t init_id) {
     if (init_id)
-        memset(RoI_motion_array->id, 0, *RoI_motion_array->_max_size * sizeof(uint32_t));
-    memset(RoI_motion_array->dx, 0, *RoI_motion_array->_max_size * sizeof(float));
-    memset(RoI_motion_array->dy, 0, *RoI_motion_array->_max_size * sizeof(float));
-    memset(RoI_motion_array->error, 0, *RoI_motion_array->_max_size * sizeof(float));
-    memset(RoI_motion_array->is_moving, 0, *RoI_motion_array->_max_size * sizeof(uint8_t));
-    *RoI_motion_array->_size = 0;
+        memset(RoI_motion->id, 0, *RoI_motion->_max_size * sizeof(uint32_t));
+    memset(RoI_motion->dx, 0, *RoI_motion->_max_size * sizeof(float));
+    memset(RoI_motion->dy, 0, *RoI_motion->_max_size * sizeof(float));
+    memset(RoI_motion->error, 0, *RoI_motion->_max_size * sizeof(float));
+    memset(RoI_motion->is_moving, 0, *RoI_motion->_max_size * sizeof(uint8_t));
+    *RoI_motion->_size = 0;
 }
 
-void features_free_RoI_motion(RoI_motion_t* RoI_motion_array, const uint8_t free_id) {
+void features_free_RoI_motion(RoI_motion_t* RoI_motion, const uint8_t free_id) {
     if (free_id) {
-        free(RoI_motion_array->id);
-        free(RoI_motion_array->_size);
-        free(RoI_motion_array->_max_size);
+        free(RoI_motion->id);
+        free(RoI_motion->_size);
+        free(RoI_motion->_max_size);
     }
-    free(RoI_motion_array->dx);
-    free(RoI_motion_array->dy);
-    free(RoI_motion_array->error);
-    free(RoI_motion_array->is_moving);
-    free(RoI_motion_array);
+    free(RoI_motion->dx);
+    free(RoI_motion->dy);
+    free(RoI_motion->error);
+    free(RoI_motion->is_moving);
+    free(RoI_motion);
 }
 
 RoI_misc_t* features_alloc_RoI_misc(const size_t max_size, uint32_t* RoI_id) {
-    RoI_misc_t* RoI_misc_array = (RoI_misc_t*)malloc(sizeof(RoI_misc_t));
-    RoI_misc_array->id = (RoI_id == NULL) ? (uint32_t*)malloc(max_size * sizeof(uint32_t)) : RoI_id;
-    RoI_misc_array->magnitude = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoI_misc_t* RoI_misc = (RoI_misc_t*)malloc(sizeof(RoI_misc_t));
+    RoI_misc->id = (RoI_id == NULL) ? (uint32_t*)malloc(max_size * sizeof(uint32_t)) : RoI_id;
+    RoI_misc->magnitude = (uint32_t*)malloc(max_size * sizeof(uint32_t));
     if (RoI_id == NULL) {
-        RoI_misc_array->_max_size = (size_t*)malloc(sizeof(size_t));
-        RoI_misc_array->_size = (size_t*)malloc(sizeof(size_t));
-        *RoI_misc_array->_max_size = max_size;
+        RoI_misc->_max_size = (size_t*)malloc(sizeof(size_t));
+        RoI_misc->_size = (size_t*)malloc(sizeof(size_t));
+        *RoI_misc->_max_size = max_size;
     }
-    return RoI_misc_array;
+    return RoI_misc;
 }
 
-void features_init_RoI_misc(RoI_misc_t* RoI_misc_array, const uint8_t init_id) {
+void features_init_RoI_misc(RoI_misc_t* RoI_misc, const uint8_t init_id) {
     if (init_id)
-        memset(RoI_misc_array->id, 0, *RoI_misc_array->_max_size * sizeof(uint32_t));
-    memset(RoI_misc_array->magnitude, 0, *RoI_misc_array->_max_size * sizeof(uint32_t));
-    *RoI_misc_array->_size = 0;
+        memset(RoI_misc->id, 0, *RoI_misc->_max_size * sizeof(uint32_t));
+    memset(RoI_misc->magnitude, 0, *RoI_misc->_max_size * sizeof(uint32_t));
+    *RoI_misc->_size = 0;
 }
 
-void features_free_RoI_misc(RoI_misc_t* RoI_misc_array, const uint8_t free_id) {
+void features_free_RoI_misc(RoI_misc_t* RoI_misc, const uint8_t free_id) {
     if (free_id) {
-        free(RoI_misc_array->id);
-        free(RoI_misc_array->_size);
-        free(RoI_misc_array->_max_size);
+        free(RoI_misc->id);
+        free(RoI_misc->_size);
+        free(RoI_misc->_max_size);
     }
-    free(RoI_misc_array->magnitude);
-    free(RoI_misc_array);
+    free(RoI_misc->magnitude);
+    free(RoI_misc);
 }
 
 RoI_t* features_alloc_RoI(const size_t max_size) {
-    RoI_t* RoI_array = (RoI_t*)malloc(sizeof(RoI_t));
-    RoI_array->id = (uint32_t*)malloc(max_size * sizeof(uint32_t));
-    RoI_array->basic = features_alloc_RoI_basic(max_size, RoI_array->id);
-    RoI_array->basic->_max_size = &RoI_array->_max_size;
-    RoI_array->basic->_size = &RoI_array->_size;
-    RoI_array->asso = features_alloc_RoI_asso(max_size, RoI_array->id);
-    RoI_array->asso->_max_size = &RoI_array->_max_size;
-    RoI_array->asso->_size = &RoI_array->_size;
-    RoI_array->motion = features_alloc_RoI_motion(max_size, RoI_array->id);
-    RoI_array->motion->_max_size = &RoI_array->_max_size;
-    RoI_array->motion->_size = &RoI_array->_size;
-    RoI_array->misc = features_alloc_RoI_misc(max_size, RoI_array->id);
-    RoI_array->misc->_max_size = &RoI_array->_max_size;
-    RoI_array->misc->_size = &RoI_array->_size;
-    RoI_array->_max_size = max_size;
-    return RoI_array;
+    RoI_t* RoI = (RoI_t*)malloc(sizeof(RoI_t));
+    RoI->id = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoI->basic = features_alloc_RoI_basic(max_size, RoI->id);
+    RoI->basic->_max_size = &RoI->_max_size;
+    RoI->basic->_size = &RoI->_size;
+    RoI->asso = features_alloc_RoI_asso(max_size, RoI->id);
+    RoI->asso->_max_size = &RoI->_max_size;
+    RoI->asso->_size = &RoI->_size;
+    RoI->motion = features_alloc_RoI_motion(max_size, RoI->id);
+    RoI->motion->_max_size = &RoI->_max_size;
+    RoI->motion->_size = &RoI->_size;
+    RoI->misc = features_alloc_RoI_misc(max_size, RoI->id);
+    RoI->misc->_max_size = &RoI->_max_size;
+    RoI->misc->_size = &RoI->_size;
+    RoI->_max_size = max_size;
+    return RoI;
 }
 
-void features_init_RoI(RoI_t* RoI_array) {
-    memset(RoI_array->id, 0, RoI_array->_max_size * sizeof(uint32_t));
+void features_init_RoI(RoI_t* RoI) {
+    memset(RoI->id, 0, RoI->_max_size * sizeof(uint32_t));
     const uint8_t init_id = 0;
-    features_init_RoI_basic(RoI_array->basic, init_id);
-    features_init_RoI_asso(RoI_array->asso, init_id);
-    features_init_RoI_motion(RoI_array->motion, init_id);
-    features_init_RoI_misc(RoI_array->misc, init_id);
-    RoI_array->_size = 0;
+    features_init_RoI_basic(RoI->basic, init_id);
+    features_init_RoI_asso(RoI->asso, init_id);
+    features_init_RoI_motion(RoI->motion, init_id);
+    features_init_RoI_misc(RoI->misc, init_id);
+    RoI->_size = 0;
 }
 
-void features_free_RoI(RoI_t* RoI_array) {
-    free(RoI_array->id);
+void features_free_RoI(RoI_t* RoI) {
+    free(RoI->id);
     const uint8_t free_id = 0;
-    features_free_RoI_basic(RoI_array->basic, free_id);
-    features_free_RoI_asso(RoI_array->asso, free_id);
-    features_free_RoI_motion(RoI_array->motion, free_id);
-    features_free_RoI_misc(RoI_array->misc, free_id);
-    free(RoI_array);
+    features_free_RoI_basic(RoI->basic, free_id);
+    features_free_RoI_asso(RoI->asso, free_id);
+    features_free_RoI_motion(RoI->motion, free_id);
+    features_free_RoI_misc(RoI->misc, free_id);
+    free(RoI);
 }
 
 void _features_extract(const uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
@@ -218,7 +218,7 @@ void _features_extract(const uint32_t** labels, const int i0, const int i1, cons
         for (int j = j0; j <= j1; j++) {
             uint32_t e = (uint32_t)labels[i][j];
             if (e > 0) {
-                assert(e < MAX_RoI_SIZE_BEFORE_SHRINK);
+                assert(e < MAX_ROI_SIZE_BEFORE_SHRINK);
                 uint32_t r = e - 1;
                 RoI_S[r] += 1;
                 RoI_id[r] = e;
@@ -243,13 +243,13 @@ void _features_extract(const uint32_t** labels, const int i0, const int i1, cons
 }
 
 void features_extract(const uint32_t** labels, const int i0, const int i1, const int j0, const int j1, const size_t n_RoI,
-                      RoI_basic_t* RoI_basic_array) {
+                      RoI_basic_t* RoI_basic) {
     const uint8_t init_id = 1;
-    features_init_RoI_basic(RoI_basic_array, init_id);
-    *RoI_basic_array->_size = n_RoI;
-    _features_extract(labels, i0, i1, j0, j1, RoI_basic_array->id, RoI_basic_array->xmin, RoI_basic_array->xmax,
-                      RoI_basic_array->ymin, RoI_basic_array->ymax, RoI_basic_array->S, RoI_basic_array->Sx,
-                      RoI_basic_array->Sy, RoI_basic_array->x, RoI_basic_array->y, *RoI_basic_array->_size);
+    features_init_RoI_basic(RoI_basic, init_id);
+    *RoI_basic->_size = n_RoI;
+    _features_extract(labels, i0, i1, j0, j1, RoI_basic->id, RoI_basic->xmin, RoI_basic->xmax,
+                      RoI_basic->ymin, RoI_basic->ymax, RoI_basic->S, RoI_basic->Sx,
+                      RoI_basic->Sy, RoI_basic->x, RoI_basic->y, *RoI_basic->_size);
 }
 
 void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
@@ -302,25 +302,25 @@ void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_H
 }
 
 void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
-                              const int i1, const int j0, const int j1, RoI_basic_t* RoI_basic_array,
+                              const int i1, const int j0, const int j1, RoI_basic_t* RoI_basic,
                               const uint32_t S_min, const uint32_t S_max) {
-    _features_merge_CCL_HI_v2(in_labels, img_HI, out_labels, i0,i1, j0, j1, RoI_basic_array->id, RoI_basic_array->xmin,
-                              RoI_basic_array->xmax, RoI_basic_array->ymin, RoI_basic_array->ymax, RoI_basic_array->S,
-                              *RoI_basic_array->_size, S_min, S_max);
+    _features_merge_CCL_HI_v2(in_labels, img_HI, out_labels, i0,i1, j0, j1, RoI_basic->id, RoI_basic->xmin,
+                              RoI_basic->xmax, RoI_basic->ymin, RoI_basic->ymax, RoI_basic->S,
+                              *RoI_basic->_size, S_min, S_max);
 }
 
-size_t _features_shrink_RoI_array(const uint32_t* RoI_src_id, const uint32_t* RoI_src_xmin,
-                                  const uint32_t* RoI_src_xmax, const uint32_t* RoI_src_ymin,
-                                  const uint32_t* RoI_src_ymax, const uint32_t* RoI_src_S, const uint32_t* RoI_src_Sx,
-                                  const uint32_t* RoI_src_Sy, const float* RoI_src_x, const float* RoI_src_y,
-                                  const size_t n_RoI_src, uint32_t* RoI_dest_id, uint32_t* RoI_dest_xmin,
-                                  uint32_t* RoI_dest_xmax, uint32_t* RoI_dest_ymin, uint32_t* RoI_dest_ymax,
-                                  uint32_t* RoI_dest_S, uint32_t* RoI_dest_Sx, uint32_t* RoI_dest_Sy, float* RoI_dest_x,
-                                  float* RoI_dest_y) {
+size_t _features_shrink(const uint32_t* RoI_src_id, const uint32_t* RoI_src_xmin,
+                        const uint32_t* RoI_src_xmax, const uint32_t* RoI_src_ymin,
+                        const uint32_t* RoI_src_ymax, const uint32_t* RoI_src_S, const uint32_t* RoI_src_Sx,
+                        const uint32_t* RoI_src_Sy, const float* RoI_src_x, const float* RoI_src_y,
+                        const size_t n_RoI_src, uint32_t* RoI_dest_id, uint32_t* RoI_dest_xmin,
+                        uint32_t* RoI_dest_xmax, uint32_t* RoI_dest_ymin, uint32_t* RoI_dest_ymax,
+                        uint32_t* RoI_dest_S, uint32_t* RoI_dest_Sx, uint32_t* RoI_dest_Sy, float* RoI_dest_x,
+                        float* RoI_dest_y) {
     size_t cpt = 0;
     for (size_t i = 0; i < n_RoI_src; i++) {
         if (RoI_src_id[i]) {
-            assert(cpt < MAX_RoI_SIZE);
+            assert(cpt < MAX_ROI_SIZE);
             RoI_dest_id[cpt] = cpt + 1;
             RoI_dest_xmin[cpt] = RoI_src_xmin[i];
             RoI_dest_xmax[cpt] = RoI_src_xmax[i];
@@ -337,18 +337,18 @@ size_t _features_shrink_RoI_array(const uint32_t* RoI_src_id, const uint32_t* Ro
     return cpt;
 }
 
-void features_shrink_RoI_array(const RoI_basic_t* RoI_basic_array_src, RoI_basic_t* RoI_basic_array_dest) {
-    *RoI_basic_array_dest->_size = _features_shrink_RoI_array(RoI_basic_array_src->id, RoI_basic_array_src->xmin,
-                                                              RoI_basic_array_src->xmax, RoI_basic_array_src->ymin,
-                                                              RoI_basic_array_src->ymax, RoI_basic_array_src->S,
-                                                              RoI_basic_array_src->Sx, RoI_basic_array_src->Sy,
-                                                              RoI_basic_array_src->x, RoI_basic_array_src->y,
-                                                              *RoI_basic_array_src->_size, RoI_basic_array_dest->id,
-                                                              RoI_basic_array_dest->xmin, RoI_basic_array_dest->xmax,
-                                                              RoI_basic_array_dest->ymin, RoI_basic_array_dest->ymax,
-                                                              RoI_basic_array_dest->S, RoI_basic_array_dest->Sx,
-                                                              RoI_basic_array_dest->Sy, RoI_basic_array_dest->x,
-                                                              RoI_basic_array_dest->y);
+void features_shrink(const RoI_basic_t* RoI_basic_src, RoI_basic_t* RoI_basic_dest) {
+    *RoI_basic_dest->_size = _features_shrink(RoI_basic_src->id, RoI_basic_src->xmin,
+                                              RoI_basic_src->xmax, RoI_basic_src->ymin,
+                                              RoI_basic_src->ymax, RoI_basic_src->S,
+                                              RoI_basic_src->Sx, RoI_basic_src->Sy,
+                                              RoI_basic_src->x, RoI_basic_src->y,
+                                              *RoI_basic_src->_size, RoI_basic_dest->id,
+                                              RoI_basic_dest->xmin, RoI_basic_dest->xmax,
+                                              RoI_basic_dest->ymin, RoI_basic_dest->ymax,
+                                              RoI_basic_dest->S, RoI_basic_dest->Sx,
+                                              RoI_basic_dest->Sy, RoI_basic_dest->x,
+                                              RoI_basic_dest->y);
 }
 
 void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
@@ -400,9 +400,9 @@ void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, 
 }
 
 void features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
-                                const uint32_t** labels, const RoI_basic_t* RoI_basic_array,
-                                RoI_misc_t* RoI_misc_array) {
-    _features_compute_magnitude(img, img_width, img_height, labels, RoI_basic_array->xmin, RoI_basic_array->xmax,
-                                RoI_basic_array->ymin, RoI_basic_array->ymax, RoI_basic_array->S,
-                                RoI_misc_array->magnitude, *RoI_misc_array->_size);
+                                const uint32_t** labels, const RoI_basic_t* RoI_basic,
+                                RoI_misc_t* RoI_misc) {
+    _features_compute_magnitude(img, img_width, img_height, labels, RoI_basic->xmin, RoI_basic->xmax,
+                                RoI_basic->ymin, RoI_basic->ymax, RoI_basic->S,
+                                RoI_misc->magnitude, *RoI_misc->_size);
 }

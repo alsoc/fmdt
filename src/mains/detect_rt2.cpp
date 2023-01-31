@@ -263,11 +263,11 @@ int main(int argc, char** argv) {
     threshold_max0.set_custom_name("Thr0<max>");
     CCL_LSL lsl0(i0, i1, j0, j1, b);
     lsl0.set_custom_name("CCL_LSL0");
-    Features_extractor extractor0(i0, i1, j0, j1, b, MAX_RoI_SIZE_BEFORE_SHRINK);
+    Features_extractor extractor0(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     extractor0.set_custom_name("Extractor0");
-    Features_merger_CCL_HI merger0(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_RoI_SIZE_BEFORE_SHRINK, MAX_RoI_SIZE);
+    Features_merger_CCL_HI merger0(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
     merger0.set_custom_name("Merger0");
-    Features_magnitude magnitude0(i0, i1, j0, j1, b, MAX_RoI_SIZE);
+    Features_magnitude magnitude0(i0, i1, j0, j1, b, MAX_ROI_SIZE);
     magnitude0.set_custom_name("Magnitude0");
 
     Threshold threshold_min1(i0, i1, j0, j1, b, p_ccl_hyst_lo);
@@ -276,26 +276,26 @@ int main(int argc, char** argv) {
     threshold_max1.set_custom_name("Thr1<max>");
     CCL_LSL lsl1(i0, i1, j0, j1, b);
     lsl1.set_custom_name("CCL_LSL1");
-    Features_extractor extractor1(i0, i1, j0, j1, b, MAX_RoI_SIZE_BEFORE_SHRINK);
+    Features_extractor extractor1(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     extractor1.set_custom_name("Extractor1");
-    Features_merger_CCL_HI merger1(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_RoI_SIZE_BEFORE_SHRINK, MAX_RoI_SIZE);
+    Features_merger_CCL_HI merger1(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
     merger1.set_custom_name("Merger1");
-    Features_magnitude magnitude1(i0, i1, j0, j1, b, MAX_RoI_SIZE);
+    Features_magnitude magnitude1(i0, i1, j0, j1, b, MAX_ROI_SIZE);
     magnitude1.set_custom_name("Magnitude1");
 
-    kNN_matcher matcher(p_knn_k, p_knn_d, p_knn_s, MAX_RoI_SIZE);
-    Motion motion(MAX_RoI_SIZE);
+    kNN_matcher matcher(p_knn_k, p_knn_d, p_knn_s, MAX_ROI_SIZE);
+    Motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
-                      p_trk_meteor_max, p_trk_bb_path, p_trk_mag_path, p_trk_ext_o, p_knn_s, MAX_RoI_SIZE);
-    Logger_RoI log_RoI(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_RoI_SIZE, tracking.get_data());
-    Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_RoI_SIZE);
+                      p_trk_meteor_max, p_trk_bb_path, p_trk_mag_path, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
+    Logger_RoI log_RoI(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data());
+    Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_ROI_SIZE);
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");
     Logger_track log_track(p_log_path ? p_log_path : "", p_vid_in_start, tracking.get_data());
     std::unique_ptr<Logger_frame> log_frame;
     if (p_ccl_fra_path)
-        log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b, MAX_RoI_SIZE));
+        log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
 
     // ------------------- //
     // -- TASKS BINDING -- //
