@@ -111,9 +111,11 @@ def parser_Tab(Lines, name, start, size_max):
 
     # set up titles and subtitles
     List_title = (Lines[start+2][2:-1] ).split("||")
+    List_title = [x.lower() for x in List_title]
     List_title_size = [len(txt) for txt in List_title] 
     List_subtitle  = (Lines[start+5][2:-1]).replace("||","|").split("|")
-    List_subtitle_size = [len(txt) for txt in List_subtitle] 
+    List_subtitle = [x.lower() for x in List_subtitle]
+    List_subtitle_size = [len(txt) for txt in List_subtitle]
     len_title = len(List_title)
 
     for i in range(len_title):
@@ -129,7 +131,7 @@ def parser_Tab(Lines, name, start, size_max):
                     sys.exit("(EE) Something went wrong when parsing the table named: '" + name.replace("\n", "") + "'.")
                 cpt += List_subtitle_size[len_subtitle_index] + 1 
 
-            List_columns += [(List_title[i].strip().lower()+"_"+List_subtitle[len_subtitle_index].strip().lower(),lenght,lenght + List_subtitle_size[len_subtitle_index], [])]
+            List_columns += [(List_title[i].strip()+"_"+List_subtitle[len_subtitle_index].strip(),lenght,lenght + List_subtitle_size[len_subtitle_index], [])]
             lenght += List_subtitle_size[len_subtitle_index] + 1
             len_subtitle_index += 1
         lenght += 1
@@ -157,7 +159,7 @@ def display_tab_colums(input):
     return None
 
 # liste des tables a ne pas traiter dans la comparaison
-table_exceptions = ["No conflict found", "Association conflicts"]
+table_exceptions = ["no conflict found", "association conflicts"]
 
 def parser_stats(path_filename):
     f = open(path_filename, "r")
@@ -172,7 +174,7 @@ def parser_stats(path_filename):
     
     # on suppose qu'il n'y a que des tab
     while i < size :
-        name = Lines[i];
+        name = Lines[i].lower();
         skip_table = 0
         # on vérifie que le nom de la table à traiter n'est pas une exception
         for excep in table_exceptions:
