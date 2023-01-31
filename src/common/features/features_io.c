@@ -74,21 +74,21 @@ void features_parse_stats(const char* filename, RoIs_t* stats, int* n) {
     fclose(file);
 }
 
-int _find_corresponding_track(const int frame, const vec_track_t track_array, const uint32_t* RoIs_id,
-                              const int sel_RoIs_id, const size_t n_RoIs, const unsigned age) {
+int _find_corresponding_track(const int frame, const vec_track_t tracks, const uint32_t* RoIs_id, const int sel_RoIs_id,
+                              const size_t n_RoIs, const unsigned age) {
     assert(age == 0 || age == 1);
 
-    size_t n_tracks = vector_size(track_array);
+    size_t n_tracks = vector_size(tracks);
     for (size_t t = 0; t < n_tracks; t++) {
-        if (track_array[t].id) {
-            if (track_array[t].end.frame == frame + age) {
+        if (tracks[t].id) {
+            if (tracks[t].end.frame == frame + age) {
                 int cur_RoIs_id;
                 if (age == 0)
-                    cur_RoIs_id = track_array[t].end.id;
+                    cur_RoIs_id = tracks[t].end.id;
                 else {
-                    if (track_array[t].end.prev_id == 0)
+                    if (tracks[t].end.prev_id == 0)
                         continue;
-                    cur_RoIs_id = RoIs_id[track_array[t].end.prev_id - 1];
+                    cur_RoIs_id = RoIs_id[tracks[t].end.prev_id - 1];
                 }
                 assert(cur_RoIs_id <= (int)n_RoIs);
                 if (cur_RoIs_id <= 0)
@@ -101,16 +101,16 @@ int _find_corresponding_track(const int frame, const vec_track_t track_array, co
     return -1;
 }
 
-int find_corresponding_track(const int frame, const vec_track_t track_array, const RoIs_t* RoIs_array,
-                             const int sel_RoIs_id, const size_t n_RoIs, const unsigned age) {
-    return _find_corresponding_track(frame, track_array, RoIs_array->id, sel_RoIs_id, n_RoIs, age);
+int find_corresponding_track(const int frame, const vec_track_t tracks, const RoIs_t* RoIs_array, const int sel_RoIs_id,
+                             const size_t n_RoIs, const unsigned age) {
+    return _find_corresponding_track(frame, tracks, RoIs_array->id, sel_RoIs_id, n_RoIs, age);
 }
 
 void _features_RoIs_write(FILE* f, const int frame, const uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
-                         const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
-                         const uint32_t* RoIs_S, const uint32_t* RoIs_Sx, const uint32_t* RoIs_Sy, const float* RoIs_x,
-                         const float* RoIs_y, const uint32_t* RoIs_magnitude, const size_t n_RoIs,
-                         const vec_track_t track_array, const unsigned age) {
+                          const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
+                          const uint32_t* RoIs_S, const uint32_t* RoIs_Sx, const uint32_t* RoIs_Sy, const float* RoIs_x,
+                          const float* RoIs_y, const uint32_t* RoIs_magnitude, const size_t n_RoIs,
+                          const vec_track_t tracks, const unsigned age) {
     int cpt = 0;
     for (size_t i = 0; i < n_RoIs; i++)
         if (RoIs_id[i] != 0)
@@ -128,18 +128,18 @@ void _features_RoIs_write(FILE* f, const int frame, const uint32_t* RoIs_id, con
 
     for (size_t i = 0; i < n_RoIs; i++) {
         if (RoIs_id[i] != 0) {
-            int t = _find_corresponding_track(frame, track_array, RoIs_id, RoIs_id[i], n_RoIs, age);
+            int t = _find_corresponding_track(frame, tracks, RoIs_id, RoIs_id[i], n_RoIs, age);
             char task_id_str[16];
             if (t == -1)
                 strcpy(task_id_str, "   -");
             else
-                snprintf(task_id_str, sizeof(task_id_str), "%4d", track_array[t].id);
+                snprintf(task_id_str, sizeof(task_id_str), "%4d", tracks[t].id);
             char task_obj_type[64];
             if (t == -1)
                 strcpy(task_obj_type, "      -");
             else
                 snprintf(task_obj_type, sizeof(task_obj_type), "%s",
-                    g_obj_to_string_with_spaces[track_array[t].obj_type]);
+                    g_obj_to_string_with_spaces[tracks[t].obj_type]);
             uint32_t mag = 0;
             if (RoIs_magnitude != NULL)
                 mag = RoIs_magnitude[i];
@@ -150,12 +150,12 @@ void _features_RoIs_write(FILE* f, const int frame, const uint32_t* RoIs_id, con
     }
 }
 
-void features_RoIs_write(FILE* f, const int frame, const RoIs_basic_t* RoIs_basic_array,
-                        const RoIs_misc_t* RoIs_misc_array, const vec_track_t track_array, const unsigned age) {
-    _features_RoIs_write(f, frame, RoIs_basic_array->id, RoIs_basic_array->xmin, RoIs_basic_array->xmax,
-                         RoIs_basic_array->ymin, RoIs_basic_array->ymax, RoIs_basic_array->S, RoIs_basic_array->Sx,
-                         RoIs_basic_array->Sy, RoIs_basic_array->x, RoIs_basic_array->y, RoIs_misc_array->magnitude,
-                         *RoIs_basic_array->_size, track_array, age);
+void features_RoIs_write(FILE* f, const int frame, const RoIs_basic_t* RoIs_basic, const RoIs_misc_t* RoIs_misc,
+                         const vec_track_t tracks, const unsigned age) {
+    _features_RoIs_write(f, frame, RoIs_basic->id, RoIs_basic->xmin, RoIs_basic->xmax,
+                         RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S, RoIs_basic->Sx,
+                         RoIs_basic->Sy, RoIs_basic->x, RoIs_basic->y, RoIs_misc->magnitude,
+                         *RoIs_basic->_size, tracks, age);
 }
 
 void _features_RoIs0_RoIs1_write(FILE* f, const int prev_frame, const int cur_frame, const uint32_t* RoIs0_id,
@@ -166,29 +166,29 @@ void _features_RoIs0_RoIs1_write(FILE* f, const int prev_frame, const int cur_fr
                                  const uint32_t* RoIs1_xmin, const uint32_t* RoIs1_xmax, const uint32_t* RoIs1_ymin,
                                  const uint32_t* RoIs1_ymax, const uint32_t* RoIs1_S, const uint32_t* RoIs1_Sx,
                                  const uint32_t* RoIs1_Sy, const float* RoIs1_x, const float* RoIs1_y,
-                                 const uint32_t* RoIs1_magnitude, const size_t n_RoIs1, const vec_track_t track_array) {
+                                 const uint32_t* RoIs1_magnitude, const size_t n_RoIs1, const vec_track_t tracks) {
     if (prev_frame >= 0) {
         fprintf(f, "# Frame n°%05d (t-1) -- ", prev_frame);
         _features_RoIs_write(f, prev_frame, RoIs0_id, RoIs0_xmin, RoIs0_xmax, RoIs0_ymin, RoIs0_ymax, RoIs0_S, RoIs0_Sx,
-                             RoIs0_Sy, RoIs0_x, RoIs0_y, RoIs0_magnitude, n_RoIs0, track_array, 1);
+                             RoIs0_Sy, RoIs0_x, RoIs0_y, RoIs0_magnitude, n_RoIs0, tracks, 1);
         fprintf(f, "#\n");
     }
 
     fprintf(f, "# Frame n°%05d (t) -- ", cur_frame);
     _features_RoIs_write(f, cur_frame, RoIs1_id, RoIs1_xmin, RoIs1_xmax, RoIs1_ymin, RoIs1_ymax, RoIs1_S, RoIs1_Sx,
-                         RoIs1_Sy, RoIs1_x, RoIs1_y, RoIs1_magnitude, n_RoIs1, track_array, 0);
+                         RoIs1_Sy, RoIs1_x, RoIs1_y, RoIs1_magnitude, n_RoIs1, tracks, 0);
 }
 
-void features_RoIs0_RoIs1_write(FILE* f, const int prev_frame, const int cur_frame, const RoIs_basic_t* RoIs_basic_array0,
-                              const RoIs_misc_t* RoIs_misc_array0, const RoIs_basic_t* RoIs_basic_array1,
-                              const RoIs_misc_t* RoIs_misc_array1, const vec_track_t track_array) {
-    _features_RoIs0_RoIs1_write(f, prev_frame, cur_frame, RoIs_basic_array0->id, RoIs_basic_array0->xmin,
-                                RoIs_basic_array0->xmax, RoIs_basic_array0->ymin, RoIs_basic_array0->ymax,
-                                RoIs_basic_array0->S, RoIs_basic_array0->Sx, RoIs_basic_array0->Sy,
-                                RoIs_basic_array0->x, RoIs_basic_array0->y, RoIs_misc_array0->magnitude,
-                                *RoIs_basic_array0->_size, RoIs_basic_array1->id, RoIs_basic_array1->xmin,
-                                RoIs_basic_array1->xmax, RoIs_basic_array1->ymin, RoIs_basic_array1->ymax,
-                                RoIs_basic_array1->S, RoIs_basic_array1->Sx, RoIs_basic_array1->Sy,
-                                RoIs_basic_array1->x, RoIs_basic_array1->y, RoIs_misc_array1->magnitude,
-                                *RoIs_basic_array1->_size, track_array);
+void features_RoIs0_RoIs1_write(FILE* f, const int prev_frame, const int cur_frame, const RoIs_basic_t* RoIs0_basic,
+                                const RoIs_misc_t* RoIs0_misc, const RoIs_basic_t* RoIs1_basic,
+                                const RoIs_misc_t* RoIs1_misc, const vec_track_t tracks) {
+    _features_RoIs0_RoIs1_write(f, prev_frame, cur_frame, RoIs0_basic->id, RoIs0_basic->xmin,
+                                RoIs0_basic->xmax, RoIs0_basic->ymin, RoIs0_basic->ymax,
+                                RoIs0_basic->S, RoIs0_basic->Sx, RoIs0_basic->Sy,
+                                RoIs0_basic->x, RoIs0_basic->y, RoIs0_misc->magnitude,
+                                *RoIs0_basic->_size, RoIs1_basic->id, RoIs1_basic->xmin,
+                                RoIs1_basic->xmax, RoIs1_basic->ymin, RoIs1_basic->ymax,
+                                RoIs1_basic->S, RoIs1_basic->Sx, RoIs1_basic->Sy,
+                                RoIs1_basic->x, RoIs1_basic->y, RoIs1_misc->magnitude,
+                                *RoIs1_basic->_size, tracks);
 }
