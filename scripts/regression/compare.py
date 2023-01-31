@@ -129,7 +129,7 @@ def parser_Tab(Lines, name, start, size_max):
                     sys.exit("(EE) Something went wrong when parsing the table named: '" + name.replace("\n", "") + "'.")
                 cpt += List_subtitle_size[len_subtitle_index] + 1 
 
-            List_columns += [(List_title[i].strip()+"_"+List_subtitle[len_subtitle_index].strip(),lenght,lenght + List_subtitle_size[len_subtitle_index], [])]
+            List_columns += [(List_title[i].strip().lower()+"_"+List_subtitle[len_subtitle_index].strip().lower(),lenght,lenght + List_subtitle_size[len_subtitle_index], [])]
             lenght += List_subtitle_size[len_subtitle_index] + 1
             len_subtitle_index += 1
         lenght += 1
