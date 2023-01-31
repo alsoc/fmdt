@@ -6,7 +6,7 @@
 namespace ccl {
     enum class tsk : size_t { apply, SIZE };
     namespace sck {
-        enum class apply : size_t { in_img, out_labels, out_n_ROI, out_data_er, out_data_era, out_data_rlc, out_data_eq,
+        enum class apply : size_t { in_img, out_labels, out_n_RoI, out_data_er, out_data_era, out_data_rlc, out_data_eq,
                                     out_data_ner, status };
     }
 }

@@ -10,7 +10,7 @@
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/features/features_io.h"
 
-void features_print_stats(ROI_t* stats, int n) {
+void features_print_stats(RoI_t* stats, int n) {
     int cpt = 0;
     for (int i = 0; i < n; i++) {
         if (stats->id[i] > 0) {
@@ -34,7 +34,7 @@ void features_print_stats(ROI_t* stats, int n) {
     printf("\n");
 }
 
-void features_parse_stats(const char* filename, ROI_t* stats, int* n) {
+void features_parse_stats(const char* filename, RoI_t* stats, int* n) {
     char lines[200];
     int id, xmin, xmax, ymin, ymax, s, sx, sy, prev_id, next_id;
     float x, y;
@@ -74,26 +74,26 @@ void features_parse_stats(const char* filename, ROI_t* stats, int* n) {
     fclose(file);
 }
 
-int _find_corresponding_track(const int frame, const vec_track_t track_array, const uint32_t* ROI_id,
-                              const int sel_ROI_id, const size_t n_ROI, const unsigned age) {
+int _find_corresponding_track(const int frame, const vec_track_t track_array, const uint32_t* RoI_id,
+                              const int sel_RoI_id, const size_t n_RoI, const unsigned age) {
     assert(age == 0 || age == 1);
 
     size_t n_tracks = vector_size(track_array);
     for (size_t t = 0; t < n_tracks; t++) {
         if (track_array[t].id) {
             if (track_array[t].end.frame == frame + age) {
-                int cur_ROI_id;
+                int cur_RoI_id;
                 if (age == 0)
-                    cur_ROI_id = track_array[t].end.id;
+                    cur_RoI_id = track_array[t].end.id;
                 else {
                     if (track_array[t].end.prev_id == 0)
                         continue;
-                    cur_ROI_id = ROI_id[track_array[t].end.prev_id - 1];
+                    cur_RoI_id = RoI_id[track_array[t].end.prev_id - 1];
                 }
-                assert(cur_ROI_id <= (int)n_ROI);
-                if (cur_ROI_id <= 0)
+                assert(cur_RoI_id <= (int)n_RoI);
+                if (cur_RoI_id <= 0)
                     continue;
-                if (sel_ROI_id == cur_ROI_id)
+                if (sel_RoI_id == cur_RoI_id)
                     return t;
             }
         }
@@ -101,34 +101,34 @@ int _find_corresponding_track(const int frame, const vec_track_t track_array, co
     return -1;
 }
 
-int find_corresponding_track(const int frame, const vec_track_t track_array, const ROI_t* ROI_array,
-                             const int sel_ROI_id, const size_t n_ROI, const unsigned age) {
-    return _find_corresponding_track(frame, track_array, ROI_array->id, sel_ROI_id, n_ROI, age);
+int find_corresponding_track(const int frame, const vec_track_t track_array, const RoI_t* RoI_array,
+                             const int sel_RoI_id, const size_t n_RoI, const unsigned age) {
+    return _find_corresponding_track(frame, track_array, RoI_array->id, sel_RoI_id, n_RoI, age);
 }
 
-void _features_ROI_write(FILE* f, const int frame, const uint32_t* ROI_id, const uint32_t* ROI_xmin,
-                         const uint32_t* ROI_xmax, const uint32_t* ROI_ymin, const uint32_t* ROI_ymax,
-                         const uint32_t* ROI_S, const uint32_t* ROI_Sx, const uint32_t* ROI_Sy, const float* ROI_x,
-                         const float* ROI_y, const uint32_t* ROI_magnitude, const size_t n_ROI,
+void _features_RoI_write(FILE* f, const int frame, const uint32_t* RoI_id, const uint32_t* RoI_xmin,
+                         const uint32_t* RoI_xmax, const uint32_t* RoI_ymin, const uint32_t* RoI_ymax,
+                         const uint32_t* RoI_S, const uint32_t* RoI_Sx, const uint32_t* RoI_Sy, const float* RoI_x,
+                         const float* RoI_y, const uint32_t* RoI_magnitude, const size_t n_RoI,
                          const vec_track_t track_array, const unsigned age) {
     int cpt = 0;
-    for (size_t i = 0; i < n_ROI; i++)
-        if (ROI_id[i] != 0)
+    for (size_t i = 0; i < n_RoI; i++)
+        if (RoI_id[i] != 0)
             cpt++;
 
-    fprintf(f, "Regions of interest (ROI) [%d]: \n", cpt);
+    fprintf(f, "Regions of interest (RoI) [%d]: \n", cpt);
     // if (cpt) {  // for compare.py
         fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------||-----------\n");
-        fprintf(f, "#   ROI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       || Magnitude \n");
+        fprintf(f, "#   RoI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       || Magnitude \n");
         fprintf(f, "# ------||----------------||---------------------------||---------------------------||-------------------||-----------\n");
         fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------\n");
         fprintf(f, "#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y ||        -- \n");
         fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------\n");
     // }
 
-    for (size_t i = 0; i < n_ROI; i++) {
-        if (ROI_id[i] != 0) {
-            int t = _find_corresponding_track(frame, track_array, ROI_id, ROI_id[i], n_ROI, age);
+    for (size_t i = 0; i < n_RoI; i++) {
+        if (RoI_id[i] != 0) {
+            int t = _find_corresponding_track(frame, track_array, RoI_id, RoI_id[i], n_RoI, age);
             char task_id_str[16];
             if (t == -1)
                 strcpy(task_id_str, "   -");
@@ -141,53 +141,53 @@ void _features_ROI_write(FILE* f, const int frame, const uint32_t* ROI_id, const
                 snprintf(task_obj_type, sizeof(task_obj_type), "%s",
                     g_obj_to_string_with_spaces[track_array[t].obj_type]);
             uint32_t mag = 0;
-            if (ROI_magnitude != NULL)
-                mag = ROI_magnitude[i];
+            if (RoI_magnitude != NULL)
+                mag = RoI_magnitude[i];
             fprintf(f, "   %4d || %s | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f || %9d \n",
-                    ROI_id[i], task_id_str, task_obj_type, ROI_xmin[i], ROI_xmax[i], ROI_ymin[i], ROI_ymax[i], ROI_S[i],
-                    ROI_Sx[i], ROI_Sy[i], ROI_x[i], ROI_y[i], mag);
+                    RoI_id[i], task_id_str, task_obj_type, RoI_xmin[i], RoI_xmax[i], RoI_ymin[i], RoI_ymax[i], RoI_S[i],
+                    RoI_Sx[i], RoI_Sy[i], RoI_x[i], RoI_y[i], mag);
         }
     }
 }
 
-void features_ROI_write(FILE* f, const int frame, const ROI_basic_t* ROI_basic_array, const ROI_misc_t* ROI_misc_array,
+void features_RoI_write(FILE* f, const int frame, const RoI_basic_t* RoI_basic_array, const RoI_misc_t* RoI_misc_array,
                         const vec_track_t track_array, const unsigned age) {
-    _features_ROI_write(f, frame, ROI_basic_array->id, ROI_basic_array->xmin, ROI_basic_array->xmax, ROI_basic_array->ymin,
-                        ROI_basic_array->ymax, ROI_basic_array->S, ROI_basic_array->Sx, ROI_basic_array->Sy,
-                        ROI_basic_array->x, ROI_basic_array->y, ROI_misc_array->magnitude, *ROI_basic_array->_size,
+    _features_RoI_write(f, frame, RoI_basic_array->id, RoI_basic_array->xmin, RoI_basic_array->xmax, RoI_basic_array->ymin,
+                        RoI_basic_array->ymax, RoI_basic_array->S, RoI_basic_array->Sx, RoI_basic_array->Sy,
+                        RoI_basic_array->x, RoI_basic_array->y, RoI_misc_array->magnitude, *RoI_basic_array->_size,
                         track_array, age);
 }
 
-void _features_ROI0_ROI1_write(FILE* f, const int prev_frame, const int cur_frame, const uint32_t* ROI0_id,
-                               const uint32_t* ROI0_xmin, const uint32_t* ROI0_xmax, const uint32_t* ROI0_ymin,
-                               const uint32_t* ROI0_ymax, const uint32_t* ROI0_S, const uint32_t* ROI0_Sx,
-                               const uint32_t* ROI0_Sy, const float* ROI0_x, const float* ROI0_y,
-                               const uint32_t* ROI0_magnitude, const size_t n_ROI0, const uint32_t* ROI1_id,
-                               const uint32_t* ROI1_xmin, const uint32_t* ROI1_xmax, const uint32_t* ROI1_ymin,
-                               const uint32_t* ROI1_ymax, const uint32_t* ROI1_S, const uint32_t* ROI1_Sx,
-                               const uint32_t* ROI1_Sy, const float* ROI1_x, const float* ROI1_y,
-                               const uint32_t* ROI1_magnitude, const size_t n_ROI1, const vec_track_t track_array) {
+void _features_RoI0_RoI1_write(FILE* f, const int prev_frame, const int cur_frame, const uint32_t* RoI0_id,
+                               const uint32_t* RoI0_xmin, const uint32_t* RoI0_xmax, const uint32_t* RoI0_ymin,
+                               const uint32_t* RoI0_ymax, const uint32_t* RoI0_S, const uint32_t* RoI0_Sx,
+                               const uint32_t* RoI0_Sy, const float* RoI0_x, const float* RoI0_y,
+                               const uint32_t* RoI0_magnitude, const size_t n_RoI0, const uint32_t* RoI1_id,
+                               const uint32_t* RoI1_xmin, const uint32_t* RoI1_xmax, const uint32_t* RoI1_ymin,
+                               const uint32_t* RoI1_ymax, const uint32_t* RoI1_S, const uint32_t* RoI1_Sx,
+                               const uint32_t* RoI1_Sy, const float* RoI1_x, const float* RoI1_y,
+                               const uint32_t* RoI1_magnitude, const size_t n_RoI1, const vec_track_t track_array) {
     if (prev_frame >= 0) {
         fprintf(f, "# Frame n°%05d (t-1) -- ", prev_frame);
-        _features_ROI_write(f, prev_frame, ROI0_id, ROI0_xmin, ROI0_xmax, ROI0_ymin, ROI0_ymax, ROI0_S, ROI0_Sx,
-                            ROI0_Sy, ROI0_x, ROI0_y, ROI0_magnitude, n_ROI0, track_array, 1);
+        _features_RoI_write(f, prev_frame, RoI0_id, RoI0_xmin, RoI0_xmax, RoI0_ymin, RoI0_ymax, RoI0_S, RoI0_Sx,
+                            RoI0_Sy, RoI0_x, RoI0_y, RoI0_magnitude, n_RoI0, track_array, 1);
         fprintf(f, "#\n");
     }
 
     fprintf(f, "# Frame n°%05d (t) -- ", cur_frame);
-    _features_ROI_write(f, cur_frame, ROI1_id, ROI1_xmin, ROI1_xmax, ROI1_ymin, ROI1_ymax, ROI1_S, ROI1_Sx, ROI1_Sy,
-                        ROI1_x, ROI1_y, ROI1_magnitude, n_ROI1, track_array, 0);
+    _features_RoI_write(f, cur_frame, RoI1_id, RoI1_xmin, RoI1_xmax, RoI1_ymin, RoI1_ymax, RoI1_S, RoI1_Sx, RoI1_Sy,
+                        RoI1_x, RoI1_y, RoI1_magnitude, n_RoI1, track_array, 0);
 }
 
-void features_ROI0_ROI1_write(FILE* f, const int prev_frame, const int cur_frame, const ROI_basic_t* ROI_basic_array0,
-                              const ROI_misc_t* ROI_misc_array0, const ROI_basic_t* ROI_basic_array1,
-                              const ROI_misc_t* ROI_misc_array1, const vec_track_t track_array) {
-    _features_ROI0_ROI1_write(f, prev_frame, cur_frame, ROI_basic_array0->id, ROI_basic_array0->xmin,
-                              ROI_basic_array0->xmax, ROI_basic_array0->ymin, ROI_basic_array0->ymax,
-                              ROI_basic_array0->S, ROI_basic_array0->Sx, ROI_basic_array0->Sy, ROI_basic_array0->x,
-                              ROI_basic_array0->y, ROI_misc_array0->magnitude, *ROI_basic_array0->_size,
-                              ROI_basic_array1->id, ROI_basic_array1->xmin, ROI_basic_array1->xmax,
-                              ROI_basic_array1->ymin, ROI_basic_array1->ymax, ROI_basic_array1->S, ROI_basic_array1->Sx,
-                              ROI_basic_array1->Sy, ROI_basic_array1->x, ROI_basic_array1->y,
-                              ROI_misc_array1->magnitude, *ROI_basic_array1->_size, track_array);
+void features_RoI0_RoI1_write(FILE* f, const int prev_frame, const int cur_frame, const RoI_basic_t* RoI_basic_array0,
+                              const RoI_misc_t* RoI_misc_array0, const RoI_basic_t* RoI_basic_array1,
+                              const RoI_misc_t* RoI_misc_array1, const vec_track_t track_array) {
+    _features_RoI0_RoI1_write(f, prev_frame, cur_frame, RoI_basic_array0->id, RoI_basic_array0->xmin,
+                              RoI_basic_array0->xmax, RoI_basic_array0->ymin, RoI_basic_array0->ymax,
+                              RoI_basic_array0->S, RoI_basic_array0->Sx, RoI_basic_array0->Sy, RoI_basic_array0->x,
+                              RoI_basic_array0->y, RoI_misc_array0->magnitude, *RoI_basic_array0->_size,
+                              RoI_basic_array1->id, RoI_basic_array1->xmin, RoI_basic_array1->xmax,
+                              RoI_basic_array1->ymin, RoI_basic_array1->ymax, RoI_basic_array1->S, RoI_basic_array1->Sx,
+                              RoI_basic_array1->Sy, RoI_basic_array1->x, RoI_basic_array1->y,
+                              RoI_misc_array1->magnitude, *RoI_basic_array1->_size, track_array);
 }

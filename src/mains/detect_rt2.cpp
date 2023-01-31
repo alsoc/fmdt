@@ -16,12 +16,12 @@
 #include "fmdt/aff3ct_wrapper/Features/Features_merger_CCL_HI.hpp"
 #include "fmdt/aff3ct_wrapper/Motion/Motion.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_magnitude.hpp"
-#include "fmdt/aff3ct_wrapper/KNN_matcher/KNN_matcher.hpp"
+#include "fmdt/aff3ct_wrapper/kNN_matcher/kNN_matcher.hpp"
 #include "fmdt/aff3ct_wrapper/Threshold/Threshold.hpp"
 #include "fmdt/aff3ct_wrapper/Tracking/Tracking.hpp"
 #include "fmdt/aff3ct_wrapper/Video/Video2.hpp"
-#include "fmdt/aff3ct_wrapper/Logger/Logger_ROI.hpp"
-#include "fmdt/aff3ct_wrapper/Logger/Logger_KNN.hpp"
+#include "fmdt/aff3ct_wrapper/Logger/Logger_RoI.hpp"
+#include "fmdt/aff3ct_wrapper/Logger/Logger_kNN.hpp"
 #include "fmdt/aff3ct_wrapper/Logger/Logger_motion.hpp"
 #include "fmdt/aff3ct_wrapper/Logger/Logger_track.hpp"
 #include "fmdt/aff3ct_wrapper/Logger/Logger_frame.hpp"
@@ -82,7 +82,7 @@ int main(int argc, char** argv) {
                 def_p_ccl_fra_path ? def_p_ccl_fra_path : "NULL");
 #ifdef FMDT_OPENCV_LINK
         fprintf(stderr,
-                "  --ccl-fra-id        Show the ROI/CC ids on the ouptut CC frames                                \n");
+                "  --ccl-fra-id        Show the RoI/CC ids on the ouptut CC frames                                \n");
 #endif
         fprintf(stderr,
                 "  --mrp-s-min         Minimum surface of the CCs in pixels                                   [%d]\n",
@@ -263,11 +263,11 @@ int main(int argc, char** argv) {
     threshold_max0.set_custom_name("Thr0<max>");
     CCL_LSL lsl0(i0, i1, j0, j1, b);
     lsl0.set_custom_name("CCL_LSL0");
-    Features_extractor extractor0(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
+    Features_extractor extractor0(i0, i1, j0, j1, b, MAX_RoI_SIZE_BEFORE_SHRINK);
     extractor0.set_custom_name("Extractor0");
-    Features_merger_CCL_HI merger0(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
+    Features_merger_CCL_HI merger0(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_RoI_SIZE_BEFORE_SHRINK, MAX_RoI_SIZE);
     merger0.set_custom_name("Merger0");
-    Features_magnitude magnitude0(i0, i1, j0, j1, b, MAX_ROI_SIZE);
+    Features_magnitude magnitude0(i0, i1, j0, j1, b, MAX_RoI_SIZE);
     magnitude0.set_custom_name("Magnitude0");
 
     Threshold threshold_min1(i0, i1, j0, j1, b, p_ccl_hyst_lo);
@@ -276,26 +276,26 @@ int main(int argc, char** argv) {
     threshold_max1.set_custom_name("Thr1<max>");
     CCL_LSL lsl1(i0, i1, j0, j1, b);
     lsl1.set_custom_name("CCL_LSL1");
-    Features_extractor extractor1(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
+    Features_extractor extractor1(i0, i1, j0, j1, b, MAX_RoI_SIZE_BEFORE_SHRINK);
     extractor1.set_custom_name("Extractor1");
-    Features_merger_CCL_HI merger1(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
+    Features_merger_CCL_HI merger1(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_RoI_SIZE_BEFORE_SHRINK, MAX_RoI_SIZE);
     merger1.set_custom_name("Merger1");
-    Features_magnitude magnitude1(i0, i1, j0, j1, b, MAX_ROI_SIZE);
+    Features_magnitude magnitude1(i0, i1, j0, j1, b, MAX_RoI_SIZE);
     magnitude1.set_custom_name("Magnitude1");
 
-    KNN_matcher matcher(p_knn_k, p_knn_d, p_knn_s, MAX_ROI_SIZE);
-    Motion motion(MAX_ROI_SIZE);
+    kNN_matcher matcher(p_knn_k, p_knn_d, p_knn_s, MAX_RoI_SIZE);
+    Motion motion(MAX_RoI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
-                      p_trk_meteor_max, p_trk_bb_path, p_trk_mag_path, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
-    Logger_ROI log_ROI(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data());
-    Logger_KNN log_KNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_ROI_SIZE);
+                      p_trk_meteor_max, p_trk_bb_path, p_trk_mag_path, p_trk_ext_o, p_knn_s, MAX_RoI_SIZE);
+    Logger_RoI log_RoI(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_RoI_SIZE, tracking.get_data());
+    Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_RoI_SIZE);
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");
     Logger_track log_track(p_log_path ? p_log_path : "", p_vid_in_start, tracking.get_data());
     std::unique_ptr<Logger_frame> log_frame;
     if (p_ccl_fra_path)
-        log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
+        log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b, MAX_RoI_SIZE));
 
     // ------------------- //
     // -- TASKS BINDING -- //
@@ -310,143 +310,143 @@ int main(int argc, char** argv) {
     // Step 2 : ECC/ACC
     lsl0[ccl::sck::apply::in_img] = threshold_min0[thr::sck::apply::out_img];
     extractor0[ftr_ext::sck::extract::in_img] = lsl0[ccl::sck::apply::out_labels];
-    extractor0[ftr_ext::sck::extract::in_n_ROI] = lsl0[ccl::sck::apply::out_n_ROI];
+    extractor0[ftr_ext::sck::extract::in_n_RoI] = lsl0[ccl::sck::apply::out_n_RoI];
 
     lsl1[ccl::sck::apply::in_img] = threshold_min1[thr::sck::apply::out_img];
     extractor1[ftr_ext::sck::extract::in_img] = lsl1[ccl::sck::apply::out_labels];
-    extractor1[ftr_ext::sck::extract::in_n_ROI] = lsl1[ccl::sck::apply::out_n_ROI];
+    extractor1[ftr_ext::sck::extract::in_n_RoI] = lsl1[ccl::sck::apply::out_n_RoI];
 
     // Step 3 : seuillage hysteresis && filter surface
     merger0[ftr_mrg::sck::merge::in_labels] = lsl0[ccl::sck::apply::out_labels];
     merger0[ftr_mrg::sck::merge::in_img_HI] = threshold_max0[thr::sck::apply::out_img];
-    merger0[ftr_mrg::sck::merge::in_ROI_id] = extractor0[ftr_ext::sck::extract::out_ROI_id];
-    merger0[ftr_mrg::sck::merge::in_ROI_xmin] = extractor0[ftr_ext::sck::extract::out_ROI_xmin];
-    merger0[ftr_mrg::sck::merge::in_ROI_xmax] = extractor0[ftr_ext::sck::extract::out_ROI_xmax];
-    merger0[ftr_mrg::sck::merge::in_ROI_ymin] = extractor0[ftr_ext::sck::extract::out_ROI_ymin];
-    merger0[ftr_mrg::sck::merge::in_ROI_ymax] = extractor0[ftr_ext::sck::extract::out_ROI_ymax];
-    merger0[ftr_mrg::sck::merge::in_ROI_S] = extractor0[ftr_ext::sck::extract::out_ROI_S];
-    merger0[ftr_mrg::sck::merge::in_ROI_Sx] = extractor0[ftr_ext::sck::extract::out_ROI_Sx];
-    merger0[ftr_mrg::sck::merge::in_ROI_Sy] = extractor0[ftr_ext::sck::extract::out_ROI_Sy];
-    merger0[ftr_mrg::sck::merge::in_ROI_x] = extractor0[ftr_ext::sck::extract::out_ROI_x];
-    merger0[ftr_mrg::sck::merge::in_ROI_y] = extractor0[ftr_ext::sck::extract::out_ROI_y];
-    merger0[ftr_mrg::sck::merge::in_n_ROI] = lsl0[ccl::sck::apply::out_n_ROI];
+    merger0[ftr_mrg::sck::merge::in_RoI_id] = extractor0[ftr_ext::sck::extract::out_RoI_id];
+    merger0[ftr_mrg::sck::merge::in_RoI_xmin] = extractor0[ftr_ext::sck::extract::out_RoI_xmin];
+    merger0[ftr_mrg::sck::merge::in_RoI_xmax] = extractor0[ftr_ext::sck::extract::out_RoI_xmax];
+    merger0[ftr_mrg::sck::merge::in_RoI_ymin] = extractor0[ftr_ext::sck::extract::out_RoI_ymin];
+    merger0[ftr_mrg::sck::merge::in_RoI_ymax] = extractor0[ftr_ext::sck::extract::out_RoI_ymax];
+    merger0[ftr_mrg::sck::merge::in_RoI_S] = extractor0[ftr_ext::sck::extract::out_RoI_S];
+    merger0[ftr_mrg::sck::merge::in_RoI_Sx] = extractor0[ftr_ext::sck::extract::out_RoI_Sx];
+    merger0[ftr_mrg::sck::merge::in_RoI_Sy] = extractor0[ftr_ext::sck::extract::out_RoI_Sy];
+    merger0[ftr_mrg::sck::merge::in_RoI_x] = extractor0[ftr_ext::sck::extract::out_RoI_x];
+    merger0[ftr_mrg::sck::merge::in_RoI_y] = extractor0[ftr_ext::sck::extract::out_RoI_y];
+    merger0[ftr_mrg::sck::merge::in_n_RoI] = lsl0[ccl::sck::apply::out_n_RoI];
 
     merger1[ftr_mrg::sck::merge::in_labels] = lsl1[ccl::sck::apply::out_labels];
     merger1[ftr_mrg::sck::merge::in_img_HI] = threshold_max1[thr::sck::apply::out_img];
-    merger1[ftr_mrg::sck::merge::in_ROI_id] = extractor1[ftr_ext::sck::extract::out_ROI_id];
-    merger1[ftr_mrg::sck::merge::in_ROI_xmin] = extractor1[ftr_ext::sck::extract::out_ROI_xmin];
-    merger1[ftr_mrg::sck::merge::in_ROI_xmax] = extractor1[ftr_ext::sck::extract::out_ROI_xmax];
-    merger1[ftr_mrg::sck::merge::in_ROI_ymin] = extractor1[ftr_ext::sck::extract::out_ROI_ymin];
-    merger1[ftr_mrg::sck::merge::in_ROI_ymax] = extractor1[ftr_ext::sck::extract::out_ROI_ymax];
-    merger1[ftr_mrg::sck::merge::in_ROI_S] = extractor1[ftr_ext::sck::extract::out_ROI_S];
-    merger1[ftr_mrg::sck::merge::in_ROI_Sx] = extractor1[ftr_ext::sck::extract::out_ROI_Sx];
-    merger1[ftr_mrg::sck::merge::in_ROI_Sy] = extractor1[ftr_ext::sck::extract::out_ROI_Sy];
-    merger1[ftr_mrg::sck::merge::in_ROI_x] = extractor1[ftr_ext::sck::extract::out_ROI_x];
-    merger1[ftr_mrg::sck::merge::in_ROI_y] = extractor1[ftr_ext::sck::extract::out_ROI_y];
-    merger1[ftr_mrg::sck::merge::in_n_ROI] = lsl1[ccl::sck::apply::out_n_ROI];
+    merger1[ftr_mrg::sck::merge::in_RoI_id] = extractor1[ftr_ext::sck::extract::out_RoI_id];
+    merger1[ftr_mrg::sck::merge::in_RoI_xmin] = extractor1[ftr_ext::sck::extract::out_RoI_xmin];
+    merger1[ftr_mrg::sck::merge::in_RoI_xmax] = extractor1[ftr_ext::sck::extract::out_RoI_xmax];
+    merger1[ftr_mrg::sck::merge::in_RoI_ymin] = extractor1[ftr_ext::sck::extract::out_RoI_ymin];
+    merger1[ftr_mrg::sck::merge::in_RoI_ymax] = extractor1[ftr_ext::sck::extract::out_RoI_ymax];
+    merger1[ftr_mrg::sck::merge::in_RoI_S] = extractor1[ftr_ext::sck::extract::out_RoI_S];
+    merger1[ftr_mrg::sck::merge::in_RoI_Sx] = extractor1[ftr_ext::sck::extract::out_RoI_Sx];
+    merger1[ftr_mrg::sck::merge::in_RoI_Sy] = extractor1[ftr_ext::sck::extract::out_RoI_Sy];
+    merger1[ftr_mrg::sck::merge::in_RoI_x] = extractor1[ftr_ext::sck::extract::out_RoI_x];
+    merger1[ftr_mrg::sck::merge::in_RoI_y] = extractor1[ftr_ext::sck::extract::out_RoI_y];
+    merger1[ftr_mrg::sck::merge::in_n_RoI] = lsl1[ccl::sck::apply::out_n_RoI];
 
-    // Step 3.5 : calcul de la magnitude pour chaque ROI
+    // Step 3.5 : calcul de la magnitude pour chaque RoI
     magnitude0[ftr_mgn::sck::compute::in_img] = video[vid2::sck::generate::out_img0];
     magnitude0[ftr_mgn::sck::compute::in_labels] = merger0[ftr_mrg::sck::merge::out_labels];
-    magnitude0[ftr_mgn::sck::compute::in_ROI_xmin] = merger0[ftr_mrg::sck::merge::out_ROI_xmin];
-    magnitude0[ftr_mgn::sck::compute::in_ROI_xmax] = merger0[ftr_mrg::sck::merge::out_ROI_xmax];
-    magnitude0[ftr_mgn::sck::compute::in_ROI_ymin] = merger0[ftr_mrg::sck::merge::out_ROI_ymin];
-    magnitude0[ftr_mgn::sck::compute::in_ROI_ymax] = merger0[ftr_mrg::sck::merge::out_ROI_ymax];
-    magnitude0[ftr_mgn::sck::compute::in_ROI_S] = merger0[ftr_mrg::sck::merge::out_ROI_S];
-    magnitude0[ftr_mgn::sck::compute::in_n_ROI] = merger0[ftr_mrg::sck::merge::out_n_ROI];
+    magnitude0[ftr_mgn::sck::compute::in_RoI_xmin] = merger0[ftr_mrg::sck::merge::out_RoI_xmin];
+    magnitude0[ftr_mgn::sck::compute::in_RoI_xmax] = merger0[ftr_mrg::sck::merge::out_RoI_xmax];
+    magnitude0[ftr_mgn::sck::compute::in_RoI_ymin] = merger0[ftr_mrg::sck::merge::out_RoI_ymin];
+    magnitude0[ftr_mgn::sck::compute::in_RoI_ymax] = merger0[ftr_mrg::sck::merge::out_RoI_ymax];
+    magnitude0[ftr_mgn::sck::compute::in_RoI_S] = merger0[ftr_mrg::sck::merge::out_RoI_S];
+    magnitude0[ftr_mgn::sck::compute::in_n_RoI] = merger0[ftr_mrg::sck::merge::out_n_RoI];
 
     magnitude1[ftr_mgn::sck::compute::in_img] = video[vid2::sck::generate::out_img1];
     magnitude1[ftr_mgn::sck::compute::in_labels] = merger1[ftr_mrg::sck::merge::out_labels];
-    magnitude1[ftr_mgn::sck::compute::in_ROI_xmin] = merger1[ftr_mrg::sck::merge::out_ROI_xmin];
-    magnitude1[ftr_mgn::sck::compute::in_ROI_xmax] = merger1[ftr_mrg::sck::merge::out_ROI_xmax];
-    magnitude1[ftr_mgn::sck::compute::in_ROI_ymin] = merger1[ftr_mrg::sck::merge::out_ROI_ymin];
-    magnitude1[ftr_mgn::sck::compute::in_ROI_ymax] = merger1[ftr_mrg::sck::merge::out_ROI_ymax];
-    magnitude1[ftr_mgn::sck::compute::in_ROI_S] = merger1[ftr_mrg::sck::merge::out_ROI_S];
-    magnitude1[ftr_mgn::sck::compute::in_n_ROI] = merger1[ftr_mrg::sck::merge::out_n_ROI];
+    magnitude1[ftr_mgn::sck::compute::in_RoI_xmin] = merger1[ftr_mrg::sck::merge::out_RoI_xmin];
+    magnitude1[ftr_mgn::sck::compute::in_RoI_xmax] = merger1[ftr_mrg::sck::merge::out_RoI_xmax];
+    magnitude1[ftr_mgn::sck::compute::in_RoI_ymin] = merger1[ftr_mrg::sck::merge::out_RoI_ymin];
+    magnitude1[ftr_mgn::sck::compute::in_RoI_ymax] = merger1[ftr_mrg::sck::merge::out_RoI_ymax];
+    magnitude1[ftr_mgn::sck::compute::in_RoI_S] = merger1[ftr_mrg::sck::merge::out_RoI_S];
+    magnitude1[ftr_mgn::sck::compute::in_n_RoI] = merger1[ftr_mrg::sck::merge::out_n_RoI];
 
     // Step 4 : mise en correspondance
-    matcher[knn::sck::match::in_ROI0_id] = merger0[ftr_mrg::sck::merge::out_ROI_id];
-    matcher[knn::sck::match::in_ROI0_S] = merger0[ftr_mrg::sck::merge::out_ROI_S];
-    matcher[knn::sck::match::in_ROI0_x] = merger0[ftr_mrg::sck::merge::out_ROI_x];
-    matcher[knn::sck::match::in_ROI0_y] = merger0[ftr_mrg::sck::merge::out_ROI_y];
-    matcher[knn::sck::match::in_n_ROI0] = merger0[ftr_mrg::sck::merge::out_n_ROI];
-    matcher[knn::sck::match::in_ROI1_id] = merger1[ftr_mrg::sck::merge::out_ROI_id];
-    matcher[knn::sck::match::in_ROI1_S] = merger1[ftr_mrg::sck::merge::out_ROI_S];
-    matcher[knn::sck::match::in_ROI1_x] = merger1[ftr_mrg::sck::merge::out_ROI_x];
-    matcher[knn::sck::match::in_ROI1_y] = merger1[ftr_mrg::sck::merge::out_ROI_y];
-    matcher[knn::sck::match::in_n_ROI1] = merger1[ftr_mrg::sck::merge::out_n_ROI];
+    matcher[knn::sck::match::in_RoI0_id] = merger0[ftr_mrg::sck::merge::out_RoI_id];
+    matcher[knn::sck::match::in_RoI0_S] = merger0[ftr_mrg::sck::merge::out_RoI_S];
+    matcher[knn::sck::match::in_RoI0_x] = merger0[ftr_mrg::sck::merge::out_RoI_x];
+    matcher[knn::sck::match::in_RoI0_y] = merger0[ftr_mrg::sck::merge::out_RoI_y];
+    matcher[knn::sck::match::in_n_RoI0] = merger0[ftr_mrg::sck::merge::out_n_RoI];
+    matcher[knn::sck::match::in_RoI1_id] = merger1[ftr_mrg::sck::merge::out_RoI_id];
+    matcher[knn::sck::match::in_RoI1_S] = merger1[ftr_mrg::sck::merge::out_RoI_S];
+    matcher[knn::sck::match::in_RoI1_x] = merger1[ftr_mrg::sck::merge::out_RoI_x];
+    matcher[knn::sck::match::in_RoI1_y] = merger1[ftr_mrg::sck::merge::out_RoI_y];
+    matcher[knn::sck::match::in_n_RoI1] = merger1[ftr_mrg::sck::merge::out_n_RoI];
 
     // Step 5 : recalage
-    motion[mtn::sck::compute::in_ROI0_x] = merger0[ftr_mrg::sck::merge::out_ROI_x];
-    motion[mtn::sck::compute::in_ROI0_y] = merger0[ftr_mrg::sck::merge::out_ROI_y];
-    motion[mtn::sck::compute::in_ROI1_x] = merger1[ftr_mrg::sck::merge::out_ROI_x];
-    motion[mtn::sck::compute::in_ROI1_y] = merger1[ftr_mrg::sck::merge::out_ROI_y];
-    motion[mtn::sck::compute::in_ROI1_prev_id] = matcher[knn::sck::match::out_ROI1_prev_id];
-    motion[mtn::sck::compute::in_n_ROI1] = merger1[ftr_mrg::sck::merge::out_n_ROI];
+    motion[mtn::sck::compute::in_RoI0_x] = merger0[ftr_mrg::sck::merge::out_RoI_x];
+    motion[mtn::sck::compute::in_RoI0_y] = merger0[ftr_mrg::sck::merge::out_RoI_y];
+    motion[mtn::sck::compute::in_RoI1_x] = merger1[ftr_mrg::sck::merge::out_RoI_x];
+    motion[mtn::sck::compute::in_RoI1_y] = merger1[ftr_mrg::sck::merge::out_RoI_y];
+    motion[mtn::sck::compute::in_RoI1_prev_id] = matcher[knn::sck::match::out_RoI1_prev_id];
+    motion[mtn::sck::compute::in_n_RoI1] = merger1[ftr_mrg::sck::merge::out_n_RoI];
 
     // Step 6 : tracking
     tracking[trk::sck::perform::in_frame] = video[vid2::sck::generate::out_frame];
-    tracking[trk::sck::perform::in_ROI_id] = merger1[ftr_mrg::sck::merge::out_ROI_id];
-    tracking[trk::sck::perform::in_ROI_xmin] = merger1[ftr_mrg::sck::merge::out_ROI_xmin];
-    tracking[trk::sck::perform::in_ROI_xmax] = merger1[ftr_mrg::sck::merge::out_ROI_xmax];
-    tracking[trk::sck::perform::in_ROI_ymin] = merger1[ftr_mrg::sck::merge::out_ROI_ymin];
-    tracking[trk::sck::perform::in_ROI_ymax] = merger1[ftr_mrg::sck::merge::out_ROI_ymax];
-    tracking[trk::sck::perform::in_ROI_S] = merger1[ftr_mrg::sck::merge::out_ROI_S];
-    tracking[trk::sck::perform::in_ROI_x] = merger1[ftr_mrg::sck::merge::out_ROI_x];
-    tracking[trk::sck::perform::in_ROI_y] = merger1[ftr_mrg::sck::merge::out_ROI_y];
-    tracking[trk::sck::perform::in_ROI_error] = motion[mtn::sck::compute::out_ROI1_error];
-    tracking[trk::sck::perform::in_ROI_prev_id] = matcher[knn::sck::match::out_ROI1_prev_id];
-    tracking[trk::sck::perform::in_ROI_magnitude] = magnitude1[ftr_mgn::sck::compute::out_ROI_magnitude];
-    tracking[trk::sck::perform::in_n_ROI] = merger1[ftr_mrg::sck::merge::out_n_ROI];
+    tracking[trk::sck::perform::in_RoI_id] = merger1[ftr_mrg::sck::merge::out_RoI_id];
+    tracking[trk::sck::perform::in_RoI_xmin] = merger1[ftr_mrg::sck::merge::out_RoI_xmin];
+    tracking[trk::sck::perform::in_RoI_xmax] = merger1[ftr_mrg::sck::merge::out_RoI_xmax];
+    tracking[trk::sck::perform::in_RoI_ymin] = merger1[ftr_mrg::sck::merge::out_RoI_ymin];
+    tracking[trk::sck::perform::in_RoI_ymax] = merger1[ftr_mrg::sck::merge::out_RoI_ymax];
+    tracking[trk::sck::perform::in_RoI_S] = merger1[ftr_mrg::sck::merge::out_RoI_S];
+    tracking[trk::sck::perform::in_RoI_x] = merger1[ftr_mrg::sck::merge::out_RoI_x];
+    tracking[trk::sck::perform::in_RoI_y] = merger1[ftr_mrg::sck::merge::out_RoI_y];
+    tracking[trk::sck::perform::in_RoI_error] = motion[mtn::sck::compute::out_RoI1_error];
+    tracking[trk::sck::perform::in_RoI_prev_id] = matcher[knn::sck::match::out_RoI1_prev_id];
+    tracking[trk::sck::perform::in_RoI_magnitude] = magnitude1[ftr_mgn::sck::compute::out_RoI_magnitude];
+    tracking[trk::sck::perform::in_n_RoI] = merger1[ftr_mrg::sck::merge::out_n_RoI];
     tracking[trk::sck::perform::in_motion_est] = motion[mtn::sck::compute::out_motion_est2];
 
     if (p_ccl_fra_path) {
         (*log_frame)[lgr_fra::sck::write::in_labels] = merger1[ftr_mrg::sck::merge::out_labels];
-        (*log_frame)[lgr_fra::sck::write::in_ROI_id] = merger1[ftr_mrg::sck::merge::out_ROI_id];
-        (*log_frame)[lgr_fra::sck::write::in_ROI_xmax] = merger1[ftr_mrg::sck::merge::out_ROI_xmax];
-        (*log_frame)[lgr_fra::sck::write::in_ROI_ymin] = merger1[ftr_mrg::sck::merge::out_ROI_ymin];
-        (*log_frame)[lgr_fra::sck::write::in_ROI_ymax] = merger1[ftr_mrg::sck::merge::out_ROI_ymax];
-        (*log_frame)[lgr_fra::sck::write::in_n_ROI] = merger1[ftr_mrg::sck::merge::out_n_ROI];
+        (*log_frame)[lgr_fra::sck::write::in_RoI_id] = merger1[ftr_mrg::sck::merge::out_RoI_id];
+        (*log_frame)[lgr_fra::sck::write::in_RoI_xmax] = merger1[ftr_mrg::sck::merge::out_RoI_xmax];
+        (*log_frame)[lgr_fra::sck::write::in_RoI_ymin] = merger1[ftr_mrg::sck::merge::out_RoI_ymin];
+        (*log_frame)[lgr_fra::sck::write::in_RoI_ymax] = merger1[ftr_mrg::sck::merge::out_RoI_ymax];
+        (*log_frame)[lgr_fra::sck::write::in_n_RoI] = merger1[ftr_mrg::sck::merge::out_n_RoI];
     }
 
     if (p_log_path) {
-        log_ROI[lgr_roi::sck::write::in_ROI0_id] = merger0[ftr_mrg::sck::merge::out_ROI_id];  
-        log_ROI[lgr_roi::sck::write::in_ROI0_xmin] = merger0[ftr_mrg::sck::merge::out_ROI_xmin];  
-        log_ROI[lgr_roi::sck::write::in_ROI0_xmax] = merger0[ftr_mrg::sck::merge::out_ROI_xmax];  
-        log_ROI[lgr_roi::sck::write::in_ROI0_ymin] = merger0[ftr_mrg::sck::merge::out_ROI_ymin];  
-        log_ROI[lgr_roi::sck::write::in_ROI0_ymax] = merger0[ftr_mrg::sck::merge::out_ROI_ymax];  
-        log_ROI[lgr_roi::sck::write::in_ROI0_S] = merger0[ftr_mrg::sck::merge::out_ROI_S];  
-        log_ROI[lgr_roi::sck::write::in_ROI0_Sx] = merger0[ftr_mrg::sck::merge::out_ROI_Sx];  
-        log_ROI[lgr_roi::sck::write::in_ROI0_Sy] = merger0[ftr_mrg::sck::merge::out_ROI_Sy];  
-        log_ROI[lgr_roi::sck::write::in_ROI0_x] = merger0[ftr_mrg::sck::merge::out_ROI_x];  
-        log_ROI[lgr_roi::sck::write::in_ROI0_y] = merger0[ftr_mrg::sck::merge::out_ROI_y];
-        log_ROI[lgr_roi::sck::write::in_ROI0_magnitude] = magnitude0[ftr_mgn::sck::compute::out_ROI_magnitude];
-        log_ROI[lgr_roi::sck::write::in_n_ROI0] = merger0[ftr_mrg::sck::merge::out_n_ROI];  
-        log_ROI[lgr_roi::sck::write::in_ROI1_id] = merger1[ftr_mrg::sck::merge::out_ROI_id];
-        log_ROI[lgr_roi::sck::write::in_ROI1_xmin] = merger1[ftr_mrg::sck::merge::out_ROI_xmin];
-        log_ROI[lgr_roi::sck::write::in_ROI1_xmax] = merger1[ftr_mrg::sck::merge::out_ROI_xmax];
-        log_ROI[lgr_roi::sck::write::in_ROI1_ymin] = merger1[ftr_mrg::sck::merge::out_ROI_ymin];
-        log_ROI[lgr_roi::sck::write::in_ROI1_ymax] = merger1[ftr_mrg::sck::merge::out_ROI_ymax];
-        log_ROI[lgr_roi::sck::write::in_ROI1_S] = merger1[ftr_mrg::sck::merge::out_ROI_S];
-        log_ROI[lgr_roi::sck::write::in_ROI1_Sx] = merger1[ftr_mrg::sck::merge::out_ROI_Sx];
-        log_ROI[lgr_roi::sck::write::in_ROI1_Sy] = merger1[ftr_mrg::sck::merge::out_ROI_Sy];
-        log_ROI[lgr_roi::sck::write::in_ROI1_x] = merger1[ftr_mrg::sck::merge::out_ROI_x];
-        log_ROI[lgr_roi::sck::write::in_ROI1_y] = merger1[ftr_mrg::sck::merge::out_ROI_y];
-        log_ROI[lgr_roi::sck::write::in_ROI1_magnitude] = magnitude1[ftr_mgn::sck::compute::out_ROI_magnitude];
-        log_ROI[lgr_roi::sck::write::in_n_ROI1] = merger1[ftr_mrg::sck::merge::out_n_ROI];
-        log_ROI[lgr_roi::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
+        log_RoI[lgr_roi::sck::write::in_RoI0_id] = merger0[ftr_mrg::sck::merge::out_RoI_id];
+        log_RoI[lgr_roi::sck::write::in_RoI0_xmin] = merger0[ftr_mrg::sck::merge::out_RoI_xmin];
+        log_RoI[lgr_roi::sck::write::in_RoI0_xmax] = merger0[ftr_mrg::sck::merge::out_RoI_xmax];
+        log_RoI[lgr_roi::sck::write::in_RoI0_ymin] = merger0[ftr_mrg::sck::merge::out_RoI_ymin];
+        log_RoI[lgr_roi::sck::write::in_RoI0_ymax] = merger0[ftr_mrg::sck::merge::out_RoI_ymax];
+        log_RoI[lgr_roi::sck::write::in_RoI0_S] = merger0[ftr_mrg::sck::merge::out_RoI_S];
+        log_RoI[lgr_roi::sck::write::in_RoI0_Sx] = merger0[ftr_mrg::sck::merge::out_RoI_Sx];
+        log_RoI[lgr_roi::sck::write::in_RoI0_Sy] = merger0[ftr_mrg::sck::merge::out_RoI_Sy];
+        log_RoI[lgr_roi::sck::write::in_RoI0_x] = merger0[ftr_mrg::sck::merge::out_RoI_x];
+        log_RoI[lgr_roi::sck::write::in_RoI0_y] = merger0[ftr_mrg::sck::merge::out_RoI_y];
+        log_RoI[lgr_roi::sck::write::in_RoI0_magnitude] = magnitude0[ftr_mgn::sck::compute::out_RoI_magnitude];
+        log_RoI[lgr_roi::sck::write::in_n_RoI0] = merger0[ftr_mrg::sck::merge::out_n_RoI];
+        log_RoI[lgr_roi::sck::write::in_RoI1_id] = merger1[ftr_mrg::sck::merge::out_RoI_id];
+        log_RoI[lgr_roi::sck::write::in_RoI1_xmin] = merger1[ftr_mrg::sck::merge::out_RoI_xmin];
+        log_RoI[lgr_roi::sck::write::in_RoI1_xmax] = merger1[ftr_mrg::sck::merge::out_RoI_xmax];
+        log_RoI[lgr_roi::sck::write::in_RoI1_ymin] = merger1[ftr_mrg::sck::merge::out_RoI_ymin];
+        log_RoI[lgr_roi::sck::write::in_RoI1_ymax] = merger1[ftr_mrg::sck::merge::out_RoI_ymax];
+        log_RoI[lgr_roi::sck::write::in_RoI1_S] = merger1[ftr_mrg::sck::merge::out_RoI_S];
+        log_RoI[lgr_roi::sck::write::in_RoI1_Sx] = merger1[ftr_mrg::sck::merge::out_RoI_Sx];
+        log_RoI[lgr_roi::sck::write::in_RoI1_Sy] = merger1[ftr_mrg::sck::merge::out_RoI_Sy];
+        log_RoI[lgr_roi::sck::write::in_RoI1_x] = merger1[ftr_mrg::sck::merge::out_RoI_x];
+        log_RoI[lgr_roi::sck::write::in_RoI1_y] = merger1[ftr_mrg::sck::merge::out_RoI_y];
+        log_RoI[lgr_roi::sck::write::in_RoI1_magnitude] = magnitude1[ftr_mgn::sck::compute::out_RoI_magnitude];
+        log_RoI[lgr_roi::sck::write::in_n_RoI1] = merger1[ftr_mrg::sck::merge::out_n_RoI];
+        log_RoI[lgr_roi::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
 
-        log_KNN[lgr_knn::sck::write::in_data_nearest] = matcher[knn::sck::match::out_data_nearest];
-        log_KNN[lgr_knn::sck::write::in_data_distances] = matcher[knn::sck::match::out_data_distances];
-        log_KNN[lgr_knn::sck::write::in_ROI0_id] = merger0[ftr_mrg::sck::merge::out_ROI_id];
-        log_KNN[lgr_knn::sck::write::in_ROI0_next_id] = matcher[knn::sck::match::out_ROI0_next_id];
-        log_KNN[lgr_knn::sck::write::in_n_ROI0] = merger0[ftr_mrg::sck::merge::out_n_ROI];
-        log_KNN[lgr_knn::sck::write::in_ROI1_dx] = motion[mtn::sck::compute::out_ROI1_dx];
-        log_KNN[lgr_knn::sck::write::in_ROI1_dy] = motion[mtn::sck::compute::out_ROI1_dy];
-        log_KNN[lgr_knn::sck::write::in_ROI1_error] = motion[mtn::sck::compute::out_ROI1_error];
-        log_KNN[lgr_knn::sck::write::in_ROI1_is_moving] = motion[mtn::sck::compute::out_ROI1_is_moving];
-        log_KNN[lgr_knn::sck::write::in_n_ROI1] = merger1[ftr_mrg::sck::merge::out_n_ROI];
-        log_KNN[lgr_knn::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
+        log_kNN[lgr_knn::sck::write::in_data_nearest] = matcher[knn::sck::match::out_data_nearest];
+        log_kNN[lgr_knn::sck::write::in_data_distances] = matcher[knn::sck::match::out_data_distances];
+        log_kNN[lgr_knn::sck::write::in_RoI0_id] = merger0[ftr_mrg::sck::merge::out_RoI_id];
+        log_kNN[lgr_knn::sck::write::in_RoI0_next_id] = matcher[knn::sck::match::out_RoI0_next_id];
+        log_kNN[lgr_knn::sck::write::in_n_RoI0] = merger0[ftr_mrg::sck::merge::out_n_RoI];
+        log_kNN[lgr_knn::sck::write::in_RoI1_dx] = motion[mtn::sck::compute::out_RoI1_dx];
+        log_kNN[lgr_knn::sck::write::in_RoI1_dy] = motion[mtn::sck::compute::out_RoI1_dy];
+        log_kNN[lgr_knn::sck::write::in_RoI1_error] = motion[mtn::sck::compute::out_RoI1_error];
+        log_kNN[lgr_knn::sck::write::in_RoI1_is_moving] = motion[mtn::sck::compute::out_RoI1_is_moving];
+        log_kNN[lgr_knn::sck::write::in_n_RoI1] = merger1[ftr_mrg::sck::merge::out_n_RoI];
+        log_kNN[lgr_knn::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
 
         log_motion[lgr_mtn::sck::write::in_motion_est1] = motion[mtn::sck::compute::out_motion_est1];
         log_motion[lgr_mtn::sck::write::in_motion_est2] = motion[mtn::sck::compute::out_motion_est2];
@@ -490,8 +490,8 @@ int main(int argc, char** argv) {
     };
 
     if (p_log_path) {
-        std::get<0>(sep_stages[2]).push_back(&log_ROI[lgr_roi::tsk::write]);
-        std::get<0>(sep_stages[2]).push_back(&log_KNN[lgr_knn::tsk::write]);
+        std::get<0>(sep_stages[2]).push_back(&log_RoI[lgr_roi::tsk::write]);
+        std::get<0>(sep_stages[2]).push_back(&log_kNN[lgr_knn::tsk::write]);
         std::get<0>(sep_stages[2]).push_back(&log_motion[lgr_mtn::tsk::write]);
         std::get<0>(sep_stages[2]).push_back(&log_track[lgr_trk::tsk::write]);
     }

@@ -25,7 +25,7 @@ typedef struct BB_t {
 
 typedef BB_t* vec_BB_t;
 
-typedef struct ROI_track {
+typedef struct RoI_track {
     uint32_t id;
     uint32_t frame;
     uint32_t xmin;
@@ -44,12 +44,12 @@ typedef struct ROI_track {
     uint32_t next_id;
     uint8_t is_extrapolated;
     uint32_t magnitude;
-} ROI_track_t;
+} RoI_track_t;
 
 typedef struct track {
     uint32_t id;
-    ROI_track_t begin;
-    ROI_track_t end;
+    RoI_track_t begin;
+    RoI_track_t end;
     float extrapol_x;
     float extrapol_y;
     float extrapol_u;
@@ -64,22 +64,22 @@ typedef struct track {
 typedef track_t* vec_track_t;
 
 typedef struct {
-    ROI_track_t** array;
+    RoI_track_t** array;
     motion_t* motion;
-    uint32_t* n_ROI;
-    uint32_t _max_n_ROI;
-    size_t _size; // current size/utilization of the 'ROI_history_t.array' field
-    size_t _max_size; // maximum amount of data that can be contained in the 'ROI_history_t.array' field
-} ROI_history_t;
+    uint32_t* n_RoI;
+    uint32_t _max_n_RoI;
+    size_t _size; // current size/utilization of the 'RoI_history_t.array' field
+    size_t _max_size; // maximum amount of data that can be contained in the 'RoI_history_t.array' field
+} RoI_history_t;
 
 typedef struct {
     vec_track_t tracks;
-    ROI_history_t* ROI_history;
+    RoI_history_t* RoI_history;
     motion_t* motion_history;
-    ROI_track_t* ROI_list;
+    RoI_track_t* RoI_list;
 } tracking_data_t;
 
-size_t _tracking_get_track_time(const ROI_track_t track_begin, const ROI_track_t track_end);
+size_t _tracking_get_track_time(const RoI_track_t track_begin, const RoI_track_t track_end);
 size_t tracking_get_track_time(const vec_track_t track_array, const size_t t);
 size_t tracking_count_objects(const vec_track_t track_array, unsigned* n_stars, unsigned* n_meteors,
                               unsigned* n_noise);

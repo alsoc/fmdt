@@ -39,7 +39,7 @@ surface $S$ to reject small and big CCs. **A $k$-nearest neighbour (k-NN)
 matching** is applied to extract pairs of CCs from image $I_{t+0}$ and $I_{t+1}$ 
 with $t$ the image number in the video sequence. These matches are used to 
 perform **a first global motion estimation** (rigid registration). Note that CCs 
-are sometimes refered as regions of interest (ROIs) in this documentation.
+are sometimes refered as Regions of Interest (RoIs) in this documentation.
 
 This motion estimation is used to classify the CCs into two classes - still 
 stars or moving meteors according to the following criterion: 
@@ -151,7 +151,7 @@ The list of available arguments:
 | `--ccl-hyst-lo`    | `--light-min`      | int      | 55          | No      | Minimum light intensity for hysteresis threshold (grayscale [0;255]). |
 | `--ccl-hyst-hi`    | `--light-max`      | int      | 80          | No      | Maximum light intensity for hysteresis threshold (grayscale [0;255]). |
 | `--ccl-fra-path`   | `--out-frames`     | str      | None        | No      | Path of the files for CC debug (`path/cc_%05d.png`). |
-| `--ccl-fra-id`     | `--show-id`        | bool     | -           | No      | Show the ROI/CC ids on the output frames (to combine with `--ccl-fra-path` parameter). Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
+| `--ccl-fra-id`     | `--show-id`        | bool     | -           | No      | Show the RoI/CC ids on the output frames (to combine with `--ccl-fra-path` parameter). Requires to link with OpenCV library (`-DFMDT_OPENCV_LINK` CMake option). |
 | `--mrp-s-min`      | `--surface-min`    | int      | 3           | No      | Minimum surface of the CCs in pixels. |
 | `--mrp-s-max`      | `--surface-max`    | int      | 1000        | No      | Maximum surface of the CCs in pixels. |
 | `--knn-k`          | `-k`               | int      | 3           | No      | Maximum number of neighbors considered in k-nearest neighbor matching (k-NN algorithm). |
@@ -445,11 +445,11 @@ to detect meteors.
 
 The folder contains multiple files, one per frame. For instance, the file name 
 for the frame n°12 is: `00012.txt`. Each file contains 5 different tables:
-  - Table 1: list of Regions Of Interest (ROIs) at `t - 1` (result of the 
+  - Table 1: list of Regions Of Interest (RoIs) at `t - 1` (result of the 
     CCL/CCA + hysteresis algorithm at `t - 1`)
-  - Table 2: list of Regions Of Interest (ROIs) at `t` (result of the CCL/CCA + 
+  - Table 2: list of Regions Of Interest (RoIs) at `t` (result of the CCL/CCA + 
     hysteresis algorithm at `t`)
-  - Table 3: list of associations between `t - 1` ROIs and `t` ROIs (result of 
+  - Table 3: list of associations between `t - 1` RoIs and `t` RoIs (result of 
     the k-NN algorithm) + errors/velocities after motion estimation
   - Table 4: motion estimation statistics between `t - 1` and `t` frame
   - Table 5: list of tracks since the beginning of the execution (final output 
@@ -459,11 +459,11 @@ Note that the first log file (usally named `00000.txt`) only contains the
 table 2. This is normal because algorithms stating from k-NN require two 
 consecutive frames to work.
 
-##### Table 1 and table 2: Regions Of Interest (ROIs)
+##### Table 1 and table 2: Regions of Interest (RoIs)
 
 ```
 # ------||----------------||---------------------------||---------------------------||-------------------||-----------
-#   ROI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       || Magnitude 
+#   RoI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       || Magnitude 
 # ------||----------------||---------------------------||---------------------------||-------------------||-----------
 # ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------
 #    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y ||        -- 
@@ -471,28 +471,28 @@ consecutive frames to work.
   {rid} || {tid}| {otype} ||{xmin}|{xmax}|{ymin}|{ymax}|| {S} |     {Sx} |     {Sy} ||    {cx} |    {cy} ||      {mag}
 ```
 
-Each line corresponds to one region of interest (ROI) :
-  - `{rid}`: unique identifier for the current ROI (start to 1)
+Each line corresponds to one region of interest (RoI) :
+  - `{rid}`: unique identifier for the current RoI (start to 1)
   - `{tid}`: unique identifier of the corresponding track (start to 1), can be 
-    empty if no track is associated to the current ROI
+    empty if no track is associated to the current RoI
   - `{otype}`: type of the track object (`meteor`, `noise` or `star`), only if 
-    there is a track corresponding to this ROI
+    there is a track corresponding to this RoI
   - `{xmin}`: minimum x position of the bounding box
   - `{xmax}`: maximum x position of the bounding box
   - `{ymin}`: minimum y position of the bounding box
   - `{ymax}`: maximum y position of the bounding box
-  - `{S}`: surface (area) of the ROI in pixels
+  - `{S}`: surface (area) of the RoI in pixels
   - `{Sx}`: sum of x properties
   - `{Sy}`: sum of y properties
   - `{cx}`: x center of mass
   - `{cy}`: y center of mass
-  - `{mag}`: magnitude of the current ROI (accumulated brightness of the ROI)
+  - `{mag}`: magnitude of the current RoI (accumulated brightness of the RoI)
 
-##### Table 3: List of associations between ROIs
+##### Table 3: List of associations between RoIs
 
 ```
 # --------------------||---------------||------------------------||-----------
-#         ROI ID      ||    Distance   ||  Error (or velocity)   ||   Motion  
+#         RoI ID      ||    Distance   ||  Error (or velocity)   ||   Motion  
 # --------------------||---------------||------------------------||-----------
 # ----------|---------||--------|------||-------|-------|--------||-----------
 #       t-1 |       t || pixels | rank ||    dx |    dy |      e || is moving 
@@ -500,12 +500,12 @@ Each line corresponds to one region of interest (ROI) :
   {rid_t-1} | {rid_t} || {dist} |  {k} ||  {dx} |  {dy} |    {e} ||      {mov}
 ```
 
-Each line corresponds to an association between one ROI at `t - 1` and at `t`:
-  - `{rid_t-1}`: id of the ROI in the table 1 (in the `t - 1` frame)
-  - `{rid_t}` : id of the ROI in the table 2 (in the `t` frame)
-  - `{dist}`: distance in pixels between the two ROIs
+Each line corresponds to an association between one RoI at `t - 1` and at `t`:
+  - `{rid_t-1}`: id of the RoI in the table 1 (in the `t - 1` frame)
+  - `{rid_t}` : id of the RoI in the table 2 (in the `t` frame)
+  - `{dist}`: distance in pixels between the two RoIs
   - `{rank}`: rank in the k-NN algorithm, if 1: it means that this is the 
-    closest ROI asso., if 2: it means that this is the second closest ROI asso., 
+    closest RoI asso., if 2: it means that this is the second closest RoI asso., 
     etc.
   - `{dx}`: x distance between the estimated position (after motion estimation) 
     and the real position (in frame `t - 1`)
@@ -513,8 +513,8 @@ Each line corresponds to an association between one ROI at `t - 1` and at `t`:
     and the real position (in frame `t - 1`)
   - `{e}`: euclidean distance between the estimated position and the real 
     position
-  - `{mov}`: `yes` if the ROI is moving, `no` otherwise. The criteria to detect 
-    the motion of an ROI is: abs(`{e}` - `{mean_err1}`) > `{std_dev1}`
+  - `{mov}`: `yes` if the RoI is moving, `no` otherwise. The criteria to detect 
+    the motion of an RoI is: abs(`{e}` - `{mean_err1}`) > `{std_dev1}`
 
 If `{mov}` = `yes` then, `{dx}`,`{dy}` is the velocity vector and `{e}` is the 
 velocity norm in pixel.
@@ -526,7 +526,7 @@ motion estimation.**
 
 ```
 # ------------------------------------------------------||------------------------------------------------------
-#   First motion estimation (with all associated ROIs)  ||    Second motion estimation (exclude moving ROIs)    
+#   First motion estimation (with all associated RoIs)  ||    Second motion estimation (exclude moving RoIs)    
 # ------------------------------------------------------||------------------------------------------------------
 # ----------|----------|----------|----------|----------||----------|----------|----------|----------|----------
 #     theta |       tx |       ty | mean err |  std dev ||    theta |       tx |       ty | mean err |  std dev 
@@ -540,14 +540,14 @@ between frame `t - 1` and frame `t`:
     `t - 1`
   - `{tx}` and `{ty}`: the estimated translation vector from frame `t` to frame 
     `t - 1`
-  - `{mean_er}`: the mean error of the associated ROIs
-  - `{std_dev}`: the standard deviation of the associated ROI errors
+  - `{mean_er}`: the mean error of the associated RoIs
+  - `{std_dev}`: the standard deviation of the associated RoI errors
 
-The first estimation considers all the associated ROIs while the second 
-estimation excludes the associated ROIs in movement. To be considered in 
-movement, an ROI has to verify the following condition: 
+The first estimation considers all the associated RoIs while the second 
+estimation excludes the associated RoIs in movement. To be considered in 
+movement, an RoI has to verify the following condition: 
 abs(`{e}` - `{mean_er1}`) > `{std_dev1}`, with `{e}` the error of the current 
-ROI.
+RoI.
 
 ##### Table 5: List of Tracks
 

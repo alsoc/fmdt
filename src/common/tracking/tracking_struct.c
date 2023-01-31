@@ -5,7 +5,7 @@
 
 #include "fmdt/tracking/tracking_struct.h"
 
-size_t _tracking_get_track_time(const ROI_track_t track_begin, const ROI_track_t track_end) {
+size_t _tracking_get_track_time(const RoI_track_t track_begin, const RoI_track_t track_end) {
     return track_end.frame - track_begin.frame;
 }
 

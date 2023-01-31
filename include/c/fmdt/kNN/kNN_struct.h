@@ -7,4 +7,4 @@ typedef struct {
     uint32_t** nearest;
     float** distances;
     uint32_t* conflicts;
-} KNN_data_t;
+} kNN_data_t;

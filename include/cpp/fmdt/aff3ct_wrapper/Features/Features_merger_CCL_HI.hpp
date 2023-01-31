@@ -6,10 +6,10 @@
 namespace ftr_mrg {
     enum class tsk : size_t { merge, SIZE };
     namespace sck {
-        enum class merge : size_t { in_labels, in_img_HI, in_ROI_id, in_ROI_xmin, in_ROI_xmax, in_ROI_ymin,
-                                    in_ROI_ymax, in_ROI_S, in_ROI_Sx, in_ROI_Sy, in_ROI_x, in_ROI_y, in_n_ROI,
-                                    out_ROI_id, out_ROI_xmin, out_ROI_xmax, out_ROI_ymin, out_ROI_ymax, out_ROI_S,
-                                    out_ROI_Sx, out_ROI_Sy, out_ROI_x, out_ROI_y, out_n_ROI, out_labels, status };
+        enum class merge : size_t { in_labels, in_img_HI, in_RoI_id, in_RoI_xmin, in_RoI_xmax, in_RoI_ymin,
+                                    in_RoI_ymax, in_RoI_S, in_RoI_Sx, in_RoI_Sy, in_RoI_x, in_RoI_y, in_n_RoI,
+                                    out_RoI_id, out_RoI_xmin, out_RoI_xmax, out_RoI_ymin, out_RoI_ymax, out_RoI_S,
+                                    out_RoI_Sx, out_RoI_Sy, out_RoI_x, out_RoI_y, out_n_RoI, out_labels, status };
     }
 }
 
@@ -18,15 +18,15 @@ protected:
     const int i0, i1, j0, j1;
     const int b;
     const int S_min, S_max;
-    const size_t max_in_ROI_size;
-    const size_t max_out_ROI_size;
+    const size_t max_in_RoI_size;
+    const size_t max_out_RoI_size;
     const uint32_t** in_labels;
     const uint8_t** in_img_HI;
     uint32_t** out_labels;
-    uint32_t* tmp_in_ROI_id;
+    uint32_t* tmp_in_RoI_id;
 public:
     Features_merger_CCL_HI(const int i0, const int i1, const int j0, const int j1, const int b, const uint32_t S_min,
-                           const uint32_t S_max, const size_t max_in_ROI_size, const size_t max_out_ROI_size);
+                           const uint32_t S_max, const size_t max_in_RoI_size, const size_t max_out_RoI_size);
     virtual ~Features_merger_CCL_HI();
     virtual Features_merger_CCL_HI* clone() const;
     inline uint32_t** get_out_labels();
