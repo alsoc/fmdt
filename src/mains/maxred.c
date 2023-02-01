@@ -171,65 +171,65 @@ int main(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (p_trk_path) {
-        vec_track_t track_array;
-        tracking_parse_tracks(p_trk_path, &track_array);
+        vec_track_t tracks;
+        tracking_parse_tracks(p_trk_path, &tracks);
 
         if (p_gt_path) {
             validation_init(p_gt_path);
-            validation_process(track_array);
+            validation_process(tracks);
         }
 
-        size_t n_tracks = vector_size(track_array);
-        BB_t* BB_list = (BB_t*)malloc(sizeof(BB_t) * n_tracks);
-        enum color_e* BB_list_color = (enum color_e*)malloc(sizeof(enum color_e) * n_tracks);
+        size_t n_tracks = vector_size(tracks);
+        BB_t* BBs = (BB_t*)malloc(sizeof(BB_t) * n_tracks);
+        enum color_e* BBs_color = (enum color_e*)malloc(sizeof(enum color_e) * n_tracks);
         size_t m = 0;
         for (size_t t = 0; t < n_tracks; t++) {
-            if ((!p_trk_only_meteor || track_array[t].obj_type == OBJ_METEOR) &&
-                (track_array[t].end.frame >= (size_t)p_vid_in_start)) {
-                BB_list[m].frame_id = 0;
+            if ((!p_trk_only_meteor || tracks[t].obj_type == OBJ_METEOR) &&
+                (tracks[t].end.frame >= (size_t)p_vid_in_start)) {
+                BBs[m].frame_id = 0;
 #ifdef FMDT_OPENCV_LINK
-                BB_list[m].track_id = p_trk_nat_num ? (m + 1) : track_array[t].id;
+                BBs[m].track_id = p_trk_nat_num ? (m + 1) : tracks[t].id;
 #else
-                BB_list[m].track_id = track_array[t].id;
+                BBs[m].track_id = tracks[t].id;
 #endif
                 int xmin =
-                    track_array[t].begin.x < track_array[t].end.x ? track_array[t].begin.x : track_array[t].end.x;
+                    tracks[t].begin.x < tracks[t].end.x ? tracks[t].begin.x : tracks[t].end.x;
                 int xmax =
-                    track_array[t].begin.x < track_array[t].end.x ? track_array[t].end.x : track_array[t].begin.x;
+                    tracks[t].begin.x < tracks[t].end.x ? tracks[t].end.x : tracks[t].begin.x;
                 int ymin =
-                    track_array[t].begin.y < track_array[t].end.y ? track_array[t].begin.y : track_array[t].end.y;
+                    tracks[t].begin.y < tracks[t].end.y ? tracks[t].begin.y : tracks[t].end.y;
                 int ymax =
-                    track_array[t].begin.y < track_array[t].end.y ? track_array[t].end.y : track_array[t].begin.y;
+                    tracks[t].begin.y < tracks[t].end.y ? tracks[t].end.y : tracks[t].begin.y;
 
-                BB_list[m].bb_x = (uint16_t)ceilf((float)(xmin + xmax) / 2.f);
-                BB_list[m].bb_y = (uint16_t)ceilf((float)(ymin + ymax) / 2.f);
-                BB_list[m].rx = BB_list[m].bb_x - xmin;
-                BB_list[m].ry = BB_list[m].bb_y - ymin;
-                BB_list[m].is_extrapolated = 0;
+                BBs[m].bb_x = (uint16_t)ceilf((float)(xmin + xmax) / 2.f);
+                BBs[m].bb_y = (uint16_t)ceilf((float)(ymin + ymax) / 2.f);
+                BBs[m].rx = BBs[m].bb_x - xmin;
+                BBs[m].ry = BBs[m].bb_y - ymin;
+                BBs[m].is_extrapolated = 0;
 
-                if (track_array[t].obj_type != OBJ_UNKNOWN)
-                    BB_list_color[m] = g_obj_to_color[track_array[t].obj_type];
+                if (tracks[t].obj_type != OBJ_UNKNOWN)
+                    BBs_color[m] = g_obj_to_color[tracks[t].obj_type];
                 else {
-                    fprintf(stderr, "(EE) This should never happen... ('t' = %lu, 'track_array[t].obj_type' = %d)\n",
-                            (unsigned long)t, track_array[t].obj_type);
+                    fprintf(stderr, "(EE) This should never happen... ('t' = %lu, 'tracks[t].obj_type' = %d)\n",
+                            (unsigned long)t, tracks[t].obj_type);
                     exit(-1);
                 }
 
                 if (p_gt_path && g_is_valid_track[t] == 1)
-                    BB_list_color[m] = COLOR_GREEN; // COLOR_GREEN = true positive 'meteor'
+                    BBs_color[m] = COLOR_GREEN; // COLOR_GREEN = true positive 'meteor'
                 if (p_gt_path && g_is_valid_track[t] == 2)
-                    BB_list_color[m] = COLOR_RED; // COLOR_RED = false positive 'meteor'
+                    BBs_color[m] = COLOR_RED; // COLOR_RED = false positive 'meteor'
                 m++;
             }
         }
 
         int n_BB = m;
-        image_color_draw_BB(img_data, (const uint8_t**)M, (const BB_t*)BB_list, (const enum color_e*)BB_list_color,
-                            n_BB, p_trk_id, p_gt_path ? 1 : 0);
+        image_color_draw_BBs(img_data, (const uint8_t**)M, (const BB_t*)BBs, (const enum color_e*)BBs_color,
+                             n_BB, p_trk_id, p_gt_path ? 1 : 0);
         video_writer_save_frame(video_writer, (const uint8_t**)image_color_get_pixels_2d(img_data));
-        vector_free(track_array);
-        free(BB_list);
-        free(BB_list_color);
+        vector_free(tracks);
+        free(BBs);
+        free(BBs_color);
         if (p_gt_path)
             validation_free();
     } else {

@@ -189,32 +189,32 @@ void image_draw_legend_text(cv::Mat& cv_img, unsigned box_size, unsigned h_space
                     cv::LINE_AA);             // ?
 }
 
-void image_draw_track_id(cv::Mat& cv_img, const BB_t* BB_list, const enum color_e* BB_list_color, const int nBB) {
+void image_draw_track_id(cv::Mat& cv_img, const BB_t* BBs, const enum color_e* BBs_color, const int nBB) {
     //                       x    y   color       list of ids
     std::vector<std::tuple<int, int, rgb8_t, std::vector<int>>> list_of_ids_grouped_by_pos;
     for (int i = 0; i < nBB; i++) {
-        int ymin = BB_list[i].bb_y - (BB_list[i].ry + DELTA_BB);
-        int ymax = BB_list[i].bb_y + (BB_list[i].ry + DELTA_BB);
-        // int xmin = BB_list[i].bb_x - (BB_list[i].rx + DELTA_BB);
-        int xmax = BB_list[i].bb_x + (BB_list[i].rx + DELTA_BB);
+        int ymin = BBs[i].bb_y - (BBs[i].ry + DELTA_BB);
+        int ymax = BBs[i].bb_y + (BBs[i].ry + DELTA_BB);
+        // int xmin = BBs[i].bb_x - (BBs[i].rx + DELTA_BB);
+        int xmax = BBs[i].bb_x + (BBs[i].rx + DELTA_BB);
 
         int x = xmax + 3;
         int y = (ymin) + ((ymax - ymin) / 2);
 
         bool found = false;
         for (auto& l : list_of_ids_grouped_by_pos) {
-            rgb8_t c = image_get_color(BB_list_color[i]);
+            rgb8_t c = image_get_color(BBs_color[i]);
             if (std::get<0>(l) == x && std::get<1>(l) == y && std::get<2>(l).r == c.r && std::get<2>(l).g == c.g &&
                 std::get<2>(l).b == c.b) {
-                std::get<3>(l).push_back(BB_list[i].track_id);
+                std::get<3>(l).push_back(BBs[i].track_id);
                 found = true;
             }
         }
 
         if (!found) {
             std::vector<int> v;
-            v.push_back(BB_list[i].track_id);
-            list_of_ids_grouped_by_pos.push_back(std::make_tuple(x, y, image_get_color(BB_list_color[i]), v));
+            v.push_back(BBs[i].track_id);
+            list_of_ids_grouped_by_pos.push_back(std::make_tuple(x, y, image_get_color(BBs_color[i]), v));
         }
     }
 
@@ -234,13 +234,13 @@ void image_draw_track_id(cv::Mat& cv_img, const BB_t* BB_list, const enum color_
     }
 }
 
-void image_draw_text(img_data_t* img_data, const BB_t* BB_list, const enum color_e* BB_list_color, const int nBB,
+void image_draw_text(img_data_t* img_data, const BB_t* BBs, const enum color_e* BBs_color, const int nBB,
                      int validation, int show_id) {
     unsigned box_size = 20, h_space = 10, v_space = 10;
     image_draw_legend_squares(image_color_get_pixels_2d(img_data), box_size, h_space, v_space, validation);
     cv::Mat* cv_mat = (cv::Mat*)img_data->pixels;
     if (show_id)
-        image_draw_track_id(*cv_mat, BB_list, BB_list_color, nBB);
+        image_draw_track_id(*cv_mat, BBs, BBs_color, nBB);
     image_draw_legend_text(*cv_mat, box_size, h_space, v_space, validation);
 }
 
@@ -282,21 +282,21 @@ void _image_draw_RoIs_id(cv::Mat& cv_img, const uint32_t* RoIs_id, const uint32_
 }
 #endif
 
-void image_draw_BB(rgb8_t** I_bb, const BB_t* BB_list, const enum color_e* BB_list_color, int n_BB, int w, int h) {
+void image_draw_BBs(rgb8_t** I_bb, const BB_t* BBs, const enum color_e* BBs_color, int n_BBs, int w, int h) {
     int border = 2;
-    for (int i = 0; i < n_BB; i++) {
-        int ymin = BB_list[i].bb_y - (BB_list[i].ry + DELTA_BB);
-        int ymax = BB_list[i].bb_y + (BB_list[i].ry + DELTA_BB);
-        int xmin = BB_list[i].bb_x - (BB_list[i].rx + DELTA_BB);
-        int xmax = BB_list[i].bb_x + (BB_list[i].rx + DELTA_BB);
+    for (int i = 0; i < n_BBs; i++) {
+        int ymin = BBs[i].bb_y - (BBs[i].ry + DELTA_BB);
+        int ymax = BBs[i].bb_y + (BBs[i].ry + DELTA_BB);
+        int xmin = BBs[i].bb_x - (BBs[i].rx + DELTA_BB);
+        int xmax = BBs[i].bb_x + (BBs[i].rx + DELTA_BB);
 
         int ymin_fix = CLAMP(ymin, border + 1, h - (border + 2));
         int ymax_fix = CLAMP(ymax, border + 1, h - (border + 2));
         int xmin_fix = CLAMP(xmin, border + 1, w - (border + 2));
         int xmax_fix = CLAMP(xmax, border + 1, w - (border + 2));
 
-        image_plot_bounding_box(I_bb, ymin_fix, ymax_fix, xmin_fix, xmax_fix, border, image_get_color(BB_list_color[i]),
-                                BB_list[i].is_extrapolated);
+        image_plot_bounding_box(I_bb, ymin_fix, ymax_fix, xmin_fix, xmax_fix, border, image_get_color(BBs_color[i]),
+                                BBs[i].is_extrapolated);
     }
 }
 
@@ -415,9 +415,9 @@ img_data_t* image_color_alloc(const size_t img_width, const size_t img_height) {
     return img_data;
 }
 
-void image_color_draw_BB(img_data_t* img_data, const uint8_t** img, const BB_t* BB_list,
-                         const enum color_e* BB_list_color, const size_t n_BB, const uint8_t show_id,
-                         const uint8_t is_gt) {
+void image_color_draw_BBs(img_data_t* img_data, const uint8_t** img, const BB_t* BBs,
+                          const enum color_e* BBs_color, const size_t n_BBs, const uint8_t show_id,
+                          const uint8_t is_gt) {
 #ifdef FMDT_OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     for (size_t i = 0; i < (size_t)pixels->rows; i++) {
@@ -437,10 +437,10 @@ void image_color_draw_BB(img_data_t* img_data, const uint8_t** img, const BB_t* 
         }
     }
 #endif
-    image_draw_BB(image_color_get_pixels_2d(img_data), BB_list, BB_list_color, n_BB, img_data->width,
-                  img_data->height);
+    image_draw_BBs(image_color_get_pixels_2d(img_data), BBs, BBs_color, n_BBs, img_data->width,
+                   img_data->height);
 #ifdef FMDT_OPENCV_LINK
-    image_draw_text(img_data, BB_list, BB_list_color, n_BB, is_gt, show_id);
+    image_draw_text(img_data, BBs, BBs_color, n_BBs, is_gt, show_id);
 #endif
 }
 

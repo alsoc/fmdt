@@ -15,22 +15,22 @@
 #include "fmdt/validation.h"
 #include "fmdt/video.h"
 
-void add_to_BB_coord_list(vec_BB_t* BB_list, vec_color_e* BB_list_color, size_t elem, int rx, int ry, int bb_x,
+void add_to_BB_coord_list(vec_BB_t* BBs, vec_color_e* BBs_color, size_t elem, int rx, int ry, int bb_x,
                           int bb_y, int frame_id, int track_id, int is_extrapolated, enum color_e color) {
 #ifndef NDEBUG
-    size_t alloc_amt = vector_get_alloc(*BB_list);
-    size_t alloc_amt2 = vector_get_alloc(*BB_list_color);
+    size_t alloc_amt = vector_get_alloc(*BBs);
+    size_t alloc_amt2 = vector_get_alloc(*BBs_color);
     assert(alloc_amt == alloc_amt2);
 #endif
 
-    size_t vs = vector_size(*BB_list);
+    size_t vs = vector_size(*BBs);
 #ifndef NDEBUG
-    size_t vs2 = vector_size(*BB_list_color);
+    size_t vs2 = vector_size(*BBs_color);
     assert(vs == vs2);
     assert(elem < vs || elem == vs);
 #endif
 
-    BB_t* BB_elem = (vs == elem) ? vector_add_asg(BB_list) : &(*BB_list)[elem];
+    BB_t* BB_elem = (vs == elem) ? vector_add_asg(BBs) : &(*BBs)[elem];
     BB_elem->frame_id = frame_id;
     BB_elem->track_id = track_id;
     BB_elem->bb_x = bb_x;
@@ -40,8 +40,8 @@ void add_to_BB_coord_list(vec_BB_t* BB_list, vec_color_e* BB_list_color, size_t 
     BB_elem->is_extrapolated = is_extrapolated;
 
     if (vs == elem)
-        vector_add(BB_list_color, COLOR_MISC);
-    enum color_e* BB_color_elem = &(*BB_list_color)[elem];
+        vector_add(BBs_color, COLOR_MISC);
+    enum color_e* BB_color_elem = &(*BBs_color)[elem];
     *BB_color_elem = color;
 }
 
@@ -153,31 +153,31 @@ int main(int argc, char** argv) {
         exit(1);
     }
 
-    vec_BB_t BB_list = (vec_BB_t)vector_create();
-    vec_color_e BB_list_color = (vec_color_e)vector_create();
+    vec_BB_t BBs = (vec_BB_t)vector_create();
+    vec_color_e BBs_color = (vec_color_e)vector_create();
 
     tracking_init_global_data();
-    vec_track_t track_array;
-    tracking_parse_tracks(p_trk_path, &track_array);
+    vec_track_t tracks;
+    tracking_parse_tracks(p_trk_path, &tracks);
 
     size_t max_LUT = 0;
-    size_t n_tracks = vector_size(track_array);
+    size_t n_tracks = vector_size(tracks);
     for (size_t i = 0; i < n_tracks; i++)
-        if (track_array[i].id > max_LUT)
-            max_LUT = (size_t)track_array[i].id;
+        if (tracks[i].id > max_LUT)
+            max_LUT = (size_t)tracks[i].id;
     int* LUT_tracks_id = (int*)malloc(sizeof(int) * (max_LUT + 1));
     int* LUT_tracks_nat_num = (int*)malloc(sizeof(int) * (max_LUT + 1));
     memset(LUT_tracks_id, -1, max_LUT + 1);
     memset(LUT_tracks_nat_num, -1, max_LUT + 1);
     int j = 1;
     for (size_t i = 0; i < n_tracks; i++) {
-        LUT_tracks_id[track_array[i].id] = i;
-        if (!p_trk_only_meteor || track_array[i].obj_type == OBJ_METEOR)
-            LUT_tracks_nat_num[track_array[i].id] = j++;
+        LUT_tracks_id[tracks[i].id] = i;
+        if (!p_trk_only_meteor || tracks[i].obj_type == OBJ_METEOR)
+            LUT_tracks_nat_num[tracks[i].id] = j++;
     }
 
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
-    tracking_count_objects(track_array, &n_stars, &n_meteors, &n_noise);
+    tracking_count_objects(tracks, &n_stars, &n_meteors, &n_noise);
     printf("# Tracks read from file = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, (unsigned long)n_tracks);
 
@@ -192,7 +192,7 @@ int main(int argc, char** argv) {
     // validation pour établir si une track est vrai/faux positif
     if (p_gt_path) {
         validation_init(p_gt_path);
-        validation_process(track_array);
+        validation_process(tracks);
     } else {
         PUTS("NO VALIDATION");
     }
@@ -237,14 +237,14 @@ int main(int argc, char** argv) {
 
         // affiche tous les BB de l'image
         while (frame_bb == frame) {
-            if (!p_trk_only_meteor || track_array[LUT_tracks_id[track_id]].obj_type == OBJ_METEOR) {
-                if (track_array[LUT_tracks_id[track_id]].obj_type != OBJ_UNKNOWN)
-                    color = g_obj_to_color[track_array[LUT_tracks_id[track_id]].obj_type];
+            if (!p_trk_only_meteor || tracks[LUT_tracks_id[track_id]].obj_type == OBJ_METEOR) {
+                if (tracks[LUT_tracks_id[track_id]].obj_type != OBJ_UNKNOWN)
+                    color = g_obj_to_color[tracks[LUT_tracks_id[track_id]].obj_type];
                 else {
                     fprintf(stderr,
                             "(EE) This should never happen... ('cpt' = %d, 'track_id' = %d, 'LUT_tracks_id[track_id]' "
-                            "= %d, 'track_array[LUT_tracks_id[track_id]].obj_type' = %d)\n",
-                            cpt, track_id, LUT_tracks_id[track_id], track_array[LUT_tracks_id[track_id]].obj_type);
+                            "= %d, 'tracks[LUT_tracks_id[track_id]].obj_type' = %d)\n",
+                            cpt, track_id, LUT_tracks_id[track_id], tracks[LUT_tracks_id[track_id]].obj_type);
                     exit(-1);
                 }
                 if (p_gt_path && g_is_valid_track[LUT_tracks_id[track_id]] == 1)
@@ -257,7 +257,7 @@ int main(int argc, char** argv) {
 #else
                 int display_track_id = track_id;
 #endif
-                add_to_BB_coord_list(&BB_list, &BB_list_color, cpt, rx, ry, bb_x, bb_y, frame_bb, display_track_id,
+                add_to_BB_coord_list(&BBs, &BBs_color, cpt, rx, ry, bb_x, bb_y, frame_bb, display_track_id,
                                      is_extrapolated, color);
                 cpt++;
             }
@@ -270,17 +270,17 @@ int main(int argc, char** argv) {
             sscanf(lines, "%d %d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id, &is_extrapolated);
         }
 
-        image_color_draw_BB(img_data, (const uint8_t**)I0, (const BB_t*)BB_list, (const enum color_e*)BB_list_color,
-                            cpt, p_trk_id, p_gt_path ? 1 : 0);
+        image_color_draw_BBs(img_data, (const uint8_t**)I0, (const BB_t*)BBs, (const enum color_e*)BBs_color,
+                             cpt, p_trk_id, p_gt_path ? 1 : 0);
         video_writer_save_frame(video_writer, (const uint8_t**)image_color_get_pixels_2d(img_data));
     }
     video_writer_free(video_writer);
     free_ui8matrix(I0, i0 - b, i1 + b, j0 - b, j1 + b);
-    vector_free(track_array);
+    vector_free(tracks);
     free(LUT_tracks_id);
     free(LUT_tracks_nat_num);
-    vector_free(BB_list);
-    vector_free(BB_list_color);
+    vector_free(BBs);
+    vector_free(BBs_color);
     if (p_gt_path)
         validation_free();
     video_reader_free(video);
