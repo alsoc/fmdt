@@ -50,7 +50,7 @@ Logger_kNN::Logger_kNN(const std::string kNN_path, const size_t fra_start, const
             snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_knn.kNN_path.c_str(), frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
-            _kNN_asso_conflicts_write(file, lgr_knn.in_data_nearest, lgr_knn.in_data_distances,
+            _kNN_asso_conflicts_write(file, lgr_knn.in_data_distances, lgr_knn.in_data_nearest,
                                       static_cast<const uint32_t*>(t[ps_in_data_conflicts].get_dataptr()),
                                       static_cast<const uint32_t*>(t[ps_in_RoIs0_id].get_dataptr()),
                                       static_cast<const uint32_t*>(t[ps_in_RoIs0_next_id].get_dataptr()),
