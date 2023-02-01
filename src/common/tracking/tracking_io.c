@@ -50,7 +50,7 @@ void tracking_tracks_write_full(FILE* f, const vec_track_t tracks) {
     for (size_t i = 0; i < n_tracks; i++)
         if (tracks[i].id) {
             char reason[64] = "               --";
-            if (tracks[i].obj_type == NOISE)
+            if (tracks[i].obj_type == OBJ_NOISE)
                 snprintf(reason, sizeof(reason), "%s",
                     g_change_state_to_string_with_spaces[tracks[i].change_state_reason]);
             fprintf(f, "   %5d || %7u | %6.1f | %6.1f || %7u | %6.1f | %6.1f || %s || %s \n", tracks[i].id,
@@ -115,7 +115,7 @@ void tracking_parse_tracks(const char* filename, vec_track_t* tracks) {
             tmp_track->id = tid;
             tmp_track->begin.frame = t0;
             tmp_track->end.frame = t1;
-            tmp_track->state = TRACK_FINISHED;
+            tmp_track->state = STATE_FINISHED;
             tmp_track->begin.x = x0;
             tmp_track->begin.y = y0;
             tmp_track->end.x = x1;

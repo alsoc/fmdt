@@ -100,13 +100,13 @@ int validation_init(const char* val_objects_file) {
             }
 
             if (!strcmp(tmp_obj_type, "noise"))
-                g_val_objects[i].obj_type = NOISE;
+                g_val_objects[i].obj_type = OBJ_NOISE;
             else if (!strcmp(tmp_obj_type, "meteor"))
-                g_val_objects[i].obj_type = METEOR;
+                g_val_objects[i].obj_type = OBJ_METEOR;
             else if (!strcmp(tmp_obj_type, "star"))
-                g_val_objects[i].obj_type = STAR;
+                g_val_objects[i].obj_type = OBJ_STAR;
             else
-                g_val_objects[i].obj_type = UNKNOWN;
+                g_val_objects[i].obj_type = OBJ_UNKNOWN;
             i++;
         }
     }
@@ -149,11 +149,11 @@ void validation_process(const vec_track_t track_array) {
             val_obj->nb_tracks++;
             val_obj->hits = tracking_get_track_time(track_array, t) + val_obj->hits + 1;
             g_true_positive[track_array[t].obj_type]++;
-            if (track_array[t].obj_type == METEOR)
+            if (track_array[t].obj_type == OBJ_METEOR)
                 g_is_valid_track[t] = 1;
         } else { // Piste ne matche pas avec input
             g_false_positive[track_array[t].obj_type]++;
-            if (track_array[t].obj_type == METEOR)
+            if (track_array[t].obj_type == OBJ_METEOR)
                 g_is_valid_track[t] = 2;
         }
     }

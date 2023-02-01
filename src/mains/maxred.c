@@ -184,7 +184,7 @@ int main(int argc, char** argv) {
         enum color_e* BB_list_color = (enum color_e*)malloc(sizeof(enum color_e) * n_tracks);
         size_t m = 0;
         for (size_t t = 0; t < n_tracks; t++) {
-            if ((!p_trk_only_meteor || track_array[t].obj_type == METEOR) &&
+            if ((!p_trk_only_meteor || track_array[t].obj_type == OBJ_METEOR) &&
                 (track_array[t].end.frame >= (size_t)p_vid_in_start)) {
                 BB_list[m].frame_id = 0;
 #ifdef FMDT_OPENCV_LINK
@@ -207,7 +207,7 @@ int main(int argc, char** argv) {
                 BB_list[m].ry = BB_list[m].bb_y - ymin;
                 BB_list[m].is_extrapolated = 0;
 
-                if (track_array[t].obj_type != UNKNOWN)
+                if (track_array[t].obj_type != OBJ_UNKNOWN)
                     BB_list_color[m] = g_obj_to_color[track_array[t].obj_type];
                 else {
                     fprintf(stderr, "(EE) This should never happen... ('t' = %lu, 'track_array[t].obj_type' = %d)\n",
@@ -216,9 +216,9 @@ int main(int argc, char** argv) {
                 }
 
                 if (p_gt_path && g_is_valid_track[t] == 1)
-                    BB_list_color[m] = GREEN; // GREEN = true positive 'meteor'
+                    BB_list_color[m] = COLOR_GREEN; // COLOR_GREEN = true positive 'meteor'
                 if (p_gt_path && g_is_valid_track[t] == 2)
-                    BB_list_color[m] = RED; // RED = false positive 'meteor'
+                    BB_list_color[m] = COLOR_RED; // COLOR_RED = false positive 'meteor'
                 m++;
             }
         }

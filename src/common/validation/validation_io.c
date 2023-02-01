@@ -16,13 +16,13 @@ unsigned validation_count_objects(const validation_obj_t* val_objects, const uns
     (*n_stars) = (*n_meteors) = (*n_noise) = 0;
     for (unsigned i = 0; i < n_val_objects; i++)
         switch (val_objects[i].obj_type) {
-        case STAR:
+        case OBJ_STAR:
             (*n_stars)++;
             break;
-        case METEOR:
+        case OBJ_METEOR:
             (*n_meteors)++;
             break;
-        case NOISE:
+        case OBJ_NOISE:
             (*n_noise)++;
             break;
         default:
@@ -97,14 +97,14 @@ void validation_print(const vec_track_t track_array) {
            n_val_stars, n_gt_noise, n_val_objects);
     printf("  - Number of tracks  = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4lu]\n", n_track_meteors,
            n_track_stars, n_track_noise, (unsigned long)n_tracks);
-    printf("  - True positives    = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", g_true_positive[METEOR],
-           g_true_positive[STAR], g_true_positive[NOISE], allPositiveTrue);
-    printf("  - False positives   = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", g_false_positive[METEOR],
-           g_false_positive[STAR], g_false_positive[NOISE], allPositiveFalse);
-    printf("  - True negative     = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", g_true_negative[METEOR],
-           g_true_negative[STAR], g_true_negative[NOISE], allNegativeTrue);
-    printf("  - False negative    = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n", g_false_negative[METEOR],
-           g_false_negative[STAR], g_false_negative[NOISE], allNegativeFalse);
+    printf("  - True positives    = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n",
+           g_true_positive[OBJ_METEOR], g_true_positive[OBJ_STAR], g_true_positive[OBJ_NOISE], allPositiveTrue);
+    printf("  - False positives   = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n",
+           g_false_positive[OBJ_METEOR], g_false_positive[OBJ_STAR], g_false_positive[OBJ_NOISE], allPositiveFalse);
+    printf("  - True negative     = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n",
+           g_true_negative[OBJ_METEOR], g_true_negative[OBJ_STAR], g_true_negative[OBJ_NOISE], allNegativeTrue);
+    printf("  - False negative    = ['meteor': %4d, 'star': %4d, 'noise': %4d, 'all': %4d]\n",
+           g_false_negative[OBJ_METEOR], g_false_negative[OBJ_STAR], g_false_negative[OBJ_NOISE], allNegativeFalse);
     printf("  - tracking rate     = ['meteor': %4.2f, 'star': %4.2f, 'noise': %4.2f, 'all': %4.2f]\n",
-           tracking_rate[METEOR], tracking_rate[STAR], tracking_rate[NOISE], tracking_rate[N_OBJECTS]);
+           tracking_rate[OBJ_METEOR], tracking_rate[OBJ_STAR], tracking_rate[OBJ_NOISE], tracking_rate[N_OBJECTS]);
 }

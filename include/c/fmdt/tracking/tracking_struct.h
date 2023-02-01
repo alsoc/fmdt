@@ -6,8 +6,8 @@
 #include "fmdt/motion/motion_struct.h" // motion_t
 
 // Enums
-enum obj_e { UNKNOWN = 0, METEOR, STAR, NOISE, N_OBJECTS };
-enum state_e { TRACK_UPDATED = 1, TRACK_LOST, TRACK_FINISHED };
+enum obj_e { OBJ_UNKNOWN = 0, OBJ_METEOR, OBJ_STAR, OBJ_NOISE, N_OBJECTS };
+enum state_e { STATE_UPDATED = 1, STATE_LOST, STATE_FINISHED };
 // to remember why a 'meteor' object became a 'noise' object
 enum change_state_reason_e { REASON_TOO_BIG_ANGLE = 1, REASON_WRONG_DIRECTION, REASON_TOO_LONG_DURATION, N_REASONS };
 
@@ -25,7 +25,7 @@ typedef struct BB_t {
 
 typedef BB_t* vec_BB_t;
 
-typedef struct RoI_track {
+typedef struct RoI {
     uint32_t id;
     uint32_t frame;
     uint32_t xmin;
@@ -44,12 +44,12 @@ typedef struct RoI_track {
     uint32_t next_id;
     uint8_t is_extrapolated;
     uint32_t magnitude;
-} RoI_track_t;
+} RoI_t;
 
 typedef struct track {
     uint32_t id;
-    RoI_track_t begin;
-    RoI_track_t end;
+    RoI_t begin;
+    RoI_t end;
     float extrapol_x;
     float extrapol_y;
     float extrapol_u;
@@ -64,7 +64,7 @@ typedef struct track {
 typedef track_t* vec_track_t;
 
 typedef struct {
-    RoI_track_t** array;
+    RoI_t** array;
     motion_t* motion;
     uint32_t* n_RoIs;
     uint32_t _max_n_RoIs;
@@ -76,10 +76,10 @@ typedef struct {
     vec_track_t tracks;
     RoIs_history_t* RoIs_history;
     motion_t* motion_history;
-    RoI_track_t* RoIs_list;
+    RoI_t* RoIs_list;
 } tracking_data_t;
 
-size_t _tracking_get_track_time(const RoI_track_t track_begin, const RoI_track_t track_end);
+size_t _tracking_get_track_time(const RoI_t track_begin, const RoI_t track_end);
 size_t tracking_get_track_time(const vec_track_t track_array, const size_t t);
 size_t tracking_count_objects(const vec_track_t track_array, unsigned* n_stars, unsigned* n_meteors,
                               unsigned* n_noise);

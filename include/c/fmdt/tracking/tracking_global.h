@@ -4,10 +4,10 @@
 #include "fmdt/features/features_struct.h"
 #include "fmdt/tracking/tracking_struct.h"
 
-#define METEOR_COLOR GREEN
-#define STAR_COLOR PURPLE
-#define NOISE_COLOR ORANGE
-#define UNKNOWN_COLOR GRAY
+#define METEOR_COLOR COLOR_GREEN
+#define STAR_COLOR COLOR_PURPLE
+#define NOISE_COLOR COLOR_ORANGE
+#define UNKNOWN_COLOR COLOR_GRAY
 
 #define METEOR_STR "meteor"
 #define STAR_STR "star"

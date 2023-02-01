@@ -40,7 +40,7 @@ void add_to_BB_coord_list(vec_BB_t* BB_list, vec_color_e* BB_list_color, size_t 
     BB_elem->is_extrapolated = is_extrapolated;
 
     if (vs == elem)
-        vector_add(BB_list_color, MISC);
+        vector_add(BB_list_color, COLOR_MISC);
     enum color_e* BB_color_elem = &(*BB_list_color)[elem];
     *BB_color_elem = color;
 }
@@ -172,7 +172,7 @@ int main(int argc, char** argv) {
     int j = 1;
     for (size_t i = 0; i < n_tracks; i++) {
         LUT_tracks_id[track_array[i].id] = i;
-        if (!p_trk_only_meteor || track_array[i].obj_type == METEOR)
+        if (!p_trk_only_meteor || track_array[i].obj_type == OBJ_METEOR)
             LUT_tracks_nat_num[track_array[i].id] = j++;
     }
 
@@ -211,7 +211,7 @@ int main(int argc, char** argv) {
                                                      j1 - j0 + 1, PIXFMT_RGB24);
 
     // parcours de la video
-    enum color_e color = MISC;
+    enum color_e color = COLOR_MISC;
     int frame;
     char lines[1000];
     int frame_bb = -1, rx, ry, bb_x, bb_y, track_id, is_extrapolated;
@@ -237,8 +237,8 @@ int main(int argc, char** argv) {
 
         // affiche tous les BB de l'image
         while (frame_bb == frame) {
-            if (!p_trk_only_meteor || track_array[LUT_tracks_id[track_id]].obj_type == METEOR) {
-                if (track_array[LUT_tracks_id[track_id]].obj_type != UNKNOWN)
+            if (!p_trk_only_meteor || track_array[LUT_tracks_id[track_id]].obj_type == OBJ_METEOR) {
+                if (track_array[LUT_tracks_id[track_id]].obj_type != OBJ_UNKNOWN)
                     color = g_obj_to_color[track_array[LUT_tracks_id[track_id]].obj_type];
                 else {
                     fprintf(stderr,
@@ -248,9 +248,9 @@ int main(int argc, char** argv) {
                     exit(-1);
                 }
                 if (p_gt_path && g_is_valid_track[LUT_tracks_id[track_id]] == 1)
-                    color = GREEN; // GREEN = true  positive 'meteor'
+                    color = COLOR_GREEN; // COLOR_GREEN = true  positive 'meteor'
                 if (p_gt_path && g_is_valid_track[LUT_tracks_id[track_id]] == 2)
-                    color = RED; // RED   = false positive 'meteor'
+                    color = COLOR_RED; // COLOR_RED = false positive 'meteor'
 
 #ifdef FMDT_OPENCV_LINK
                 int display_track_id = p_trk_nat_num ? LUT_tracks_nat_num[track_id] : track_id;

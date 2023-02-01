@@ -65,21 +65,21 @@ rgb8_t image_get_color(enum color_e color) {
     misc.r = 153;
 
     switch (color) {
-    case GRAY:
+    case COLOR_GRAY:
         return gray;
-    case GREEN:
+    case COLOR_GREEN:
         return green;
-    case RED:
+    case COLOR_RED:
         return red;
-    case BLUE:
+    case COLOR_BLUE:
         return blue;
-    case PURPLE:
+    case COLOR_PURPLE:
         return purple;
-    case ORANGE:
+    case COLOR_ORANGE:
         return orange;
-    case YELLOW:
+    case COLOR_YELLOW:
         return yellow;
-    case MISC:
+    case COLOR_MISC:
         return misc;
     default:
         break;
@@ -151,7 +151,7 @@ void image_draw_legend_squares(rgb8_t** img, unsigned box_size, unsigned h_space
                                            (N_OBJECTS + 2) * v_space + (N_OBJECTS + 2) * box_size, // ymax
                                            (+1) * h_space + (+0) * box_size,                       // xmin
                                            (+1) * h_space + (+1) * box_size,                       // xmax
-                                           image_get_color(RED)));                                 // color
+                                           image_get_color(COLOR_RED)));                           // color
 
     for (auto& box : box_list)
         image_plot_bounding_box(img, std::get<0>(box), std::get<1>(box), std::get<2>(box), std::get<3>(box), 2,
@@ -171,7 +171,7 @@ void image_draw_legend_text(cv::Mat& cv_img, unsigned box_size, unsigned h_space
 
     if (validation) {
         // add false positve meteor
-        rgb8_t color = image_get_color(RED);
+        rgb8_t color = image_get_color(COLOR_RED);
         unsigned x = 2 * h_space + box_size;
         unsigned y = ((N_OBJECTS + 2) * v_space + (N_OBJECTS + 2) * box_size) - 2;
         txt_list.push_back(
