@@ -40,7 +40,7 @@ void _kNN_conflicts_write(FILE* f, const uint32_t* kNN_data_conflicts, const flo
     }
 }
 
-void _kNN_asso_conflicts_write(FILE* f, const uint32_t** kNN_data_nearest, const float** kNN_data_distances,
+void _kNN_asso_conflicts_write(FILE* f, const float** kNN_data_distances, const uint32_t** kNN_data_nearest,
                                const uint32_t* kNN_data_conflicts, const uint32_t* RoIs0_id,
                                const uint32_t* RoIs0_next_id, const size_t n_RoIs0, const float* RoIs1_dx,
                                const float* RoIs1_dy, const float* RoIs1_error, const uint8_t* RoIs1_is_moving,

@@ -73,10 +73,10 @@ typedef struct {
 typedef struct {
     uint32_t* id; /**< RoI unique identifiers. A RoI identifier should starts from 1 while 0 should be reserved for
                        uninitialized structure. */
-    float* dx; /**< \f$x\f$ component of the distance between centroids at \f$t - 1\f$ and \f$t\f$.
+    float* dx; /**< \f$x\f$ components of the distance between centroids at \f$t - 1\f$ and \f$t\f$.
                     It can represent either abscissa velocity (if `is_moving` == 1) or abscissa error distance (if
                     `is_moving` == 0). */
-    float* dy; /**< \f$y\f$ component of the distance between centroids at \f$t - 1\f$ and \f$t\f$.
+    float* dy; /**< \f$y\f$ components of the distance between centroids at \f$t - 1\f$ and \f$t\f$.
                     It can represent either ordinate velocity (if `is_moving` == 1) or ordinate error distance if
                     (`is_moving` == 0). */
     float* error; /**< Velocity norm (if `is_moving` == 1) or error (if `is_moving` == 0).

@@ -49,8 +49,8 @@ kNN_matcher::kNN_matcher(const size_t k, const uint32_t max_dist, const float mi
         tools_linear_2d_nrc_f32matrix((const float*)m_out_data_distances, 0, knn.max_size -1, 0, knn.max_size -1,
                                        (const float**)knn.out_data_distances);     
 
-        _kNN_match(knn.out_data_nearest,
-                   knn.out_data_distances,
+        _kNN_match(knn.out_data_distances,
+                   knn.out_data_nearest,
                    static_cast<uint32_t*>(t[ps_out_data_conflicts].get_dataptr()),
                    static_cast<const uint32_t*>(t[ps_in_RoIs0_id].get_dataptr()),
                    static_cast<const uint32_t*>(t[ps_in_RoIs0_S].get_dataptr()),

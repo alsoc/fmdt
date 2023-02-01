@@ -1,6 +1,6 @@
 /*!
  * \file
- * \brief IO functions for Regions of Interest (RoIs).
+ * \brief IOs functions for Regions of Interest (RoIs).
  */
 
 #pragma once
