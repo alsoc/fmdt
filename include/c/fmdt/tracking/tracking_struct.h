@@ -13,7 +13,7 @@ enum change_state_reason_e { REASON_TOO_BIG_ANGLE = 1, REASON_WRONG_DIRECTION, R
 
 typedef uint32_t* vec_uint32_t;
 
-typedef struct BB_t {
+typedef struct {
     uint32_t frame_id;
     uint32_t track_id;
     uint32_t bb_x;
@@ -25,7 +25,7 @@ typedef struct BB_t {
 
 typedef BB_t* vec_BB_t;
 
-typedef struct RoI {
+typedef struct {
     uint32_t id;
     uint32_t frame;
     uint32_t xmin;
@@ -46,7 +46,7 @@ typedef struct RoI {
     uint32_t magnitude;
 } RoI_t;
 
-typedef struct track {
+typedef struct {
     uint32_t id;
     RoI_t begin;
     RoI_t end;

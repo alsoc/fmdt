@@ -40,7 +40,7 @@ typedef struct {
  *  Image data structure. Used for storing images according to different libraries (OpenCV / NRC).
  *  Note that this container can be used for grayscale and color images because it relies on opaque types.
  */
-typedef struct img_data_t {
+typedef struct {
     size_t height; /*!< Image height. */
     size_t width; /*!< Image width. */
     void* pixels; /*!< Opaque type, contains image data (= the pixels). */

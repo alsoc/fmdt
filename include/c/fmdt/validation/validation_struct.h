@@ -4,7 +4,7 @@
 
 #include "fmdt/tracking/tracking_struct.h"
 
-typedef struct validation_obj {
+typedef struct {
     // Debut
     int16_t t0;
     float x0;

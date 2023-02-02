@@ -172,7 +172,6 @@ void _motion_compute(const float* RoIs0_x, const float* RoIs0_y, const float* Ro
     motion_est1->mean_error = _motion_compute_mean_error(RoIs1_error, RoIs1_prev_id, RoIs1_is_moving, n_RoIs1);
     motion_est1->std_deviation = _motion_compute_std_deviation(RoIs1_error, RoIs1_prev_id, RoIs1_is_moving, n_RoIs1,
                                                                motion_est1->mean_error);
-    // saveErrorMoy("first_error.txt", mean_error, std_deviation);
     _motion_rigid_registration_corrected(RoIs0_x, RoIs0_y, RoIs1_x, RoIs1_y, RoIs1_error, RoIs1_prev_id,
                                          RoIs1_is_moving, n_RoIs1, &motion_est2->theta, &motion_est2->tx,
                                          &motion_est2->ty, motion_est1->mean_error, motion_est1->std_deviation);
