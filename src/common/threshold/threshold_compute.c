@@ -13,14 +13,14 @@
 // }
 
 // TODO: these implementation with a 'if' in the loop, seems to be more efficient (there are less stores...)
-void threshold(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,
+void threshold(const uint8_t** img_in, uint8_t** img_out, const int i0, const int i1, const int j0, const int j1,
                const uint8_t threshold) {
     int i, j;
     for (i = i0; i <= i1; i++) {
-        memset(m_out[i], 0, ((j1 - j0) + 1) * sizeof(uint8_t));
+        memset(img_out[i], 0, ((j1 - j0) + 1) * sizeof(uint8_t));
         for (j = j0; j <= j1; j++)
-            if (m_in[i][j] >= threshold)
-                m_out[i][j] = 255;
+            if (img_in[i][j] >= threshold)
+                img_out[i][j] = 255;
     }
 }
 

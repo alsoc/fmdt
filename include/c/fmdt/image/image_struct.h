@@ -19,7 +19,7 @@ enum color_e { COLOR_MISC = 0, /*!< Miscellaneous color (= uninitialized). */
                COLOR_ORANGE, /*!< Orange color. */
                COLOR_BLUE, /*!< Blue color. */
                COLOR_YELLOW, /*!< Yellow color. */
-               N_COLORS /*!< Number of colors. */
+               N_COLORS /*!< Number of colors in the enumeration. */
 };
 
 /**

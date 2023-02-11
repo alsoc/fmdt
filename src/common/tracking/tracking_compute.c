@@ -299,7 +299,8 @@ void _update_existing_tracks(RoIs_history_t* RoIs_history, vec_track_t track_arr
                                              RoIs_history->array[0][next_id - 1].xmin,
                                              RoIs_history->array[0][next_id - 1].xmax,
                                              RoIs_history->array[0][next_id - 1].ymin,
-                                             RoIs_history->array[0][next_id - 1].ymax, frame, /* is_extrapolated = */ 0);
+                                             RoIs_history->array[0][next_id - 1].ymax, frame,
+                                             /* is_extrapolated = */ 0);
                     }
                 } else {
                     cur_track->state = STATE_LOST;
@@ -313,7 +314,8 @@ void _update_existing_tracks(RoIs_history_t* RoIs_history, vec_track_t track_arr
                     // on extrapole si pas finished
                     _track_extrapolate(&cur_track->end, &cur_track->extrapol_x, &cur_track->extrapol_y,
                                        &cur_track->extrapol_u, &cur_track->extrapol_v, RoIs_history->motion[0].theta,
-                                       RoIs_history->motion[0].tx, RoIs_history->motion[0].ty, cur_track->extrapol_order);
+                                       RoIs_history->motion[0].tx, RoIs_history->motion[0].ty,
+                                       cur_track->extrapol_order);
                 }
             }
             if (cur_track->obj_type == OBJ_METEOR &&
