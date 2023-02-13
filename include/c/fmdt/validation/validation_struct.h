@@ -1,9 +1,17 @@
+/*!
+ * \file
+ * \brief Validation structure.
+ */
+
 #pragma once
 
 #include <stdint.h>
 
 #include "fmdt/tracking/tracking_struct.h"
 
+/**
+ *  Data corresponding to a ground truth track.
+ */
 typedef struct {
     // Debut
     int16_t t0;
