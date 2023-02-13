@@ -7,32 +7,33 @@ Created on Mon Nov 21 14:17:42 2022
 """
 # modify RMS .config file and put correct plane position and heading.
 
-import numpy as np
+import os
+import glob
 import logging
 import argparse
+import numpy as np
+import matplotlib.pyplot as plt
+import astropy.units as u
+from astropy.io import fits
 from astropy.wcs import WCS
 from astropy.time import Time,TimeDelta
 from astropy.table import QTable
 from astropy.coordinates import SkyCoord,match_coordinates_sky
-import astropy.units as u
-from astropy.io import fits
 from astroquery.astrometry_net import AstrometryNet
-from configparser import ConfigParser, ExtendedInterpolation
 from astroquery.vizier import Vizier
 from sklearn.linear_model import RANSACRegressor
-import matplotlib.pyplot as plt
+from configparser import ConfigParser, ExtendedInterpolation
+from astropy.stats import sigma_clipped_stats
+from photutils.detection import DAOStarFinder
+from PIL import Image 
 
 import fmdt_read
+from fmdt_log import log
+from video_startstop2frame import make_img_name
+from imgseq_track2frame import make_seqimg_name
 
-# logging
-log = logging.getLogger(__name__)
-log.setLevel(logging.DEBUG)
-log_fmt = '%(levelname)s %(filename)s %(lineno)d (%(funcName)s) : %(message)s '
-sdlr = logging.StreamHandler()
-sdlr.setFormatter(logging.Formatter(fmt=log_fmt))
-#log.addHandler(sdlr)
-
-
+# global variable init
+config = None
 
 def read_config(config_file):
     """
@@ -79,6 +80,10 @@ def read_config(config_file):
         the configuration file.
     opth : string
         Output directory.
+    fpth : string
+        Meteor frame directory.
+    fmt : string
+        Meteor frame format.
     root : string
         Output root file name.
     
@@ -93,8 +98,12 @@ def read_config(config_file):
                'ERROR' : logging.ERROR}
     log.setLevel(logdict[config['USER']['log_level']])
     log.propagate = True
-    opth = config['USER']['data_dir']+'/'
+    opth = config['USER']['out_dir']+'/'
     root = config['USER']['root']
+    fpth = config['USER']['frame_dir']
+    if not fpth.endswith('/'):
+        fpth=fpth+'/'
+    fmt = config['USER']['frame_fmt']
     
     # read CAMERA section
     img_width = int(config['CAMERA']['image_width'])*u.pix
@@ -114,6 +123,11 @@ def read_config(config_file):
     LimMag = float(config['CAMERA']['LM']) * u.mag
     band = config['CAMERA']['band']
     
+    # create output directory if needed
+    if not os.path.exists(opth):
+        log.info('Make output directory '+opth)
+        os.mkdir(opth)
+    
     # read PROCESS section
     try:
         avgflx = int(config['PROCESS']['avgflx'])
@@ -128,14 +142,53 @@ def read_config(config_file):
         read_photometry = config['PROCESS']['read_photometry'].lower() in ['true', '1', 't', 'y', 'yes']
     except:
         read_photometry = False
-    try:
-        match_tol_fct = float(config['PROCESS']['match_tol_fct'])
-    except:
-        match_tol_fct = 1.0
-    return (config,img_sz,fov_sz,img_scale,fps,time_start,skycoo_c,LimMag,band,avgflx,match_tol_fct,read_astrometry,read_photometry,opth,root)
+    match_tol_fct = float(config['PROCESS']['match_tol_fct'])
+    return (config,img_sz,fov_sz,img_scale,fps,time_start,skycoo_c,LimMag,band,\
+            avgflx,match_tol_fct,read_astrometry,read_photometry,opth,fpth,fmt,root)
 
 
-def launch_astrometry(astrometry_data,img_width,img_height,img_scale,radec_center,api_key,frame,opth='./',root='',uf=1.1,lf=0.9,read=False):
+def frame2filename(pth_frame,frame,fmt='%5d.png',exclude='_visu'):
+    """Retrieve frame image file from frame number.
+
+    Parameters
+    ----------
+    pth_frame : string
+        Frame directory name.
+    frame : int
+        Frame number.
+    fmt : string, optional
+        File extenstion. Default is '%5d.png'.
+    exclude : string, optional
+        File name excluding pattern. Default is '_visu'.
+    
+    Returns
+    -------
+    frame_file : string
+        Frame file full path name.
+    
+    """
+    # get list of images
+    # extract root, extension and number of digits in name extension
+    [f_fmt,f_ext] = fmt.split('.')
+    dig = int(f_fmt.replace('%','').replace('d',''))
+    frmstr = '_'+str(frame).zfill(dig)
+    pattern = pth_frame+'*'+frmstr+'.'+f_ext
+    log.debug('Get list of images of pattern: '+pattern+' excluding: '+exclude)
+    list_img = glob.glob(pattern)
+    list_img = [i for i in list_img if exclude not in i]
+    # chec for multiple file
+    if len(list_img)>1:
+        msg = '*** FATAL ERROR: more than one file matches '+pattern+' : '+str(list_img)
+        log.error(msg)
+        raise IOError(msg)
+    frame_file = list_img[0]
+    log.debug('frame file: '+frame_file)
+    return frame_file
+
+
+def launch_astrometry(astrometry_data,img_width,img_height,img_scale,radec_center,\
+                      api_key,frame,opth='./',root='',uf=1.1,lf=0.9,\
+                      read=False,config=None,send_frame=False):
     """Launch astrometry reduction using astrometry.net service.
 
     Parameters
@@ -165,7 +218,12 @@ def launch_astrometry(astrometry_data,img_width,img_height,img_scale,radec_cente
     read : boolean, optional.
         If True, data are red from file instead of computed. Useful
         for debug purpose only and/or to speed up the process. Default is False.
-    
+    config : configparser.ConfigParser object, optional
+        Program configuration used to retrieve image file name from frame number.
+        Default is None.
+    send_frame : boolean, optional
+        If True, the whole frame is sent to astrometry.net server to solve for
+        astrometry. Default is False.
     
     Returns
     -------
@@ -177,6 +235,7 @@ def launch_astrometry(astrometry_data,img_width,img_height,img_scale,radec_cente
     fov_sz : list of 2 astropy.units.Quantity objects.
         Size of field of view: width and height, in [deg].
     """
+    # make header file name
     hdrfile = opth+root+'header_'+str(frame)+'.txt'
     if read:
         wcs_header = fits.Header.fromfile(hdrfile,sep='\n',endcard=False,padding=False)
@@ -184,10 +243,17 @@ def launch_astrometry(astrometry_data,img_width,img_height,img_scale,radec_cente
         ast = AstrometryNet()
         ast.api_key = api_key
         wcs_header = None
-        # define upper / lower scale factors
-        log.debug('scale ul: '+str(img_width.value*img_scale.value*uf))
-        log.debug('scale ul: '+str(img_width.value*img_scale.value*lf))
-        wcs_header = ast.solve_from_source_list(astrometry_data['X'],
+        # send the whole frame
+        try:
+            send_frame = config['PROCESS']['send_frame'].lower() in ['true', '1', 't', 'y', 'yes']
+        except:
+            send_frame = False
+        if send_frame:
+            frame_file = frame2filename(config['USER']['frame_dir'],frame)
+            log.info('Sending frame '+frame_file)
+            wcs_header = ast.solve_from_image(frame_file,force_image_upload=True)
+        else:
+            wcs_header = ast.solve_from_source_list(astrometry_data['X'],
                                                 astrometry_data['Y'],
                                                 img_width.value,
                                                 img_height.value,
@@ -206,8 +272,23 @@ def launch_astrometry(astrometry_data,img_width,img_height,img_scale,radec_cente
         try:
             radec_center_c = SkyCoord(ra=wcs_header['CRVAL1']*u.deg,
                                       dec=wcs_header['CRVAL2']*u.deg, frame="icrs")
+            log.info('Astromety success!!! center: '+radec_center.to_string())
+        # if there is not enough stars astrometry.net failed at solving the astrometry
+        except KeyError:
+            # send frame to astrometry.net
+            log.warning('Astrometry calibration failed!')
+            frame_file = frame2filename(config['USER']['frame_dir'],frame)
+            log.warning('Trying again by sending frame '+frame_file)
+            wcs_header = ast.solve_from_image(frame_file,force_image_upload=True)
+            send_frame = True
+            try:
+                radec_center_c = SkyCoord(ra=wcs_header['CRVAL1']*u.deg,
+                                          dec=wcs_header['CRVAL2']*u.deg, frame="icrs")
+                log.info('Astromety success!!! center: '+radec_center.to_string())
+            except:
+                raise ValueError('Astrometry.net failed even by uploading the image.')
         except:
-            msg = 'Astrometry header does not contain CRVAL'
+            msg = 'Astrometry.net failed.'
             log.error(msg)
             log.error(str(wcs_header))
             raise ValueError(msg)
@@ -228,9 +309,9 @@ def launch_astrometry(astrometry_data,img_width,img_height,img_scale,radec_cente
     # create wcs object
     wcs_obj = WCS(wcs_header)
     log.debug(wcs_obj)
-    return (wcs_obj,radec_center_c,fov_sz)
+    return (wcs_obj,radec_center_c,fov_sz,send_frame)
 
-def make_astrometry_data(trk_data,bb_frame,mag_data,frame,opth='./',root='',avgflx=0,read=False):
+def make_astrometry_data_from_bb(trk_data,bb_frame,mag_data,frame,opth='./',root='',avgflx=0,read=False):
     """Make astrometry data Table.
 
     Parameters
@@ -261,7 +342,7 @@ def make_astrometry_data(trk_data,bb_frame,mag_data,frame,opth='./',root='',avgf
 
     """
     # make output file name
-    outfile = opth+root+'star_astrometry_'+str(frame)+'.dat'
+    outfile = opth+root+'_star_astrometry_'+str(frame)+'.dat'
     log.debug(str(read))
     if read:
         log.info('Reading astrometry data from '+outfile)
@@ -305,8 +386,79 @@ def make_astrometry_data(trk_data,bb_frame,mag_data,frame,opth='./',root='',avgf
         astrometry_data.sort('Flux')
         astrometry_data.reverse()
         log.debug('astrometry_data '+str(astrometry_data))
+        log.info('There are '+str(len(astrometry_data))+' astrometry data')
         astrometry_data.write(outfile,format='ascii.fixed_width_two_line',overwrite=True)
         log.info('astrometry data saved in '+outfile)
+    return astrometry_data
+
+
+def make_astrometry_data_from_frame(pth_frame,met_id,frame,num_min=80,
+                                    fmt='%5d.png',opth='./',root=''):
+    """Make astrometry data from frame file.
+
+    Parameters
+    ----------
+    pth_frame : string
+        Frame files directory.
+    met_id : int
+        FMDT object id.
+    frame : int
+        Frame number.
+    num_min : int, optional
+        Minimum number of stars to detect in frame to perform astrometry.
+        Default is 80.
+    fmt : string, optional
+        Image format. Default is '%5d.png'.
+    opth : string, optional
+        Output path. The default is './'.
+    root : string, optional
+        Output file name root. The default is ''.
+
+    Returns
+    -------
+    astrometry_data : astropy.table.QTable object.
+        Astrometry data: X, Y, Flux.
+
+    """
+    # make output file name
+    outfile = opth+root+'_star_astrometry_'+str(frame)+'.dat'
+    # create astrometry Table object
+    astrometry_data = QTable(names=['X','Y','Flux'])
+    # retrieve file name
+    frame_file = frame2filename(pth_frame,frame,fmt=fmt)
+    log.info('Extracting sources from '+frame_file)
+    # extract sources with photutils
+    data=np.array(Image.open(frame_file))
+    mean, median, std = sigma_clipped_stats(data, sigma=3.0)
+    #daofind = DAOStarFinder(threshold=5.0*std)
+    fct_list = [5.0,4.5,4.0,3.5,3.0]
+    ndata = 0
+    for fct in fct_list:
+        daofind = DAOStarFinder(fwhm=3.0, threshold=fct*std)
+        astrometry_data = daofind(data - median)
+        ndata = len(astrometry_data)
+        if ndata>num_min:
+            break
+    if ndata<num_min:
+        msg = '*** FATAL ERROR: impossible to detect more than '+str(num_min)+' stars in '+frame_file
+        log.error(msg)
+        raise ValueError(msg)
+    # format astrometry_data
+    astrometry_data.rename_column('xcentroid','X')
+    astrometry_data.rename_column('ycentroid','Y')
+    astrometry_data.rename_column('flux','Flux')
+    astrometry_data.remove_columns(['id','sharpness','roundness1','roundness2',
+                                    'npix','sky','peak','mag'])
+    # recompute flux, since. according to DAOStarFinder documentation:
+    # flux is "peak density in the convolved image divided by the detection threshold.
+    astrometry_data['Flux'] = fct*std * astrometry_data['Flux']
+    # rearrange data for astrometry.net service
+    astrometry_data.sort('Flux')
+    astrometry_data.reverse()
+    log.debug('astrometry_data '+str(astrometry_data))
+    log.info('There are '+str(len(astrometry_data))+' astrometry data')
+    astrometry_data.write(outfile,format='ascii.fixed_width_two_line',overwrite=True)
+    log.info('astrometry data saved in '+outfile)
     return astrometry_data
 
 
@@ -326,7 +478,7 @@ def match_stars(astrometry_data,wcs_obj,radec_center,fov_sz,maxsep,frame=1,LimMa
     fov_sz : list of 2 astropy.units.Quantity objects.
         Field of view: width and height.
     maxsep : astropy.units.Quantity object
-        Maximum separation for star matching.
+        Maximum angular separation for star matching.
     frame : int, optional
         Frame number. Default is 1.
     LimMag : astropy.units.Quantity object, optional.
@@ -370,10 +522,13 @@ def match_stars(astrometry_data,wcs_obj,radec_center,fov_sz,maxsep,frame=1,LimMa
     # query Bright star catalog
     log.debug('Vizier query at: '+radec_center.to_string()+' fov: '+str(fov_width)+' '+str(fov_height))
     data_cat = v.query_region(radec_center, 
-                          width=fov_width,
-                          height=fov_height,
-                          frame='fk5',
-                          catalog=cat)[0]
+                              width=fov_width,
+                              height=fov_height,
+                              frame='fk5',
+                              catalog=cat)[0]
+    # remove masked data
+    if data_cat.mask[0]['rmag']:
+        data_cat = data_cat[1:]
     log.debug('data_cat: '+str(data_cat))
     cat_file = opth+root+'star_catalog_'+str(frame)+'.dat'
     data_cat.write(cat_file,format='ascii.fixed_width_two_line',overwrite=True)
@@ -393,9 +548,9 @@ def match_stars(astrometry_data,wcs_obj,radec_center,fov_sz,maxsep,frame=1,LimMa
     astrometry_data.add_column(data_cat['gmag'][idx])
     astrometry_data.sort('VTmag')
     #log.debug('d2d: '+str(d2d))
+    log.info('Star matching criterion: '+str(maxsep))
     mask = d2d < maxsep
     matched_star = astrometry_data[mask]
-    log.debug(str(matched_star))
     nmatch = len(matched_star)
     if nmatch<nmatch_min:
         msg = '*** FATAL ERROR: only  '+str(nmatch)+' matched stars, i.e. less than '+str(nmatch_min)
@@ -539,7 +694,7 @@ def save_n_plot_meteor(met_data,met_id,opth='./',root='',LimMag=6.0*u.mag):
     return
 
 def fmdt_reduce(config_file):
-    """
+    """Launch FMDT reduce process.
 
     Parameters
     ----------
@@ -564,13 +719,18 @@ def fmdt_reduce(config_file):
      read_astrometry,
      read_photometry,
      opth,
+     fpth,
+     fmt,
      root) = read_config(config_file)
     # read FMDT output files
     trk_data,bb_data,mag_data = fmdt_read.read_fmdt_outputs(config['FMDT']['track_file'],
-                                          config['FMDT']['bb_file'],
-                                          config['FMDT']['mag_file'])
+                                                            config['FMDT']['bb_file'],
+                                                            config['FMDT']['mag_file'])
     # select meteor track data
     met_trk = trk_data[trk_data['type']=='meteor']
+    log.info('There are '+str(len(met_trk))+' meteors detected in '+config['FMDT']['track_file'])
+    # set send_frame
+    send_frame = False
     # for each meteor: perform astrometry
     for met in met_trk:
         met_id = met['id']
@@ -588,72 +748,80 @@ def fmdt_reduce(config_file):
             log.debug('There are '+str(len(bb_obj))+' objects in frame '+str(frame))
             # retrieve meteor bb data
             bb_met = bb_obj[bb_obj['id']==met_id]
-            try:
-                # retrieve flux for all stars in the image
-                astrometry_data = make_astrometry_data(trk_data,
-                                                    bb_obj,
-                                                    mag_data,
-                                                    frame,
-                                                    avgflx=avgflx,
-                                                    opth=opth,
-                                                    root=root,
-                                                    read=read_astrometry)
-                # perform astrometry with astrometry.net
-                (wcs_obj,
-                radec_center,
-                [fov_width,fov_height]) = launch_astrometry(astrometry_data, 
-                                                            img_width, 
-                                                            img_height, 
-                                                            img_scale, 
-                                                            skycoo_c, 
-                                                            config['USER']['api_key'],
-                                                            frame=frame,
-                                                            opth=opth,root=root,
-                                                            read=read_astrometry)
-                # compute meteor sky coordinates
-                radec_met = wcs_obj.pixel_to_world(bb_met['Xc'][0],
-                                                bb_met['Yc'][0])
-                # match detected stars with catalog stars
-                matched_data = match_stars(astrometry_data,
-                                        wcs_obj,
-                                        radec_center,
-                                        [fov_width,fov_height],
-                                        maxsep=img_scale*u.pix*match_tol_fct,
-                                        LimMag=LimMag,
-                                        frame=frame,
-                                        opth=opth,
-                                        root=root)
-                # linear fit star magnitude with star flux and get meteor magnitude
-                met_flux = mag_data[met_id]['data'][frame-met['f_b']]
-                met_mag = make_photometry_fit(matched_data,
-                                            met_flux,
-                                            band=band,
+            # retrieve flux for all stars in the image
+            astrometry_data = make_astrometry_data_from_bb(trk_data,
+                                                           bb_obj,
+                                                           mag_data,
+                                                           frame,
+                                                           avgflx=avgflx,
+                                                           opth=opth,
+                                                           root=root,
+                                                           read=read_astrometry)
+            # check if number of start is high enough for astrometry
+            star_num = len(astrometry_data)
+            num_min = int(int(config['PROCESS']['min_star_nb']))
+            if (star_num<num_min):
+                log.warning('Number of detected stars '+str(star_num)+' lower than required '+str(num_min))
+                astrometry_data = make_astrometry_data_from_frame(fpth,
+                                                                  met_id,
+                                                                  frame,
+                                                                  num_min=num_min,
+                                                                  fmt=fmt,
+                                                                  opth=opth,
+                                                                  root=root)
+            
+            # perform astrometry with astrometry.net
+            (wcs_obj,
+             radec_center,
+             [fov_width,fov_height],
+             send_frame) = launch_astrometry(astrometry_data, 
+                                            img_width, 
+                                            img_height, 
+                                            img_scale, 
+                                            skycoo_c, 
+                                            config['USER']['api_key'],
                                             frame=frame,
-                                            opth=opth,
-                                            root=root)
-                # add data to meteor table
-                met_data.add_row([frame_time,frame,bb_met['Xc'][0],bb_met['Yc'][0],
-                        radec_met.ra.to('deg'),
-                        radec_met.dec.to('deg'),
-                        met_flux,met_mag])
-                # log
-                log.debug('time: '+frame_time.isot+' frame: '+str(frame))
-                log.debug('bb_met[Xc]:'+str(bb_met['Xc'][0])+' bb_met[Yc]:'+str(bb_met['Yc'][0]))
-                log.debug('radec_met:'+str(radec_met))
-                log.debug('met_flux:'+str(met_flux)+' met_mag:'+str(met_mag))
-            except:
-                # If any of the astronomy doesn't work, we fill with dummy, zero values
-                # add data to meteor table
-                met_data.add_row([frame_time,frame,bb_met['Xc'][0],bb_met['Yc'][0],
-                        0.0, 0.0, 0.0, 0.0])
-                # log
-                log.debug('time: '+frame_time.isot+' frame: '+str(frame))
-                log.debug('bb_met[Xc]:'+str(bb_met['Xc'][0])+' bb_met[Yc]:'+str(bb_met['Yc'][0]))
-                log.debug('radec_met:'+str(0.0))
-                log.debug('met_flux:'+str(0.0)+' met_mag:'+str(0.0))
+                                            opth=opth,root=root,
+                                            read=read_astrometry,
+                                            config=config,
+                                            send_frame=send_frame)
+            # compute meteor sky coordinates
+            radec_met = wcs_obj.pixel_to_world(bb_met['Xc'][0],
+                                               bb_met['Yc'][0])
+            # match detected stars with catalog stars
+            matched_data = match_stars(astrometry_data,
+                                       wcs_obj,
+                                       radec_center,
+                                       [fov_width,fov_height],
+                                       maxsep=img_scale*u.pix*match_tol_fct,
+                                       LimMag=LimMag,
+                                       frame=frame,
+                                       opth=opth,
+                                       root=root)
+            # linear fit star magnitude with star flux and get meteor magnitude
+            met_flux = mag_data[met_id]['data'][frame-met['f_b']]
+            met_mag = make_photometry_fit(matched_data,
+                                          met_flux,
+                                          band=band,
+                                          frame=frame,
+                                          opth=opth,
+                                          root=root)
+            # add data to meteor table
+            met_data.add_row([frame_time,
+                              frame,
+                              bb_met['Xc'][0],
+                              bb_met['Yc'][0],
+                              radec_met.ra.to('deg'),
+                              radec_met.dec.to('deg'),
+                              met_flux,met_mag])
+            # log
+            log.debug('time: '+frame_time.isot+' frame: '+str(frame))
+            log.debug('bb_met[Xc]:'+str(bb_met['Xc'][0])+' bb_met[Yc]:'+str(bb_met['Yc'][0]))
+            log.debug('radec_met:'+str(radec_met))
+            log.debug('met_flux:'+str(met_flux)+' met_mag:'+str(met_mag))
         # save and plot meteor data
         save_n_plot_meteor(met_data,met_id,LimMag=LimMag,opth=opth,root=root)
-            
+        
     log.info('*** All done.',)
     return
 
