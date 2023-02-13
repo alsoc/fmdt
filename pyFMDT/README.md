@@ -4,7 +4,7 @@ Suite of tools to exploit the [FMDT software](https://github.com/alsoc/fmdt) out
 
 ## What is pyFMDT?
 
-pyFMDT was created to exploit the results provided by the [Fast Meteor Detection Tool](https://github.com/alsoc/fmdt).
+pyFMDT was created to exploit the results provided by the [Fast Meteor Detection Toolbox](https://github.com/alsoc/fmdt).
 It performs astrophotometry computations and outputs the position and magnitude of each detected meteor as a function of time.
 
 ## List of tools
@@ -36,70 +36,72 @@ with:
 
 The configuration file allows the user to provide all necessary information and options. Here is an example:
 
-	[USER]
-	# data directory: this is where the FMDT data are located
-	data_dir = /Users/vaubaill/Desktop/W7_COLOUR_TEST/
-	# data type: 'video' (video file) or 'img_seq' (image sequence). If img_seq an IMGSEQ section MUST exist.
-	type = img_seq
-	# output data file directory: this is where all fmdt_reduce output will go.
-	out_dir = ${data_dir}/fmdt_reduced/
-	# extracted meteor frames directory. useful for visualization purpose.
-	frame_dir = ${out_dir}/meteor_frames/
-	# output meteor frame format. Default is %5d.png. Reminder: FMDT requires %5d.pgm input file format.
-	frame_fmt = %5d.png
-	# log level: choice is: DEBUG, INFO, WARNING, ERROR.
-	log_level = INFO
-	# astrometry.net API key: your API key. see: http://astrometry.net/doc/net/api.html
-	api_key = XXXXXXXX
-	# output file root name: used to identify all pyFMDT files. Default is ''.
-	root = fmdt_results_
-	
-	[IMGSEQ]
-	# image sequence section: if absent, video files are searched for.
-	# original frame directory
-	pth_ori = {USER:data_dir}/imgseq/
-	# pgm frame directory. Note: pgm format is required from FMDT.
-	pth_pgm = {USER:data_dir}/imgseq_processed/
-	# Original Image file format Ex: %5d.tiff
-	fmt_ori = %5d.tiff
-	# PGM type Image file format Ex: %5d.pgm
-	fmt_pgm = %5d.pgm
+```ini
+[USER]
+# data directory: this is where the FMDT data are located
+data_dir = /Users/vaubaill/Desktop/W7_COLOUR_TEST/
+# data type: 'video' (video file) or 'img_seq' (image sequence). If img_seq an IMGSEQ section MUST exist.
+type = img_seq
+# output data file directory: this is where all fmdt_reduce output will go.
+out_dir = ${data_dir}/fmdt_reduced/
+# extracted meteor frames directory. useful for visualization purpose.
+frame_dir = ${out_dir}/meteor_frames/
+# output meteor frame format. Default is %5d.png. Reminder: FMDT requires %5d.pgm input file format.
+frame_fmt = %5d.png
+# log level: choice is: DEBUG, INFO, WARNING, ERROR.
+log_level = INFO
+# astrometry.net API key: your API key. see: http://astrometry.net/doc/net/api.html
+api_key = XXXXXXXX
+# output file root name: used to identify all pyFMDT files. Default is ''.
+root = fmdt_results_
 
-	[CAMERA]
-	# sensor width and height in [pixels]
-	image_width = 3840
-	image_height = 2160
-	# FOV size in [deg]
-	fov_width = 27.0
-	# estimtated limiting magnitude
-	LM = 7.0
-	# camera frame per second, in [Hz]
-	fps = 25.0
-	# DEPRECATED!!! approximate center of field of view: right Ascension in HH:MM:SS and Declination in DEG
-	RA = 11:56:01
-	DEC = -27:44:49
-	# video time start
-	time_start = 2022-05-31T05:00:00.000
-	# Photometric band. choice is 'V' (visible), 'R' (red), 'G' (green), 'B' (Blue)
-	band = V
+[IMGSEQ]
+# image sequence section: if absent, video files are searched for.
+# original frame directory
+pth_ori = {USER:data_dir}/imgseq/
+# pgm frame directory. Note: pgm format is required from FMDT.
+pth_pgm = {USER:data_dir}/imgseq_processed/
+# Original Image file format Ex: %5d.tiff
+fmt_ori = %5d.tiff
+# PGM type Image file format Ex: %5d.pgm
+fmt_pgm = %5d.pgm
 
-	[PROCESS]
-	# Flux average over n frames. Default is 999 meaning all available measurements of an object will be considered. This is used to make photometry calibration more robust.
-	avgflx = 999
-	# star match tolerance factor, in [pixel]. Star match is performed at the pixel resolution level, unless this factor is greater than 1. Default is 1.0.
-	match_tol_fct = 2.0
-	# option: read existing astrometry data: useful for debug purpose only. Default is False.
-	read_astrometry = True
-	# option: read existing photometry data: useful for debug purpose only (True/False). Default is False.
-	read_photometry = False
-	
-	[FMDT]
-	# Object tracking file name
-	track_file = ${USER:data_dir}/out_detect_tracks_w7_CT.txt
-	# box boundaries file name
-	bb_file = ${USER:data_dir}/out_detect_bb_w7_CT.txt
-	# magnitude file name
-	mag_file = ${USER:data_dir}/mag_w7_CT.txt
+[CAMERA]
+# sensor width and height in [pixels]
+image_width = 3840
+image_height = 2160
+# FOV size in [deg]
+fov_width = 27.0
+# estimtated limiting magnitude
+LM = 7.0
+# camera frame per second, in [Hz]
+fps = 25.0
+# DEPRECATED!!! approximate center of field of view: right Ascension in HH:MM:SS and Declination in DEG
+RA = 11:56:01
+DEC = -27:44:49
+# video time start
+time_start = 2022-05-31T05:00:00.000
+# Photometric band. choice is 'V' (visible), 'R' (red), 'G' (green), 'B' (Blue)
+band = V
+
+[PROCESS]
+# Flux average over n frames. Default is 999 meaning all available measurements of an object will be considered. This is used to make photometry calibration more robust.
+avgflx = 999
+# star match tolerance factor, in [pixel]. Star match is performed at the pixel resolution level, unless this factor is greater than 1. Default is 1.0.
+match_tol_fct = 2.0
+# option: read existing astrometry data: useful for debug purpose only. Default is False.
+read_astrometry = True
+# option: read existing photometry data: useful for debug purpose only (True/False). Default is False.
+read_photometry = False
+
+[FMDT]
+# Object tracking file name
+track_file = ${USER:data_dir}/out_detect_tracks_w7_CT.txt
+# box boundaries file name
+bb_file = ${USER:data_dir}/out_detect_bb_w7_CT.txt
+# magnitude file name
+mag_file = ${USER:data_dir}/mag_w7_CT.txt
+```
 
 ## What does pyFMDT/fmdt_reduce do, and how does it do it?
 
