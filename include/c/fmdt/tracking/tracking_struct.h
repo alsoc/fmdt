@@ -41,7 +41,7 @@ enum change_state_reason_e { REASON_UNKNOWN = 0, /*!< Unknown (= uninitialized).
 };
 
 /**
- *  Vector of `uint32_t, to use with C vector lib.
+ *  Vector of `uint32_t`, to use with C vector lib.
  */
 typedef uint32_t* vec_uint32_t;
 
@@ -60,7 +60,7 @@ typedef struct {
 } BB_t;
 
 /**
- *  Vector of `BB_t, to use with C vector lib.
+ *  Vector of `BB_t`, to use with C vector lib.
  */
 typedef BB_t* vec_BB_t;
 
@@ -113,7 +113,7 @@ typedef struct {
 } track_t;
 
 /**
- *  Vector of `track_t, to use with C vector lib.
+ *  Vector of `track_t`, to use with C vector lib.
  */
 typedef track_t* vec_track_t;
 

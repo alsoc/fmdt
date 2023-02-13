@@ -11,7 +11,7 @@ void args_del(int argc, char** argv, int index) {
     argv[i] = 0;
 }
 
-int args_find(int argc, char* argv[], const char* arg) {
+int args_find(int argc, char** argv, const char* arg) {
     char arg_cpy[2048];
     strncpy(arg_cpy, arg, sizeof(arg_cpy));
     arg_cpy[sizeof(arg_cpy) - 1] = 0;

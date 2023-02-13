@@ -21,7 +21,7 @@ void args_del(int argc, char** argv, int index);
  *            comma (',') character.
  * @return `1` if the argument is found, `0` otherwise.
  */
-int args_find(int argc, char* argv[], const char* arg);
+int args_find(int argc, char** argv, const char* arg);
 
 /**
  * Find an argument and return its corresponding value as an integer value.
