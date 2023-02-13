@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper to compute image threshold.
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -30,4 +35,6 @@ protected:
     void deep_copy(const Threshold &m);
 };
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Threshold/Threshold.hxx"
+#endif

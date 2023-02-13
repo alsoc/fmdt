@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper to compute/merge CCL with hysteresis.
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -38,4 +43,6 @@ protected:
     void deep_copy(const Features_merger_CCL_HI &m);
 };
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Features/Features_merger_CCL_HI.hxx"
+#endif

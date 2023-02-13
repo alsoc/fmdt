@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper to log motion compensation.
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -21,4 +26,6 @@ public:
     inline aff3ct::runtime::Socket& operator[](const lgr_mtn::sck::write s);
 };
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Logger/Logger_motion.hxx"
+#endif

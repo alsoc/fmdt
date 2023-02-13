@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper to compute motion for each RoI.
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -22,4 +27,6 @@ public:
     inline aff3ct::runtime::Socket& operator[](const mtn::sck::compute s);
 };
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Motion/Motion.hxx"
+#endif

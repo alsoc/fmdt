@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper to log RoIs features.
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -30,4 +35,6 @@ public:
     inline aff3ct::runtime::Socket& operator[](const lgr_roi::sck::write s);
 };
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Logger/Logger_RoIs.hxx"
+#endif

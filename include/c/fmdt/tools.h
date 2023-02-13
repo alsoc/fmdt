@@ -24,10 +24,10 @@ void tools_copy_ui8matrix_ui8matrix(const uint8_t** X, const int i0, const int i
 /**
  * Convert a 8-bit 2D array in a 32-bit 2D array.
  * @param X Input 8-bit matrix (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
- * @param i0 First \f$y\f$ index in the 2D array (included).
- * @param i1 Last \f$y\f$ index in the 2D array (included).
- * @param j0 First \f$x\f$ index in the 2D array (included).
- * @param j1 Last \f$x\f$ index in the 2D array (included).
+ * @param nrl First \f$y\f$ index in the 2D array (included).
+ * @param nrh Last \f$y\f$ index in the 2D array (included).
+ * @param ncl First \f$x\f$ index in the 2D array (included).
+ * @param nch Last \f$x\f$ index in the 2D array (included).
  * @param Y Output 32-bit matrix (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
  */
 void tools_convert_ui8matrix_ui32matrix(const uint8_t** X, const int nrl, const int nrh, const int ncl, const int nch,

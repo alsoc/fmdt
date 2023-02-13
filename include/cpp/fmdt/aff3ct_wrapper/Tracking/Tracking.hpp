@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper to compute tracking.
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -42,4 +47,6 @@ public:
 
 };
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Tracking/Tracking.hxx"
+#endif

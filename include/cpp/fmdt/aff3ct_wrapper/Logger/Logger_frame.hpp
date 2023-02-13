@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper to log 2D array of labels (after CCL).
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -33,4 +38,6 @@ public:
     inline aff3ct::runtime::Socket& operator[](const lgr_fra::sck::write s);
 };
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Logger/Logger_frame.hxx"
+#endif

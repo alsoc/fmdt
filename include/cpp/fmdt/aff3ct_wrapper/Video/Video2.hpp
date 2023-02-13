@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper to get image at \f$t - 1\f$ and at \f$t\f$.
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -37,4 +42,6 @@ public:
     inline aff3ct::runtime::Socket& operator[](const vid2::sck::generate s);
 };
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Video/Video2.hxx"
+#endif

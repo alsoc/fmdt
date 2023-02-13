@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper to compute the k-NN matching algorithm.
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -28,4 +33,6 @@ public:
     inline aff3ct::runtime::Socket& operator[](const knn::sck::match s);
 };
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/kNN_matcher/kNN_matcher.hxx"
+#endif
