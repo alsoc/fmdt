@@ -66,6 +66,7 @@ extensions = [
     'sphinx.ext.mathjax',
     'sphinxcontrib.bibtex',
     'sphinxcontrib.rsvgconverter',
+    'sphinxcontrib.video',
     'm2r',
 ]
 
@@ -224,6 +225,8 @@ epub_exclude_files = ['search.html']
 
 rst_epilog = """
 .. |AFF3CT|    replace:: :abbr:`AFF3CT (A Fast Forward Error Correction Toolbox)`
+.. |BB|        replace:: :abbr:`BB     (Bounding Box)`
+.. |BBs|       replace:: :abbr:`BBs    (Bounding Boxes)`
 .. |CC|        replace:: :abbr:`CC     (Connected-Component)`
 .. |CCs|       replace:: :abbr:`CCs    (Connected-Components)`
 .. |CCL|       replace:: :abbr:`CCL    (Connected-Components Labeling)`
@@ -232,6 +235,7 @@ rst_epilog = """
                                         (3.9 in) cubes.)`
 .. |FMDT|      replace:: :abbr:`FMDT   (Fast Meteor Detection Toolbox)`
 .. |FPS|       replace:: :abbr:`FPS    (Frames Per Second)`
+.. |GT|        replace:: :abbr:`GT     (Ground Truth)`
 .. |HD|        replace:: :abbr:`HD     (High Definition, 1920x1080 resolution)`
 .. |IMCCE|     replace:: :abbr:`IMCCE  (Institut de Mécanique Céleste et de Calcul des Éphémérides,
                                         or Institute for Celestial Mechanics and Computation of Ephemerides in
@@ -308,7 +312,7 @@ if buildername != "latex":
         }
 
     # Tell sphinx what the primary language being documented is.
-    primary_domain = 'c'
+    primary_domain = 'cpp'
 
     # Tell sphinx what the pygments highlight language should be.
-    highlight_language = 'c'
+    highlight_language = 'cpp'

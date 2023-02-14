@@ -156,7 +156,7 @@ The list of available arguments:
 | `--mrp-s-max`      | `--surface-max`    | int      | 1000        | No      | Maximum surface of the CCs in pixels. |
 | `--knn-k`          | `-k`               | int      | 3           | No      | Maximum number of neighbors considered in k-nearest neighbor matching (k-NN algorithm). |
 | `--knn-d`          | `--max-dist`       | int      | 10          | No      | Maximum distance in pixels between two images (k-NN algorithm). |
-| `--knn-s`          | `--min-ratio-s`    | int      | 0.125       | No      | Minimum surface ratio to match two CCs in k-NN (0 matches alls, 1 matches nothing). This parameter is also used for extrapolation in the tracking. |
+| `--knn-s`          | `--min-ratio-s`    | float    | 0.125       | No      | Minimum surface ratio to match two CCs in k-NN (0 matches alls, 1 matches nothing). This parameter is also used for extrapolation in the tracking. |
 | `--trk-ext-d`      | `--r-extrapol`     | int      | 10          | No      | Search radius in pixels for CC extrapolation (piece-wise tracking). |
 | `--trk-ext-o`      | `--extrapol-order` | int      | 3           | No      | Maximum number of frames to extrapolate for lost objects (linear extrapolation). |
 | `--trk-angle`      | `--angle-max`      | float    | 20.0        | No      | Tracking max angle between two meteors at t-1 and t (in degree). |

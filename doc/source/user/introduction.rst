@@ -4,19 +4,34 @@
 Introduction
 ************
 
-Purpose and Scientific Background
-"""""""""""""""""""""""""""""""""
+Purpose
+"""""""
 
-*Fast Meteor Detection Toolbox* or |FMDT| is derived from a software which was
-**designed to detect meteors** on board |ISS| or a |CubeSat|. |FMDT| is foreseen
-to be applied to airborne camera systems, e.g. in atmospheric balloons or
-aircraft.
+|FMDT| is derived from a software which was **designed to detect meteors** on
+board |ISS| or a |CubeSat|. |FMDT| is foreseen to be applied to airborne camera
+systems, e.g. in atmospheric balloons or aircraft.
 **It is robust to camera movements by a motion compensation algorithm.**
 
 **FMDT is ready for real-time processing on small boards like Raspberry Pi 4**
 or Nvidia Jetson Nano for embedded systems. For instance, on the Raspberry Pi 4
 (@ 1.5 GHz), |FMDT| is able to compute **30 frames per second** on a |HD| video
 sequence while the instant power is only **around 4 Watts**.
+
+.. _fig_detection_image:
+
+.. figure:: ../../pics/2022_tauh_00183.jpg
+   :figwidth: 100 %
+   :align: center
+
+   Exemple of meteors detection and visualization.
+
+:numref:`fig_detection_chain` shows an example of detection on one frame. Green
+|BBs| represent detected *meteors*, purple |BBs| represent detected *stars* and
+orange |BBs| represent detected *noise* (= something which is not a *meteors*
+and not a *star*).
+
+Scientific Background
+"""""""""""""""""""""
 
 .. _fig_detection_chain:
 
@@ -53,7 +68,8 @@ Scientific Results
 """"""""""""""""""
 
 |IMCCE| astronomers (from Paris's Observatory) led an airborne observation
-campaign of the 2022 τ-Herculids. The `2022 τ-Herculids mission is detailed here
+campaign of the 2022 :math:`\tau`-Herculids. The 2022 :math:`\tau`-Herculids
+mission is `detailed here
 <https://www.imcce.fr/recherche/campagnes-observations/meteors/2022the>`_.
 The data collected by the mission have been processed with |FMDT|. The detection
 results helped the astronomers to see more meteors than their first "manual"
