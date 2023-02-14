@@ -1,5 +1,7 @@
 # Fast Meteor Detection Toolbox
 
+[![Documentation Build Status](https://img.shields.io/readthedocs/fmdt.svg)](https://readthedocs.org/projects/fmdt/)
+
 ## Purpose
 
 *Fast Meteor Detection Toolbox* or **FMDT** is derived from a software which was 
@@ -68,6 +70,14 @@ detection:
 ```shell
 ./exe/fmdt-visu --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-path ./out_detect_tracks.txt --trk-bb-path ./out_detect_bb.txt --vid-out-path out_visu.mp4
 ```
+
+## User and Developer Documentation
+
+The documentation of this project is hosted by Read the Docs:
+  - https://fmdt.readthedocs.io
+
+To compile the documentation from the sources, refer to the readme file in the 
+`./doc/` folder.
 
 ## List of Contributors
 
