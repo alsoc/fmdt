@@ -2,6 +2,7 @@ variables:
   GIT_SUBMODULE_STRATEGY: none
 
 stages:
+  - analysis
   - build
   - test
   - coverage
@@ -11,6 +12,25 @@ before_script:
   - hostname
   - whoami
 # - pwd
+
+analysis-documentation:
+  image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_doc
+  stage: analysis
+  allow_failure: true
+  artifacts:
+    name: analysis-documentation
+    when: always
+    paths:
+      - doc/build/html
+#     - doc/build/latex
+      - doc/build/doxygen
+  tags:
+    - x86_64
+    - linux
+    - docker
+  script:
+    - export THREADS="1"
+    - ./ci/analysis-documentation.sh
 
 build-linux-gcc-c:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_gcc:v9.3.0
