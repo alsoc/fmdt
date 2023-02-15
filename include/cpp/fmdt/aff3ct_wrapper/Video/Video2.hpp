@@ -10,12 +10,14 @@
 
 #include "fmdt/video/video_struct.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace vid2 {
     enum class tsk : size_t { generate, SIZE };
     namespace sck {
         enum class generate : size_t { out_img0, out_img1, out_frame, status };
     }
 }
+#endif
 
 class Video2 : public aff3ct::module::Module, public aff3ct::tools::Interface_is_done {
 protected:

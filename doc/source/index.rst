@@ -17,6 +17,10 @@ FMDT Documentation
    :maxdepth: 2
    :numbered:
 
+   developer/project_architecture
+   developer/coding_conventions
+   developer/workflow_git
+   developer/continuous_integration
    api/library_root
 
 .. Indices and tables

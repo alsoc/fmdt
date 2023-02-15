@@ -34,7 +34,6 @@ int args_find(int argc, char** argv, const char* arg);
  */
 int args_find_int(int argc, char** argv, const char* arg, int def);
 
-
 /**
  * Find an argument and return its corresponding value as an integer value.
  * This function also tests that the returned value is between the \f$[min;max]\f$ range. If it is not the case,

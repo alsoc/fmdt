@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace knn {
     enum class tsk : size_t { match, SIZE };
     namespace sck {
@@ -17,6 +18,7 @@ namespace knn {
                                     status };
     }
 }
+#endif
 
 class kNN_matcher : public aff3ct::module::Module {
 protected:

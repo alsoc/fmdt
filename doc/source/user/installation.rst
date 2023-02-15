@@ -51,7 +51,7 @@ with the following command lines:
 	cmake ..
 	make -j4
 
-.. note:: the previous CMake command (``cmake ..``) will generate a Makefile
+.. note:: The previous CMake command (``cmake ..``) will generate a Makefile
           without any compiler flag.
 
 If you are using a GNU or Clang compiler like, **it is advised to use the
@@ -76,31 +76,63 @@ it).
 CMake Options
 -------------
 
-+-------------------------------+---------+---------+---------------------------------+
-| Option                        | Type    | Default | Description                     |
-+===============================+=========+=========+=================================+
-| ``FMDT_DETECT_EXE``           | BOOLEAN | ON      | |cmake-opt-detect-exe|          |
-+-------------------------------+---------+---------+---------------------------------+
-| ``FMDT_VISU_EXE``             | BOOLEAN | ON      | |cmake-opt-visu-exe|            |
-+-------------------------------+---------+---------+---------------------------------+
-| ``FMDT_CHECK_EXE``            | BOOLEAN | ON      | |cmake-opt-check-exe|           |
-+-------------------------------+---------+---------+---------------------------------+
-| ``FMDT_MAXRED_EXE``           | BOOLEAN | ON      | |cmake-opt-maxred-exe|          |
-+-------------------------------+---------+---------+---------------------------------+
-| ``FMDT_DEBUG``                | BOOLEAN | OFF     | |cmake-opt-debug|               |
-+-------------------------------+---------+---------+---------------------------------+
-| ``FMDT_OPENCV_LINK``          | BOOLEAN | OFF     | |cmake-opt-opencv-link|         |
-+-------------------------------+---------+---------+---------------------------------+
-| ``FMDT_AFF3CT_RUNTIME``       | BOOLEAN | OFF     | |cmake-opt-aff3ct-runtime|      |
-+-------------------------------+---------+---------+---------------------------------+
+Here is the list of the CMake available options:
 
-.. |cmake-opt-detect-exe| replace:: Compile the detection chain executable.
-.. |cmake-opt-visu-exe| replace:: Compile the tracking visualization executable.
-.. |cmake-opt-check-exe| replace:: Compile the check executable..
-.. |cmake-opt-maxred-exe| replace:: Compile the max reduction executable..
-.. |cmake-opt-debug| replace:: Build the project using debugging prints: these
-    additional prints will be output on ``stderr`` and prefixed by ``(DBG)``.
-.. |cmake-opt-opencv-link| replace:: Link with OpenCV library (required to
-    enable some options for better visualization in ``fmdt-xxx`` executables).
-.. |cmake-opt-aff3ct-runtime| replace:: Link with |AFF3CT| runtime and produce
-    multi-threaded detection executable (``fmdt-detect-rt``).
+- ``FMDT_DETECT_EXE``
+
+   :Type: BOOLEAN
+   :Default: ON
+   :Example: ``cmake .. -DFMDT_DETECT_EXE=OFF``
+
+   Compile the detection chain executable
+
+- ``FMDT_VISU_EXE``
+
+   :Type: BOOLEAN
+   :Default: ON
+   :Example: ``cmake .. -DFMDT_VISU_EXE=OFF``
+
+   Compile the tracking visualization executable.
+
+- ``FMDT_CHECK_EXE``
+
+   :Type: BOOLEAN
+   :Default: ON
+   :Example: ``cmake .. -DFMDT_CHECK_EXE=OFF``
+
+   Compile the check executable.
+
+- ``FMDT_MAXRED_EXE``
+
+   :Type: BOOLEAN
+   :Default: ON
+   :Example: ``cmake .. -DFMDT_MAXRED_EXE=OFF``
+
+   Compile the max reduction executable.
+
+- ``FMDT_DEBUG``
+
+   :Type: BOOLEAN
+   :Default: OFF
+   :Example: ``cmake .. -DFMDT_DEBUG=ON``
+
+   Build the project using debugging prints: these additional prints will be
+   output on ``stderr`` and prefixed by ``(DBG)``.
+
+- ``FMDT_OPENCV_LINK``
+
+   :Type: BOOLEAN
+   :Default: OFF
+   :Example: ``cmake .. -DFMDT_OPENCV_LINK=ON``
+
+   Link with OpenCV library (required to enable some options for improved
+   visualization in ``fmdt-xxx`` executables).
+
+- ``FMDT_AFF3CT_RUNTIME``
+
+   :Type: BOOLEAN
+   :Default: OFF
+   :Example: ``cmake .. -DFMDT_AFF3CT_RUNTIME=ON``
+
+   Link with |AFF3CT| runtime and produce multi-threaded detection executable
+   (``fmdt-detect-rt``).

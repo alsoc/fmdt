@@ -10,12 +10,14 @@
 
 #include "fmdt/tracking/tracking_struct.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace lgr_trk {
     enum class tsk : size_t { write, SIZE };
     namespace sck {
         enum class write : size_t { in_frame, status };
     }
 }
+#endif
 
 class Logger_tracks : public aff3ct::module::Module {
 protected:

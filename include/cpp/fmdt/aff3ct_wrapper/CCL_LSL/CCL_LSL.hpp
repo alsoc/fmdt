@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace ccl {
     enum class tsk : size_t { apply, SIZE };
     namespace sck {
@@ -15,6 +16,7 @@ namespace ccl {
                                     out_data_eq, out_data_ner, status };
     }
 }
+#endif
 
 class CCL_LSL : public aff3ct::module::Module {
 protected:

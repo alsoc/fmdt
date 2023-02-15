@@ -11,12 +11,14 @@
 #include "fmdt/image/image_struct.h"
 #include "fmdt/video/video_struct.h"
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace lgr_fra {
     enum class tsk : size_t { write, SIZE };
     namespace sck {
         enum class write : size_t { in_labels, in_RoIs_id, in_RoIs_xmax, in_RoIs_ymin, in_RoIs_ymax, in_n_RoIs, status };
     }
 }
+#endif
 
 class Logger_frame : public aff3ct::module::Module {
 protected:

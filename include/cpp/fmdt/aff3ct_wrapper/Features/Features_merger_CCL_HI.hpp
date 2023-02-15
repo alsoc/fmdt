@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace ftr_mrg {
     enum class tsk : size_t { merge, SIZE };
     namespace sck {
@@ -17,6 +18,7 @@ namespace ftr_mrg {
                                     out_RoIs_Sx, out_RoIs_Sy, out_RoIs_x, out_RoIs_y, out_n_RoIs, out_labels, status };
     }
 }
+#endif
 
 class Features_merger_CCL_HI : public aff3ct::module::Module {
 protected:

@@ -8,6 +8,7 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
+#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace mtn {
     enum class tsk : size_t { compute, SIZE };
     namespace sck {
@@ -16,6 +17,7 @@ namespace mtn {
                                       out_motion_est2, status };
     }
 }
+#endif
 
 class Motion : public aff3ct::module::Module {
 protected:

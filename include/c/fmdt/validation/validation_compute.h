@@ -27,7 +27,6 @@ int validation_init(const char* val_objects_file);
  */
 void validation_process(const vec_track_t track_array);
 
-
 /**
  * Free the validation global data.
  */
