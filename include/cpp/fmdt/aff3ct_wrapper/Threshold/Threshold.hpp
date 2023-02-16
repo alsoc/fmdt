@@ -8,14 +8,12 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace thr {
     enum class tsk : size_t { apply, SIZE };
     namespace sck {
         enum class apply : size_t { in_img, out_img, status };
     }
 }
-#endif
 
 class Threshold : public aff3ct::module::Module {
 protected:
@@ -37,6 +35,4 @@ protected:
     void deep_copy(const Threshold &m);
 };
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Threshold/Threshold.hxx"
-#endif

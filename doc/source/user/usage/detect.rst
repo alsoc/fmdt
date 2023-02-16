@@ -107,7 +107,6 @@ objects in the video sequence. Here is the template of the output text:
    :Type: STRING
    :Default: [empty]
    :Examples: ``--vid-in-path ~/Videos/meteors.mp4``
-              ``--vid-in-path ~/Images/meteors/%05d.png``
 
 Input video path (supports also a path to a sequence of images
 ``path/basename_%05d.jpg``).
@@ -475,11 +474,11 @@ for the frame n°12 is: ``00012.txt``. Each file contains 5 different tables:
   of the detection chain).
 
 .. note:: The first log file (usally named ``00000.txt``) only contains the
-  table 2. This is normal because algorithms stating from |k-NN| require two
+  table 2. This is normal because algorithms starting from |k-NN| require two
   consecutive frames to work.
 
-Table 1 and table 2: Regions of Interest (RoIs)
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Table 1 and table 2: |RoIs|
+^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -493,9 +492,9 @@ Table 1 and table 2: Regions of Interest (RoIs)
 
 Each line corresponds to one |RoI|:
 
-- ``{rid}``: unique identifier for the current |RoI| (start to 1),
-- ``{tid}``: unique identifier of the corresponding track (start to 1), can be,
-  empty if no track is associated to the current |RoI|,
+- ``{rid}``: unique identifier for the current |RoI| (start from 1),
+- ``{tid}``: unique identifier of the corresponding track (start from 1), can
+  be, empty if no track is associated to the current |RoI|,
 - ``{otype}``: type of the track object (``meteor``, ``noise`` or ``star``),
   only if there is a track corresponding to this RoI,
 - ``{xmin}``: minimum :math:`x` position of the bounding box,
@@ -510,8 +509,8 @@ Each line corresponds to one |RoI|:
 - ``{mag}``: magnitude of the current |RoI| (accumulated brightness of the
   |RoI|).
 
-Table 3: List of associations between RoIs
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+Table 3: List of associations between |RoIs|
+^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
 
 .. code-block:: bash
 
@@ -570,7 +569,7 @@ between frame :math:`t - 1` and frame :math:`t`:
 
 - ``{theta}``: the estimated rotation angle between frame :math:`t` and frame
   :math:`t - 1`,
-- ``{tx}`` and `{ty}`: the estimated translation vector from frame :math:`t`
+- ``{tx}`` and ``{ty}``: the estimated translation vector from frame :math:`t`
   to frame :math:`t - 1`,
 - ``{mean_er}``: the mean error of the associated |RoIs|,
 - ``{std_dev}``: the standard deviation of the associated |RoI| errors.

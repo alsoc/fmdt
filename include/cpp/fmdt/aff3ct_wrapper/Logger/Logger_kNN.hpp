@@ -8,7 +8,6 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace lgr_knn {
     enum class tsk : size_t { write, SIZE };
     namespace sck {
@@ -17,7 +16,6 @@ namespace lgr_knn {
                                     in_RoIs1_is_moving, in_n_RoIs1, in_frame, status };
     }
 }
-#endif
 
 class Logger_kNN : public aff3ct::module::Module {
 protected:
@@ -34,6 +32,4 @@ public:
     inline aff3ct::runtime::Socket& operator[](const lgr_knn::sck::write s);
 };
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Logger/Logger_kNN.hxx"
-#endif

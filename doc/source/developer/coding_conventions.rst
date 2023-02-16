@@ -23,7 +23,7 @@ General
   hash arrows.
 - The `snake case <https://en.wikipedia.org/wiki/Snake_case>`_ is used,
   (``my_variable``, not ``myVariable``), classes start with an upper case
-  (`My_class`, not `my_class`) and variables/methods/functions start with a
+  (``My_class``, not ``my_class``) and variables/methods/functions start with a
   lower case.
 - The number of characters is limited to 120 per line of code.
 
@@ -32,8 +32,9 @@ Variables
 
 - Global variables are prefixed with ``g_``.
 - Parameter variables from the command line are prefixed with ``p_``.
-- Static variables from defines are all uppercase.
-- If a variable contains more that one element, its name should end with a "s"
+- Static variables from defines are all uppercase
+  (ex.: ``#define MY_STATIC_VAR 12``).
+- If a variable contains more that one element, its name should ends with a "s"
   (ex.: ``int values[100]``).
 
 Functions
@@ -118,7 +119,7 @@ the ``clang-format`` parser. At the root of the project a ``clang-format``
 configuration file is provided (see the ``.clang-format`` file).
 
 For instance, if you want to auto-format the ``src/motion.c`` file you can run
-``clang-format`` form the project root as follow:
+``clang-format`` from the project root as follow:
 
 .. code-block:: bash
 

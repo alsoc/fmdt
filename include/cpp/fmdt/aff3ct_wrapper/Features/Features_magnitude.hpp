@@ -8,7 +8,6 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace ftr_mgn {
     enum class tsk : size_t { compute, SIZE };
     namespace sck {
@@ -16,7 +15,6 @@ namespace ftr_mgn {
                                       in_RoIs_S, in_n_RoIs, out_RoIs_magnitude, status };
     }
 }
-#endif
 
 class Features_magnitude : public aff3ct::module::Module {
 protected:
@@ -37,6 +35,4 @@ protected:
     void deep_copy(const Features_magnitude &m);
 };
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Features/Features_magnitude.hxx"
-#endif

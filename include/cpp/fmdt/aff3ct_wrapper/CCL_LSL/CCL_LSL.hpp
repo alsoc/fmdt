@@ -8,7 +8,6 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace ccl {
     enum class tsk : size_t { apply, SIZE };
     namespace sck {
@@ -16,7 +15,6 @@ namespace ccl {
                                     out_data_eq, out_data_ner, status };
     }
 }
-#endif
 
 class CCL_LSL : public aff3ct::module::Module {
 protected:
@@ -42,6 +40,4 @@ protected:
     void deep_copy(const CCL_LSL &m);
 };
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_LSL.hxx"
-#endif

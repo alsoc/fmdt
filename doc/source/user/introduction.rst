@@ -27,7 +27,7 @@ sequence while the instant power is only **around 4 Watts**.
 
 :numref:`fig_detection_chain` shows an example of detection on one frame. Green
 |BBs| represent detected *meteors*, purple |BBs| represent detected *stars* and
-orange |BBs| represent detected *noise* (= something which is not a *meteors*
+orange |BBs| represent detected *noise* (= something which is not a *meteor*
 and not a *star*).
 
 Scientific Background

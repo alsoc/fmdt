@@ -10,7 +10,6 @@
 
 #include "fmdt/tracking/tracking_struct.h"
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace lgr_roi {
     enum class tsk : size_t { write, SIZE };
     namespace sck {
@@ -21,7 +20,6 @@ namespace lgr_roi {
                                     in_n_RoIs1, in_frame, status};
     }
 }
-#endif
 
 class Logger_RoIs : public aff3ct::module::Module {
 protected:
@@ -37,6 +35,4 @@ public:
     inline aff3ct::runtime::Socket& operator[](const lgr_roi::sck::write s);
 };
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Logger/Logger_RoIs.hxx"
-#endif

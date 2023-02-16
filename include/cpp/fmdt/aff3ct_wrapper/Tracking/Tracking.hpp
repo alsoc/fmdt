@@ -10,7 +10,6 @@
 
 #include "fmdt/tracking/tracking_struct.h"
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace trk {
     enum class tsk : size_t { perform, SIZE };
     namespace sck {
@@ -19,7 +18,6 @@ namespace trk {
                                       in_RoIs_magnitude, in_n_RoIs, in_motion_est, status };
     }
 }
-#endif
 
 class Tracking : public aff3ct::module::Module {
 protected:
@@ -49,6 +47,4 @@ public:
 
 };
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Tracking/Tracking.hxx"
-#endif

@@ -8,7 +8,6 @@
 #include <stdint.h>
 #include <aff3ct-core.hpp>
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 namespace ftr_ext {
     enum class tsk : size_t { extract, SIZE };
     namespace sck {
@@ -17,7 +16,6 @@ namespace ftr_ext {
                                       status };
     }
 }
-#endif
 
 class Features_extractor : public aff3ct::module::Module {
 protected:
@@ -37,6 +35,4 @@ protected:
     void deep_copy(const Features_extractor &m);
 };
 
-#ifndef DOXYGEN_SHOULD_SKIP_THIS
 #include "fmdt/aff3ct_wrapper/Features/Features_extractor.hxx"
-#endif
