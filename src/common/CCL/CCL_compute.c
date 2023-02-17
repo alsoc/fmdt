@@ -5,7 +5,7 @@
 
 #include "fmdt/CCL/CCL_compute.h"
 
-CCL_data_t* CCL_LSL_alloc_and_init_data(int i0, int i1, int j0, int j1) {
+CCL_data_t* CCL_LSL_alloc_data(int i0, int i1, int j0, int j1) {
     CCL_data_t* CCL_data = (CCL_data_t*)malloc(sizeof(CCL_data_t));
     CCL_data->i0 = i0;
     CCL_data->i1 = i1;
@@ -19,6 +19,15 @@ CCL_data_t* CCL_LSL_alloc_and_init_data(int i0, int i1, int j0, int j1) {
     CCL_data->eq = ui32vector(0, n);
     CCL_data->ner = ui32vector(CCL_data->i0, CCL_data->i1);
     return CCL_data;
+}
+
+void CCL_LSL_init_data(CCL_data_t* CCL_data) {
+    zero_ui32matrix(CCL_data->er , CCL_data->i0, CCL_data->i1, CCL_data->j0, CCL_data->j1);
+    zero_ui32matrix(CCL_data->era , CCL_data->i0, CCL_data->i1, CCL_data->j0, CCL_data->j1);
+    zero_ui32matrix(CCL_data->rlc , CCL_data->i0, CCL_data->i1, CCL_data->j0, CCL_data->j1);
+    long n = (CCL_data->i1 - CCL_data->i0 + 1) * (CCL_data->j1 - CCL_data->j0 + 1);
+    zero_ui32vector(CCL_data->eq, 0, n);
+    zero_ui32vector(CCL_data->ner, CCL_data->i0, CCL_data->i1);
 }
 
 void CCL_LSL_free_data(CCL_data_t* CCL_data) {

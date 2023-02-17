@@ -230,22 +230,32 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--ccl-fra-id' has to be combined with the '--ccl-fra-path' parameter\n");
 #endif
 
-    // -------------------------- //
-    // -- VIDEO INITIALISATION -- //
-    // -------------------------- //
+    // --------------------------------------- //
+    // -- VIDEO ALLOCATION & INITIALISATION -- //
+    // --------------------------------------- //
 
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
-    video_reader_t* video = video_reader_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
-                                              p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
+    video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
+                                                    p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
     video->loop_size = (size_t)(p_vid_in_loop);
+    video_writer_t* video_writer = NULL;
+    img_data_t* img_data = NULL;
+    if (p_ccl_fra_path) {
+        img_data = image_gs_alloc((j1 - j0) + 1, (i1 - i0) + 1);
+        const size_t n_threads = 1;
+        video_writer = video_writer_alloc_init(p_ccl_fra_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
+                                               PIXFMT_GRAY);
+    }
 
-    // ---------------- //
-    // -- ALLOCATION -- //
-    // ---------------- //
+    // --------------------- //
+    // -- DATA ALLOCATION -- //
+    // --------------------- //
 
     RoIs_t* RoIs_tmp = features_alloc_RoIs(MAX_ROI_SIZE_BEFORE_SHRINK);
     RoIs_t* RoIs0 = features_alloc_RoIs(MAX_ROI_SIZE);
     RoIs_t* RoIs1 = features_alloc_RoIs(MAX_ROI_SIZE);
+    CCL_data_t* ccl_data = CCL_LSL_alloc_data(i0, i1, j0, j1);
+    kNN_data_t* knn_data = kNN_alloc_data(MAX_ROI_SIZE);
     vec_BB_t* BBs = NULL;
     if (p_trk_bb_path)
         BBs = (vec_BB_t*)vector_create();
@@ -257,30 +267,22 @@ int main(int argc, char** argv) {
     uint32_t **L1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL)
     uint32_t **L2 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL + hysteresis)
 
-    // --------------------------- //
-    // -- MATRIX INITIALISATION -- //
-    // --------------------------- //
+    // ------------------------- //
+    // -- DATA INITIALISATION -- //
+    // ------------------------- //
 
     tracking_init_global_data();
-    kNN_data_t* knn_data = kNN_alloc_and_init_data(MAX_ROI_SIZE);
     features_init_RoIs(RoIs_tmp);
     features_init_RoIs(RoIs0);
     features_init_RoIs(RoIs1);
     tracking_init_data(tracking_data);
-    CCL_data_t* ccl_data = CCL_LSL_alloc_and_init_data(i0, i1, j0, j1);
+    CCL_LSL_init_data(ccl_data);
+    kNN_init_data(knn_data);
     zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
-    img_data_t* img_data = NULL;
-    video_writer_t* video_writer = NULL;
-    if (p_ccl_fra_path) {
-        img_data = image_gs_alloc((j1 - j0) + 1, (i1 - i0) + 1);
-        const size_t n_threads = 1;
-        video_writer = video_writer_init(p_ccl_fra_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
-                                         PIXFMT_GRAY);
-    }
 
     // ----------------//
     // -- PROCESSING --//

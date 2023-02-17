@@ -12,11 +12,18 @@
 
 /**
  * Allocation of inner kNN data.
- * The `conflicts` field is allocated only if the FMDT_ENABLE_DEBUG macro is defined.
+ * The `conflicts` field is allocated only if the `FMDT_ENABLE_DEBUG` macro is
+ * defined.
  * @param max_size Maximum number of RoIs that can considered for associations.
  * @return Pointer of kNN data.
  */
-kNN_data_t* kNN_alloc_and_init_data(const size_t max_size);
+kNN_data_t* kNN_alloc_data(const size_t max_size);
+
+/**
+ * Initialization of the kNN inner data. Set all zeros.
+ * @param kNN_data Pointer of inner kNN data.
+ */
+void kNN_init_data(kNN_data_t* kNN_data);
 
 /**
  * Compute associations between RoIs at \f$t - 1\f$ and RoIs at \f$t\f$.

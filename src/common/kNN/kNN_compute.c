@@ -8,20 +8,25 @@
 
 #include "fmdt/kNN/kNN_compute.h"
 
-kNN_data_t* kNN_alloc_and_init_data(const size_t max_size) {
+kNN_data_t* kNN_alloc_data(const size_t max_size) {
     kNN_data_t* kNN_data = (kNN_data_t*)malloc(sizeof(kNN_data_t));
     kNN_data->_max_size = max_size;
     kNN_data->nearest = (uint32_t**)ui32matrix(0, max_size - 1, 0, max_size - 1);
     kNN_data->distances = (float**)f32matrix(0, max_size - 1, 0, max_size - 1);
-    zero_ui32matrix(kNN_data->nearest, 0, max_size - 1, 0, max_size - 1);
-    zero_f32matrix(kNN_data->distances, 0, max_size - 1, 0, max_size - 1);
 #ifdef FMDT_ENABLE_DEBUG
     kNN_data->conflicts = (uint32_t*)ui32vector(0, max_size - 1);
-    zero_ui32vector(kNN_data->conflicts, 0, max_size - 1);
 #else
     kNN_data->conflicts = NULL;
 #endif
     return kNN_data;
+}
+
+void kNN_init_data(kNN_data_t* kNN_data) {
+    zero_ui32matrix(kNN_data->nearest, 0, kNN_data->_max_size - 1, 0, kNN_data->_max_size - 1);
+    zero_f32matrix(kNN_data->distances, 0, kNN_data->_max_size - 1, 0, kNN_data->_max_size - 1);
+#ifdef FMDT_ENABLE_DEBUG
+    zero_ui32vector(kNN_data->conflicts, 0, kNN_data->_max_size - 1);
+#endif
 }
 
 void kNN_free_data(kNN_data_t* kNN_data) {

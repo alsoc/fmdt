@@ -8,7 +8,7 @@
 #include "fmdt/video/video_struct.h"
 
 /**
- * Allocation of inner data required for a video reader.
+ * Allocation and initialization of inner data required for a video reader.
  * @param path Path to the video or images.
  * @param start Start frame number (first frame is frame 0).
  * @param end Last frame number (if 0 then the video sequence is entirely read).
@@ -22,9 +22,9 @@
  * @param j1 Return the last \f$x\f$ index in the labels (included).
  * @return The allocated data.
  */
-video_reader_t* video_reader_init(const char* path, const size_t start, const size_t end, const size_t skip,
-                                  const int bufferize, const size_t n_ffmpeg_threads, int* i0, int* i1, int* j0,
-                                  int* j1);
+video_reader_t* video_reader_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
+                                        const int bufferize, const size_t n_ffmpeg_threads, int* i0, int* i1, int* j0,
+                                        int* j1);
 
 /**
  * Write grayscale image in a given 2D array.
@@ -41,7 +41,7 @@ int video_reader_get_frame(video_reader_t* video, uint8_t** img);
 void video_reader_free(video_reader_t* video);
 
 /**
- * Allocation of inner data required for a video writer.
+ * Allocation and initialization of inner data required for a video writer.
  * @param path Path to the video or images.
  * @param start Start frame number (first frame is frame 0).
  * @param n_ffmpeg_threads Number of threads used in FFMPEG to encode the video sequence (0 means FFMPEG will decide).
@@ -50,8 +50,8 @@ void video_reader_free(video_reader_t* video);
  * @param pixfmt Pixels format (grayscale or RGB).
  * @return The allocated data.
  */
-video_writer_t* video_writer_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
-                                  const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt);
+video_writer_t* video_writer_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
+                                        const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt);
 
 /**
  * Allocation of inner data required for a video writer.

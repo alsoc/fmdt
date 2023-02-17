@@ -10,14 +10,20 @@
 #include "fmdt/CCL/CCL_struct.h"
 
 /**
- * Allocation and initialization of inner data required to perform Light Speed Labeling (LSL).
+ * Allocation of inner data required to perform Light Speed Labeling (LSL).
  * @param i0 The first \f$y\f$ index in the image (included).
  * @param i1 The last \f$y\f$ index in the image (included).
  * @param j0 The first \f$x\f$ index in the image (included).
  * @param j1 The last \f$x\f$ index in the image (included).
  * @return The allocated and initialized data.
  */
-CCL_data_t* CCL_LSL_alloc_and_init_data(int i0, int i1, int j0, int j1);
+CCL_data_t* CCL_LSL_alloc_data(int i0, int i1, int j0, int j1);
+
+/**
+ * Initialization of the CCL inner data. Set all zeros.
+ * @param CCL_data Pointer of inner CCL data.
+ */
+void CCL_LSL_init_data(CCL_data_t* CCL_data);
 
 /**
  * Compute the Light Speed Labeling (LSL) algorithm.

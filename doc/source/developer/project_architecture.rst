@@ -69,15 +69,17 @@ They are different ways to manage this type of data in C codes. In |FMDT| the
 chosen pattern is to allocate this inner data before calling the compute
 function. And to deallocate this data after. For instance, in the previous
 ``kNN_match`` function, the first parameter is a pointer of ``kNN_data_t`` type.
-This data can be allocated with the ``kNN_alloc_and_init_data`` function defined
-in the same ``kNN_compute.h`` header.
+This data can be allocated with the ``kNN_alloc_data`` function defined in the
+same ``kNN_compute.h`` header.
 
 The following lines illustrate how to properly use the |k-NN| module:
 
 .. code-block:: c
 
-	// inner data allocation on the heap (+ initialization)
-	kNN_data_t* kNN_data = kNN_alloc_and_init_data(MAX_SIZE);
+	// inner data allocation on the heap
+	kNN_data_t* kNN_data = kNN_alloc_data(MAX_SIZE);
+	// initialization of the data with zeros (this is NOT mandatory)
+	kNN_init_data(kNN_data);
 	// kNN matching computation (multiple calls of kNN match function with the same `kNN_data`)
 	kNN_match(kNN_data, /* ... */);
 	kNN_match(kNN_data, /* ... */);
