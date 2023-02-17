@@ -6,7 +6,7 @@
 void motion_write(FILE* f, const motion_t* motion_est1, const motion_t* motion_est2) {
     fprintf(f, "# Motion:\n");
     fprintf(f, "# ---------------------------------------------------||---------------------------------------------------\n");
-    fprintf(f, "#  First motion estimation (with all associated ROIs)||   Second motion estimation (exclude moving ROIs)  \n");
+    fprintf(f, "#  First motion estimation (with all associated RoIs)||   Second motion estimation (exclude moving RoIs)  \n");
     fprintf(f, "# ---------------------------------------------------||---------------------------------------------------\n");
     fprintf(f, "# ----------|---------|---------|----------|---------||----------|---------|---------|----------|---------\n");
     fprintf(f, "#     theta |      tx |      ty | mean err | std dev ||    theta |      tx |      ty | mean err | std dev \n");

@@ -14,19 +14,19 @@ char g_change_state_to_string[N_REASONS][64];
 char g_change_state_to_string_with_spaces[N_REASONS][64];
 
 void tracking_init_global_data() {
-    g_obj_to_color[UNKNOWN] = UNKNOWN_COLOR;
-    g_obj_to_color[STAR] = STAR_COLOR;
-    g_obj_to_color[METEOR] = METEOR_COLOR;
-    g_obj_to_color[NOISE] = NOISE_COLOR;
+    g_obj_to_color[OBJ_UNKNOWN] = UNKNOWN_COLOR;
+    g_obj_to_color[OBJ_STAR] = STAR_COLOR;
+    g_obj_to_color[OBJ_METEOR] = METEOR_COLOR;
+    g_obj_to_color[OBJ_NOISE] = NOISE_COLOR;
 
     char str_unknown[64] = UNKNOWN_STR;
-    snprintf(g_obj_to_string[UNKNOWN], sizeof(g_obj_to_string[UNKNOWN]), "%s", str_unknown);
+    snprintf(g_obj_to_string[OBJ_UNKNOWN], sizeof(g_obj_to_string[OBJ_UNKNOWN]), "%s", str_unknown);
     char str_star[64] = STAR_STR;
-    snprintf(g_obj_to_string[STAR], sizeof(g_obj_to_string[STAR]), "%s", str_star);
+    snprintf(g_obj_to_string[OBJ_STAR], sizeof(g_obj_to_string[OBJ_STAR]), "%s", str_star);
     char str_meteor[64] = METEOR_STR;
-    snprintf(g_obj_to_string[METEOR], sizeof(g_obj_to_string[METEOR]), "%s", str_meteor);
+    snprintf(g_obj_to_string[OBJ_METEOR], sizeof(g_obj_to_string[OBJ_METEOR]), "%s", str_meteor);
     char str_noise[64] = NOISE_STR;
-    snprintf(g_obj_to_string[NOISE], sizeof(g_obj_to_string[NOISE]), "%s", str_noise);
+    snprintf(g_obj_to_string[OBJ_NOISE], sizeof(g_obj_to_string[OBJ_NOISE]), "%s", str_noise);
 
     unsigned max = 0;
     for (int i = 0; i < N_OBJECTS; i++)
@@ -42,7 +42,7 @@ void tracking_init_global_data() {
             g_obj_to_string_with_spaces[i][c] = ' ';
     }
 
-    snprintf(g_change_state_to_string[UNKNOWN], sizeof(g_change_state_to_string[UNKNOWN]), "%s", str_unknown);
+    snprintf(g_change_state_to_string[OBJ_UNKNOWN], sizeof(g_change_state_to_string[OBJ_UNKNOWN]), "%s", str_unknown);
     char str_too_big_angle[64] = TOO_BIG_ANGLE_STR;
     snprintf(g_change_state_to_string[REASON_TOO_BIG_ANGLE], sizeof(g_change_state_to_string[REASON_TOO_BIG_ANGLE]),
         "%s", str_too_big_angle);
@@ -69,7 +69,7 @@ void tracking_init_global_data() {
 }
 
 enum obj_e tracking_string_to_obj_type(const char* string) {
-    enum obj_e obj = UNKNOWN;
+    enum obj_e obj = OBJ_UNKNOWN;
     for (int i = 0; i < N_OBJECTS; i++)
         if (!strcmp(string, g_obj_to_string[i])) {
             obj = (enum obj_e)i;

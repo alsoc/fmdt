@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
                 def_p_vid_in_threads);
         fprintf(stderr, "  --trk-path         Path to the tracks files                 [%s]\n",
                 def_p_trk_path ? def_p_trk_path : "NULL");
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
         fprintf(stderr, "  --trk-id           Show the object ids on the output frame      \n");
         fprintf(stderr, "  --trk-nat-num      Natural numbering of the object ids          \n");
 #endif
@@ -70,7 +70,7 @@ int main(int argc, char** argv) {
     const int p_vid_in_stop = args_find_int_min(argc, argv, "--vid-in-stop,--fra-end", def_p_vid_in_stop, 0);
     const int p_vid_in_threads = args_find_int_min(argc, argv, "--vid-in-threads,--ffmpeg-threads", def_p_vid_in_threads, 0);
     const char* p_trk_path = args_find_char(argc, argv, "--trk-path,--in-tracks", def_p_trk_path);
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     const int p_trk_id = args_find(argc, argv, "--trk-id,--show-id");
     const int p_trk_nat_num = args_find(argc, argv, "--trk-nat-num,--nat-num");
 #else
@@ -94,7 +94,7 @@ int main(int argc, char** argv) {
     printf("#  * vid-in-stop     = %d\n", p_vid_in_stop);
     printf("#  * vid-in-threads  = %d\n", p_vid_in_threads);
     printf("#  * trk-path        = %s\n", p_trk_path);
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     printf("#  * trk-id          = %d\n", p_trk_id);
     printf("#  * trk-nat-num     = %d\n", p_trk_nat_num);
 #endif
@@ -116,7 +116,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--vid-in-stop' has to be higher than '--vid-in-start'\n");
         exit(1);
     }
-#ifdef OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
     if (p_trk_id && !p_trk_path)
         fprintf(stderr, "(WW) '--trk-id' will not work because '--trk-path' is not set\n");
     if (!p_trk_id && p_trk_nat_num)
@@ -136,8 +136,8 @@ int main(int argc, char** argv) {
     PUTS("INIT VIDEO");
     int skip = 0;
     int i0, i1, j0, j1;
-    video_reader_t* video = video_reader_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, skip, 0, p_vid_in_threads, &i0, &i1,
-                                              &j0, &j1);
+    video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, skip, 0,
+                                                    p_vid_in_threads, &i0, &i1, &j0, &j1);
 
     // ---------------- //
     // -- ALLOCATION -- //
@@ -152,10 +152,12 @@ int main(int argc, char** argv) {
     size_t n_threads = 4;
     if (p_trk_path) {
         img_data = image_color_alloc((j1 - j0) + 1, (i1 - i0) + 1);
-        video_writer = video_writer_init(p_fra_out_path, p_vid_in_start, n_threads, i1 - i0 + 1, j1 - j0 + 1, PIXFMT_RGB24);
+        video_writer = video_writer_alloc_init(p_fra_out_path, p_vid_in_start, n_threads, i1 - i0 + 1, j1 - j0 + 1,
+                                               PIXFMT_RGB24);
     } else {
         img_data = image_gs_alloc((j1 - j0) + 1, (i1 - i0) + 1);
-        video_writer = video_writer_init(p_fra_out_path, p_vid_in_start, n_threads, i1 - i0 + 1, j1 - j0 + 1, PIXFMT_GRAY);
+        video_writer = video_writer_alloc_init(p_fra_out_path, p_vid_in_start, n_threads, i1 - i0 + 1, j1 - j0 + 1,
+                                               PIXFMT_GRAY);
     }
 
     // ----------------//
@@ -171,65 +173,65 @@ int main(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (p_trk_path) {
-        vec_track_t track_array;
-        tracking_parse_tracks(p_trk_path, &track_array);
+        vec_track_t tracks;
+        tracking_parse_tracks(p_trk_path, &tracks);
 
         if (p_gt_path) {
             validation_init(p_gt_path);
-            validation_process(track_array);
+            validation_process(tracks);
         }
 
-        size_t n_tracks = vector_size(track_array);
-        BB_t* BB_list = (BB_t*)malloc(sizeof(BB_t) * n_tracks);
-        enum color_e* BB_list_color = (enum color_e*)malloc(sizeof(enum color_e) * n_tracks);
+        size_t n_tracks = vector_size(tracks);
+        BB_t* BBs = (BB_t*)malloc(sizeof(BB_t) * n_tracks);
+        enum color_e* BBs_color = (enum color_e*)malloc(sizeof(enum color_e) * n_tracks);
         size_t m = 0;
         for (size_t t = 0; t < n_tracks; t++) {
-            if ((!p_trk_only_meteor || track_array[t].obj_type == METEOR) &&
-                (track_array[t].end.frame >= (size_t)p_vid_in_start)) {
-                BB_list[m].frame_id = 0;
-#ifdef OPENCV_LINK
-                BB_list[m].track_id = p_trk_nat_num ? (m + 1) : track_array[t].id;
+            if ((!p_trk_only_meteor || tracks[t].obj_type == OBJ_METEOR) &&
+                (tracks[t].end.frame >= (size_t)p_vid_in_start)) {
+                BBs[m].frame_id = 0;
+#ifdef FMDT_OPENCV_LINK
+                BBs[m].track_id = p_trk_nat_num ? (m + 1) : tracks[t].id;
 #else
-                BB_list[m].track_id = track_array[t].id;
+                BBs[m].track_id = tracks[t].id;
 #endif
                 int xmin =
-                    track_array[t].begin.x < track_array[t].end.x ? track_array[t].begin.x : track_array[t].end.x;
+                    tracks[t].begin.x < tracks[t].end.x ? tracks[t].begin.x : tracks[t].end.x;
                 int xmax =
-                    track_array[t].begin.x < track_array[t].end.x ? track_array[t].end.x : track_array[t].begin.x;
+                    tracks[t].begin.x < tracks[t].end.x ? tracks[t].end.x : tracks[t].begin.x;
                 int ymin =
-                    track_array[t].begin.y < track_array[t].end.y ? track_array[t].begin.y : track_array[t].end.y;
+                    tracks[t].begin.y < tracks[t].end.y ? tracks[t].begin.y : tracks[t].end.y;
                 int ymax =
-                    track_array[t].begin.y < track_array[t].end.y ? track_array[t].end.y : track_array[t].begin.y;
+                    tracks[t].begin.y < tracks[t].end.y ? tracks[t].end.y : tracks[t].begin.y;
 
-                BB_list[m].bb_x = (uint16_t)ceilf((float)(xmin + xmax) / 2.f);
-                BB_list[m].bb_y = (uint16_t)ceilf((float)(ymin + ymax) / 2.f);
-                BB_list[m].rx = BB_list[m].bb_x - xmin;
-                BB_list[m].ry = BB_list[m].bb_y - ymin;
-                BB_list[m].is_extrapolated = 0;
+                BBs[m].bb_x = (uint16_t)ceilf((float)(xmin + xmax) / 2.f);
+                BBs[m].bb_y = (uint16_t)ceilf((float)(ymin + ymax) / 2.f);
+                BBs[m].rx = BBs[m].bb_x - xmin;
+                BBs[m].ry = BBs[m].bb_y - ymin;
+                BBs[m].is_extrapolated = 0;
 
-                if (track_array[t].obj_type != UNKNOWN)
-                    BB_list_color[m] = g_obj_to_color[track_array[t].obj_type];
+                if (tracks[t].obj_type != OBJ_UNKNOWN)
+                    BBs_color[m] = g_obj_to_color[tracks[t].obj_type];
                 else {
-                    fprintf(stderr, "(EE) This should never happen... ('t' = %lu, 'track_array[t].obj_type' = %d)\n",
-                            (unsigned long)t, track_array[t].obj_type);
+                    fprintf(stderr, "(EE) This should never happen... ('t' = %lu, 'tracks[t].obj_type' = %d)\n",
+                            (unsigned long)t, tracks[t].obj_type);
                     exit(-1);
                 }
 
                 if (p_gt_path && g_is_valid_track[t] == 1)
-                    BB_list_color[m] = GREEN; // GREEN = true positive 'meteor'
+                    BBs_color[m] = COLOR_GREEN; // COLOR_GREEN = true positive 'meteor'
                 if (p_gt_path && g_is_valid_track[t] == 2)
-                    BB_list_color[m] = RED; // RED = false positive 'meteor'
+                    BBs_color[m] = COLOR_RED; // COLOR_RED = false positive 'meteor'
                 m++;
             }
         }
 
         int n_BB = m;
-        image_color_draw_BB(img_data, (const uint8_t**)M, (const BB_t*)BB_list, (const enum color_e*)BB_list_color,
-                            n_BB, p_trk_id, p_gt_path ? 1 : 0);
+        image_color_draw_BBs(img_data, (const uint8_t**)M, (const BB_t*)BBs, (const enum color_e*)BBs_color,
+                             n_BB, p_trk_id, p_gt_path ? 1 : 0);
         video_writer_save_frame(video_writer, (const uint8_t**)image_color_get_pixels_2d(img_data));
-        vector_free(track_array);
-        free(BB_list);
-        free(BB_list_color);
+        vector_free(tracks);
+        free(BBs);
+        free(BBs_color);
         if (p_gt_path)
             validation_free();
     } else {

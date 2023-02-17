@@ -15,8 +15,8 @@ TODO list:
 - [x] Extrapolate more than one frame in tracking
 - [x] Add memory check tests in the CI (valgrind --leak-check=full 
       --show-leak-kinds=all)
-- [x] Compute velocity of moving ROIs, add this to the statistics (no need to do 
-      this, this is the same thing as ROI error when is_moving = 1)
+- [x] Compute velocity of moving RoIs, add this to the statistics (no need to do 
+      this, this is the same thing as RoI error when is_moving = 1)
 - [x] Tests column by column in the python script (new columns should not result 
       in a failure test)
 - [x] Use dynamic vector to store the tracks

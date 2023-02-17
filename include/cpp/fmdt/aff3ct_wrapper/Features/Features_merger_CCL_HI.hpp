@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper to compute/merge CCL with hysteresis.
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -6,10 +11,10 @@
 namespace ftr_mrg {
     enum class tsk : size_t { merge, SIZE };
     namespace sck {
-        enum class merge : size_t { in_labels, in_img_HI, in_ROI_id, in_ROI_xmin, in_ROI_xmax, in_ROI_ymin,
-                                    in_ROI_ymax, in_ROI_S, in_ROI_Sx, in_ROI_Sy, in_ROI_x, in_ROI_y, in_n_ROI,
-                                    out_ROI_id, out_ROI_xmin, out_ROI_xmax, out_ROI_ymin, out_ROI_ymax, out_ROI_S,
-                                    out_ROI_Sx, out_ROI_Sy, out_ROI_x, out_ROI_y, out_n_ROI, out_labels, status };
+        enum class merge : size_t { in_labels, in_img_HI, in_RoIs_id, in_RoIs_xmin, in_RoIs_xmax, in_RoIs_ymin,
+                                    in_RoIs_ymax, in_RoIs_S, in_RoIs_Sx, in_RoIs_Sy, in_RoIs_x, in_RoIs_y, in_n_RoIs,
+                                    out_RoIs_id, out_RoIs_xmin, out_RoIs_xmax, out_RoIs_ymin, out_RoIs_ymax, out_RoIs_S,
+                                    out_RoIs_Sx, out_RoIs_Sy, out_RoIs_x, out_RoIs_y, out_n_RoIs, out_labels, status };
     }
 }
 
@@ -18,15 +23,15 @@ protected:
     const int i0, i1, j0, j1;
     const int b;
     const int S_min, S_max;
-    const size_t max_in_ROI_size;
-    const size_t max_out_ROI_size;
+    const size_t max_in_RoIs_size;
+    const size_t max_out_RoIs_size;
     const uint32_t** in_labels;
     const uint8_t** in_img_HI;
     uint32_t** out_labels;
-    uint32_t* tmp_in_ROI_id;
+    uint32_t* tmp_in_RoIs_id;
 public:
     Features_merger_CCL_HI(const int i0, const int i1, const int j0, const int j1, const int b, const uint32_t S_min,
-                           const uint32_t S_max, const size_t max_in_ROI_size, const size_t max_out_ROI_size);
+                           const uint32_t S_max, const size_t max_in_RoIs_size, const size_t max_out_RoIs_size);
     virtual ~Features_merger_CCL_HI();
     virtual Features_merger_CCL_HI* clone() const;
     inline uint32_t** get_out_labels();

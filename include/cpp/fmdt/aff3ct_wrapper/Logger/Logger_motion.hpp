@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper to log motion compensation.
+ */
+
 #pragma once
 
 #include <stdint.h>

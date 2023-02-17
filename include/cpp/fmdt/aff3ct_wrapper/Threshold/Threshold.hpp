@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper to compute image threshold.
+ */
+
 #pragma once
 
 #include <stdint.h>

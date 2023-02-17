@@ -9,9 +9,9 @@
 
 #define MAX_BUFF_SIZE 16384
 
-video_reader_t* video_reader_init(const char* path, const size_t start, const size_t end, const size_t skip,
-                                  const int bufferize, const size_t n_ffmpeg_threads, int* i0, int* i1, int* j0,
-                                  int* j1) {
+video_reader_t* video_reader_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
+                                        const int bufferize, const size_t n_ffmpeg_threads, int* i0, int* i1, int* j0,
+                                        int* j1) {
     assert(!end || start <= end);
     video_reader_t* video = (video_reader_t*)malloc(sizeof(video_reader_t));
     if (!video) {
@@ -86,11 +86,11 @@ video_reader_t* video_reader_init(const char* path, const size_t start, const si
     return video;
 }
 
-static int _video_reader_get_frame(video_reader_t* video, uint8_t** I) {
+static int _video_reader_get_frame(video_reader_t* video, uint8_t** img) {
     if (video->frame_end && video->frame_start + video->frame_current > video->frame_end)
         return -1;
 
-    if (!ffmpeg_read2d(&video->ffmpeg, I)) {
+    if (!ffmpeg_read2d(&video->ffmpeg, img)) {
         if (video->ffmpeg.error != 22) // 22 == EOF
             fprintf(stderr, "(EE) %s\n", ffmpeg_error2str(video->ffmpeg.error));
         return -1;
@@ -101,13 +101,13 @@ static int _video_reader_get_frame(video_reader_t* video, uint8_t** I) {
     return cur_fra;
 }
 
-int video_reader_get_frame(video_reader_t* video, uint8_t** I) {
+int video_reader_get_frame(video_reader_t* video, uint8_t** img) {
 retry:
     if (video->fra_buffer == NULL) {
         int r;
         size_t skip = video->frame_current == 0 ? 0 : video->frame_skip;
         do {
-            r = _video_reader_get_frame(video, I);
+            r = _video_reader_get_frame(video, img);
             // restart reader
             if (r == -1 && video->cur_loop < video->loop_size) {
                 video->cur_loop++;
@@ -131,7 +131,7 @@ retry:
                 video->frame_current = 0;
             }
             for (unsigned l = 0; l < video->ffmpeg.input.height; l++)
-                memcpy(I[l], video->fra_buffer[video->frame_current][l], video->ffmpeg.input.width);
+                memcpy(img[l], video->fra_buffer[video->frame_current][l], video->ffmpeg.input.width);
             int cur_fra = video->frame_start + (video->frame_current + (video->cur_loop -1) * video->fra_count) *
                           (1 + video->frame_skip);
             video->frame_current++;
@@ -151,8 +151,8 @@ void video_reader_free(video_reader_t* video) {
     free(video);
 }
 
-video_writer_t* video_writer_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
-                                  const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt) {
+video_writer_t* video_writer_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
+                                        const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt) {
     video_writer_t* video = (video_writer_t*)malloc(sizeof(video_writer_t));
     if (!video) {
         fprintf(stderr, "(EE) can't allocate video structure\n");
@@ -193,8 +193,8 @@ video_writer_t* video_writer_init(const char* path, const size_t start, const si
     return video;
 }
 
-void video_writer_save_frame(video_writer_t* video, const uint8_t** I) {
-    if (!ffmpeg_write2d(&video->ffmpeg, (uint8_t**)I)) {
+void video_writer_save_frame(video_writer_t* video, const uint8_t** img) {
+    if (!ffmpeg_write2d(&video->ffmpeg, (uint8_t**)img)) {
         fprintf(stderr, "(EE) ffmpeg_write2d: %s\n", ffmpeg_error2str(video->ffmpeg.error));
         exit(-1);
     }

@@ -16,9 +16,9 @@ CCL_LSL::CCL_LSL(const int i0, const int i1, const int j0, const int j1, const i
     auto &p = this->create_task("apply");
     auto ps_in_img = this->template create_socket_in<uint8_t>(p, "in_img", i_socket_size);
     auto ps_out_labels = this->template create_socket_out<uint32_t>(p, "out_labels", i_socket_size);
-    auto ps_out_n_ROI = this->template create_socket_out<uint32_t>(p, "out_n_ROI", 1);
+    auto ps_out_n_RoIs = this->template create_socket_out<uint32_t>(p, "out_n_RoIs", 1);
 
-    this->create_codelet(p, [ps_in_img, ps_out_labels, ps_out_n_ROI]
+    this->create_codelet(p, [ps_in_img, ps_out_labels, ps_out_n_RoIs]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lsl = static_cast<CCL_LSL&>(m);
         const uint8_t* m_in_img = static_cast<const uint8_t*>(t[ps_in_img].get_dataptr());
@@ -29,14 +29,15 @@ CCL_LSL::CCL_LSL(const int i0, const int i1, const int j0, const int j1, const i
         tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_labels, lsl.i0 - lsl.b, lsl.i1 + lsl.b, lsl.j0 - lsl.b,
                                        lsl.j1 + lsl.b, (const uint32_t**)lsl.out_labels);
 
-        uint32_t* m_out_n_ROI = static_cast<uint32_t*>(t[ps_out_n_ROI].get_dataptr());
+        uint32_t* m_out_n_ROI = static_cast<uint32_t*>(t[ps_out_n_RoIs].get_dataptr());
         *m_out_n_ROI = CCL_apply(lsl.data, lsl.in_img, lsl.out_labels);
         return aff3ct::runtime::status_t::SUCCESS;
     });
 }
 
 void CCL_LSL::init_data(const enum ccl_impl_e impl) {
-    this->data = CCL_alloc_and_init_data(impl, i0, i1, j0, j1);
+    this->data = CCL_alloc_data(impl, i0, i1, j0, j1);
+    CCL_init_data(this->data);
     this->in_img = (const uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint8_t*)));
     this->out_labels = (uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint32_t*)));
     this->in_img -= i0 - b;

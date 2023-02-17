@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper to get image at \f$t - 1\f$ and at \f$t\f$.
+ */
+
 #pragma once
 
 #include <stdint.h>

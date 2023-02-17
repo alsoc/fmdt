@@ -1,10 +1,15 @@
+/*!
+ * \file
+ * \brief Define some basic macros for debugging and Mathematics operations.
+ */
+
 #pragma once
 
 #include <stdint.h>
 
-// ENABLE_DEBUG : macro definissant le fonctionnement general des macros de debug
+// FMDT_ENABLE_DEBUG : macro definissant le fonctionnement general des macros de debug
 
-#ifdef ENABLE_DEBUG
+#ifdef FMDT_ENABLE_DEBUG
 
 // macro de debug
 #ifndef VERBOSE
@@ -31,7 +36,7 @@
 #define FDISP(x)
 #define IDISP(x)
 
-#endif // ENABLE_DEBUG
+#endif // FMDT_ENABLE_DEBUG
 
 #ifndef MIN
 #define MIN(a, b) (((a) < (b)) ? (a) : (b))

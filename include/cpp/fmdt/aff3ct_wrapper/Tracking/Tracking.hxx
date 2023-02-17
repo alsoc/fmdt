@@ -6,8 +6,8 @@ tracking_data_t* Tracking::get_data() {
     return this->tracking_data;
 }
 
-vec_BB_t* Tracking::get_BB_array() {
-    return this->BB_array;
+vec_BB_t* Tracking::get_BBs() {
+    return this->BBs;
 }
 
 aff3ct::runtime::Task& Tracking::operator[](const trk::tsk t) {

@@ -4,8 +4,8 @@
 #include "fmdt/aff3ct_wrapper/Features/Features_extractor.hpp"
 
 Features_extractor::Features_extractor(const int i0, const int i1, const int j0, const int j1, const int b,
-                                       const size_t max_ROI_size)
-: Module(), i0(i0), i1(i1), j0(j0), j1(j1), b(b), max_ROI_size(max_ROI_size), in_img(nullptr) {
+                                       const size_t max_RoIs_size)
+: Module(), i0(i0), i1(i1), j0(j0), j1(j1), b(b), max_RoIs_size(max_RoIs_size), in_img(nullptr) {
     const std::string name = "Features_extractor";
     this->set_name(name);
     this->set_short_name(name);
@@ -16,20 +16,21 @@ Features_extractor::Features_extractor(const int i0, const int i1, const int j0,
 
     auto &p = this->create_task("extract");
     auto ps_in_img = this->template create_socket_in<uint32_t>(p, "in_img", socket_img_size);
-    auto ps_in_n_ROI = this->template create_socket_in<uint32_t>(p, "in_n_ROI", 1);
-    auto ps_out_ROI_id = this->template create_socket_out<uint32_t>(p, "out_ROI_id", max_ROI_size);
-    auto ps_out_ROI_xmin = this->template create_socket_out<uint32_t>(p, "out_ROI_xmin", max_ROI_size);
-    auto ps_out_ROI_xmax = this->template create_socket_out<uint32_t>(p, "out_ROI_xmax", max_ROI_size);
-    auto ps_out_ROI_ymin = this->template create_socket_out<uint32_t>(p, "out_ROI_ymin", max_ROI_size);
-    auto ps_out_ROI_ymax = this->template create_socket_out<uint32_t>(p, "out_ROI_ymax", max_ROI_size);
-    auto ps_out_ROI_S = this->template create_socket_out<uint32_t>(p, "out_ROI_S", max_ROI_size);
-    auto ps_out_ROI_Sx = this->template create_socket_out<uint32_t>(p, "out_ROI_Sx", max_ROI_size);
-    auto ps_out_ROI_Sy = this->template create_socket_out<uint32_t>(p, "out_ROI_Sy", max_ROI_size);
-    auto ps_out_ROI_x = this->template create_socket_out<float>(p, "out_ROI_x", max_ROI_size);
-    auto ps_out_ROI_y = this->template create_socket_out<float>(p, "out_ROI_y", max_ROI_size);
+    auto ps_in_n_RoIs = this->template create_socket_in<uint32_t>(p, "in_n_RoIs", 1);
+    auto ps_out_RoIs_id = this->template create_socket_out<uint32_t>(p, "out_RoIs_id", max_RoIs_size);
+    auto ps_out_RoIs_xmin = this->template create_socket_out<uint32_t>(p, "out_RoIs_xmin", max_RoIs_size);
+    auto ps_out_RoIs_xmax = this->template create_socket_out<uint32_t>(p, "out_RoIs_xmax", max_RoIs_size);
+    auto ps_out_RoIs_ymin = this->template create_socket_out<uint32_t>(p, "out_RoIs_ymin", max_RoIs_size);
+    auto ps_out_RoIs_ymax = this->template create_socket_out<uint32_t>(p, "out_RoIs_ymax", max_RoIs_size);
+    auto ps_out_RoIs_S = this->template create_socket_out<uint32_t>(p, "out_RoIs_S", max_RoIs_size);
+    auto ps_out_RoIs_Sx = this->template create_socket_out<uint32_t>(p, "out_RoIs_Sx", max_RoIs_size);
+    auto ps_out_RoIs_Sy = this->template create_socket_out<uint32_t>(p, "out_RoIs_Sy", max_RoIs_size);
+    auto ps_out_RoIs_x = this->template create_socket_out<float>(p, "out_RoIs_x", max_RoIs_size);
+    auto ps_out_RoIs_y = this->template create_socket_out<float>(p, "out_RoIs_y", max_RoIs_size);
 
-    this->create_codelet(p, [ps_in_img, ps_in_n_ROI, ps_out_ROI_id, ps_out_ROI_xmin, ps_out_ROI_xmax, ps_out_ROI_ymin,
-                             ps_out_ROI_ymax, ps_out_ROI_S, ps_out_ROI_Sx, ps_out_ROI_Sy, ps_out_ROI_x, ps_out_ROI_y]
+    this->create_codelet(p, [ps_in_img, ps_in_n_RoIs, ps_out_RoIs_id, ps_out_RoIs_xmin, ps_out_RoIs_xmax,
+                             ps_out_RoIs_ymin, ps_out_RoIs_ymax, ps_out_RoIs_S, ps_out_RoIs_Sx, ps_out_RoIs_Sy,
+                             ps_out_RoIs_x, ps_out_RoIs_y]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &ext = static_cast<Features_extractor&>(m);
         
@@ -37,20 +38,20 @@ Features_extractor::Features_extractor(const int i0, const int i1, const int j0,
         tools_linear_2d_nrc_ui32matrix(m_in_img, ext.i0 - ext.b, ext.i1 + ext.b, ext.j0 - ext.b, ext.j1 + ext.b, 
                                        ext.in_img);
 
-        uint32_t n_ROI = *static_cast<uint32_t*>(t[ps_in_n_ROI].get_dataptr());
+        uint32_t n_RoIs = *static_cast<uint32_t*>(t[ps_in_n_RoIs].get_dataptr());
 
         _features_extract(ext.in_img, ext.i0, ext.i1, ext.j0, ext.j1,
-                          static_cast<uint32_t*>(t[ps_out_ROI_id].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_ROI_xmin].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_ROI_xmax].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_ROI_ymin].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_ROI_ymax].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_ROI_S].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_ROI_Sx].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_ROI_Sy].get_dataptr()),
-                          static_cast<float*>(t[ps_out_ROI_x].get_dataptr()),
-                          static_cast<float*>(t[ps_out_ROI_y].get_dataptr()),
-                          n_ROI);
+                          static_cast<uint32_t*>(t[ps_out_RoIs_id].get_dataptr()),
+                          static_cast<uint32_t*>(t[ps_out_RoIs_xmin].get_dataptr()),
+                          static_cast<uint32_t*>(t[ps_out_RoIs_xmax].get_dataptr()),
+                          static_cast<uint32_t*>(t[ps_out_RoIs_ymin].get_dataptr()),
+                          static_cast<uint32_t*>(t[ps_out_RoIs_ymax].get_dataptr()),
+                          static_cast<uint32_t*>(t[ps_out_RoIs_S].get_dataptr()),
+                          static_cast<uint32_t*>(t[ps_out_RoIs_Sx].get_dataptr()),
+                          static_cast<uint32_t*>(t[ps_out_RoIs_Sy].get_dataptr()),
+                          static_cast<float*>(t[ps_out_RoIs_x].get_dataptr()),
+                          static_cast<float*>(t[ps_out_RoIs_y].get_dataptr()),
+                          n_RoIs);
 
         return aff3ct::runtime::status_t::SUCCESS;
     });

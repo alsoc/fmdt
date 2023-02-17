@@ -106,7 +106,7 @@ void image_HSV_to_RGB(rgb8_t* pixel, uint8_t h, uint8_t s, uint8_t v) {
 }
 
 void image_save_frame_quad(const char* filename, uint8_t** I0, uint8_t** I1, uint32_t** I2, uint32_t** I3, int nbLabel,
-                           ROI_t* stats, int i0, int i1, int j0, int j1) {
+                           RoIs_t* stats, int i0, int i1, int j0, int j1) {
     int w = (j1 - j0 + 1);
     int h = (i1 - i0 + 1);
 

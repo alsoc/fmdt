@@ -52,17 +52,17 @@ int main(int argc, char** argv) {
     }
 
     tracking_init_global_data();
-    vec_track_t track_array;
-    tracking_parse_tracks(p_trk_path, &track_array);
+    vec_track_t tracks;
+    tracking_parse_tracks(p_trk_path, &tracks);
 
     printf("# The program is running...\n");
 
     // validation pour établir si une track est vrai/faux positif
     validation_init(p_gt_path);
-    validation_process(track_array);
-    validation_print(track_array);
+    validation_process(tracks);
+    validation_print(tracks);
     validation_free();
-    vector_free(track_array);
+    vector_free(tracks);
 
     printf("# End of the program, exiting.\n");
 

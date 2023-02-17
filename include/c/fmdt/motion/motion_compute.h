@@ -1,18 +1,44 @@
+/*!
+ * \file
+ * \brief Functions to estimate global motion and to compute per RoI motion / error.
+ */
+
 #pragma once
 
 #include "fmdt/features/features_struct.h"
 #include "fmdt/motion/motion_struct.h"
 
-float _motion_compute_mean_error(const float* ROI_error, const uint32_t* ROI_prev_id, const uint8_t* ROI_is_moving,
-                                 const size_t n_ROI);
-float motion_compute_mean_error(const ROI_asso_t* ROI_asso_array, const ROI_motion_t* ROI_motion_array);
-float _motion_compute_std_deviation(const float* ROI_error, const uint32_t* ROI_prev_id, const uint8_t* ROI_is_moving,
-                                    const size_t n_ROI, const float mean_error);
-float motion_compute_std_deviation(const ROI_asso_t* ROI_asso_array, const ROI_motion_t* ROI_motion_array,
-                                     const float mean_error);
-void _motion_compute(const float* ROI0_x, const float* ROI0_y, const float* ROI1_x, const float* ROI1_y, float* ROI1_dx,
-                     float* ROI1_dy, float* ROI1_error, const uint32_t* ROI1_prev_id, uint8_t* ROI1_is_moving,
-                     const size_t n_ROI1, motion_t* motion_est1, motion_t* motion_est2);
-void motion_compute(const ROI_basic_t* ROI_basic_array0, const ROI_basic_t* ROI_basic_array1,
-                    const ROI_asso_t* ROI_asso_array1, ROI_motion_t* ROI_motion_array1, motion_t* motion_est1,
-                    motion_t* motion_est2);
+/**
+ * Compute the global motion estimation and, after global motion compensation, compute the movement of each RoI.
+ * For the first global motion estimation, all the associated RoIs are considered.
+ * For the second global motion estimation, only the RoIs considered as "not moving" are considered.
+ * To be considered in movement the motion norm of the RoI has to be higher that de motion standard deviation.
+ * @param RoIs0_x Array of centroids abscissa (at \f$t -1\f$).
+ * @param RoIs0_y Array of centroids ordinate (at \f$t -1\f$).
+ * @param RoIs1_x Array of centroids abscissa (at \f$t\f$).
+ * @param RoIs1_y Array of centroids abscissa (at \f$t\f$).
+ * @param RoIs1_dx Array of \f$x\f$ components of the distance between centroids at \f$t - 1\f$ and \f$t\f$.
+ * @param RoIs1_dy Array of \f$y\f$ components of the distance between centroids at \f$t - 1\f$ and \f$t\f$.
+ * @param RoIs1_error Array of velocity norms (if `is_moving` == 1) or errors (if `is_moving` == 0).
+ * @param RoIs1_prev_id Array of previous corresponding RoI identifiers (\f$RoI_{t - 1} \leftrightarrow RoI_{t}\f$).
+ * @param RoIs1_is_moving Array of booleans that defines if the RoI is moving (`is_moving` == 1) or not
+ *                        (`is_moving` == 0).
+ * @param n_RoIs1 Number of connected-components (= number of RoIs) (at \f$t\f$).
+ * @param motion_est1 First global motion estimation.
+ * @param motion_est2 Second global motion estimation.
+ */
+void _motion_compute(const float* RoIs0_x, const float* RoIs0_y, const float* RoIs1_x, const float* RoIs1_y,
+                     float* RoIs1_dx, float* RoIs1_dy, float* RoIs1_error, const uint32_t* RoIs1_prev_id,
+                     uint8_t* RoIs1_is_moving, const size_t n_RoIs1, motion_t* motion_est1, motion_t* motion_est2);
+
+/**
+ * @param RoIs0_basic Basic features (at \f$t -1\f$).
+ * @param RoIs1_basic Basic features (at \f$t\f$).
+ * @param RoIs1_asso Association features (at \f$t\f$).
+ * @param RoIs1_motion Motion features (at \f$t\f$).
+ * @param motion_est1 First global motion estimation.
+ * @param motion_est2 Second global motion estimation.
+ * @see _motion_compute for the explanations about the nature of the processing.
+ */
+void motion_compute(const RoIs_basic_t* RoIs0_basic, const RoIs_basic_t* RoIs1_basic, const RoIs_asso_t* RoIs1_asso,
+                    RoIs_motion_t* RoIs1_motion, motion_t* motion_est1, motion_t* motion_est2);

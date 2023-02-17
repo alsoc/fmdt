@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief C++ wrapper for the CCL LSL algorithm.
+ */
+
 #pragma once
 
 #include <stdint.h>
@@ -8,7 +13,7 @@
 namespace ccl {
     enum class tsk : size_t { apply, SIZE };
     namespace sck {
-        enum class apply : size_t { in_img, out_labels, out_n_ROI, status };
+        enum class apply : size_t { in_img, out_labels, out_n_RoIs, status };
     }
 }
 

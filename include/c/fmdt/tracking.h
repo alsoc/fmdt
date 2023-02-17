@@ -1,3 +1,8 @@
+/*!
+ * \file
+ * \brief Meteor tracking module.
+ */
+
 #pragma once
 
 #include "fmdt/tracking/tracking_struct.h"
