@@ -183,17 +183,6 @@ uint32_t CCL_LSL_apply(CCL_data_t* CCL_data, const uint8_t** img, uint32_t** lab
 
 #include <flsl-lib.h>
 
-enum ccl_impl_e CCL_str_to_enum(const char* str) {
-    if (strcmp(str, "LSLH") == 0) {
-        return LSLH;
-    } else if (strcmp(str, "LSLM") == 0) {
-        return LSLM;
-    } else {
-        fprintf(stderr, "(EE) 'CCL_str_to_enum()' failed, unknown input ('%s').\n", str);
-        exit(-1);
-    }
-}
-
 CCL_gen_data_t* CCL_alloc_data(const enum ccl_impl_e impl, const int i0, const int i1, const int j0, const int j1) {
     CCL_gen_data_t* CCL_data = (CCL_gen_data_t*)malloc(sizeof(CCL_gen_data_t));
     CCL_data->impl = impl;

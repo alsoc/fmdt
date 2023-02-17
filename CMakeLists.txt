@@ -72,6 +72,7 @@ set(src_common_files
     ${src_dir}/common/args.c
     ${src_dir}/common/tools.c
     ${src_dir}/common/CCL/CCL_compute.c
+    ${src_dir}/common/CCL/CCL_struct.c
     ${src_dir}/common/features/features_compute.c
     ${src_dir}/common/features/features_io.c
     ${src_dir}/common/image/image_compute.c

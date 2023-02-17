@@ -8,7 +8,7 @@
 #include <stdint.h>
 
 /**
- *  Inner CCL data required to perform labeling.
+ *  Inner CCL data required to perform labeling (for Arthur HENNEQUIN's LSL implementation).
  */
 typedef struct {
     int i0; /**< First \f$y\f$ index in the image (included). */
@@ -23,10 +23,24 @@ typedef struct {
     uint32_t* ner;  /**< Number of relative labels. */
 } CCL_data_t;
 
-/* LSLH = LSL Hennequin, LSLM = LSL Maurice */
-enum ccl_impl_e { LSLH = 0, LSLM };
+/**
+ *  Enumeration to select CCL implementation.
+ */
+enum ccl_impl_e { LSLH = 0, /*!< LSL implementation from Arthur HENNEQUIN. */
+                  LSLM /*!< LSL implementation from Nathan MAURICE. */
+};
 
+/**
+ *  Generic structure to support different CCL implementations.
+ */
 typedef struct {
-    enum ccl_impl_e impl;
-    void* metadata;
+    enum ccl_impl_e impl; /*!< Selected implementation. */
+    void* metadata; /*!< Inner metadata according to the selected implementation. */
 } CCL_gen_data_t;
+
+/**
+ * Convert a string into an `ccl_impl_e` enum value.
+ * @param str String that can be "LSLH" or "LSLM".
+ * @return Corresponding enum value.
+ */
+enum ccl_impl_e CCL_str_to_enum(const char* str);
