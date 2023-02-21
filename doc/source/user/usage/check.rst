@@ -109,7 +109,7 @@ considered. ``all`` stands for all types, sometime ``all`` can be mean-less.
    :Deprecated: ``--in-tracks``
    :Type: STRING
    :Default: [empty]
-   :Examples: ``--trk-path tracks.txt``
+   :Example: ``--trk-path tracks.txt``
 
 The tracks file corresponding to the input video (generated from
 ``fmdt-detect``). See :numref:`detect_stdout` for the description of the
@@ -123,7 +123,7 @@ expected text input format.
    :Deprecated: ``--in-gt``
    :Type: STRING
    :Default: [empty]
-   :Examples: ``--gt-path gt.txt``
+   :Example: ``--gt-path gt.txt``
 
 File containing the ground truth.
 See :numref:`visu_gt-path` for the description of the expected text input

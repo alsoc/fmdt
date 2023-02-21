@@ -1,4 +1,6 @@
 TODO list:
+- [ ] Regroup CCs together if they are close and if their velocity vectors are 
+      close too
 - [ ] Limit the detection to only a particular angular range (say +/- 30 deg 
       from straight down)
 - [ ] Add zones to ignore for CCL (for instance, this can allow to do not take 
