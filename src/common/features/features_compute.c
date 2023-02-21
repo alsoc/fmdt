@@ -305,9 +305,80 @@ void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_H
 void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
                               const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic, const uint32_t S_min,
                               const uint32_t S_max) {
-    _features_merge_CCL_HI_v2(in_labels, img_HI, out_labels, i0,i1, j0, j1, RoIs_basic->id, RoIs_basic->xmin,
+    _features_merge_CCL_HI_v2(in_labels, img_HI, out_labels, i0, i1, j0, j1, RoIs_basic->id, RoIs_basic->xmin,
                               RoIs_basic->xmax, RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S,
                               *RoIs_basic->_size, S_min, S_max);
+}
+
+void _features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels, const int i0,
+                               const int i1, const int j0, const int j1, uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
+                               const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
+                               const uint32_t* RoIs_S, const size_t n_RoIs, const uint32_t S_min, const uint32_t S_max,
+                               const uint8_t threshold_high, const uint8_t no_labels_zeros_init)
+{
+    if (out_labels != NULL && (void*)in_labels != (void*)out_labels && !no_labels_zeros_init)
+        for (int i = i0; i <= i1; i++)
+            memset(out_labels[i], 0, (j1 - j0 + 1) * sizeof(uint32_t));
+
+    uint32_t cur_label = 1;
+    for (size_t i = 0; i < n_RoIs; i++) {
+        if (RoIs_id[i]) {
+            uint32_t id = RoIs_id[i];
+            uint32_t x0 = RoIs_ymin[i];
+            uint32_t x1 = RoIs_ymax[i];
+            uint32_t y0 = RoIs_xmin[i];
+            uint32_t y1 = RoIs_xmax[i];
+            if (S_min > RoIs_S[i] || RoIs_S[i] > S_max) {
+                RoIs_id[i] = 0;
+                if (out_labels != NULL && ((void*)in_labels == (void*)out_labels)) {
+                    for (uint32_t k = x0; k <= x1; k++) {
+                        for (uint32_t l = y0; l <= y1; l++) {
+                            if (in_labels[k][l] == id)
+                                out_labels[k][l] = 0;
+                        }
+                    }
+                }
+                continue;
+            }
+            for (uint32_t k = x0; k <= x1; k++) {
+                for (uint32_t l = y0; l <= y1; l++) {
+                    if (img[k][l] >= threshold_high && in_labels[k][l] == id) {
+                    // this line reproduces the same behavior as `_features_merge_CCL_HI_v2` but this is a bug
+                    // if (img[k][l] >= threshold_high || out_labels[k][l]) {
+                        if (out_labels != NULL) {
+                            for (k = x0; k <= x1; k++) {
+                                for (l = y0; l <= y1; l++) {
+                                    if (in_labels[k][l] == id) {
+                                        out_labels[k][l] = cur_label;
+                                    }
+                                }
+                            }
+                            cur_label++;
+                        }
+                        goto next;
+                    }
+                }
+            }
+            RoIs_id[i] = 0;
+            if (out_labels != NULL && ((void*)in_labels == (void*)out_labels)) {
+                for (uint32_t k = x0; k <= x1; k++) {
+                    for (uint32_t l = y0; l <= y1; l++) {
+                        if (in_labels[k][l] == id)
+                            out_labels[k][l] = 0;
+                    }
+                }
+            }
+        next:;
+        }
+    }
+}
+
+void features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels, const int i0,
+                              const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic, const uint32_t S_min,
+                              const uint32_t S_max, const uint8_t threshold_high, const uint8_t no_labels_zeros_init) {
+    _features_merge_CCL_HI_v3(in_labels, img, out_labels, i0, i1, j0, j1, RoIs_basic->id, RoIs_basic->xmin,
+                              RoIs_basic->xmax, RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S,
+                              *RoIs_basic->_size, S_min, S_max, threshold_high, no_labels_zeros_init);
 }
 
 size_t _features_shrink(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xmin,
@@ -406,4 +477,22 @@ void features_compute_magnitude(const uint8_t** img, const uint32_t img_width, c
     _features_compute_magnitude(img, img_width, img_height, labels, RoIs_basic->xmin, RoIs_basic->xmax,
                                 RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S,
                                 RoIs_misc->magnitude, *RoIs_misc->_size);
+}
+
+void _features_labels_zero_init(const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
+                                const uint32_t* RoIs_ymax, const size_t n_RoIs, uint32_t** labels) {
+    for (size_t i = 0; i < n_RoIs; i++) {
+        uint32_t x0 = RoIs_ymin[i];
+        uint32_t x1 = RoIs_ymax[i];
+        uint32_t y0 = RoIs_xmin[i];
+        uint32_t y1 = RoIs_xmax[i];
+        for (uint32_t k = x0; k <= x1; k++)
+            for (uint32_t l = y0; l <= y1; l++)
+                labels[k][l] = 0;
+    }
+}
+
+void features_labels_zero_init(const RoIs_basic_t* RoIs_basic, uint32_t** labels) {
+    _features_labels_zero_init(RoIs_basic->xmin, RoIs_basic->xmax, RoIs_basic->ymin, RoIs_basic->ymax,
+                               *RoIs_basic->_size, labels);
 }

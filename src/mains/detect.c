@@ -271,7 +271,9 @@ int main(int argc, char** argv) {
     uint8_t **IL = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold low)
     uint8_t **IH = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold high)
     uint32_t **L1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL)
-    uint32_t **L2 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL + hysteresis)
+    uint32_t **L2 = NULL; // labels (CCL + hysteresis)
+    if (p_trk_mag_path || p_ccl_fra_path)
+        L2 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b);
 
     // ------------------------- //
     // -- DATA INITIALISATION -- //
@@ -288,7 +290,8 @@ int main(int argc, char** argv) {
     zero_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
-    zero_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
+    if (p_trk_mag_path || p_ccl_fra_path)
+        zero_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
 
     // ----------------//
     // -- PROCESSING --//
@@ -309,12 +312,16 @@ int main(int argc, char** argv) {
         features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoI, RoIs_tmp->basic);
 
         // step 3: hysteresis threshold & surface filtering (+ magnitude computations)
-        threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_ccl_hyst_hi);
-        features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, RoIs_tmp->basic,
-                                 p_mrp_s_min, p_mrp_s_max);
+        // threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_ccl_hyst_hi);
+        // features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, RoIs_tmp->basic,
+        //                          p_mrp_s_min, p_mrp_s_max);
+        // const uint8_t fast_out_labels = !p_ccl_fra_path;
+        const uint8_t fast_out_labels = 1;
+        features_merge_CCL_HI_v3((const uint32_t**)L1, (const uint8_t**)I, L2, i0, i1, j0, j1, RoIs_tmp->basic,
+                                 p_mrp_s_min, p_mrp_s_max, p_ccl_hyst_hi, fast_out_labels);
         features_shrink(RoIs_tmp->basic, RoIs1->basic);
-        features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L2, RoIs1->basic,
-                                   RoIs1->misc);
+        if (p_trk_mag_path)
+            features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L2, RoIs1->basic, RoIs1->misc);
 
         // step 4: k-NN matching
         kNN_match(knn_data, RoIs0->basic, RoIs1->basic, RoIs0->asso, RoIs1->asso, p_knn_k, p_knn_d, p_knn_s);
@@ -333,6 +340,8 @@ int main(int argc, char** argv) {
             image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs1->basic, p_ccl_fra_id);
             video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
+        if (p_trk_mag_path || p_ccl_fra_path)
+            features_labels_zero_init(RoIs1->basic, L2);
 
         // save stats
         if (p_log_path) {
@@ -408,7 +417,8 @@ int main(int argc, char** argv) {
     free_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
-    free_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
+    if (p_trk_mag_path || p_ccl_fra_path)
+        free_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
     features_free_RoIs(RoIs_tmp);
     features_free_RoIs(RoIs0);
     features_free_RoIs(RoIs1);

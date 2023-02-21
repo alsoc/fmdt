@@ -208,6 +208,16 @@ void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI
                               const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic,
                               const uint32_t S_min, const uint32_t S_max);
 
+void _features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels, const int i0,
+                               const int i1, const int j0, const int j1, uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
+                               const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
+                               const uint32_t* RoIs_S, const size_t n_RoIs, const uint32_t S_min, const uint32_t S_max,
+                               const uint8_t threshold_high, const uint8_t no_labels_zeros_init);
+
+void features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels, const int i0,
+                              const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic, const uint32_t S_min,
+                              const uint32_t S_max, const uint8_t threshold_high, const uint8_t no_labels_zeros_init);
+
 /**
  * Shrink features. Remove features when feature identifier value is 0.
  * Source features (`RoIs_src_X`) are copied into destination features (`RoIs_dst_X`) if `RoIs_src_id` > 0.
@@ -295,3 +305,8 @@ void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, 
  */
 void features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
                                 const uint32_t** labels, const RoIs_basic_t* RoIs_basic, RoIs_misc_t* RoIs_misc);
+
+void _features_labels_zero_init(const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
+                                const uint32_t* RoIs_ymax, const size_t n_RoIs, uint32_t** labels);
+
+void features_labels_zero_init(const RoIs_basic_t* RoIs_basic, uint32_t** labels);

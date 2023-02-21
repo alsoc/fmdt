@@ -39,8 +39,8 @@ img_data_t* image_gs_alloc(const size_t img_width, const size_t img_height);
  *                the OpenCV library).
  */
 void _image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* RoIs_id,
-                           const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
-                           const size_t n_RoIs, const uint8_t show_id);
+                           const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
+                           const uint32_t* RoIs_ymax, const size_t n_RoIs, const uint8_t show_id);
 
 /**
  * @param img_data Image data.
