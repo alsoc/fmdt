@@ -257,10 +257,9 @@ void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_H
                                const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
                                const uint32_t* RoIs_S, const size_t n_RoIs, const uint32_t S_min, const uint32_t S_max)
 {
-    if ((void*)img_HI != (void*)out_labels)
+    if (out_labels != NULL && (void*)in_labels != (void*)out_labels)
         for (int i = i0; i <= i1; i++)
-            for (int j = j0; j <= j1; j++)
-                out_labels[i][j] = (uint32_t)img_HI[i][j];
+            memset(out_labels[i], 0, (j1 - j0 + 1) * sizeof(uint32_t));
 
     uint32_t x0, x1, y0, y1, id;
     uint32_t cur_label = 1;
@@ -273,17 +272,19 @@ void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_H
             y1 = RoIs_xmax[i];
             if (S_min > RoIs_S[i] || RoIs_S[i] > S_max) {
                 RoIs_id[i] = 0;
-                for (uint32_t k = x0; k <= x1; k++) {
-                    for (uint32_t l = y0; l <= y1; l++) {
-                        if (in_labels[k][l] == id)
-                            out_labels[k][l] = 0;
+                if (out_labels != NULL && ((void*)in_labels == (void*)out_labels)) {
+                    for (uint32_t k = x0; k <= x1; k++) {
+                        for (uint32_t l = y0; l <= y1; l++) {
+                            if (in_labels[k][l] == id)
+                                out_labels[k][l] = 0;
+                        }
                     }
                 }
                 continue;
             }
             for (uint32_t k = x0; k <= x1; k++) {
                 for (uint32_t l = y0; l <= y1; l++) {
-                    if (out_labels[k][l]) {
+                    if (img_HI[k][l] && in_labels[k][l] == id) {
                         for (k = x0; k <= x1; k++) {
                             for (l = y0; l <= y1; l++) {
                                 if (in_labels[k][l] == id) {
@@ -297,6 +298,14 @@ void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_H
                 }
             }
             RoIs_id[i] = 0;
+            if (out_labels != NULL && ((void*)in_labels == (void*)out_labels)) {
+                for (uint32_t k = x0; k <= x1; k++) {
+                    for (uint32_t l = y0; l <= y1; l++) {
+                        if (in_labels[k][l] == id)
+                            out_labels[k][l] = 0;
+                    }
+                }
+            }
         next:;
         }
     }
