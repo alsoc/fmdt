@@ -285,10 +285,12 @@ void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_H
             for (uint32_t k = x0; k <= x1; k++) {
                 for (uint32_t l = y0; l <= y1; l++) {
                     if (img_HI[k][l] && in_labels[k][l] == id) {
-                        for (k = x0; k <= x1; k++) {
-                            for (l = y0; l <= y1; l++) {
-                                if (in_labels[k][l] == id) {
-                                    out_labels[k][l] = cur_label;
+                        if (out_labels != NULL) {
+                            for (k = x0; k <= x1; k++) {
+                                for (l = y0; l <= y1; l++) {
+                                    if (in_labels[k][l] == id) {
+                                        out_labels[k][l] = cur_label;
+                                    }
                                 }
                             }
                         }
