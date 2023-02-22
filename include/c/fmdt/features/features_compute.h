@@ -139,8 +139,7 @@ void features_free_RoIs(RoIs_t* RoIs);
 void _features_extract(const uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
                        uint32_t* RoIs_id, uint32_t* RoIs_xmin, uint32_t* RoIs_xmax, uint32_t* RoIs_ymin,
                        uint32_t* RoIs_ymax, uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, float* RoIs_x,
-                       float* RoIs_y,
-                       const size_t n_RoIs);
+                       float* RoIs_y, const size_t n_RoIs);
 
 /**
  * @param labels Input 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).

@@ -8,6 +8,7 @@
 #include <stdint.h>
 
 #include "fmdt/CCL/CCL_struct.h"
+#include "fmdt/features/features_struct.h"
 
 /**
  * Allocation of inner data required to perform Light Speed Labeling (LSL).
@@ -61,6 +62,25 @@ uint32_t _CCL_LSL_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_
  */
 uint32_t CCL_LSL_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels);
 
+
+uint32_t _CCL_LSL_threshold_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc,
+                                  uint32_t* CCL_data_eq, uint32_t* CCL_data_ner, const uint8_t** img,
+                                  uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
+                                  const uint8_t threshold);
+
+uint32_t CCL_LSL_threshold_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels, const uint8_t threshold);
+
+uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc,
+                                           uint32_t* CCL_data_eq, uint32_t* CCL_data_ner, const uint8_t** img,
+                                           uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
+                                           const uint8_t threshold, uint32_t* RoIs_id, uint32_t* RoIs_xmin,
+                                           uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
+                                           uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, float* RoIs_x,
+                                           float* RoIs_y);
+
+void CCL_LSL_threshold_features_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
+                                      const uint8_t threshold, RoIs_basic_t* RoIs_basic);
+
 /**
  * Free the inner data.
  * Arthur HENNEQUIN's LSL implementation.
@@ -101,6 +121,11 @@ void CCL_init_data(CCL_gen_data_t* CCL_data);
  * @return Number of labels.
  */
 uint32_t CCL_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** labels);
+
+uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** labels, const uint8_t threshold);
+
+void CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
+                                  const uint8_t threshold, RoIs_basic_t* RoIs_basic);
 
 /**
  * Free the inner data.

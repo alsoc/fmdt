@@ -305,11 +305,14 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         // step 1: threshold low
-        threshold((const uint8_t**)I, IL, i0, i1, j0, j1, p_ccl_hyst_lo);
+        // threshold((const uint8_t**)I, IL, i0, i1, j0, j1, p_ccl_hyst_lo);
 
         // step 2: CCL/CCA
-        const int n_RoI = CCL_apply(ccl_data, (const uint8_t**)IL, L1);
-        features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoI, RoIs_tmp->basic);
+        // const int n_RoIs = CCL_apply(ccl_data, (const uint8_t**)IL, L1);
+        // features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoIs, RoIs_tmp->basic);
+
+        // step 1 + step 2: threshold low + CCL/CCA
+        CCL_threshold_features_apply(ccl_data, (const uint8_t**)I, L1, p_ccl_hyst_lo, RoIs_tmp->basic);
 
         // step 3: hysteresis threshold & surface filtering (+ magnitude computations)
         // threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_ccl_hyst_hi);

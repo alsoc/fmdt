@@ -66,6 +66,30 @@ void _LSL_segment_detection(uint32_t* line_er, uint32_t* line_rlc, uint32_t* lin
     *line_ner = er;
 }
 
+void _LSL_segment_detection_threshold(uint32_t* line_er, uint32_t* line_rlc, uint32_t* line_ner,
+                                      const uint8_t* img_line, const int j0, const int j1, const uint8_t threshold) {
+    uint32_t j_curr;
+    uint32_t j_prev = 0;
+    uint32_t f = 0; // Front detection
+    uint32_t b = 0;
+    uint32_t er = 0;
+
+    for (int j = j0; j <= j1; j++) {
+        j_curr = (uint32_t)img_line[j] >= threshold;
+        f = j_curr ^ j_prev;        // Xor: Front detection
+        line_rlc[er] = j - (b & 1); // Begin/End of segment
+        b ^= f;                     // Xor: End of segment correction
+        er += (f & 1);              // Increment label if front detected
+        line_er[j] = er;
+        j_prev = j_curr; // Save one load
+    }
+    j_curr = 0;
+    f = j_curr ^ j_prev;
+    line_rlc[er] = j1 + 1 - (b & 1);
+    er += (f & 1);
+    *line_ner = er;
+}
+
 void _LSL_equivalence_construction(uint32_t* CCL_data_eq, const uint32_t* line_rlc, uint32_t* line_era,
                                    const uint32_t* prevline_er, const uint32_t* prevline_era, const int n, const int x0,
                                    const int x1, uint32_t* nea) {
@@ -118,17 +142,88 @@ void _LSL_equivalence_construction(uint32_t* CCL_data_eq, const uint32_t* line_r
     }
 }
 
-uint32_t _CCL_LSL_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc, uint32_t* CCL_data_eq,
-                        uint32_t* CCL_data_ner, const uint8_t** img, uint32_t** labels, const int i0, const int i1,
-                        const int j0, const int j1) {
-    for (int i = i0; i <= i1; i++)
-        memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
-
-    // Step #1 - Segment detection
+void _LSL_compute_final_image_labeling(const uint32_t** CCL_data_er, const  uint32_t** CCL_data_era,
+                                       const uint32_t** CCL_data_rlc, const uint32_t* CCL_data_eq,
+                                       const uint32_t* CCL_data_ner, uint32_t** labels, const int i0,
+                                       const int i1) {
+    // Step #5 - Final image labeling
     for (int i = i0; i <= i1; i++) {
-        _LSL_segment_detection(CCL_data_er[i], CCL_data_rlc[i], &CCL_data_ner[i], img[i], j0, j1);
+        uint32_t n = CCL_data_ner[i];
+        for (uint32_t k = 0; k < n; k += 2) {
+            int a = CCL_data_rlc[i][k];
+            int b = CCL_data_rlc[i][k + 1];
+
+            // Step #3 merged with step #5
+            uint32_t val = CCL_data_era[i][CCL_data_er[i][a]];
+            val = CCL_data_eq[val] + 1;
+
+            for (int j = a; j <= b; j++) {
+                labels[i][j] = (uint32_t)val;
+            }
+        }
+    }
+}
+
+void _LSL_compute_final_image_labeling_features(const uint32_t** CCL_data_er, const  uint32_t** CCL_data_era,
+                                                const uint32_t** CCL_data_rlc, const uint32_t* CCL_data_eq,
+                                                const uint32_t* CCL_data_ner, uint32_t** labels, const int i0,
+                                                const int i1, const int j0, const int j1, uint32_t* RoIs_id,
+                                                uint32_t* RoIs_xmin, uint32_t* RoIs_xmax, uint32_t* RoIs_ymin,
+                                                uint32_t* RoIs_ymax, uint32_t* RoIs_S, uint32_t* RoIs_Sx,
+                                                uint32_t* RoIs_Sy, float* RoIs_x, float* RoIs_y, const size_t n_RoIs) {
+    for (size_t i = 0; i < n_RoIs; i++) {
+        RoIs_xmin[i] = j1;
+        RoIs_xmax[i] = j0;
+        RoIs_ymin[i] = i1;
+        RoIs_ymax[i] = i0;
     }
 
+    memset(RoIs_S, 0, n_RoIs * sizeof(uint32_t));
+    memset(RoIs_Sx, 0, n_RoIs * sizeof(uint32_t));
+    memset(RoIs_Sy, 0, n_RoIs * sizeof(uint32_t));
+
+    // Step #5 - Final image labeling
+    for (int i = i0; i <= i1; i++) {
+        uint32_t n = CCL_data_ner[i];
+        for (uint32_t k = 0; k < n; k += 2) {
+            int a = CCL_data_rlc[i][k];
+            int b = CCL_data_rlc[i][k + 1];
+
+            // Step #3 merged with step #5
+            uint32_t val = CCL_data_era[i][CCL_data_er[i][a]];
+            val = CCL_data_eq[val] + 1;
+
+            for (int j = a; j <= b; j++) {
+                labels[i][j] = (uint32_t)val;
+                if (val > 0) {
+                    assert(val < MAX_ROI_SIZE_BEFORE_SHRINK);
+                    uint32_t r = val - 1;
+                    RoIs_S[r] += 1;
+                    RoIs_id[r] = val;
+                    RoIs_Sx[r] += j;
+                    RoIs_Sy[r] += i;
+                    if (j < (int)RoIs_xmin[r])
+                        RoIs_xmin[r] = j;
+                    if (j > (int)RoIs_xmax[r])
+                        RoIs_xmax[r] = j;
+                    if (i < (int)RoIs_ymin[r])
+                        RoIs_ymin[r] = i;
+                    if (i > (int)RoIs_ymax[r])
+                        RoIs_ymax[r] = i;
+                }
+            }
+        }
+    }
+
+    for (size_t i = 0; i < n_RoIs; i++) {
+        RoIs_x[i] = (float)RoIs_Sx[i] / (float)RoIs_S[i];
+        RoIs_y[i] = (float)RoIs_Sy[i] / (float)RoIs_S[i];
+    }
+}
+
+uint32_t __CCL_LSL_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc,
+                         uint32_t* CCL_data_eq, uint32_t* CCL_data_ner, const uint8_t** img, uint32_t** labels,
+                         const int i0, const int i1, const int j0, const int j1) {
     // Step #2 - Equivalence construction
     uint32_t nea = i0;
     uint32_t n = CCL_data_ner[i0];
@@ -153,23 +248,25 @@ uint32_t _CCL_LSL_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_
         }
     }
 
-    // Step #5 - Final image labeling
-    for (int i = i0; i <= i1; i++) {
-        n = CCL_data_ner[i];
-        for (uint32_t k = 0; k < n; k += 2) {
-            int a = CCL_data_rlc[i][k];
-            int b = CCL_data_rlc[i][k + 1];
+    return trueN;
+}
 
-            // Step #3 merged with step #5
-            uint32_t val = CCL_data_era[i][CCL_data_er[i][a]];
-            val = CCL_data_eq[val] + 1;
+uint32_t _CCL_LSL_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc, uint32_t* CCL_data_eq,
+                        uint32_t* CCL_data_ner, const uint8_t** img, uint32_t** labels, const int i0, const int i1,
+                        const int j0, const int j1) {
+    for (int i = i0; i <= i1; i++)
+        memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
 
-            for (int j = a; j <= b; j++) {
-                labels[i][j] = (uint32_t)val;
-            }
-        }
-    }
+    // Step #1 - Segment detection
+    for (int i = i0; i <= i1; i++)
+        _LSL_segment_detection(CCL_data_er[i], CCL_data_rlc[i], &CCL_data_ner[i], img[i], j0, j1);
 
+    uint32_t trueN = __CCL_LSL_apply(CCL_data_er, CCL_data_era, CCL_data_rlc, CCL_data_eq, CCL_data_ner, img, labels,
+                                     i0, i1, j0, j1);
+
+    _LSL_compute_final_image_labeling((const uint32_t**)CCL_data_er, (const uint32_t**)CCL_data_era,
+                                      (const uint32_t**)CCL_data_rlc, (const uint32_t*)CCL_data_eq,
+                                      (const uint32_t*)CCL_data_ner, labels, i0, i1);
     return trueN;
 }
 
@@ -178,69 +275,207 @@ uint32_t CCL_LSL_apply(CCL_data_t* CCL_data, const uint8_t** img, uint32_t** lab
                           CCL_data->i0, CCL_data->i1, CCL_data->j0, CCL_data->j1);
 }
 
+uint32_t _CCL_LSL_threshold_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc,
+                                  uint32_t* CCL_data_eq, uint32_t* CCL_data_ner, const uint8_t** img,
+                                  uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
+                                  const uint8_t threshold) {
+    for (int i = i0; i <= i1; i++)
+        memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
+
+    // Step #1 - Segment detection
+    for (int i = i0; i <= i1; i++)
+        _LSL_segment_detection_threshold(CCL_data_er[i], CCL_data_rlc[i], &CCL_data_ner[i], img[i], j0, j1, threshold);
+
+    uint32_t trueN = __CCL_LSL_apply(CCL_data_er, CCL_data_era, CCL_data_rlc, CCL_data_eq, CCL_data_ner, img, labels,
+                                     i0, i1, j0, j1);
+
+    _LSL_compute_final_image_labeling((const uint32_t**)CCL_data_er, (const uint32_t**)CCL_data_era,
+                                      (const uint32_t**)CCL_data_rlc, (const uint32_t*)CCL_data_eq,
+                                      (const uint32_t*)CCL_data_ner, labels, i0, i1);
+    return trueN;
+}
+
+uint32_t CCL_LSL_threshold_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
+                                 const uint8_t threshold) {
+    return _CCL_LSL_threshold_apply(CCL_data->er, CCL_data->era, CCL_data->rlc, CCL_data->eq, CCL_data->ner, img,
+                                    labels, CCL_data->i0, CCL_data->i1, CCL_data->j0, CCL_data->j1, threshold);
+}
+
+uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc,
+                                           uint32_t* CCL_data_eq, uint32_t* CCL_data_ner, const uint8_t** img,
+                                           uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
+                                           const uint8_t threshold, uint32_t* RoIs_id, uint32_t* RoIs_xmin,
+                                           uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
+                                           uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, float* RoIs_x,
+                                           float* RoIs_y) {
+    for (int i = i0; i <= i1; i++)
+    memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
+
+    // Step #1 - Segment detection
+    for (int i = i0; i <= i1; i++)
+        _LSL_segment_detection_threshold(CCL_data_er[i], CCL_data_rlc[i], &CCL_data_ner[i], img[i], j0, j1, threshold);
+
+    uint32_t trueN = __CCL_LSL_apply(CCL_data_er, CCL_data_era, CCL_data_rlc, CCL_data_eq, CCL_data_ner, img, labels,
+                                     i0, i1, j0, j1);
+
+    _LSL_compute_final_image_labeling_features((const uint32_t**)CCL_data_er, (const uint32_t**)CCL_data_era,
+                                               (const uint32_t**)CCL_data_rlc, (const uint32_t*)CCL_data_eq,
+                                               (const uint32_t*)CCL_data_ner, labels, i0, i1, j0, j1, RoIs_id,
+                                               RoIs_xmin, RoIs_xmax, RoIs_ymin, RoIs_ymax, RoIs_S, RoIs_Sx, RoIs_Sy,
+                                               RoIs_x, RoIs_y, trueN);
+    return trueN;
+}
+
+void CCL_LSL_threshold_features_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
+                                      const uint8_t threshold, RoIs_basic_t* RoIs_basic) {
+    *RoIs_basic->_size = _CCL_LSL_threshold_features_apply(CCL_data->er, CCL_data->era, CCL_data->rlc, CCL_data->eq,
+                                                           CCL_data->ner, img, labels, CCL_data->i0, CCL_data->i1,
+                                                           CCL_data->j0, CCL_data->j1, threshold, RoIs_basic->id,
+                                                           RoIs_basic->xmin, RoIs_basic->xmax, RoIs_basic->ymin,
+                                                           RoIs_basic->ymax, RoIs_basic->S, RoIs_basic->Sx,
+                                                           RoIs_basic->Sy, RoIs_basic->x, RoIs_basic->y);
+}
+
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
 #include <flsl-lib.h>
+#include "fmdt/threshold/threshold_compute.h"
+#include "fmdt/features/features_compute.h"
+
+typedef struct {
+    FLSL_Data* FLSL;
+    uint8_t** tmp_img;
+} LSLM_metadata_t;
 
 CCL_gen_data_t* CCL_alloc_data(const enum ccl_impl_e impl, const int i0, const int i1, const int j0, const int j1) {
     CCL_gen_data_t* CCL_data = (CCL_gen_data_t*)malloc(sizeof(CCL_gen_data_t));
     CCL_data->impl = impl;
     switch (CCL_data->impl) {
-        case LSLH:
+        case LSLH: {
             CCL_data->metadata = (void*)CCL_LSL_alloc_data(i0, i1, j0, j1);
             break;
-        case LSLM:
+        }
+        case LSLM: {
+            LSLM_metadata_t* metadata = (LSLM_metadata_t*)malloc(sizeof(LSLM_metadata_t));
             // FLSL_Data* FLSL_FSM(long i0, long i1, long j0, long j1);
-            CCL_data->metadata = (void*)FLSL_FSM((long)i0, (long)i1, (long)j0, (long)j1);
+            metadata->FLSL = FLSL_FSM((long)i0, (long)i1, (long)j0, (long)j1);
+            metadata->tmp_img = ui8matrix(i0, i1, j0, j1);
+            CCL_data->metadata = (void*)metadata;
             break;
-        default:
+        }
+        default: {
             fprintf(stderr, "(EE) This should never happen.\n");
             exit(-1);
+        }
     }
     return CCL_data;
 }
 
 void CCL_init_data(CCL_gen_data_t* CCL_data) {
     switch (CCL_data->impl) {
-        case LSLH:
+        case LSLH: {
             CCL_LSL_init_data((CCL_data_t*)CCL_data->metadata);
             break;
-        case LSLM:
+        }
+        case LSLM: {
+            LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
+            zero_ui8matrix(metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
+                           metadata->FLSL->nch);
             break;
-        default:
+        }
+        default: {
             fprintf(stderr, "(EE) This should never happen.\n");
             exit(-1);
+        }
     }
 }
 
 uint32_t CCL_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** labels) {
     switch (CCL_data->impl) {
-        case LSLH:
+        case LSLH: {
             return CCL_LSL_apply((CCL_data_t*)CCL_data->metadata, img, labels);
             break;
-        case LSLM: // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
+        }
+        case LSLM: { // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
+            LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
-            return (uint32_t)FLSL_FSM_start((uint8_t**)img, (int32_t**)labels, (FLSL_Data*)CCL_data->metadata);
+            return (uint32_t)FLSL_FSM_start((uint8_t**)img, (int32_t**)labels, metadata->FLSL);
             break;
-        default:
+        }
+        default: {
             fprintf(stderr, "(EE) This should never happen.\n");
             exit(-1);
+        }
+    }
+}
+
+uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** labels,
+                             const uint8_t _threshold) {
+    switch (CCL_data->impl) {
+        case LSLH: {
+            return CCL_LSL_threshold_apply((CCL_data_t*)CCL_data->metadata, img, labels, _threshold);
+            break;
+        }
+        case LSLM: { // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
+            LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
+            threshold(img, metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
+                      metadata->FLSL->nch, _threshold);
+            // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
+            return (uint32_t)FLSL_FSM_start((uint8_t**)metadata->tmp_img, (int32_t**)labels, metadata->FLSL);
+            break;
+        }
+        default: {
+            fprintf(stderr, "(EE) This should never happen.\n");
+            exit(-1);
+        }
+    }
+}
+
+void CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
+                                  const uint8_t _threshold, RoIs_basic_t* RoIs_basic) {
+    switch (CCL_data->impl) {
+        case LSLH: {
+            return CCL_LSL_threshold_features_apply((CCL_data_t*)CCL_data->metadata, img, labels, _threshold,
+                                                    RoIs_basic);
+            break;
+        }
+        case LSLM: {
+            LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
+            threshold(img, metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
+                      metadata->FLSL->nch, _threshold);
+            // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
+            // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
+            uint32_t n_RoIs = (uint32_t)FLSL_FSM_start((uint8_t**)metadata->tmp_img, (int32_t**)labels, metadata->FLSL);
+            features_extract((const uint32_t**)labels, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
+                             metadata->FLSL->nch, n_RoIs, RoIs_basic);
+            break;
+        }
+        default: {
+            fprintf(stderr, "(EE) This should never happen.\n");
+            exit(-1);
+        }
     }
 }
 
 void CCL_free_data(CCL_gen_data_t* CCL_data) {
         switch (CCL_data->impl) {
-        case LSLH:
+        case LSLH: {
             CCL_LSL_free_data((CCL_data_t*)CCL_data->metadata);
             break;
-        case LSLM:
-            // void FLSL_FSM_free(FLSL_Data* metadata);
-            FLSL_FSM_free((FLSL_Data*)CCL_data->metadata);
+        }
+        case LSLM: {
+            LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
+            free_ui8matrix(metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
+                           metadata->FLSL->nch);
+            FLSL_FSM_free(metadata->FLSL);
+            free(metadata);
             break;
-        default:
+        }
+        default: {
             fprintf(stderr, "(EE) This should never happen.\n");
             exit(-1);
+        }
     }
     free(CCL_data);
 }
