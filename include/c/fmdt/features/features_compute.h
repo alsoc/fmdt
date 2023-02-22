@@ -167,7 +167,9 @@ void features_extract(const uint32_t** labels, const int i0, const int i1, const
  * @param img_HI Binary image (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$, \f$\{0,1\}\f$ has to be coded as
  *               \f$\{0,255\}\f$). This image results from a threshold filter on the original image. This threshold
  *               filter should be higher than the first one used to compute the initial labels (`in_labels`).
- * @param out_labels Output 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
+ * @param out_labels Output 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$). \p out_labels can be NULL, this way
+ *                   only the features will be updated. \p out_labels can also be the same pointer as \p in_labels, this
+ *                   way the output labels will be computed in place.
  * @param i0 First \f$y\f$ index in the labels (included).
  * @param i1 Last \f$y\f$ index in the labels (included).
  * @param j0 First \f$x\f$ index in the labels (included).
@@ -205,8 +207,8 @@ void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_H
  * @see RoIs_basic_t for more explanations about the features.
  */
 void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
-                              const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic,
-                              const uint32_t S_min, const uint32_t S_max);
+                              const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic, const uint32_t S_min,
+                              const uint32_t S_max);
 
 /**
  * Shrink features. Remove features when feature identifier value is 0.
