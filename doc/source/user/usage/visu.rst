@@ -41,8 +41,7 @@ The following table summarizes the available parameters:
    :Deprecated: ``--in-video``
    :Type: STRING
    :Default: [empty]
-   :Examples: ``--vid-in-path ~/Videos/meteors.mp4``
-              ``--vid-in-path ~/Images/meteors/%05d.png``
+   :Example: ``--vid-in-path ~/Videos/meteors.mp4``
 
 Input video path (supports also a path to a sequence of images
 ``path/basename_%05d.jpg``).
@@ -55,7 +54,7 @@ Input video path (supports also a path to a sequence of images
    :Deprecated: ``--fra-start``
    :Type: INTEGER
    :Default: ``0``
-   :Examples: ``--vid-in-start 12``
+   :Example: ``--vid-in-start 12``
 
 First frame id (included) to start the detection in the video sequence.
 
@@ -67,7 +66,7 @@ First frame id (included) to start the detection in the video sequence.
    :Deprecated: ``--fra-end``
    :Type: INTEGER
    :Default: ``0``
-   :Examples: ``--vid-in-stop 42``
+   :Example: ``--vid-in-stop 42``
 
 Last frame id (included) to stop the detection in the video sequence. If set to
 ``0``, read entire video.
@@ -80,7 +79,7 @@ Last frame id (included) to stop the detection in the video sequence. If set to
    :Deprecated: ``--ffmpeg-threads``
    :Type: INTEGER
    :Default: ``0``
-   :Examples: ``--vid-in-threads 1``
+   :Example: ``--vid-in-threads 1``
 
 Select the number of threads to use to decode video input (in ``ffmpeg``). If
 set to ``0``, ``ffmpeg`` chooses the number of threads automatically.
@@ -93,7 +92,7 @@ set to ``0``, ``ffmpeg`` chooses the number of threads automatically.
    :Deprecated: ``--in-tracks``
    :Type: STRING
    :Default: [empty]
-   :Examples: ``--trk-path tracks.txt``
+   :Example: ``--trk-path tracks.txt``
 
 The tracks file corresponding to the input video (generated from
 ``fmdt-detect``). See :numref:`detect_stdout` for the description of the
@@ -107,7 +106,7 @@ expected text input format.
    :Deprecated: ``--in-bb``
    :Type: STRING
    :Default: [empty]
-   :Examples: ``--trk-bb-path bb.txt``
+   :Example: ``--trk-bb-path bb.txt``
 
 The bounding boxes file corresponding to the input video (generated from
 ``fmdt-detect``). See :numref:`detect_trk-bb-path` for the description of the
@@ -120,7 +119,7 @@ expected text output format.
 
    :Deprecated: ``--show-id``
    :Type: BOOLEAN
-   :Examples: ``--trk-id``
+   :Example: ``--trk-id``
 
 Show the object ids on the output video and frames. Requires to link with OpenCV
 library (``-DFMDT_OPENCV_LINK`` CMake option, see
@@ -133,7 +132,7 @@ library (``-DFMDT_OPENCV_LINK`` CMake option, see
 
    :Deprecated: ``--show-id``
    :Type: BOOLEAN
-   :Examples: ``--trk-nat-num``
+   :Example: ``--trk-nat-num``
 
 Natural numbering of the object ids, work only if ``--trk-id`` is set.
 
@@ -144,7 +143,7 @@ Natural numbering of the object ids, work only if ``--trk-id`` is set.
 
    :Deprecated: ``--only-meteor``
    :Type: BOOLEAN
-   :Examples: ``--trk-only-meteor``
+   :Example: ``--trk-only-meteor``
 
 Show only meteors.
 
@@ -156,7 +155,7 @@ Show only meteors.
    :Deprecated: ``--in-gt``
    :Type: STRING
    :Default: [empty]
-   :Examples: ``--gt-path gt.txt``
+   :Example: ``--gt-path gt.txt``
 
 File containing the ground truth.
 Ground truth file gives objects positions over time. Here is the expected text
@@ -184,7 +183,7 @@ separated by a space character.
    :Deprecated: ``--out-video``
    :Type: STRING
    :Default: [empty]
-   :Examples: ``--vid-out-path sky.mp4``
+   :Example: ``--vid-out-path sky.mp4``
 
 Path of the output video (supports also a path to a sequence of images
 ``path/basename_%05d.jpg``) with meteor tracking colored rectangles (|BBs|).

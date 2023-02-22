@@ -106,7 +106,7 @@ objects in the video sequence. Here is the template of the output text:
    :Deprecated: ``--in-video``
    :Type: STRING
    :Default: [empty]
-   :Examples: ``--vid-in-path ~/Videos/meteors.mp4``
+   :Example: ``--vid-in-path ~/Videos/meteors.mp4``
 
 Input video path (supports also a path to a sequence of images
 ``path/basename_%05d.jpg``).
@@ -119,7 +119,7 @@ Input video path (supports also a path to a sequence of images
    :Deprecated: ``--fra-start``
    :Type: INTEGER
    :Default: ``0``
-   :Examples: ``--vid-in-start 12``
+   :Example: ``--vid-in-start 12``
 
 First frame id (included) to start the detection in the video sequence.
 
@@ -131,7 +131,7 @@ First frame id (included) to start the detection in the video sequence.
    :Deprecated: ``--fra-end``
    :Type: INTEGER
    :Default: ``0``
-   :Examples: ``--vid-in-stop 42``
+   :Example: ``--vid-in-stop 42``
 
 Last frame id (included) to stop the detection in the video sequence. If set to
 ``0``, read entire video.
@@ -144,7 +144,7 @@ Last frame id (included) to stop the detection in the video sequence. If set to
    :Deprecated: ``--fra-skip``
    :Type: INTEGER
    :Default: ``0``
-   :Examples: ``--vid-in-skip 1``
+   :Example: ``--vid-in-skip 1``
 
 Number of frames to skip.
 
@@ -155,7 +155,7 @@ Number of frames to skip.
 
    :Deprecated: ``--video-buff``
    :Type: BOOLEAN
-   :Examples: ``--vid-in-buff``
+   :Example: ``--vid-in-buff``
 
 Bufferize all the video in global memory before executing the chain.
 
@@ -167,7 +167,7 @@ Bufferize all the video in global memory before executing the chain.
    :Deprecated: ``--video-loop``
    :Type: INTEGER
    :Default: ``1``
-   :Examples: ``--vid-in-loop 10``
+   :Example: ``--vid-in-loop 10``
 
 Number of times the video is read in loop.
 
@@ -179,7 +179,7 @@ Number of times the video is read in loop.
    :Deprecated: ``--ffmpeg-threads``
    :Type: INTEGER
    :Default: ``0``
-   :Examples: ``--vid-in-threads 1``
+   :Example: ``--vid-in-threads 1``
 
 Select the number of threads to use to decode video input (in ``ffmpeg``). If
 set to ``0``, ``ffmpeg`` chooses the number of threads automatically.
@@ -192,7 +192,7 @@ set to ``0``, ``ffmpeg`` chooses the number of threads automatically.
    :Deprecated: ``--light-min``
    :Type: INTEGER
    :Default: ``55``
-   :Examples: ``--ccl-hyst-lo 100``
+   :Example: ``--ccl-hyst-lo 100``
 
 Minimum light intensity for hysteresis threshold (grayscale :math:`[0;255]`).
 
@@ -204,7 +204,7 @@ Minimum light intensity for hysteresis threshold (grayscale :math:`[0;255]`).
    :Deprecated: ``--light-max``
    :Type: INTEGER
    :Default: ``80``
-   :Examples: ``--ccl-hyst-lo 140``
+   :Example: ``--ccl-hyst-hi 140``
 
 Maximum light intensity for hysteresis threshold (grayscale :math:`[0;255]`).
 
@@ -216,7 +216,7 @@ Maximum light intensity for hysteresis threshold (grayscale :math:`[0;255]`).
    :Deprecated: ``--out-frames``
    :Type: STRING
    :Default: [empty]
-   :Examples: ``--ccl-fra-path ccl_fra/%05d.png``
+   :Example: ``--ccl-fra-path ccl_fra/%05d.png``
 
 Path of the files for |CC| debug (``path/cc_%05d.png``).
 
@@ -227,7 +227,7 @@ Path of the files for |CC| debug (``path/cc_%05d.png``).
 
    :Deprecated: ``--show-id``
    :Type: BOOLEAN
-   :Examples: ``--ccl-fra-id``
+   :Example: ``--ccl-fra-id``
 
 Show the |RoI|/|CC| ids on the output frames (to combine with ``--ccl-fra-path``
 parameter). Requires to link with OpenCV library (``-DFMDT_OPENCV_LINK`` CMake
@@ -241,7 +241,7 @@ option, see :numref:`user_installation_cmake`).
    :Deprecated: ``--surface-min``
    :Type: INTEGER
    :Default: ``3``
-   :Examples: ``--mrp-s-min 5``
+   :Example: ``--mrp-s-min 5``
 
 Minimum surface of the |CCs| in pixels.
 
@@ -253,7 +253,7 @@ Minimum surface of the |CCs| in pixels.
    :Deprecated: ``--surface-max``
    :Type: INTEGER
    :Default: ``1000``
-   :Examples: ``--mrp-s-max 50``
+   :Example: ``--mrp-s-max 50``
 
 Maximum surface of the |CCs| in pixels.
 
@@ -265,7 +265,7 @@ Maximum surface of the |CCs| in pixels.
    :Deprecated: ``-k``
    :Type: INTEGER
    :Default: ``3``
-   :Examples: ``--knn-k 5``
+   :Example: ``--knn-k 5``
 
 Maximum number of neighbors considered in the |k-NN| algorithm.
 
@@ -277,7 +277,7 @@ Maximum number of neighbors considered in the |k-NN| algorithm.
    :Deprecated: ``--max-dist``
    :Type: INTEGER
    :Default: ``10``
-   :Examples: ``--knn-d 25``
+   :Example: ``--knn-d 25``
 
 Maximum distance in pixels between two images (|k-NN| algorithm).
 
@@ -289,7 +289,7 @@ Maximum distance in pixels between two images (|k-NN| algorithm).
    :Deprecated: ``--min-ratio-s``
    :Type: FLOAT
    :Default: ``0.125``
-   :Examples: ``--knn-s 0.0``
+   :Example: ``--knn-s 0.0``
 
 Minimum surface ratio to match two |CCs| in |k-NN| (``0`` matches alls, ``1``
 matches nothing). This parameter is also used for extrapolation in the tracking.
@@ -302,7 +302,7 @@ matches nothing). This parameter is also used for extrapolation in the tracking.
    :Deprecated: ``--r-extrapol``
    :Type: INTEGER
    :Default: ``10``
-   :Examples: ``--trk-ext-d 25``
+   :Example: ``--trk-ext-d 25``
 
 Search radius in pixels for |CC| extrapolation (piece-wise tracking).
 
@@ -314,7 +314,7 @@ Search radius in pixels for |CC| extrapolation (piece-wise tracking).
    :Deprecated: ``--extrapol-orde``
    :Type: INTEGER
    :Default: ``3``
-   :Examples: ``--trk-ext-o 1``
+   :Example: ``--trk-ext-o 1``
 
 Maximum number of frames to extrapolate for lost objects (linear extrapolation).
 
@@ -326,7 +326,7 @@ Maximum number of frames to extrapolate for lost objects (linear extrapolation).
    :Deprecated: ``--angle-max``
    :Type: FLOAT
    :Default: ``20.0``
-   :Examples: ``--trk-angle 35.0``
+   :Example: ``--trk-angle 35.0``
 
 Tracking max angle between two meteors at :math:`t-1` and :math:`t` (in degree).
 
@@ -338,7 +338,7 @@ Tracking max angle between two meteors at :math:`t-1` and :math:`t` (in degree).
    :Deprecated: ``--fra-star-min``
    :Type: INTEGER
    :Default: ``15``
-   :Examples: ``--trk-star-min 5``
+   :Example: ``--trk-star-min 5``
 
 Minimum number of frames required to track a star.
 
@@ -350,7 +350,7 @@ Minimum number of frames required to track a star.
    :Deprecated: ``--fra-meteor-min``
    :Type: INTEGER
    :Default: ``3``
-   :Examples: ``--trk-meteor-min 5``
+   :Example: ``--trk-meteor-min 5``
 
 Minimum number of frames required to track a meteor.
 
@@ -362,7 +362,7 @@ Minimum number of frames required to track a meteor.
    :Deprecated: ``--fra-meteor-max``
    :Type: INTEGER
    :Default: ``100``
-   :Examples: ``--trk-meteor-max 50``
+   :Example: ``--trk-meteor-max 50``
 
 Maximum number of frames required to track a meteor.
 
@@ -374,7 +374,7 @@ Maximum number of frames required to track a meteor.
    :Deprecated: ``--diff-dev``
    :Type: FLOAT
    :Default: ``4.0``
-   :Examples: ``--trk-ddev 5.5``
+   :Example: ``--trk-ddev 5.5``
 
 Multiplication factor of the standard deviation (|CC| error has to be higher
 than :math:`ddev \times stddev` to be considered in movement).
@@ -386,7 +386,7 @@ than :math:`ddev \times stddev` to be considered in movement).
 
    :Deprecated: ``--track-all``
    :Type: BOOLEAN
-   :Examples: ``--trk-all``
+   :Example: ``--trk-all``
 
 By default the program only tracks ``meteor`` object type. If ``--trk-all`` is
 set, all object types are tracked (``meteor``, ``star`` or ``noise``).
@@ -401,7 +401,7 @@ This parameter is used in the :func:`tracking_perform` function.
    :Deprecated: ``--out-bb``
    :Type: STRING
    :Default: [empty]
-   :Examples: ``--trk-bb-path bb.txt``
+   :Example: ``--trk-bb-path bb.txt``
 
 Path to the bounding boxes file required by ``fmdt-visu`` to draw detection
 rectangles. Each bounding box defines the area of an object, frame by frame.
@@ -423,7 +423,7 @@ space character.
    :Deprecated: ``--out-mag``
    :Type: STRING
    :Default: [empty]
-   :Examples: ``--trk-mag-path mag.txt``
+   :Example: ``--trk-mag-path mag.txt``
 
 Path to the output file containing magnitudes of the tracked objects. Each line
 corresponds to a track/object and here is the corresponding line format:
@@ -446,7 +446,7 @@ been extrapolated on this frame, thus the magnitude cannot be computed.
    :Deprecated: ``--out-stats``
    :Type: STRING
    :Default: [empty]
-   :Examples: ``--log-path detect_logs/``
+   :Example: ``--log-path detect_logs/``
 
 Path of the output statistics, only required for debugging purpose.
 
