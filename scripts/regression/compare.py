@@ -26,11 +26,12 @@ def main_exec(L_EXE):
     for i in L_EXE: 
         os.mkdir(PATH_BUILD + "/" + i)
         out_bb     = " --trk-bb-path "  + PATH_BUILD + "/" + i + "/" + "bb.txt"
+        out_mag    = " --trk-mag-path " + PATH_BUILD + "/" + i + "/" + "mag.txt"
         out_frames = " --ccl-fra-path " + PATH_BUILD + "/" + i + "/" + "%05d.pgm"
         out_stats  = " --log-path "     + PATH_BUILD + "/" + i
         bin        = PATH_EXE + "/" + i + " "
 
-        exec = bin + args.exeArgs + out_bb + out_frames + out_stats
+        exec = bin + args.exeArgs + out_bb + out_mag + out_frames + out_stats
         print("# "+ exec)
         os.system(exec)
     
@@ -241,7 +242,10 @@ def main_diff(path_ref, exe_name):
             # r = diff_bb(filename, f_ref, f_tocmp)
             # if r != []:
             #     res += r
-            continue 
+            continue
+
+        elif "mag.txt" in filename:
+            continue
 
         elif ".txt" in filename: # stats
             r = diff_stats(filename, f_ref, f_tocmp)
