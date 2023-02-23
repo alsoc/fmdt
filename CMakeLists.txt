@@ -113,7 +113,8 @@ if(FMDT_DETECT_EXE)
 			${src_dir}/common/aff3ct_wrapper/Video/Video2.cpp
 		    ${src_dir}/common/aff3ct_wrapper/CCL_LSL/CCL_LSL.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Features/Features_extractor.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Features/Features_merger_CCL_HI.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Features/Features_merger_CCL_HI_v2.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Features/Features_merger_CCL_HI_v3.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Features/Features_magnitude.cpp
 		    ${src_dir}/common/aff3ct_wrapper/kNN_matcher/kNN_matcher.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Motion/Motion.cpp
