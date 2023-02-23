@@ -663,6 +663,7 @@ int main(int argc, char** argv) {
 
         // remove magnitude task when not needed
         if (!p_trk_mag_path) {
+            std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 2);
             std::get<1>(sep_stages[1]).erase(std::get<1>(sep_stages[1]).begin() + 1);
             std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 10);
             std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 24);
@@ -722,6 +723,7 @@ int main(int argc, char** argv) {
 
         // remove magnitude task when not needed
         if (!p_trk_mag_path) {
+            std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 3);
             std::get<1>(sep_stages[1]).erase(std::get<1>(sep_stages[1]).begin() + 1);
             std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 12);
             std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 26);
