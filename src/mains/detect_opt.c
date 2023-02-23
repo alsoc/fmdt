@@ -304,17 +304,14 @@ int main(int argc, char** argv) {
     while ((cur_fra = video_reader_get_frame(video, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
-        // step 1: threshold low
-        threshold((const uint8_t**)I, IL, i0, i1, j0, j1, p_ccl_hyst_lo);
-
-        // step 2: CCL/CCA
-        const int n_RoIs = CCL_apply(ccl_data, (const uint8_t**)IL, L1);
-        features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoIs, RoIs_tmp->basic);
+        // step 1 + step 2: threshold low + CCL/CCA
+        CCL_threshold_features_apply(ccl_data, (const uint8_t**)I, L1, p_ccl_hyst_lo, RoIs_tmp->basic);
 
         // step 3: hysteresis threshold & surface filtering (+ magnitude computations)
-        threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_ccl_hyst_hi);
-        features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, RoIs_tmp->basic,
-                                 p_mrp_s_min, p_mrp_s_max);
+        // const uint8_t fast_out_labels = !p_ccl_fra_path;
+        const uint8_t fast_out_labels = 1;
+        features_merge_CCL_HI_v3((const uint32_t**)L1, (const uint8_t**)I, L2, i0, i1, j0, j1, RoIs_tmp->basic,
+                                 p_mrp_s_min, p_mrp_s_max, p_ccl_hyst_hi, fast_out_labels);
         features_shrink(RoIs_tmp->basic, RoIs1->basic);
         if (p_trk_mag_path)
             features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L2, RoIs1->basic, RoIs1->misc);
@@ -336,6 +333,8 @@ int main(int argc, char** argv) {
             image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs1->basic, p_ccl_fra_id);
             video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
+        if (p_trk_mag_path || p_ccl_fra_path)
+            features_labels_zero_init(RoIs1->basic, L2);
 
         // save stats
         if (p_log_path) {

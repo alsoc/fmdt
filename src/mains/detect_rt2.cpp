@@ -13,7 +13,7 @@
 
 #include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_LSL.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_extractor.hpp"
-#include "fmdt/aff3ct_wrapper/Features/Features_merger_CCL_HI_v3.hpp"
+#include "fmdt/aff3ct_wrapper/Features/Features_merger_CCL_HI_v2.hpp"
 #include "fmdt/aff3ct_wrapper/Motion/Motion.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_magnitude.hpp"
 #include "fmdt/aff3ct_wrapper/kNN_matcher/kNN_matcher.hpp"
@@ -265,29 +265,28 @@ int main(int argc, char** argv) {
     
     Threshold threshold_min0(i0, i1, j0, j1, b, p_ccl_hyst_lo);
     threshold_min0.set_custom_name("Thr0<min>");
-    // Threshold threshold_max0(i0, i1, j0, j1, b, p_ccl_hyst_hi);
-    // threshold_max0.set_custom_name("Thr0<max>");
+    Threshold threshold_max0(i0, i1, j0, j1, b, p_ccl_hyst_hi);
+    threshold_max0.set_custom_name("Thr0<max>");
     CCL_LSL lsl0(i0, i1, j0, j1, b, CCL_str_to_enum(p_ccl_impl));
     lsl0.set_custom_name("CCL_LSL0");
     Features_extractor extractor0(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     extractor0.set_custom_name("Extractor0");
-    const uint8_t no_labels_zeros_init = 0;
-    Features_merger_CCL_HI_v3 merger0(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, p_ccl_hyst_hi, no_labels_zeros_init,
-                                      MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
+    Features_merger_CCL_HI_v2 merger0(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_ROI_SIZE_BEFORE_SHRINK,
+                                      MAX_ROI_SIZE);
     merger0.set_custom_name("Merger0");
     Features_magnitude magnitude0(i0, i1, j0, j1, b, MAX_ROI_SIZE);
     magnitude0.set_custom_name("Magnitude0");
 
     Threshold threshold_min1(i0, i1, j0, j1, b, p_ccl_hyst_lo);
     threshold_min1.set_custom_name("Thr1<min>");
-    // Threshold threshold_max1(i0, i1, j0, j1, b, p_ccl_hyst_hi);
-    // threshold_max1.set_custom_name("Thr1<max>");
+    Threshold threshold_max1(i0, i1, j0, j1, b, p_ccl_hyst_hi);
+    threshold_max1.set_custom_name("Thr1<max>");
     CCL_LSL lsl1(i0, i1, j0, j1, b, CCL_str_to_enum(p_ccl_impl));
     lsl1.set_custom_name("CCL_LSL1");
     Features_extractor extractor1(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
     extractor1.set_custom_name("Extractor1");
-    Features_merger_CCL_HI_v3 merger1(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, p_ccl_hyst_hi, no_labels_zeros_init,
-                                      MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
+    Features_merger_CCL_HI_v2 merger1(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_ROI_SIZE_BEFORE_SHRINK,
+                                      MAX_ROI_SIZE);
     merger1.set_custom_name("Merger1");
     Features_magnitude magnitude1(i0, i1, j0, j1, b, MAX_ROI_SIZE);
     magnitude1.set_custom_name("Magnitude1");
@@ -312,9 +311,9 @@ int main(int argc, char** argv) {
 
     // Step 1 : seuillage low/high
     threshold_min0[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img0];
-    // threshold_max0[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img0];
+    threshold_max0[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img0];
     threshold_min1[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img1];
-    // threshold_max1[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img1];
+    threshold_max1[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img1];
     
     // Step 2 : ECC/ACC
     lsl0[ccl::sck::apply::in_img] = threshold_min0[thr::sck::apply::out_img];
@@ -326,138 +325,136 @@ int main(int argc, char** argv) {
     extractor1[ftr_ext::sck::extract::in_n_RoIs] = lsl1[ccl::sck::apply::out_n_RoIs];
 
     // Step 3 : seuillage hysteresis && filter surface
-    merger0[ftr_mrg::sck::merge::in_labels] = lsl0[ccl::sck::apply::out_labels];
-    // merger0[ftr_mrg::sck::merge::in_img_HI] = threshold_max0[thr::sck::apply::out_img];
-    merger0[ftr_mrg::sck::merge::in_img] = video[vid2::sck::generate::out_img0];
-    merger0[ftr_mrg::sck::merge::in_RoIs_id] = extractor0[ftr_ext::sck::extract::out_RoIs_id];
-    merger0[ftr_mrg::sck::merge::in_RoIs_xmin] = extractor0[ftr_ext::sck::extract::out_RoIs_xmin];
-    merger0[ftr_mrg::sck::merge::in_RoIs_xmax] = extractor0[ftr_ext::sck::extract::out_RoIs_xmax];
-    merger0[ftr_mrg::sck::merge::in_RoIs_ymin] = extractor0[ftr_ext::sck::extract::out_RoIs_ymin];
-    merger0[ftr_mrg::sck::merge::in_RoIs_ymax] = extractor0[ftr_ext::sck::extract::out_RoIs_ymax];
-    merger0[ftr_mrg::sck::merge::in_RoIs_S] = extractor0[ftr_ext::sck::extract::out_RoIs_S];
-    merger0[ftr_mrg::sck::merge::in_RoIs_Sx] = extractor0[ftr_ext::sck::extract::out_RoIs_Sx];
-    merger0[ftr_mrg::sck::merge::in_RoIs_Sy] = extractor0[ftr_ext::sck::extract::out_RoIs_Sy];
-    merger0[ftr_mrg::sck::merge::in_RoIs_x] = extractor0[ftr_ext::sck::extract::out_RoIs_x];
-    merger0[ftr_mrg::sck::merge::in_RoIs_y] = extractor0[ftr_ext::sck::extract::out_RoIs_y];
-    merger0[ftr_mrg::sck::merge::in_n_RoIs] = lsl0[ccl::sck::apply::out_n_RoIs];
+    merger0[ftr_mrg2::sck::merge::in_labels] = lsl0[ccl::sck::apply::out_labels];
+    merger0[ftr_mrg2::sck::merge::in_img_HI] = threshold_max0[thr::sck::apply::out_img];
+    merger0[ftr_mrg2::sck::merge::in_RoIs_id] = extractor0[ftr_ext::sck::extract::out_RoIs_id];
+    merger0[ftr_mrg2::sck::merge::in_RoIs_xmin] = extractor0[ftr_ext::sck::extract::out_RoIs_xmin];
+    merger0[ftr_mrg2::sck::merge::in_RoIs_xmax] = extractor0[ftr_ext::sck::extract::out_RoIs_xmax];
+    merger0[ftr_mrg2::sck::merge::in_RoIs_ymin] = extractor0[ftr_ext::sck::extract::out_RoIs_ymin];
+    merger0[ftr_mrg2::sck::merge::in_RoIs_ymax] = extractor0[ftr_ext::sck::extract::out_RoIs_ymax];
+    merger0[ftr_mrg2::sck::merge::in_RoIs_S] = extractor0[ftr_ext::sck::extract::out_RoIs_S];
+    merger0[ftr_mrg2::sck::merge::in_RoIs_Sx] = extractor0[ftr_ext::sck::extract::out_RoIs_Sx];
+    merger0[ftr_mrg2::sck::merge::in_RoIs_Sy] = extractor0[ftr_ext::sck::extract::out_RoIs_Sy];
+    merger0[ftr_mrg2::sck::merge::in_RoIs_x] = extractor0[ftr_ext::sck::extract::out_RoIs_x];
+    merger0[ftr_mrg2::sck::merge::in_RoIs_y] = extractor0[ftr_ext::sck::extract::out_RoIs_y];
+    merger0[ftr_mrg2::sck::merge::in_n_RoIs] = lsl0[ccl::sck::apply::out_n_RoIs];
 
-    merger1[ftr_mrg::sck::merge::in_labels] = lsl1[ccl::sck::apply::out_labels];
-    // merger1[ftr_mrg::sck::merge::in_img_HI] = threshold_max1[thr::sck::apply::out_img];
-    merger1[ftr_mrg::sck::merge::in_img] = video[vid2::sck::generate::out_img1];
-    merger1[ftr_mrg::sck::merge::in_RoIs_id] = extractor1[ftr_ext::sck::extract::out_RoIs_id];
-    merger1[ftr_mrg::sck::merge::in_RoIs_xmin] = extractor1[ftr_ext::sck::extract::out_RoIs_xmin];
-    merger1[ftr_mrg::sck::merge::in_RoIs_xmax] = extractor1[ftr_ext::sck::extract::out_RoIs_xmax];
-    merger1[ftr_mrg::sck::merge::in_RoIs_ymin] = extractor1[ftr_ext::sck::extract::out_RoIs_ymin];
-    merger1[ftr_mrg::sck::merge::in_RoIs_ymax] = extractor1[ftr_ext::sck::extract::out_RoIs_ymax];
-    merger1[ftr_mrg::sck::merge::in_RoIs_S] = extractor1[ftr_ext::sck::extract::out_RoIs_S];
-    merger1[ftr_mrg::sck::merge::in_RoIs_Sx] = extractor1[ftr_ext::sck::extract::out_RoIs_Sx];
-    merger1[ftr_mrg::sck::merge::in_RoIs_Sy] = extractor1[ftr_ext::sck::extract::out_RoIs_Sy];
-    merger1[ftr_mrg::sck::merge::in_RoIs_x] = extractor1[ftr_ext::sck::extract::out_RoIs_x];
-    merger1[ftr_mrg::sck::merge::in_RoIs_y] = extractor1[ftr_ext::sck::extract::out_RoIs_y];
-    merger1[ftr_mrg::sck::merge::in_n_RoIs] = lsl1[ccl::sck::apply::out_n_RoIs];
+    merger1[ftr_mrg2::sck::merge::in_labels] = lsl1[ccl::sck::apply::out_labels];
+    merger1[ftr_mrg2::sck::merge::in_img_HI] = threshold_max1[thr::sck::apply::out_img];
+    merger1[ftr_mrg2::sck::merge::in_RoIs_id] = extractor1[ftr_ext::sck::extract::out_RoIs_id];
+    merger1[ftr_mrg2::sck::merge::in_RoIs_xmin] = extractor1[ftr_ext::sck::extract::out_RoIs_xmin];
+    merger1[ftr_mrg2::sck::merge::in_RoIs_xmax] = extractor1[ftr_ext::sck::extract::out_RoIs_xmax];
+    merger1[ftr_mrg2::sck::merge::in_RoIs_ymin] = extractor1[ftr_ext::sck::extract::out_RoIs_ymin];
+    merger1[ftr_mrg2::sck::merge::in_RoIs_ymax] = extractor1[ftr_ext::sck::extract::out_RoIs_ymax];
+    merger1[ftr_mrg2::sck::merge::in_RoIs_S] = extractor1[ftr_ext::sck::extract::out_RoIs_S];
+    merger1[ftr_mrg2::sck::merge::in_RoIs_Sx] = extractor1[ftr_ext::sck::extract::out_RoIs_Sx];
+    merger1[ftr_mrg2::sck::merge::in_RoIs_Sy] = extractor1[ftr_ext::sck::extract::out_RoIs_Sy];
+    merger1[ftr_mrg2::sck::merge::in_RoIs_x] = extractor1[ftr_ext::sck::extract::out_RoIs_x];
+    merger1[ftr_mrg2::sck::merge::in_RoIs_y] = extractor1[ftr_ext::sck::extract::out_RoIs_y];
+    merger1[ftr_mrg2::sck::merge::in_n_RoIs] = lsl1[ccl::sck::apply::out_n_RoIs];
 
     // Step 3.5 : calcul de la magnitude pour chaque RoI
     magnitude0[ftr_mgn::sck::compute::in_img] = video[vid2::sck::generate::out_img0];
-    magnitude0[ftr_mgn::sck::compute::in_labels] = merger0[ftr_mrg::sck::merge::out_labels];
-    magnitude0[ftr_mgn::sck::compute::in_RoIs_xmin] = merger0[ftr_mrg::sck::merge::out_RoIs_xmin];
-    magnitude0[ftr_mgn::sck::compute::in_RoIs_xmax] = merger0[ftr_mrg::sck::merge::out_RoIs_xmax];
-    magnitude0[ftr_mgn::sck::compute::in_RoIs_ymin] = merger0[ftr_mrg::sck::merge::out_RoIs_ymin];
-    magnitude0[ftr_mgn::sck::compute::in_RoIs_ymax] = merger0[ftr_mrg::sck::merge::out_RoIs_ymax];
-    magnitude0[ftr_mgn::sck::compute::in_RoIs_S] = merger0[ftr_mrg::sck::merge::out_RoIs_S];
-    magnitude0[ftr_mgn::sck::compute::in_n_RoIs] = merger0[ftr_mrg::sck::merge::out_n_RoIs];
+    magnitude0[ftr_mgn::sck::compute::in_labels] = merger0[ftr_mrg2::sck::merge::out_labels];
+    magnitude0[ftr_mgn::sck::compute::in_RoIs_xmin] = merger0[ftr_mrg2::sck::merge::out_RoIs_xmin];
+    magnitude0[ftr_mgn::sck::compute::in_RoIs_xmax] = merger0[ftr_mrg2::sck::merge::out_RoIs_xmax];
+    magnitude0[ftr_mgn::sck::compute::in_RoIs_ymin] = merger0[ftr_mrg2::sck::merge::out_RoIs_ymin];
+    magnitude0[ftr_mgn::sck::compute::in_RoIs_ymax] = merger0[ftr_mrg2::sck::merge::out_RoIs_ymax];
+    magnitude0[ftr_mgn::sck::compute::in_RoIs_S] = merger0[ftr_mrg2::sck::merge::out_RoIs_S];
+    magnitude0[ftr_mgn::sck::compute::in_n_RoIs] = merger0[ftr_mrg2::sck::merge::out_n_RoIs];
 
     magnitude1[ftr_mgn::sck::compute::in_img] = video[vid2::sck::generate::out_img1];
-    magnitude1[ftr_mgn::sck::compute::in_labels] = merger1[ftr_mrg::sck::merge::out_labels];
-    magnitude1[ftr_mgn::sck::compute::in_RoIs_xmin] = merger1[ftr_mrg::sck::merge::out_RoIs_xmin];
-    magnitude1[ftr_mgn::sck::compute::in_RoIs_xmax] = merger1[ftr_mrg::sck::merge::out_RoIs_xmax];
-    magnitude1[ftr_mgn::sck::compute::in_RoIs_ymin] = merger1[ftr_mrg::sck::merge::out_RoIs_ymin];
-    magnitude1[ftr_mgn::sck::compute::in_RoIs_ymax] = merger1[ftr_mrg::sck::merge::out_RoIs_ymax];
-    magnitude1[ftr_mgn::sck::compute::in_RoIs_S] = merger1[ftr_mrg::sck::merge::out_RoIs_S];
-    magnitude1[ftr_mgn::sck::compute::in_n_RoIs] = merger1[ftr_mrg::sck::merge::out_n_RoIs];
+    magnitude1[ftr_mgn::sck::compute::in_labels] = merger1[ftr_mrg2::sck::merge::out_labels];
+    magnitude1[ftr_mgn::sck::compute::in_RoIs_xmin] = merger1[ftr_mrg2::sck::merge::out_RoIs_xmin];
+    magnitude1[ftr_mgn::sck::compute::in_RoIs_xmax] = merger1[ftr_mrg2::sck::merge::out_RoIs_xmax];
+    magnitude1[ftr_mgn::sck::compute::in_RoIs_ymin] = merger1[ftr_mrg2::sck::merge::out_RoIs_ymin];
+    magnitude1[ftr_mgn::sck::compute::in_RoIs_ymax] = merger1[ftr_mrg2::sck::merge::out_RoIs_ymax];
+    magnitude1[ftr_mgn::sck::compute::in_RoIs_S] = merger1[ftr_mrg2::sck::merge::out_RoIs_S];
+    magnitude1[ftr_mgn::sck::compute::in_n_RoIs] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
 
     // Step 4 : mise en correspondance
-    matcher[knn::sck::match::in_RoIs0_id] = merger0[ftr_mrg::sck::merge::out_RoIs_id];
-    matcher[knn::sck::match::in_RoIs0_S] = merger0[ftr_mrg::sck::merge::out_RoIs_S];
-    matcher[knn::sck::match::in_RoIs0_x] = merger0[ftr_mrg::sck::merge::out_RoIs_x];
-    matcher[knn::sck::match::in_RoIs0_y] = merger0[ftr_mrg::sck::merge::out_RoIs_y];
-    matcher[knn::sck::match::in_n_RoIs0] = merger0[ftr_mrg::sck::merge::out_n_RoIs];
-    matcher[knn::sck::match::in_RoIs1_id] = merger1[ftr_mrg::sck::merge::out_RoIs_id];
-    matcher[knn::sck::match::in_RoIs1_S] = merger1[ftr_mrg::sck::merge::out_RoIs_S];
-    matcher[knn::sck::match::in_RoIs1_x] = merger1[ftr_mrg::sck::merge::out_RoIs_x];
-    matcher[knn::sck::match::in_RoIs1_y] = merger1[ftr_mrg::sck::merge::out_RoIs_y];
-    matcher[knn::sck::match::in_n_RoIs1] = merger1[ftr_mrg::sck::merge::out_n_RoIs];
+    matcher[knn::sck::match::in_RoIs0_id] = merger0[ftr_mrg2::sck::merge::out_RoIs_id];
+    matcher[knn::sck::match::in_RoIs0_S] = merger0[ftr_mrg2::sck::merge::out_RoIs_S];
+    matcher[knn::sck::match::in_RoIs0_x] = merger0[ftr_mrg2::sck::merge::out_RoIs_x];
+    matcher[knn::sck::match::in_RoIs0_y] = merger0[ftr_mrg2::sck::merge::out_RoIs_y];
+    matcher[knn::sck::match::in_n_RoIs0] = merger0[ftr_mrg2::sck::merge::out_n_RoIs];
+    matcher[knn::sck::match::in_RoIs1_id] = merger1[ftr_mrg2::sck::merge::out_RoIs_id];
+    matcher[knn::sck::match::in_RoIs1_S] = merger1[ftr_mrg2::sck::merge::out_RoIs_S];
+    matcher[knn::sck::match::in_RoIs1_x] = merger1[ftr_mrg2::sck::merge::out_RoIs_x];
+    matcher[knn::sck::match::in_RoIs1_y] = merger1[ftr_mrg2::sck::merge::out_RoIs_y];
+    matcher[knn::sck::match::in_n_RoIs1] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
 
     // Step 5 : recalage
-    motion[mtn::sck::compute::in_RoIs0_x] = merger0[ftr_mrg::sck::merge::out_RoIs_x];
-    motion[mtn::sck::compute::in_RoIs0_y] = merger0[ftr_mrg::sck::merge::out_RoIs_y];
-    motion[mtn::sck::compute::in_RoIs1_x] = merger1[ftr_mrg::sck::merge::out_RoIs_x];
-    motion[mtn::sck::compute::in_RoIs1_y] = merger1[ftr_mrg::sck::merge::out_RoIs_y];
+    motion[mtn::sck::compute::in_RoIs0_x] = merger0[ftr_mrg2::sck::merge::out_RoIs_x];
+    motion[mtn::sck::compute::in_RoIs0_y] = merger0[ftr_mrg2::sck::merge::out_RoIs_y];
+    motion[mtn::sck::compute::in_RoIs1_x] = merger1[ftr_mrg2::sck::merge::out_RoIs_x];
+    motion[mtn::sck::compute::in_RoIs1_y] = merger1[ftr_mrg2::sck::merge::out_RoIs_y];
     motion[mtn::sck::compute::in_RoIs1_prev_id] = matcher[knn::sck::match::out_RoIs1_prev_id];
-    motion[mtn::sck::compute::in_n_RoIs1] = merger1[ftr_mrg::sck::merge::out_n_RoIs];
+    motion[mtn::sck::compute::in_n_RoIs1] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
 
     // Step 6 : tracking
     tracking[trk::sck::perform::in_frame] = video[vid2::sck::generate::out_frame];
-    tracking[trk::sck::perform::in_RoIs_id] = merger1[ftr_mrg::sck::merge::out_RoIs_id];
-    tracking[trk::sck::perform::in_RoIs_xmin] = merger1[ftr_mrg::sck::merge::out_RoIs_xmin];
-    tracking[trk::sck::perform::in_RoIs_xmax] = merger1[ftr_mrg::sck::merge::out_RoIs_xmax];
-    tracking[trk::sck::perform::in_RoIs_ymin] = merger1[ftr_mrg::sck::merge::out_RoIs_ymin];
-    tracking[trk::sck::perform::in_RoIs_ymax] = merger1[ftr_mrg::sck::merge::out_RoIs_ymax];
-    tracking[trk::sck::perform::in_RoIs_S] = merger1[ftr_mrg::sck::merge::out_RoIs_S];
-    tracking[trk::sck::perform::in_RoIs_x] = merger1[ftr_mrg::sck::merge::out_RoIs_x];
-    tracking[trk::sck::perform::in_RoIs_y] = merger1[ftr_mrg::sck::merge::out_RoIs_y];
+    tracking[trk::sck::perform::in_RoIs_id] = merger1[ftr_mrg2::sck::merge::out_RoIs_id];
+    tracking[trk::sck::perform::in_RoIs_xmin] = merger1[ftr_mrg2::sck::merge::out_RoIs_xmin];
+    tracking[trk::sck::perform::in_RoIs_xmax] = merger1[ftr_mrg2::sck::merge::out_RoIs_xmax];
+    tracking[trk::sck::perform::in_RoIs_ymin] = merger1[ftr_mrg2::sck::merge::out_RoIs_ymin];
+    tracking[trk::sck::perform::in_RoIs_ymax] = merger1[ftr_mrg2::sck::merge::out_RoIs_ymax];
+    tracking[trk::sck::perform::in_RoIs_S] = merger1[ftr_mrg2::sck::merge::out_RoIs_S];
+    tracking[trk::sck::perform::in_RoIs_x] = merger1[ftr_mrg2::sck::merge::out_RoIs_x];
+    tracking[trk::sck::perform::in_RoIs_y] = merger1[ftr_mrg2::sck::merge::out_RoIs_y];
     tracking[trk::sck::perform::in_RoIs_error] = motion[mtn::sck::compute::out_RoIs1_error];
     tracking[trk::sck::perform::in_RoIs_prev_id] = matcher[knn::sck::match::out_RoIs1_prev_id];
     tracking[trk::sck::perform::in_RoIs_magnitude] = magnitude1[ftr_mgn::sck::compute::out_RoIs_magnitude];
-    tracking[trk::sck::perform::in_n_RoIs] = merger1[ftr_mrg::sck::merge::out_n_RoIs];
+    tracking[trk::sck::perform::in_n_RoIs] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
     tracking[trk::sck::perform::in_motion_est] = motion[mtn::sck::compute::out_motion_est2];
 
     if (p_ccl_fra_path) {
-        (*log_frame)[lgr_fra::sck::write::in_labels] = merger1[ftr_mrg::sck::merge::out_labels];
-        (*log_frame)[lgr_fra::sck::write::in_RoIs_id] = merger1[ftr_mrg::sck::merge::out_RoIs_id];
-        (*log_frame)[lgr_fra::sck::write::in_RoIs_xmin] = merger1[ftr_mrg::sck::merge::out_RoIs_xmin];
-        (*log_frame)[lgr_fra::sck::write::in_RoIs_xmax] = merger1[ftr_mrg::sck::merge::out_RoIs_xmax];
-        (*log_frame)[lgr_fra::sck::write::in_RoIs_ymin] = merger1[ftr_mrg::sck::merge::out_RoIs_ymin];
-        (*log_frame)[lgr_fra::sck::write::in_RoIs_ymax] = merger1[ftr_mrg::sck::merge::out_RoIs_ymax];
-        (*log_frame)[lgr_fra::sck::write::in_n_RoIs] = merger1[ftr_mrg::sck::merge::out_n_RoIs];
+        (*log_frame)[lgr_fra::sck::write::in_labels] = merger1[ftr_mrg2::sck::merge::out_labels];
+        (*log_frame)[lgr_fra::sck::write::in_RoIs_id] = merger1[ftr_mrg2::sck::merge::out_RoIs_id];
+        (*log_frame)[lgr_fra::sck::write::in_RoIs_xmin] = merger1[ftr_mrg2::sck::merge::out_RoIs_xmin];
+        (*log_frame)[lgr_fra::sck::write::in_RoIs_xmax] = merger1[ftr_mrg2::sck::merge::out_RoIs_xmax];
+        (*log_frame)[lgr_fra::sck::write::in_RoIs_ymin] = merger1[ftr_mrg2::sck::merge::out_RoIs_ymin];
+        (*log_frame)[lgr_fra::sck::write::in_RoIs_ymax] = merger1[ftr_mrg2::sck::merge::out_RoIs_ymax];
+        (*log_frame)[lgr_fra::sck::write::in_n_RoIs] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
     }
 
     if (p_log_path) {
-        log_RoIs[lgr_roi::sck::write::in_RoIs0_id] = merger0[ftr_mrg::sck::merge::out_RoIs_id];
-        log_RoIs[lgr_roi::sck::write::in_RoIs0_xmin] = merger0[ftr_mrg::sck::merge::out_RoIs_xmin];
-        log_RoIs[lgr_roi::sck::write::in_RoIs0_xmax] = merger0[ftr_mrg::sck::merge::out_RoIs_xmax];
-        log_RoIs[lgr_roi::sck::write::in_RoIs0_ymin] = merger0[ftr_mrg::sck::merge::out_RoIs_ymin];
-        log_RoIs[lgr_roi::sck::write::in_RoIs0_ymax] = merger0[ftr_mrg::sck::merge::out_RoIs_ymax];
-        log_RoIs[lgr_roi::sck::write::in_RoIs0_S] = merger0[ftr_mrg::sck::merge::out_RoIs_S];
-        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sx] = merger0[ftr_mrg::sck::merge::out_RoIs_Sx];
-        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sy] = merger0[ftr_mrg::sck::merge::out_RoIs_Sy];
-        log_RoIs[lgr_roi::sck::write::in_RoIs0_x] = merger0[ftr_mrg::sck::merge::out_RoIs_x];
-        log_RoIs[lgr_roi::sck::write::in_RoIs0_y] = merger0[ftr_mrg::sck::merge::out_RoIs_y];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_id] = merger0[ftr_mrg2::sck::merge::out_RoIs_id];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_xmin] = merger0[ftr_mrg2::sck::merge::out_RoIs_xmin];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_xmax] = merger0[ftr_mrg2::sck::merge::out_RoIs_xmax];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_ymin] = merger0[ftr_mrg2::sck::merge::out_RoIs_ymin];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_ymax] = merger0[ftr_mrg2::sck::merge::out_RoIs_ymax];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_S] = merger0[ftr_mrg2::sck::merge::out_RoIs_S];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sx] = merger0[ftr_mrg2::sck::merge::out_RoIs_Sx];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sy] = merger0[ftr_mrg2::sck::merge::out_RoIs_Sy];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_x] = merger0[ftr_mrg2::sck::merge::out_RoIs_x];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_y] = merger0[ftr_mrg2::sck::merge::out_RoIs_y];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_magnitude] = magnitude0[ftr_mgn::sck::compute::out_RoIs_magnitude];
-        log_RoIs[lgr_roi::sck::write::in_n_RoIs0] = merger0[ftr_mrg::sck::merge::out_n_RoIs];
-        log_RoIs[lgr_roi::sck::write::in_RoIs1_id] = merger1[ftr_mrg::sck::merge::out_RoIs_id];
-        log_RoIs[lgr_roi::sck::write::in_RoIs1_xmin] = merger1[ftr_mrg::sck::merge::out_RoIs_xmin];
-        log_RoIs[lgr_roi::sck::write::in_RoIs1_xmax] = merger1[ftr_mrg::sck::merge::out_RoIs_xmax];
-        log_RoIs[lgr_roi::sck::write::in_RoIs1_ymin] = merger1[ftr_mrg::sck::merge::out_RoIs_ymin];
-        log_RoIs[lgr_roi::sck::write::in_RoIs1_ymax] = merger1[ftr_mrg::sck::merge::out_RoIs_ymax];
-        log_RoIs[lgr_roi::sck::write::in_RoIs1_S] = merger1[ftr_mrg::sck::merge::out_RoIs_S];
-        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sx] = merger1[ftr_mrg::sck::merge::out_RoIs_Sx];
-        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sy] = merger1[ftr_mrg::sck::merge::out_RoIs_Sy];
-        log_RoIs[lgr_roi::sck::write::in_RoIs1_x] = merger1[ftr_mrg::sck::merge::out_RoIs_x];
-        log_RoIs[lgr_roi::sck::write::in_RoIs1_y] = merger1[ftr_mrg::sck::merge::out_RoIs_y];
+        log_RoIs[lgr_roi::sck::write::in_n_RoIs0] = merger0[ftr_mrg2::sck::merge::out_n_RoIs];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_id] = merger1[ftr_mrg2::sck::merge::out_RoIs_id];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_xmin] = merger1[ftr_mrg2::sck::merge::out_RoIs_xmin];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_xmax] = merger1[ftr_mrg2::sck::merge::out_RoIs_xmax];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_ymin] = merger1[ftr_mrg2::sck::merge::out_RoIs_ymin];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_ymax] = merger1[ftr_mrg2::sck::merge::out_RoIs_ymax];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_S] = merger1[ftr_mrg2::sck::merge::out_RoIs_S];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sx] = merger1[ftr_mrg2::sck::merge::out_RoIs_Sx];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sy] = merger1[ftr_mrg2::sck::merge::out_RoIs_Sy];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_x] = merger1[ftr_mrg2::sck::merge::out_RoIs_x];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_y] = merger1[ftr_mrg2::sck::merge::out_RoIs_y];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_magnitude] = magnitude1[ftr_mgn::sck::compute::out_RoIs_magnitude];
-        log_RoIs[lgr_roi::sck::write::in_n_RoIs1] = merger1[ftr_mrg::sck::merge::out_n_RoIs];
+        log_RoIs[lgr_roi::sck::write::in_n_RoIs1] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
         log_RoIs[lgr_roi::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
 
         log_kNN[lgr_knn::sck::write::in_data_nearest] = matcher[knn::sck::match::out_data_nearest];
         log_kNN[lgr_knn::sck::write::in_data_distances] = matcher[knn::sck::match::out_data_distances];
-        log_kNN[lgr_knn::sck::write::in_RoIs0_id] = merger0[ftr_mrg::sck::merge::out_RoIs_id];
+        log_kNN[lgr_knn::sck::write::in_RoIs0_id] = merger0[ftr_mrg2::sck::merge::out_RoIs_id];
         log_kNN[lgr_knn::sck::write::in_RoIs0_next_id] = matcher[knn::sck::match::out_RoIs0_next_id];
-        log_kNN[lgr_knn::sck::write::in_n_RoIs0] = merger0[ftr_mrg::sck::merge::out_n_RoIs];
+        log_kNN[lgr_knn::sck::write::in_n_RoIs0] = merger0[ftr_mrg2::sck::merge::out_n_RoIs];
         log_kNN[lgr_knn::sck::write::in_RoIs1_dx] = motion[mtn::sck::compute::out_RoIs1_dx];
         log_kNN[lgr_knn::sck::write::in_RoIs1_dy] = motion[mtn::sck::compute::out_RoIs1_dy];
         log_kNN[lgr_knn::sck::write::in_RoIs1_error] = motion[mtn::sck::compute::out_RoIs1_error];
         log_kNN[lgr_knn::sck::write::in_RoIs1_is_moving] = motion[mtn::sck::compute::out_RoIs1_is_moving];
-        log_kNN[lgr_knn::sck::write::in_n_RoIs1] = merger1[ftr_mrg::sck::merge::out_n_RoIs];
+        log_kNN[lgr_knn::sck::write::in_n_RoIs1] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
         log_kNN[lgr_knn::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
 
         log_motion[lgr_mtn::sck::write::in_motion_est1] = motion[mtn::sck::compute::out_motion_est1];
@@ -485,10 +482,10 @@ int main(int argc, char** argv) {
       // pipeline stage 1
       std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                       std::vector<aff3ct::runtime::Task*>>(
-        { &threshold_min0[thr::tsk::apply], /* &threshold_max0[thr::tsk::apply], */  &threshold_min1[thr::tsk::apply],
-          /* &threshold_max1[thr::tsk::apply], */ &magnitude0[ftr_mgn::tsk::compute],
+        { &threshold_min0[thr::tsk::apply], &threshold_max0[thr::tsk::apply], &threshold_min1[thr::tsk::apply],
+          &threshold_max1[thr::tsk::apply], &magnitude0[ftr_mgn::tsk::compute],
           &magnitude1[ftr_mgn::tsk::compute] },
-        { &merger0[ftr_mrg::tsk::merge], &merger1[ftr_mrg::tsk::merge], },
+        { &merger0[ftr_mrg2::tsk::merge], &merger1[ftr_mrg2::tsk::merge], },
         { } ),
       // pipeline stage 2
       std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
