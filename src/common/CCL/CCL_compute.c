@@ -458,6 +458,41 @@ void CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img,
     }
 }
 
+uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
+                                       const uint8_t _threshold, uint32_t* RoIs_id, uint32_t* RoIs_xmin,
+                                       uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
+                                       uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, float* RoIs_x,
+                                       float* RoIs_y) {
+    switch (CCL_data->impl) {
+        case LSLH: {
+            CCL_data_t* metadata = (CCL_data_t*)CCL_data->metadata;
+            return _CCL_LSL_threshold_features_apply(metadata->er, metadata->era, metadata->rlc, metadata->eq,
+                                                     metadata->ner, img, labels, metadata->i0, metadata->i1,
+                                                     metadata->j0, metadata->j1, _threshold, RoIs_id, RoIs_xmin,
+                                                     RoIs_xmax,  RoIs_ymin,  RoIs_ymax, RoIs_S, RoIs_Sx, RoIs_Sy,
+                                                     RoIs_x, RoIs_y);
+            break;
+        }
+        case LSLM: {
+            LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
+            threshold(img, metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
+                      metadata->FLSL->nch, _threshold);
+            // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
+            // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
+            uint32_t n_RoIs = (uint32_t)FLSL_FSM_start((uint8_t**)metadata->tmp_img, (int32_t**)labels, metadata->FLSL);
+            _features_extract((const uint32_t**)labels, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
+                              metadata->FLSL->nch, RoIs_id, RoIs_xmin, RoIs_xmax,  RoIs_ymin,  RoIs_ymax,
+                              RoIs_S, RoIs_Sx, RoIs_Sy, RoIs_x, RoIs_y, n_RoIs);
+            return n_RoIs;
+            break;
+        }
+        default: {
+            fprintf(stderr, "(EE) This should never happen.\n");
+            exit(-1);
+        }
+    }
+}
+
 void CCL_free_data(CCL_gen_data_t* CCL_data) {
         switch (CCL_data->impl) {
         case LSLH: {

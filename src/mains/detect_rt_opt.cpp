@@ -14,13 +14,11 @@
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/tracking/tracking_io.h"
 
-#include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_LSL.hpp"
-#include "fmdt/aff3ct_wrapper/Features/Features_extractor.hpp"
+#include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_threshold_features.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_merger_CCL_HI_v3.hpp"
 #include "fmdt/aff3ct_wrapper/Motion/Motion.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_magnitude.hpp"
 #include "fmdt/aff3ct_wrapper/kNN_matcher/kNN_matcher.hpp"
-#include "fmdt/aff3ct_wrapper/Threshold/Threshold.hpp"
 #include "fmdt/aff3ct_wrapper/Tracking/Tracking.hpp"
 #include "fmdt/aff3ct_wrapper/Video/Video.hpp"
 #include "fmdt/aff3ct_wrapper/Logger/Logger_RoIs.hpp"
@@ -286,15 +284,10 @@ int main(int argc, char** argv) {
     j1 = video.get_j1();
     video.set_loop_size(p_vid_in_loop);
 
-    Threshold threshold_min(i0, i1, j0, j1, b, p_ccl_hyst_lo);
-    // Threshold threshold_max(i0, i1, j0, j1, b, p_ccl_hyst_hi);
-    threshold_min.set_custom_name("Thr<min>");
-    // threshold_max.set_custom_name("Thr<max>");
-    CCL_LSL lsl(i0, i1, j0, j1, b, CCL_str_to_enum(p_ccl_impl));
-    Features_extractor extractor(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
-    extractor.set_custom_name("Extractor");
+    CCL_threshold_features lsl(i0, i1, j0, j1, b, p_ccl_hyst_lo, MAX_ROI_SIZE_BEFORE_SHRINK,
+                               CCL_str_to_enum(p_ccl_impl));
+    lsl.set_custom_name("CCL_tf");
     const uint8_t no_labels_zeros_init = !p_ccl_fra_path && !p_trk_mag_path;
-    // const uint8_t no_labels_zeros_init = 0;
     Features_merger_CCL_HI_v3 merger(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, p_ccl_hyst_hi, no_labels_zeros_init,
                                      MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
     merger.set_custom_name("Merger");
@@ -400,30 +393,23 @@ int main(int argc, char** argv) {
         (*prb_ts_s2b)[aff3ct::module::prb::sck::probe::in] = (*ts_s2b)["exec::out"];
     }
 
-    // step 1: threshold low
-    threshold_min[thr::sck::apply::in_img] = video[vid::sck::generate::out_img];
-
-    // step 2: CCL/CCA
-    lsl[ccl::sck::apply::in_img] = threshold_min[thr::sck::apply::out_img];
-    extractor[ftr_ext::sck::extract::in_img] = lsl[ccl::sck::apply::out_labels];
-    extractor[ftr_ext::sck::extract::in_n_RoIs] = lsl[ccl::sck::apply::out_n_RoIs];
+    // step 1 + step 2: threshold low + CCL/CCA
+    lsl[ccl_tf::sck::apply::in_img] = video[vid::sck::generate::out_img];
 
     // step 3: hysteresis threshold & surface filtering
-    // threshold_max[thr::sck::apply::in_img] = video[vid::sck::generate::out_img];
-    merger[ftr_mrg3::sck::merge::in_labels] = lsl[ccl::sck::apply::out_labels];
-    // merger[ftr_mrg3::sck::merge::in_img_HI] = threshold_max[thr::sck::apply::out_img];
+    merger[ftr_mrg3::sck::merge::in_labels] = lsl[ccl_tf::sck::apply::out_labels];
     merger[ftr_mrg3::sck::merge::in_img] = video[vid::sck::generate::out_img];
-    merger[ftr_mrg3::sck::merge::in_RoIs_id] = extractor[ftr_ext::sck::extract::out_RoIs_id];
-    merger[ftr_mrg3::sck::merge::in_RoIs_xmin] = extractor[ftr_ext::sck::extract::out_RoIs_xmin];
-    merger[ftr_mrg3::sck::merge::in_RoIs_xmax] = extractor[ftr_ext::sck::extract::out_RoIs_xmax];
-    merger[ftr_mrg3::sck::merge::in_RoIs_ymin] = extractor[ftr_ext::sck::extract::out_RoIs_ymin];
-    merger[ftr_mrg3::sck::merge::in_RoIs_ymax] = extractor[ftr_ext::sck::extract::out_RoIs_ymax];
-    merger[ftr_mrg3::sck::merge::in_RoIs_S] = extractor[ftr_ext::sck::extract::out_RoIs_S];
-    merger[ftr_mrg3::sck::merge::in_RoIs_Sx] = extractor[ftr_ext::sck::extract::out_RoIs_Sx];
-    merger[ftr_mrg3::sck::merge::in_RoIs_Sy] = extractor[ftr_ext::sck::extract::out_RoIs_Sy];
-    merger[ftr_mrg3::sck::merge::in_RoIs_x] = extractor[ftr_ext::sck::extract::out_RoIs_x];
-    merger[ftr_mrg3::sck::merge::in_RoIs_y] = extractor[ftr_ext::sck::extract::out_RoIs_y];
-    merger[ftr_mrg3::sck::merge::in_n_RoIs] = lsl[ccl::sck::apply::out_n_RoIs];
+    merger[ftr_mrg3::sck::merge::in_RoIs_id] = lsl[ccl_tf::sck::apply::out_RoIs_id];
+    merger[ftr_mrg3::sck::merge::in_RoIs_xmin] = lsl[ccl_tf::sck::apply::out_RoIs_xmin];
+    merger[ftr_mrg3::sck::merge::in_RoIs_xmax] = lsl[ccl_tf::sck::apply::out_RoIs_xmax];
+    merger[ftr_mrg3::sck::merge::in_RoIs_ymin] = lsl[ccl_tf::sck::apply::out_RoIs_ymin];
+    merger[ftr_mrg3::sck::merge::in_RoIs_ymax] = lsl[ccl_tf::sck::apply::out_RoIs_ymax];
+    merger[ftr_mrg3::sck::merge::in_RoIs_S] = lsl[ccl_tf::sck::apply::out_RoIs_S];
+    merger[ftr_mrg3::sck::merge::in_RoIs_Sx] = lsl[ccl_tf::sck::apply::out_RoIs_Sx];
+    merger[ftr_mrg3::sck::merge::in_RoIs_Sy] = lsl[ccl_tf::sck::apply::out_RoIs_Sy];
+    merger[ftr_mrg3::sck::merge::in_RoIs_x] = lsl[ccl_tf::sck::apply::out_RoIs_x];
+    merger[ftr_mrg3::sck::merge::in_RoIs_y] = lsl[ccl_tf::sck::apply::out_RoIs_y];
+    merger[ftr_mrg3::sck::merge::in_n_RoIs] = lsl[ccl_tf::sck::apply::out_n_RoIs];
 
     // step 3.5 : compute magnitude for each RoI
     if (p_trk_mag_path) {
@@ -626,7 +612,7 @@ int main(int argc, char** argv) {
           // pipeline stage 2
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                           std::vector<aff3ct::runtime::Task*>>(
-            { &threshold_min[thr::tsk::apply], /* &threshold_max[thr::tsk::apply], */ &merger[ftr_mrg3::tsk::merge],
+            { &lsl[ccl_tf::tsk::apply], &merger[ftr_mrg3::tsk::merge],
               &magnitude[ftr_mgn::tsk::compute] },
             { &merger[ftr_mrg3::tsk::merge], &magnitude[ftr_mgn::tsk::compute]},
             { /* no exclusions in this stage */ } ),
@@ -684,8 +670,8 @@ int main(int argc, char** argv) {
           // pipeline stage 2
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                           std::vector<aff3ct::runtime::Task*>>(
-            { &(*ts_s2b)("exec"), &threshold_min[thr::tsk::apply], /* &threshold_max[thr::tsk::apply], */
-              &merger[ftr_mrg3::tsk::merge], &magnitude[ftr_mgn::tsk::compute], &(*ts_s2e)("exec") },
+            { &(*ts_s2b)("exec"), &lsl[ccl_tf::tsk::apply], &merger[ftr_mrg3::tsk::merge],
+              &magnitude[ftr_mgn::tsk::compute], &(*ts_s2e)("exec") },
             { &merger[ftr_mrg3::tsk::merge], &magnitude[ftr_mgn::tsk::compute] },
             { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe], &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe], } ),
           // pipeline stage 3

@@ -124,6 +124,12 @@ uint32_t CCL_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** lab
 
 uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** labels, const uint8_t threshold);
 
+uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
+                                       const uint8_t threshold, uint32_t* RoIs_id, uint32_t* RoIs_xmin,
+                                       uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
+                                       uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, float* RoIs_x,
+                                       float* RoIs_y);
+
 void CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
                                   const uint8_t threshold, RoIs_basic_t* RoIs_basic);
 
