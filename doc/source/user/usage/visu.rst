@@ -3,7 +3,7 @@
 Visualization Parameters
 """"""""""""""""""""""""
 
-The meteors visualization program is located here: ``./exe/fmdt-visu``.
+The meteors visualization program is located here: ``./bin/fmdt-visu``.
 
 The following table summarizes the available parameters:
 

@@ -8,7 +8,7 @@ import re
 
 PATH_HEAD = "../.."
 PATH_BUILD = PATH_HEAD+"/build"
-PATH_EXE = PATH_BUILD+"/exe"
+PATH_EXE = PATH_BUILD+"/bin"
 
 parser = argparse.ArgumentParser(prog='compare.py', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
 parser.add_argument('--exe-args',    action='store', dest='exeArgs',     type=str,   default="", required=True,    help='String of exe-argurments')

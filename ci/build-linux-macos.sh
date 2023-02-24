@@ -37,5 +37,5 @@ cd ..
 rm -rf $NAME
 mkdir $NAME
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-cp build/exe/* $NAME
+cp build/bin/* $NAME
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi

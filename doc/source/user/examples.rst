@@ -24,7 +24,7 @@ Meteors detection
 
 .. code-block:: bash
 
-	./exe/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4
+	./bin/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4
 
 
 Write tracks and bounding boxes into text files for ``fmdt-visu`` and
@@ -32,7 +32,7 @@ Write tracks and bounding boxes into text files for ``fmdt-visu`` and
 
 .. code-block:: bash
 
-	./exe/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-bb-path ./out_detect_bb.txt > ./out_detect_tracks.txt
+	./bin/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-bb-path ./out_detect_bb.txt > ./out_detect_tracks.txt
 
 Visualization
 """""""""""""
@@ -41,13 +41,13 @@ Visualization **WITHOUT** ground truth:
 
 .. code-block:: bash
 
-	./exe/fmdt-visu --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-path ./out_detect_tracks.txt --trk-bb-path ./out_detect_bb.txt --vid-out-path out_visu.mp4
+	./bin/fmdt-visu --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-path ./out_detect_tracks.txt --trk-bb-path ./out_detect_bb.txt --vid-out-path out_visu.mp4
 
 Visualization **WITH** ground truth:
 
 .. code-block:: bash
 
-	./exe/fmdt-visu --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-path ./out_detect_tracks.txt --trk-bb-path ./out_detect_bb.txt --gt-path ../validation/2022_05_31_tauh_34_meteors.txt --vid-out-path out_visu.mp4
+	./bin/fmdt-visu --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-path ./out_detect_tracks.txt --trk-bb-path ./out_detect_bb.txt --gt-path ../validation/2022_05_31_tauh_34_meteors.txt --vid-out-path out_visu.mp4
 
 .. only:: html
 
@@ -64,7 +64,7 @@ Use ``fmdt-check`` with the following arguments:
 
 .. code-block:: bash
 
-	./exe/fmdt-check --trk-path ./out_detect_tracks.txt --gt-path ../validation/2022_05_31_tauh_34_meteors.txt
+	./bin/fmdt-check --trk-path ./out_detect_tracks.txt --gt-path ../validation/2022_05_31_tauh_34_meteors.txt
 
 .. code-block:: bash
 
@@ -137,7 +137,7 @@ Use ``fmdt-maxred`` with the following arguments:
 
 .. code-block:: bash
 
-	./exe/fmdt-maxred --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --fra-out-path out_maxred.pgm
+	./bin/fmdt-maxred --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --fra-out-path out_maxred.pgm
 
 .. _fig_maxred_image:
 

@@ -223,8 +223,8 @@ test-regression-c:
   script:
     - tar -xvvf build_linux_gcc_c.tar.gz
     - mkdir build
-    - mkdir build/exe
-    - mv build_linux_gcc_c/* build/exe
+    - mkdir build/bin
+    - mv build_linux_gcc_c/* build/bin
     - ./ci/test-regression.sh
 
 test-regression:
@@ -251,7 +251,7 @@ test-regression:
     - tar -xvvf build.tar.gz
     - ./ci/test-regression.sh
     - rm -rf build/fmdt-detect*
-    - rm -rf build/exe
+    - rm -rf build/bin
     - rm -rf build/lib
     - tar -zcvf build.tar.gz build
 
@@ -275,12 +275,12 @@ test-memory-c:
   script:
     - tar -xvvf build_linux_gcc_c.tar.gz
     - mkdir build_gcc
-    - mkdir build_gcc/exe
-    - mv build_linux_gcc_c/* build_gcc/exe
+    - mkdir build_gcc/bin
+    - mv build_linux_gcc_c/* build_gcc/bin
     - tar -xvvf build_linux_clang_c.tar.gz
     - mkdir build_clang
-    - mkdir build_clang/exe
-    - mv build_linux_clang_c/* build_clang/exe
+    - mkdir build_clang/bin
+    - mv build_linux_clang_c/* build_clang/bin
     - ./ci/test-memory.sh build_gcc build_clang
 
 test-memory:
@@ -303,12 +303,12 @@ test-memory:
   script:
     - tar -xvvf build_linux_gcc.tar.gz
     - mkdir build_gcc
-    - mkdir build_gcc/exe
-    - mv build_linux_gcc/* build_gcc/exe
+    - mkdir build_gcc/bin
+    - mv build_linux_gcc/* build_gcc/bin
     - tar -xvvf build_linux_clang.tar.gz
     - mkdir build_clang
-    - mkdir build_clang/exe
-    - mv build_linux_clang/* build_clang/exe
+    - mkdir build_clang/bin
+    - mv build_linux_clang/* build_clang/bin
     - ./ci/test-memory.sh build_gcc build_clang
 
 coverage-linux:

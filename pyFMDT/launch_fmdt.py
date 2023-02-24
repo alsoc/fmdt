@@ -83,8 +83,8 @@ def submitt_fmdt(cmd,crash=False,nosub=False):
 
 def launch_fmdt(pth_in,pth_out,fil_pat,ext,out_root,config_template,\
                 imgseq=False,nofmdt=False,noXtract=False,
-                fmdt_params={'exe':home+'/fmdt/build/exe/fmdt-detect-rt-pip',
-                             'visu':home+'/fmdt/build/exe/fmdt-visu',
+                fmdt_params={'exe':home+'/fmdt/build/bin/fmdt-detect-rt-pip',
+                             'visu':home+'/fmdt/build/bin/fmdt-visu',
                              'light_min':68,
                              'light_max':79,
                              'surface_min':6,
@@ -483,8 +483,8 @@ if __name__ == '__main__':
     parser.add_argument('-img', action='store_true', help='If set, image sequence is considered, rather than video. Default is False.')
     parser.add_argument('-r', default='', help='FMDT output file root name. Default is empty string.')
     parser.add_argument('-c', default=home+'/fmdt/pyfmdt/conf/config_template.in', help='fmdt_reduce configuration file template full path name. Default is: $home/fmdt/pyfmdt/conf/config_template.in')
-    parser.add_argument('-fx', default=home+'/fmdt/build/exe/fmdt-detect-rt-pip', help='FMDT-detect full path executable file. Default is: $home/fmdt/build/exe/fmdt-detect-rt-pip')
-    parser.add_argument('-fv', default=home+'/fmdt/build/exe/fmdt-visu', help='FMDT-visu full path executable. Default is: $home/fmdt/build/exe/fmdt-visu')
+    parser.add_argument('-fx', default=home+'/fmdt/build/bin/fmdt-detect-rt-pip', help='FMDT-detect full path executable file. Default is: $home/fmdt/build/bin/fmdt-detect-rt-pip')
+    parser.add_argument('-fv', default=home+'/fmdt/build/bin/fmdt-visu', help='FMDT-visu full path executable. Default is: $home/fmdt/build/bin/fmdt-visu')
     parser.add_argument('-fli', default=68, help='FMDT-detect light_min parameter. Default is 68.')
     parser.add_argument('-fla', default=79, help='FMDT-detect light_max parameter. Default is 79.')
     parser.add_argument('-fsm', default=6, help='FMDT-detect surface_min parameter. Default is 6.')

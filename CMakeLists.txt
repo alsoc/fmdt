@@ -41,7 +41,7 @@ message(STATUS "  * CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 # -----------------------------------------------------------------------------
 set(src_dir src)
 set(inc_dir include)
-set(exe_dir exe)
+set(exe_dir bin)
 set(lib_dir lib)
 
 # Compiler generic options ----------------------------------------------------
