@@ -31,6 +31,7 @@ img_data_t* image_gs_alloc(const size_t img_width, const size_t img_height);
  * @param img_data Image data.
  * @param labels Labels (2D array of size \f$[\texttt{img\_data->height}][\texttt{img\_data->width}]\f$).
  * @param RoIs_id Array of RoI unique identifiers (useful only if `show_id == 1`).
+ * @param RoIs_xmin Array of minimum \f$x\f$ coordinates of the bounding box (useful only if `show_id == 1`).
  * @param RoIs_xmax Array of maximum \f$x\f$ coordinates of the bounding box (useful only if `show_id == 1`).
  * @param RoIs_ymin Array of minimum \f$y\f$ coordinates of the bounding box (useful only if `show_id == 1`).
  * @param RoIs_ymax Array of maximum \f$y\f$ coordinates of the bounding box (useful only if `show_id == 1`).

@@ -1,6 +1,6 @@
 /*!
  * \file
- * \brief C++ wrapper for the CCL algorithms.
+ * \brief C++ wrapper for the CCL algorithms (+ threshold & basic features).
  */
 
 #pragma once

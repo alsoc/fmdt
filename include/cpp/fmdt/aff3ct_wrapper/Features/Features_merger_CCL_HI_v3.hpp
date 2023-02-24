@@ -1,6 +1,6 @@
 /*!
  * \file
- * \brief C++ wrapper to compute/merge CCL with hysteresis.
+ * \brief C++ wrapper to compute/merge CCL with hysteresis (optimized version).
  */
 
 #pragma once
