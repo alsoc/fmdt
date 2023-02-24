@@ -309,7 +309,7 @@ uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CC
                                            uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, float* RoIs_x,
                                            float* RoIs_y) {
     for (int i = i0; i <= i1; i++)
-    memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
+        memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
 
     // Step #1 - Segment detection
     for (int i = i0; i <= i1; i++)

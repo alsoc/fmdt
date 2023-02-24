@@ -1,6 +1,6 @@
 /*!
  * \file
- * \brief C++ wrapper for the CCL LSL algorithm.
+ * \brief C++ wrapper for the CCL algorithms.
  */
 
 #pragma once
@@ -44,4 +44,4 @@ protected:
     void deep_copy(const CCL_threshold_features &m);
 };
 
-#include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_threshold_features.hxx"
+#include "fmdt/aff3ct_wrapper/CCL/CCL_threshold_features.hxx"

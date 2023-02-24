@@ -14,7 +14,7 @@
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/tracking/tracking_io.h"
 
-#include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_threshold_features.hpp"
+#include "fmdt/aff3ct_wrapper/CCL/CCL_threshold_features.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_merger_CCL_HI_v3.hpp"
 #include "fmdt/aff3ct_wrapper/Motion/Motion.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_magnitude.hpp"

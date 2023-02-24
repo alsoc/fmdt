@@ -1,7 +1,7 @@
 #include "fmdt/CCL/CCL_compute.h"
 #include "fmdt/tools.h"
 
-#include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_threshold_features.hpp"
+#include "fmdt/aff3ct_wrapper/CCL/CCL_threshold_features.hpp"
 
 CCL_threshold_features::CCL_threshold_features(const int i0, const int i1, const int j0, const int j1, const int b,
                                                const uint8_t threshold, const size_t max_RoIs_size,

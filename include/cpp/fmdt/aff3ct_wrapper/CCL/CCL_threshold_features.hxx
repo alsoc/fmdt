@@ -1,6 +1,6 @@
 #pragma once
 
-#include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_threshold_features.hpp"
+#include "fmdt/aff3ct_wrapper/CCL/CCL_threshold_features.hpp"
 
 uint32_t** CCL_threshold_features::get_out_labels() {
     return this->out_labels;

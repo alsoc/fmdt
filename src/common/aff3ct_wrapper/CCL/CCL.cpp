@@ -1,11 +1,11 @@
 #include "fmdt/CCL/CCL_compute.h"
 #include "fmdt/tools.h"
 
-#include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_LSL.hpp"
+#include "fmdt/aff3ct_wrapper/CCL/CCL.hpp"
 
-CCL_LSL::CCL_LSL(const int i0, const int i1, const int j0, const int j1, const int b, const enum ccl_impl_e impl)
+CCL::CCL(const int i0, const int i1, const int j0, const int j1, const int b, const enum ccl_impl_e impl)
 : Module(), i0(i0), i1(i1), j0(j0), j1(j1), b(b), data(nullptr), in_img(nullptr) {
-    const std::string name = "CCL_LSL";
+    const std::string name = "CCL";
     this->set_name(name);
     this->set_short_name(name);
 
@@ -20,7 +20,7 @@ CCL_LSL::CCL_LSL(const int i0, const int i1, const int j0, const int j1, const i
 
     this->create_codelet(p, [ps_in_img, ps_out_labels, ps_out_n_RoIs]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
-        auto &lsl = static_cast<CCL_LSL&>(m);
+        auto &lsl = static_cast<CCL&>(m);
         const uint8_t* m_in_img = static_cast<const uint8_t*>(t[ps_in_img].get_dataptr());
         uint32_t* m_out_labels = static_cast<uint32_t*>(t[ps_out_labels].get_dataptr());
 
@@ -35,7 +35,7 @@ CCL_LSL::CCL_LSL(const int i0, const int i1, const int j0, const int j1, const i
     });
 }
 
-void CCL_LSL::init_data(const enum ccl_impl_e impl) {
+void CCL::init_data(const enum ccl_impl_e impl) {
     this->data = CCL_alloc_data(impl, i0, i1, j0, j1);
     CCL_init_data(this->data);
     this->in_img = (const uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint8_t*)));
@@ -44,19 +44,19 @@ void CCL_LSL::init_data(const enum ccl_impl_e impl) {
     this->out_labels -= i0 - b;
 }
 
-CCL_LSL::~CCL_LSL() {
+CCL::~CCL() {
     free(this->in_img + (this->i0 - this->b));
     free(this->out_labels + (this->i0 - this->b));
     CCL_free_data(this->data);
 }
 
-CCL_LSL* CCL_LSL::clone() const {
-    auto m = new CCL_LSL(*this);
+CCL* CCL::clone() const {
+    auto m = new CCL(*this);
     m->deep_copy(*this);
     return m;
 }
 
-void CCL_LSL::deep_copy(const CCL_LSL &m) {
+void CCL::deep_copy(const CCL &m) {
     Module::deep_copy(m);
     this->init_data(this->data->impl);
 }
