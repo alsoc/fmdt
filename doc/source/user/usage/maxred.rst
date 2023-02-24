@@ -3,7 +3,7 @@
 Max-reduction Parameters
 """"""""""""""""""""""""
 
-The max-reduction generation program is located here: ``./exe/fmdt-maxred``.
+The max-reduction generation program is located here: ``./bin/fmdt-maxred``.
 
 The following table summarizes the available parameters:
 

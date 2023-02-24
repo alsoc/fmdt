@@ -3,7 +3,7 @@
 Detection Parameters
 """"""""""""""""""""
 
-The meteors detection chain is located here: ``./exe/fmdt-detect``.
+The meteors detection chain is located here: ``./bin/fmdt-detect``.
 
 The following table summarizes the available parameters:
 

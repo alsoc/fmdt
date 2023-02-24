@@ -4,7 +4,7 @@ set -x
 WD=$(pwd)
 build_root=build
 
-if test -f "${build_root}/exe/fmdt-detect-rt-seq"; then
+if test -f "${build_root}/bin/fmdt-detect-rt-seq"; then
 list_exe="fmdt-detect, fmdt-detect-opt, fmdt-detect-rt-seq, fmdt-detect-rt-opt-seq, fmdt-detect-rt-pip, fmdt-detect-rt-opt-pip"
 else
 list_exe="fmdt-detect, fmdt-detect-opt"

@@ -3,7 +3,7 @@
 Check Parameters
 """"""""""""""""
 
-The meteors checking program is located here: ``./exe/fmdt-check``.
+The meteors checking program is located here: ``./bin/fmdt-check``.
 
 .. The list of available arguments:
 

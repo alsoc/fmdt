@@ -53,13 +53,13 @@ https://lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4.
 Run the meteors detection on the previous video sequence:
 
 ```shell
-./exe/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4
+./bin/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4
 ```
 
 Write tracks and bounding boxes into text files for visualization (`fmdt-visu`):
 
 ```shell
-./exe/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-bb-path ./out_detect_bb.txt > ./out_detect_tracks.txt
+./bin/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-bb-path ./out_detect_bb.txt > ./out_detect_tracks.txt
 ```
 
 ### Visualization
@@ -68,7 +68,7 @@ Run the visualization tool to output a video sequence with highlighted
 detection:
 
 ```shell
-./exe/fmdt-visu --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-path ./out_detect_tracks.txt --trk-bb-path ./out_detect_bb.txt --vid-out-path out_visu.mp4
+./bin/fmdt-visu --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-path ./out_detect_tracks.txt --trk-bb-path ./out_detect_bb.txt --vid-out-path out_visu.mp4
 ```
 
 ## User and Developer Documentation
