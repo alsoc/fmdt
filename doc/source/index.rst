@@ -18,8 +18,8 @@ FMDT Documentation
    :numbered:
 
    developer/project_architecture
-   developer/coding_conventions
-   developer/workflow_git
+   developer/conventions
+   developer/contributing
    developer/continuous_integration
    api/library_root
 
