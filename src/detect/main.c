@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
     int def_p_fra_skip = 0;
     int def_p_light_min = 55;
     int def_p_light_max = 80;
-    int def_p_surface_min = 3;
+    int def_p_surface_min = 5;
     int def_p_surface_max = 1000;
     int def_p_k = 3;
     int def_p_max_dist = 10;
@@ -301,11 +301,13 @@ int main(int argc, char** argv) {
     // ----------------//
     // -- TRAITEMENT --//
     // ----------------//
+        FILE *hist = fopen("hist.txt", "w");
 
     printf("# The program is running...\n");
     size_t real_n_tracks = 0;
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     int cur_fra;
+    
     while ((cur_fra = get_next_frame(video, images, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
@@ -349,18 +351,18 @@ int main(int argc, char** argv) {
         features_shrink_ROI_array((const ROI_t*)ROI_array_tmp, ROI_array1);
 
         // Step 4 : mise en correspondance
-        KPPV_match(kppv_data, ROI_array0, ROI_array1, p_k, p_max_dist * p_max_dist);
+        // KPPV_match(kppv_data, ROI_array0, ROI_array1, p_k, p_max_dist * p_max_dist);
 
-        // Step 5 : recalage
-        double first_theta, first_tx, first_ty, first_mean_error, first_std_deviation;
-        double theta, tx, ty, mean_error, std_deviation;
-        features_compute_motion((const ROI_t*)ROI_array1, ROI_array0, &first_theta, &first_tx, &first_ty,
-                                &first_mean_error, &first_std_deviation, &theta, &tx, &ty, &mean_error, &std_deviation);
+        // // Step 5 : recalage
+        // double first_theta, first_tx, first_ty, first_mean_error, first_std_deviation;
+        // double theta, tx, ty, mean_error, std_deviation;
+        // features_compute_motion((const ROI_t*)ROI_array1, ROI_array0, &first_theta, &first_tx, &first_ty,
+        //                        &first_mean_error, &first_std_deviation, &theta, &tx, &ty, &mean_error, &std_deviation);
 
-        // Step 6: tracking
-        tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, track_array, BB_array, cur_fra, theta, tx,
-                         ty, mean_error, std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all,
-                         p_fra_star_min, p_fra_meteor_min, p_fra_meteor_max);
+        // // Step 6: tracking
+        // tracking_perform(tracking_data, (const ROI_t*)ROI_array0, ROI_array1, track_array, BB_array, cur_fra, theta, tx,
+        //                  ty, mean_error, std_deviation, p_r_extrapol, p_angle_max, p_diff_dev, p_track_all,
+        //                  p_fra_star_min, p_fra_meteor_min, p_fra_meteor_max);
 
         // Saving frames
         if (p_out_frames) {
@@ -371,21 +373,36 @@ int main(int argc, char** argv) {
             tools_save_frame_from_ROI(filename, (const uint8_t**)SH_2, i0, i1, j0, j1, ROI_array1);
         }
 
+
+        // histogramme
+        float max = 0.0;
+        for(int i = 0; i < ROI_array1->_size; i++){
+            float ratio = ROI_array1->a[i]/ROI_array1->b[i];
+            if (max < ratio) max = ratio;
+                    
+        }
+        fprintf(hist, "%5d %2.1f\n", cur_fra, max);
         // Saving stats
         if (p_out_stats && n_frames) {
             tools_create_folder(p_out_stats);
-            char filename[1024];
-            snprintf(filename, sizeof(filename), "%s/%05d_%05d.txt", p_out_stats, cur_fra - 1, cur_fra);
-            FILE* f = fopen(filename, "w");
+            char filename[1024] = "./stats.txt";
+            // snprintf(filename, sizeof(filename), "%s/%05d_%05d.txt", p_out_stats, cur_fra - 1, cur_fra);
+            FILE* f = fopen(filename, "a");
             if (f) {
-                features_ROI0_ROI1_write(f, cur_fra, ROI_array0, ROI_array1, track_array);
+                if (ROI_array1->_size != 0){
+                    features_ROI0_ROI1_write(f, cur_fra, ROI_array0, ROI_array1, track_array);
+                    tools_create_folder(p_out_frames);
+                    char filename_frames[1024];
+                    snprintf(filename_frames, sizeof(filename_frames), "%s/%05d.pgm", p_out_frames, cur_fra);
+                    tools_save_frame_from_ROI(filename_frames, (const uint8_t**)SH_2, i0, i1, j0, j1, ROI_array1);
                 fprintf(f, "#\n");
                 KPPV_asso_conflicts_write(f, kppv_data, ROI_array0);
                 fprintf(f, "#\n");
-                features_motion_write(f, first_theta, first_tx, first_ty, first_mean_error, first_std_deviation, theta,
-                                      tx, ty, mean_error, std_deviation);
-                fprintf(f, "#\n");
-                tracking_track_array_write(f, track_array);
+                 }
+                
+                // features_motion_write(f, first_theta, first_tx, first_ty, first_mean_error, first_std_deviation, theta,
+                                    //   tx, ty, mean_error, std_deviation);
+                // tracking_track_array_write(f, track_array);
                 fclose(f);
             } else {
                 fprintf(stderr, "(WW) cannot open '%s' file.", filename);
@@ -404,14 +421,20 @@ int main(int argc, char** argv) {
     }
     fprintf(stderr, "\n");
 
-    if (BB_array)
-        tracking_save_array_BB(p_out_bb, BB_array, track_array, MAX_BB_LIST_SIZE, p_track_all);
-    tracking_track_array_write(stdout, track_array);
 
-    printf("# Tracks statistics:\n");
-    printf("# -> Processed frames = %4d\n", n_frames);
-    printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
-           n_noise, (unsigned long)real_n_tracks);
+ 
+
+        fclose(hist);
+
+
+    // if (BB_array)
+    //     tracking_save_array_BB(p_out_bb, BB_array, track_array, MAX_BB_LIST_SIZE, p_track_all);
+    // tracking_track_array_write(stdout, track_array);
+
+    // printf("# Tracks statistics:\n");
+    // printf("# -> Processed frames = %4d\n", n_frames);
+    // printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
+    //        n_noise, (unsigned long)real_n_tracks);
 
     // ----------
     // -- FREE --
@@ -443,8 +466,8 @@ int main(int argc, char** argv) {
         tracking_free_BB_array(BB_array);
         free(BB_array);
     }
-    tracking_free_track_array(track_array);
-    tracking_free_data(tracking_data);
+    // tracking_free_track_array(track_array);
+    // tracking_free_data(tracking_data);
 
     printf("# End of the program, exiting.\n");
 
