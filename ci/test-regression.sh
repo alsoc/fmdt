@@ -23,4 +23,8 @@ rm refs/mag.txt
 ./compare.py --exe-args "--vid-in-path ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --trk-all" --list-exe "${list_exe}" --refs-path ${WD}/scripts/regression/refs
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
+# test if the other implementation of the LSL gives the same results ("--ccl-impl LSLM")
+./compare.py --exe-args "--vid-in-path ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --ccl-impl \"LSLM\" --trk-all" --list-exe "${list_exe}" --refs-path ${WD}/scripts/regression/refs
+rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+
 cd ${WD}
