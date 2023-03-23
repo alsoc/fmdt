@@ -227,6 +227,7 @@ rst_epilog = """
 .. |AFF3CT|    replace:: :abbr:`AFF3CT (A Fast Forward Error Correction Toolbox)`
 .. |BB|        replace:: :abbr:`BB     (Bounding Box)`
 .. |BBs|       replace:: :abbr:`BBs    (Bounding Boxes)`
+.. |CI|        replace:: :abbr:`CI     (Continuous Integration)`
 .. |CC|        replace:: :abbr:`CC     (Connected-Component)`
 .. |CCs|       replace:: :abbr:`CCs    (Connected-Components)`
 .. |CCL|       replace:: :abbr:`CCL    (Connected-Components Labeling)`
@@ -246,6 +247,10 @@ rst_epilog = """
 .. |k-NN|      replace:: :abbr:`k-NN   (k-Nearest Neighbor)`
 .. |LIP6|      replace:: :abbr:`LIP6   (Laboratoire Information de Sorbonne Université, or Computer Science Laboratory
                                         of Sorbonne University in English)`
+.. |MR|        replace:: :abbr:`MR     (Merge Request)`
+.. |NRC|       replace:: :abbr:`NRC    (Numerical Recipes in C)`
+.. |OpenCV|    replace:: :abbr:`OpenCV (Open Computer Vision library)`
+.. |PR|        replace:: :abbr:`PR     (Pull Request)`
 .. |RoI|       replace:: :abbr:`RoI    (Region of Interest)`
 .. |RoIs|      replace:: :abbr:`RoIs   (Regions of Interest)`
 .. |release|   replace:: """ + release + """

@@ -13,6 +13,9 @@ The headers are located in the ``./include/c/fmdt`` folder (= structures,
 enumerations, defines and functions declarations). And the implementations of
 the functions are located in the ``./src/common`` folder.
 
+Modules
+"""""""
+
 Headers (``.h`` files) and function implementations (``.c`` files) are grouped
 into *modules*. A *module* is a set of headers and implementation files that
 are working on the same "topic". For instance, a |k-NN| module has been
@@ -34,6 +37,13 @@ implemented is the project. It is composed of the following files:
 
 This decomposition in several files is made to have a good separation of
 concerns. This way developers can easily know what to find in each file.
+
+Executables
+"""""""""""
+
+The source code of the final executables is located in ``./src/mains/``
+directory. Each file corresponds to a final executable and thus contains a
+``main`` function.
 
 Public Interfaces
 """""""""""""""""
@@ -57,10 +67,10 @@ functions are defined:
 	               const float min_ratio_S);
 
 Both functions compute the |k-NN| matching. The function prefixed with an
-underscore (``_kNN_match``) requires only buffers of native types (``float``,
-``uint32_t``, ``size_t`` and ``int``) while the other function (``kNN_match``)
-requires structure types (``kNN_data_t``, ``RoIs_basic_t`` and ``RoIs_asso_t``).
-In the implementation, the ``kNN_match`` function simply call the ``_kNN_match``
+underscore (``_kNN_match``) requires only buffers of native types (``float`` and
+``uint32_t`` here) while the other function (``kNN_match``) requires structure
+types (``kNN_data_t``, ``RoIs_basic_t`` and ``RoIs_asso_t``). In the
+implementation, the ``kNN_match`` function simply call the ``_kNN_match``
 function.
 
 Compute functions often use inner data. This data is NOT input or output data.
@@ -87,4 +97,55 @@ The following lines illustrate how to properly use the |k-NN| module:
 	kNN_match(kNN_data, /* ... */);
 	// inner data deallocation
 	kNN_free_data(kNN_data);
+
+
+Dependencies
+""""""""""""
+
+|FMDT| depends on multiple external libraries to work. The following section
+details each of these libraries.
+
+ffmpeg-io
+---------
+
+ffmpeg-io is a wrapper for the ``ffmpeg`` executable. In |FMDT|, this library
+is used in the ``video`` module (to read/write videos/images).
+
+.. note:: ffmpeg-io requires the installation of the ``ffmpeg`` executable to
+          work. The library mainly exchanges data with ``ffmpeg`` through system
+          pipes.
+
+|NRC|
+-----
+
+|NRC| is a library dedicated to 1D and multidimensional efficient memory
+allocations. This library is used everywhere data allocation are needed.
+
+C Vector
+--------
+
+C Vector in a library that implements dynamic arrays like ``std::vector`` in
+C++. This is useful when we cannot predict in advance the size of a buffer.
+For instance, in |FMDT|, a C Vector is used to store the final tracks.
+
+|AFF3CT|-core
+-------------
+
+|AFF3CT|-core is a library that includes a multi-threaded runtime. In |FMDT|,
+this multi-threaded runtime is used to speed the restitution time of the
+final executables. For instance, the ``./src/detect_rt.cpp`` is feature
+compliant with ``./src/detect.cpp``. The main difference is that
+``./src/detect_rt.cpp`` is multi-threaded with the |AFF3CT|-core library.
+
+.. note:: |AFF3CT|-core is a C++ library. When |FMDT| is linked with
+          |AFF3CT|-core, then the code requires a C++ compiler to be compiled.
+
+|OpenCV|
+--------
+
+|OpenCV| is a famous library dedicated to a large set of computer vision
+algorithms. In |FMDT|, |OpenCV| is mainly used to write text in images.
+
+.. note:: |OpenCV| is a C++ library. When |FMDT| is linked with |OpenCV|, then
+          the code requires a C++ compiler to be compiled.
 

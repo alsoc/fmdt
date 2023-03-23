@@ -124,12 +124,12 @@ void _LSL_equivalence_construction(uint32_t* CCL_data_eq, const uint32_t* line_r
                     ak = CCL_data_eq[ak];
                 }
                 if (a < ak) {
-                    CCL_data_eq[eak] = a; // Minimum propagation
+                    CCL_data_eq[ak] = a; // Minimum propagation
                 }
 
                 if (a > ak) {
+                    CCL_data_eq[a] = ak;
                     a = ak;
-                    CCL_data_eq[ea] = a;
                     ea = eak;
                 }
             }
