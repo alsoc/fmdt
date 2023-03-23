@@ -222,8 +222,8 @@ void _LSL_compute_final_image_labeling_features(const uint32_t** CCL_data_er, co
 }
 
 uint32_t __CCL_LSL_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc,
-                         uint32_t* CCL_data_eq, uint32_t* CCL_data_ner, const uint8_t** img, uint32_t** labels,
-                         const int i0, const int i1, const int j0, const int j1) {
+                         uint32_t* CCL_data_eq, uint32_t* CCL_data_ner, const uint8_t** img, const int i0, const int i1,
+                         const int j0, const int j1) {
     // Step #2 - Equivalence construction
     uint32_t nea = i0;
     uint32_t n = CCL_data_ner[i0];
@@ -261,8 +261,8 @@ uint32_t _CCL_LSL_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_
     for (int i = i0; i <= i1; i++)
         _LSL_segment_detection(CCL_data_er[i], CCL_data_rlc[i], &CCL_data_ner[i], img[i], j0, j1);
 
-    uint32_t trueN = __CCL_LSL_apply(CCL_data_er, CCL_data_era, CCL_data_rlc, CCL_data_eq, CCL_data_ner, img, labels,
-                                     i0, i1, j0, j1);
+    uint32_t trueN = __CCL_LSL_apply(CCL_data_er, CCL_data_era, CCL_data_rlc, CCL_data_eq, CCL_data_ner, img, i0, i1,
+                                     j0, j1);
 
     _LSL_compute_final_image_labeling((const uint32_t**)CCL_data_er, (const uint32_t**)CCL_data_era,
                                       (const uint32_t**)CCL_data_rlc, (const uint32_t*)CCL_data_eq,
@@ -286,8 +286,8 @@ uint32_t _CCL_LSL_threshold_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_er
     for (int i = i0; i <= i1; i++)
         _LSL_segment_detection_threshold(CCL_data_er[i], CCL_data_rlc[i], &CCL_data_ner[i], img[i], j0, j1, threshold);
 
-    uint32_t trueN = __CCL_LSL_apply(CCL_data_er, CCL_data_era, CCL_data_rlc, CCL_data_eq, CCL_data_ner, img, labels,
-                                     i0, i1, j0, j1);
+    uint32_t trueN = __CCL_LSL_apply(CCL_data_er, CCL_data_era, CCL_data_rlc, CCL_data_eq, CCL_data_ner, img, i0, i1,
+                                     j0, j1);
 
     _LSL_compute_final_image_labeling((const uint32_t**)CCL_data_er, (const uint32_t**)CCL_data_era,
                                       (const uint32_t**)CCL_data_rlc, (const uint32_t*)CCL_data_eq,
@@ -315,8 +315,8 @@ uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CC
     for (int i = i0; i <= i1; i++)
         _LSL_segment_detection_threshold(CCL_data_er[i], CCL_data_rlc[i], &CCL_data_ner[i], img[i], j0, j1, threshold);
 
-    uint32_t trueN = __CCL_LSL_apply(CCL_data_er, CCL_data_era, CCL_data_rlc, CCL_data_eq, CCL_data_ner, img, labels,
-                                     i0, i1, j0, j1);
+    uint32_t trueN = __CCL_LSL_apply(CCL_data_er, CCL_data_era, CCL_data_rlc, CCL_data_eq, CCL_data_ner, img, i0, i1,
+                                     j0, j1);
 
     _LSL_compute_final_image_labeling_features((const uint32_t**)CCL_data_er, (const uint32_t**)CCL_data_era,
                                                (const uint32_t**)CCL_data_rlc, (const uint32_t*)CCL_data_eq,
