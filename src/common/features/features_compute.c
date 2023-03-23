@@ -354,8 +354,6 @@ void _features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, 
             for (uint32_t k = x0; k <= x1; k++) {
                 for (uint32_t l = y0; l <= y1; l++) {
                     if (img[k][l] >= threshold_high && in_labels[k][l] == id) {
-                    // this line reproduces the same behavior as `_features_merge_CCL_HI_v2` but this is a bug
-                    // if (img[k][l] >= threshold_high || out_labels[k][l]) {
                         if (out_labels != NULL) {
                             for (k = x0; k <= x1; k++) {
                                 for (l = y0; l <= y1; l++) {
