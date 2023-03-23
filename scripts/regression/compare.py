@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import shutil
 import sys
 import hashlib
 import argparse
@@ -24,6 +25,7 @@ def main_exec(L_EXE):
     print("# EXE:")
     
     for i in L_EXE: 
+        shutil.rmtree(PATH_BUILD + "/" + i, ignore_errors=True)
         os.mkdir(PATH_BUILD + "/" + i)
         out_bb     = " --trk-bb-path "  + PATH_BUILD + "/" + i + "/" + "bb.txt"
         out_mag    = " --trk-mag-path " + PATH_BUILD + "/" + i + "/" + "mag.txt"
