@@ -445,12 +445,6 @@ int main(int argc, char** argv) {
     magnitude1[ftr_mgn::sck::compute::in_RoIs_S] = merger1[ftr_mrg::sck::merge::out_RoIs_S];
     magnitude1[ftr_mgn::sck::compute::in_n_RoIs] = merger1[ftr_mrg::sck::merge::out_n_RoIs];
 
-    if (p_out_probes) {
-        (*ts_s2e)("exec") = merger1[ftr_mrg::sck::merge::out_RoIs_id];
-        (*prb_ts_s2e)[aff3ct::module::prb::sck::probe::in] = (*ts_s2e)["exec::out"];
-        (*prb_ts_s3b)[aff3ct::module::prb::tsk::probe] = (*prb_ts_s2e)[aff3ct::module::prb::sck::probe::status];
-    }
-
     // Step 4 : mise en correspondance
     matcher[knn::sck::match::in_RoIs0_id] = merger0[ftr_mrg::sck::merge::out_RoIs_id];
     matcher[knn::sck::match::in_RoIs0_S] = merger0[ftr_mrg::sck::merge::out_RoIs_S];
@@ -470,6 +464,13 @@ int main(int argc, char** argv) {
     motion[mtn::sck::compute::in_RoIs1_y] = merger1[ftr_mrg::sck::merge::out_RoIs_y];
     motion[mtn::sck::compute::in_RoIs1_prev_id] = matcher[knn::sck::match::out_RoIs1_prev_id];
     motion[mtn::sck::compute::in_n_RoIs1] = merger1[ftr_mrg::sck::merge::out_n_RoIs];
+
+
+    if (p_out_probes) {
+        (*ts_s2e)("exec") = motion[mtn::sck::compute::out_motion_est2];
+        (*prb_ts_s2e)[aff3ct::module::prb::sck::probe::in] = (*ts_s2e)["exec::out"];
+        (*prb_ts_s3b)[aff3ct::module::prb::tsk::probe] = (*prb_ts_s2e)[aff3ct::module::prb::sck::probe::status];
+    }
 
     // Step 6 : tracking
     tracking[trk::sck::perform::in_frame] = video[vid2::sck::generate::out_frame];
@@ -584,20 +585,16 @@ int main(int argc, char** argv) {
             // pipeline stage 2
             std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                             std::vector<aff3ct::runtime::Task*>>(
-                { &threshold_min0[thr::tsk::apply], &threshold_max0[thr::tsk::apply],  &threshold_min1[thr::tsk::apply], 
-                  &threshold_max1[thr::tsk::apply], &magnitude0[ftr_mgn::tsk::compute], 
-                  &magnitude1[ftr_mgn::tsk::compute] },
-                { &merger0[ftr_mrg::tsk::merge],&merger1[ftr_mrg::tsk::merge], },
+                { &threshold_min0[thr::tsk::apply], &threshold_max0[thr::tsk::apply], 
+                  &magnitude0[ftr_mgn::tsk::compute], &threshold_min1[thr::tsk::apply], 
+                  &threshold_max1[thr::tsk::apply],  &magnitude1[ftr_mgn::tsk::compute],},
+                { &motion[mtn::tsk::compute],},
                 { } ),
             // pipeline stage 3
             std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                             std::vector<aff3ct::runtime::Task*>>(
-                { 
-                &matcher[knn::tsk::match],
-                &motion[mtn::tsk::compute],
-                &tracking[trk::tsk::perform],
-                },
-                { },
+                { &tracking[trk::tsk::perform],},
+                { &tracking[trk::tsk::perform],},
                 { /* no exclusions in this stage */ } ),
         };
     } else {
@@ -614,15 +611,13 @@ int main(int argc, char** argv) {
             { &(*ts_s2b)("exec"), &threshold_min0[thr::tsk::apply], &threshold_max0[thr::tsk::apply],
               &magnitude0[ftr_mgn::tsk::compute], &threshold_min1[thr::tsk::apply], &threshold_max1[thr::tsk::apply], 
               &magnitude1[ftr_mgn::tsk::compute],  &(*ts_s2e)("exec")},
-            { &merger0[ftr_mrg::tsk::merge], &merger1[ftr_mrg::tsk::merge],  &magnitude1[ftr_mgn::tsk::compute] },
+            { &motion[mtn::tsk::compute], },
             { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe], &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe], } ),
           // pipeline stage 3
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                           std::vector<aff3ct::runtime::Task*>>(
             { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe],
-              &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe],
-              &matcher[knn::tsk::match],
-              &motion[mtn::tsk::compute],
+              &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe],             
               &tracking[trk::tsk::perform],
               },
             { },

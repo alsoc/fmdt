@@ -23,8 +23,14 @@ protected:
 public:
     Motion(const size_t max_RoIs_size);
     virtual ~Motion();
+    virtual Motion* clone() const;
     inline aff3ct::runtime::Task& operator[](const mtn::tsk t);
     inline aff3ct::runtime::Socket& operator[](const mtn::sck::compute s);
+
+protected:
+    void init_data();
+    using Module::deep_copy;
+    void deep_copy(const Motion &m);
 };
 
 #include "fmdt/aff3ct_wrapper/Motion/Motion.hxx"
