@@ -5,7 +5,7 @@ WD=$(pwd)
 build_root=build
 
 if test -f "${build_root}/bin/fmdt-detect-rt-seq"; then
-list_exe="fmdt-detect, fmdt-detect-rt-pip, fmdt-detect-rt-seq"
+list_exe="fmdt-detect, fmdt-detect-rt-pip, fmdt-detect-rt-seq, fmdt-detect-rt2-pip, fmdt-detect-rt2-seq"
 else
 list_exe="fmdt-detect"
 fi
