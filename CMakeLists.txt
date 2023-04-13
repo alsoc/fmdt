@@ -148,12 +148,21 @@ if(FMDT_DETECT_EXE)
         set(src_detectrt2_files
             ${src_dir}/mains/detect_rt2.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt2_files})
-        add_executable(fmdt-detect-rt2-exe 
+		add_executable(fmdt-detect-rt2-seq-exe
+            $<TARGET_OBJECTS:fmdt-common-obj>
+            $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
+            ${src_detectrt2_files})
+        list(APPEND fmdt_targets_list fmdt-detect-rt2-seq-exe)
+        set_target_properties(fmdt-detect-rt2-seq-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2-seq)
+
+        add_executable(fmdt-detect-rt2-pip-exe
             $<TARGET_OBJECTS:fmdt-common-obj> 
             $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
             ${src_detectrt2_files})
-		list(APPEND fmdt_targets_list fmdt-detect-rt2-exe)
-		set_target_properties(fmdt-detect-rt2-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2)
+        list(APPEND fmdt_targets_list fmdt-detect-rt2-pip-exe)
+        set_target_properties(fmdt-detect-rt2-pip-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2-pip)
+        target_compile_definitions(fmdt-detect-rt2-pip-exe PUBLIC FMDT_ENABLE_PIPELINE)
+
 	endif()
 endif()
 if(FMDT_VISU_EXE)
