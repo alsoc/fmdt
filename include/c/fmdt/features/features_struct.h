@@ -37,6 +37,9 @@ typedef struct {
     uint32_t* S; /**< Numbers of points/pixels = surfaces of the RoIs. */
     uint32_t* Sx; /**< Sums of \f$x\f$ properties. */
     uint32_t* Sy; /**< Sums of \f$y\f$ properties. */
+    uint64_t* Sx2; /**< Sums of squared \f$x\f$ properties. */
+    uint64_t* Sy2; /**< Sums of squared \f$x\f$ properties. */
+    uint64_t* Sxy; /**< Sums of \f$xy\f$ properties. */
     float* x; /**< \f$x\f$ coordinates of the centroid (\f$ x = S_x / S \f$). */
     float* y; /**< \f$y\f$ coordinates of the centroid (\f$ y = S_y / S \f$). */
 
@@ -99,6 +102,9 @@ typedef struct {
     uint32_t* id; /**< RoI unique identifiers. A RoI identifier should starts from 1 while 0 should be reserved for
                        uninitialized structure. */
     uint32_t* magnitude; /**< Magnitudes or brightness of the RoIs. Sums of the pixels intensities. */
+
+    float* a; /**< Semi-major axis of the RoIs.*/
+    float* b; /**< Semi-minor axis of the RoIs.*/
 
     size_t* _size; /**< Current size/utilization of the fields.
                         Note: it is allocated on the heap but it represents only one value. */

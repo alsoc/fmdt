@@ -98,6 +98,18 @@ void image_color_draw_BBs(img_data_t* img_data, const uint8_t** img, const BB_t*
                           const size_t n_BBs, const uint8_t show_id, const uint8_t is_gt);
 
 /**
+ * Creates a new image with the maximum intensity pixels between I and M
+ * 
+ * @param I Input matrix (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
+ * @param i0 First \f$y\f$ index in the 2D array (included).
+ * @param i1 Last \f$y\f$ index in the 2D array (included).
+ * @param j0 First \f$x\f$ index in the 2D array (included).
+ * @param j1 Last \f$x\f$ index in the 2D array (included).
+ * @param M Output matrix (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
+ */
+void image_max_reduce(uint8_t** M, int i0, int i1, int j0, int j1, uint8_t** I);
+
+/**
  * Return a pixels array of the color image.
  * @param img_data Image data.
  */

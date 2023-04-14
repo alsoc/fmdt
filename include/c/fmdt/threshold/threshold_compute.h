@@ -7,6 +7,8 @@
 
 #include <stdint.h>
 
+#include "fmdt/features/features_struct.h"
+
 /**
  * Convert an input image (\f$I_{in}\f$) in grayscale levels into a binary image (\f$I_{out}\f$) depending on a
  * greyscale threshold (\f$T\f$).
@@ -22,3 +24,17 @@
  */
 void threshold(const uint8_t** img_in, uint8_t** img_out, const int i0, const int i1, const int j0, const int j1,
                const uint8_t threshold);
+
+/**
+ * Filter the RoIs ellipses that have a ratio (a/b) superior to \f$min_ratio\f$. 
+ * 
+ * @param RoIs_a Semi-major ellipse axis.
+ * @param RoIs_b Semi-minor ellipse axis.
+ * @param n_RoIs Number of connected-components (= number of RoIs).
+ * @param RoIs_id Array of RoI unique identifiers.
+ * @param min_ratio Value that define if the RoIs is kept or not.
+ */
+void _threshold_ellipse_ratio(const float* RoIs_a, const float* RoIs_b, const size_t n_RoIs, uint32_t* RoIs_id,
+                                    const float min_ratio);
+
+void threshold_ellipse_ratio(RoIs_misc_t* RoIs_misc, const float min_ratio);

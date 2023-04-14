@@ -6,6 +6,46 @@
 #include "fmdt/image/image_struct.h"
 #include "fmdt/image/image_io.h"
 
+
+void image_save_frame_ui8matrix(const char* filename, const uint8** I, int i0, int i1, int j0, int j1) {
+    int w = (j1 - j0 + 1);
+    int h = (i1 - i0 + 1);
+
+    char buffer[80];
+
+    FILE* file;
+
+    rgb8_t** img = (rgb8_t**)rgb8matrix(0, h - 1, 0, w - 1);
+    if (img == NULL)
+        return;
+
+    for (int i = i0; i <= i1; i++) {
+        for (int j = j0; j <= j1; j++) {
+            img[i][j].r = I[i][j];
+            img[i][j].g = I[i][j];
+            img[i][j].b = I[i][j];
+        }
+    }
+
+    file = fopen(filename, "wb");
+    if (file == NULL) {
+        fprintf(stderr, "(EE) Failed opening '%s' file\n", filename);
+        exit(-1);
+    }
+
+    /* enregistrement de l'image au format rpgm */
+    snprintf(buffer, sizeof(buffer), "P6\n%d %d\n255\n", (int)(w - 1), (int)(h - 1));
+    fwrite(buffer, strlen(buffer), 1, file);
+    for (int i = 0; i <= h - 1; i++)
+        image_write_PNM_row((uint8*)img[i], w - 1, file);
+
+    /* fermeture du fichier */
+    fclose(file);
+
+    free_rgb8matrix((rgb8**)img, 0, h - 1, 0, w - 1);
+}
+
+
 void image_save_frame_threshold(const char* filename, uint8_t** I0, uint8_t** I1, int i0, int i1, int j0, int j1) {
     int w = (j1 - j0 + 1);
     int h = (i1 - i0 + 1);

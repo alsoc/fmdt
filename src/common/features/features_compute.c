@@ -18,6 +18,9 @@ RoIs_basic_t* features_alloc_RoIs_basic(const size_t max_size, uint32_t* RoIs_id
     RoIs_basic->S = (uint32_t*)malloc(max_size * sizeof(uint32_t));
     RoIs_basic->Sx = (uint32_t*)malloc(max_size * sizeof(uint32_t));
     RoIs_basic->Sy = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoIs_basic->Sx2 = (uint64_t*)malloc(max_size * sizeof(uint64_t));
+    RoIs_basic->Sy2 = (uint64_t*)malloc(max_size * sizeof(uint64_t));
+    RoIs_basic->Sxy = (uint64_t*)malloc(max_size * sizeof(uint64_t));
     RoIs_basic->x = (float*)malloc(max_size * sizeof(float));
     RoIs_basic->y = (float*)malloc(max_size * sizeof(float));
     if (RoIs_id == NULL) {
@@ -37,7 +40,10 @@ void features_init_RoIs_basic(RoIs_basic_t* RoIs_basic, const uint8_t init_id) {
     memset(RoIs_basic->ymax, 0, *RoIs_basic->_max_size * sizeof(uint32_t));
     memset(RoIs_basic->S, 0, *RoIs_basic->_max_size * sizeof(uint32_t));
     memset(RoIs_basic->Sx, 0, *RoIs_basic->_max_size * sizeof(uint32_t));
-    memset(RoIs_basic->Sy, 0, *RoIs_basic->_max_size * sizeof(uint32_t));
+    memset(RoIs_basic->Sx, 0, *RoIs_basic->_max_size * sizeof(uint32_t));
+    memset(RoIs_basic->Sx2, 0, *RoIs_basic->_max_size * sizeof(uint64_t));
+    memset(RoIs_basic->Sy2, 0, *RoIs_basic->_max_size * sizeof(uint64_t));
+    memset(RoIs_basic->Sxy, 0, *RoIs_basic->_max_size * sizeof(uint64_t));
     memset(RoIs_basic->x, 0, *RoIs_basic->_max_size * sizeof(float));
     memset(RoIs_basic->y, 0, *RoIs_basic->_max_size * sizeof(float));
     *RoIs_basic->_size = 0;
@@ -56,6 +62,9 @@ void features_free_RoIs_basic(RoIs_basic_t* RoIs_basic, const uint8_t free_id) {
     free(RoIs_basic->S);
     free(RoIs_basic->Sx);
     free(RoIs_basic->Sy);
+    free(RoIs_basic->Sx2);
+    free(RoIs_basic->Sy2);
+    free(RoIs_basic->Sxy);
     free(RoIs_basic->x);
     free(RoIs_basic->y);
     free(RoIs_basic);
@@ -135,6 +144,8 @@ RoIs_misc_t* features_alloc_RoIs_misc(const size_t max_size, uint32_t* RoIs_id) 
     RoIs_misc_t* RoIs_misc = (RoIs_misc_t*)malloc(sizeof(RoIs_misc_t));
     RoIs_misc->id = (RoIs_id == NULL) ? (uint32_t*)malloc(max_size * sizeof(uint32_t)) : RoIs_id;
     RoIs_misc->magnitude = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoIs_misc->a = (float*)malloc(max_size * sizeof(float));
+    RoIs_misc->b = (float*)malloc(max_size * sizeof(float));
     if (RoIs_id == NULL) {
         RoIs_misc->_max_size = (size_t*)malloc(sizeof(size_t));
         RoIs_misc->_size = (size_t*)malloc(sizeof(size_t));
@@ -147,6 +158,8 @@ void features_init_RoIs_misc(RoIs_misc_t* RoIs_misc, const uint8_t init_id) {
     if (init_id)
         memset(RoIs_misc->id, 0, *RoIs_misc->_max_size * sizeof(uint32_t));
     memset(RoIs_misc->magnitude, 0, *RoIs_misc->_max_size * sizeof(uint32_t));
+    memset(RoIs_misc->a, 0, *RoIs_misc->_max_size * sizeof(float));
+    memset(RoIs_misc->b, 0, *RoIs_misc->_max_size * sizeof(float));
     *RoIs_misc->_size = 0;
 }
 
@@ -157,6 +170,8 @@ void features_free_RoIs_misc(RoIs_misc_t* RoIs_misc, const uint8_t free_id) {
         free(RoIs_misc->_max_size);
     }
     free(RoIs_misc->magnitude);
+    free(RoIs_misc->a);
+    free(RoIs_misc->b);
     free(RoIs_misc);
 }
 
@@ -201,7 +216,8 @@ void features_free_RoIs(RoIs_t* RoI) {
 
 void _features_extract(const uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
                        uint32_t* RoIs_id, uint32_t* RoIs_xmin, uint32_t* RoIs_xmax, uint32_t* RoIs_ymin,
-                       uint32_t* RoIs_ymax, uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, float* RoIs_x,
+                       uint32_t* RoIs_ymax, uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, 
+                       uint64_t* RoIs_Sx2, uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x,
                        float* RoIs_y, const size_t n_RoIs) {
     for (size_t i = 0; i < n_RoIs; i++) {
         RoIs_xmin[i] = j1;
@@ -213,6 +229,9 @@ void _features_extract(const uint32_t** labels, const int i0, const int i1, cons
     memset(RoIs_S, 0, n_RoIs * sizeof(uint32_t));
     memset(RoIs_Sx, 0, n_RoIs * sizeof(uint32_t));
     memset(RoIs_Sy, 0, n_RoIs * sizeof(uint32_t));
+    memset(RoIs_Sx2, 0, n_RoIs * sizeof(uint32_t));
+    memset(RoIs_Sy2, 0, n_RoIs * sizeof(uint32_t));
+    memset(RoIs_Sxy, 0, n_RoIs * sizeof(uint32_t));
 
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
@@ -224,6 +243,9 @@ void _features_extract(const uint32_t** labels, const int i0, const int i1, cons
                 RoIs_id[r] = e;
                 RoIs_Sx[r] += j;
                 RoIs_Sy[r] += i;
+                RoIs_Sx2[r] += j*j;
+                RoIs_Sy2[r] += i*i;
+                RoIs_Sxy[r] += j*i;
                 if (j < (int)RoIs_xmin[r])
                     RoIs_xmin[r] = j;
                 if (j > (int)RoIs_xmax[r])
@@ -249,7 +271,8 @@ void features_extract(const uint32_t** labels, const int i0, const int i1, const
     *RoIs_basic->_size = n_RoIs;
     _features_extract(labels, i0, i1, j0, j1, RoIs_basic->id, RoIs_basic->xmin, RoIs_basic->xmax,
                       RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S, RoIs_basic->Sx,
-                      RoIs_basic->Sy, RoIs_basic->x, RoIs_basic->y, *RoIs_basic->_size);
+                      RoIs_basic->Sy, RoIs_basic->Sx2, RoIs_basic->Sy2, RoIs_basic->Sxy,
+                      RoIs_basic->x, RoIs_basic->y, *RoIs_basic->_size);
 }
 
 void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
@@ -321,14 +344,15 @@ void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI
                               *RoIs_basic->_size, S_min, S_max);
 }
 
-size_t _features_shrink(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xmin,
+size_t _features_shrink_basic(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xmin,
                         const uint32_t* RoIs_src_xmax, const uint32_t* RoIs_src_ymin,
                         const uint32_t* RoIs_src_ymax, const uint32_t* RoIs_src_S, const uint32_t* RoIs_src_Sx,
-                        const uint32_t* RoIs_src_Sy, const float* RoIs_src_x, const float* RoIs_src_y,
+                        const uint32_t* RoIs_src_Sy, const uint64_t* RoIs_src_Sx2, const uint64_t* RoIs_src_Sy2,
+                        const uint64_t* RoIs_src_Sxy, const float* RoIs_src_x, const float* RoIs_src_y,
                         const size_t n_RoIs_src, uint32_t* RoIs_dest_id, uint32_t* RoIs_dest_xmin,
                         uint32_t* RoIs_dest_xmax, uint32_t* RoIs_dest_ymin, uint32_t* RoIs_dest_ymax,
-                        uint32_t* RoIs_dest_S, uint32_t* RoIs_dest_Sx, uint32_t* RoIs_dest_Sy, float* RoIs_dest_x,
-                        float* RoIs_dest_y) {
+                        uint32_t* RoIs_dest_S, uint32_t* RoIs_dest_Sx, uint32_t* RoIs_dest_Sy, uint64_t* RoIs_dest_Sx2,
+                        uint64_t* RoIs_dest_Sy2, uint64_t* RoIs_dest_Sxy, float* RoIs_dest_x, float* RoIs_dest_y) {
     size_t cpt = 0;
     for (size_t i = 0; i < n_RoIs_src; i++) {
         if (RoIs_src_id[i]) {
@@ -341,6 +365,9 @@ size_t _features_shrink(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xm
             RoIs_dest_S[cpt] = RoIs_src_S[i];
             RoIs_dest_Sx[cpt] = RoIs_src_Sx[i];
             RoIs_dest_Sy[cpt] = RoIs_src_Sy[i];
+            RoIs_dest_Sx2[cpt] = RoIs_src_Sx2[i];
+            RoIs_dest_Sy2[cpt] = RoIs_src_Sy2[i];
+            RoIs_dest_Sxy[cpt] = RoIs_src_Sxy[i];
             RoIs_dest_x[cpt] = RoIs_src_x[i];
             RoIs_dest_y[cpt] = RoIs_src_y[i];
             cpt++;
@@ -349,18 +376,45 @@ size_t _features_shrink(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xm
     return cpt;
 }
 
-void features_shrink(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoIs_basic_dest) {
-    *RoIs_basic_dest->_size = _features_shrink(RoIs_basic_src->id, RoIs_basic_src->xmin,
-                                               RoIs_basic_src->xmax, RoIs_basic_src->ymin,
-                                               RoIs_basic_src->ymax, RoIs_basic_src->S,
-                                               RoIs_basic_src->Sx, RoIs_basic_src->Sy,
-                                               RoIs_basic_src->x, RoIs_basic_src->y,
-                                               *RoIs_basic_src->_size, RoIs_basic_dest->id,
-                                               RoIs_basic_dest->xmin, RoIs_basic_dest->xmax,
-                                               RoIs_basic_dest->ymin, RoIs_basic_dest->ymax,
-                                               RoIs_basic_dest->S, RoIs_basic_dest->Sx,
-                                               RoIs_basic_dest->Sy, RoIs_basic_dest->x,
-                                               RoIs_basic_dest->y);
+void features_shrink_basic(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoIs_basic_dest) {
+    *RoIs_basic_dest->_size = _features_shrink_basic(RoIs_basic_src->id, RoIs_basic_src->xmin,
+                                                     RoIs_basic_src->xmax, RoIs_basic_src->ymin,
+                                                     RoIs_basic_src->ymax, RoIs_basic_src->S,
+                                                     RoIs_basic_src->Sx, RoIs_basic_src->Sy,
+                                                     RoIs_basic_src->Sx2, RoIs_basic_src->Sy2,
+                                                     RoIs_basic_src->Sxy, RoIs_basic_src->x, 
+                                                     RoIs_basic_src->y, *RoIs_basic_src->_size, 
+                                                     RoIs_basic_dest->id,
+                                                     RoIs_basic_dest->xmin, RoIs_basic_dest->xmax,
+                                                     RoIs_basic_dest->ymin, RoIs_basic_dest->ymax,
+                                                     RoIs_basic_dest->S, RoIs_basic_dest->Sx,
+                                                     RoIs_basic_dest->Sy, RoIs_basic_dest->Sx2,
+                                                     RoIs_basic_dest->Sy2, RoIs_basic_dest->Sxy,
+                                                     RoIs_basic_dest->x, RoIs_basic_dest->y);
+}
+
+size_t _features_shrink_misc(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_magnitude,
+                        const float* RoIs_src_a, const float* RoIs_src_b, const size_t n_RoIs_src, 
+                        uint32_t* RoIs_dest_id, uint32_t* RoIs_dest_magnitude, float* RoIs_dest_a,
+                        float* RoIs_dest_b) {
+    size_t cpt = 0;
+    for (size_t i = 0; i < n_RoIs_src; i++) {
+        if (RoIs_src_id[i]) {
+            assert(cpt < MAX_ROI_SIZE);
+            RoIs_dest_id[cpt] = cpt + 1;
+            RoIs_dest_magnitude[cpt] = RoIs_src_magnitude[i];
+            RoIs_dest_a[cpt] = RoIs_src_a[i];
+            RoIs_dest_b[cpt] = RoIs_src_b[i];
+            cpt++;
+        }
+    }
+    return cpt;
+}
+
+void features_shrink_misc(const RoIs_misc_t* RoIs_misc_src, RoIs_misc_t* RoIs_misc_dest) {
+    *RoIs_misc_dest->_size = _features_shrink_misc(RoIs_misc_src->id, RoIs_misc_src->magnitude, RoIs_misc_src->a, RoIs_misc_src->b,
+                                                    *RoIs_misc_src->_size, RoIs_misc_dest->id, RoIs_misc_dest->magnitude, RoIs_misc_dest->a,
+                                                    RoIs_misc_dest->b);
 }
 
 void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
@@ -417,4 +471,53 @@ void features_compute_magnitude(const uint8_t** img, const uint32_t img_width, c
     _features_compute_magnitude(img, img_width, img_height, labels, RoIs_basic->xmin, RoIs_basic->xmax,
                                 RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S,
                                 RoIs_misc->magnitude, *RoIs_misc->_size);
+}
+
+void _features_compute_ellipse(const uint32_t *RoIs_S, const uint32_t *RoIs_Sx, const uint32_t *RoIs_Sy, 
+                               const uint64_t *RoIs_Sx2, const uint64_t *RoIs_Sy2, const uint64_t* RoIs_Sxy, 
+                               float *RoIs_a, float *RoIs_b, const size_t n_RoIs)
+{
+
+    // set all RoIs (Regions of Interest) axes to 0
+    memset(RoIs_a, 0, n_RoIs * sizeof(float));
+    memset(RoIs_b, 0, n_RoIs * sizeof(float));
+
+    for(int e = 0; e < n_RoIs; e++) {
+        double S = RoIs_S[e];
+        
+        double Sx = RoIs_Sx[e];
+        double Sy = RoIs_Sy[e];
+        
+        // moments non centres
+        double Sxx = RoIs_Sx2[e];
+        double Sxy = RoIs_Sxy[e];
+        double Syy = RoIs_Sy2[e];
+        
+        // moments centres
+        double m20 = S * Sxx - Sx * Sx;
+        double m11 = S * Sxy - Sx * Sy;
+        double m02 = S * Syy - Sy * Sy;
+        
+        // par construction a > b
+        double a2 = (m20 + m02 + sqrtf( (m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
+        double b2 = (m20 + m02 - sqrtf( (m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
+        
+        float a = sqrt(a2);
+        float b = sqrt(b2);
+        
+        RoIs_a[e] = a;
+        RoIs_b[e] = b;
+
+        // float ratio = a / b; // metrique plus simple a visualiser que l'applatissement
+        // fprintf(stderr, "# %2d   S = %f   m20 = %f a = %5.1f   b = %5.1f   ratio = %5.1f \n", e, S, m11, RoIs_a[e], RoIs_b[e], ratio);
+        
+        //putchar('\n');
+    }
+}
+
+
+
+void features_compute_ellipse(const RoIs_basic_t* RoIs_basic, RoIs_misc_t* RoIs_misc) {
+    _features_compute_ellipse(RoIs_basic->S, RoIs_basic->Sx, RoIs_basic->Sy, RoIs_basic->Sx2, RoIs_basic->Sy2, 
+                              RoIs_basic->Sxy, RoIs_misc->a, RoIs_misc->b, *RoIs_misc->_size);
 }

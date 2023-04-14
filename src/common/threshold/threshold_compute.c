@@ -1,6 +1,7 @@
 #include <string.h>
 
 #include "fmdt/threshold/threshold_compute.h"
+#include <stdio.h>
 
 #define GRAY_LEVEL 256
 
@@ -22,6 +23,26 @@ void threshold(const uint8_t** img_in, uint8_t** img_out, const int i0, const in
             if (img_in[i][j] >= threshold)
                 img_out[i][j] = 255;
     }
+}
+
+void _threshold_ellipse_ratio(const float* RoIs_a, const float* RoIs_b, const size_t n_RoIs, uint32_t* RoIs_id,
+                                    const float min_ratio) {
+    for(size_t e = 0; e < n_RoIs; e++) {
+        
+        if(RoIs_id[e]) {
+            
+            float a = RoIs_a[e];
+            float b = RoIs_b[e];
+            float ratio = a / b;
+            if(ratio < min_ratio) {
+                RoIs_id[e] = 0;
+            }
+        }
+    }
+}
+
+void threshold_ellipse_ratio(RoIs_misc_t* RoIs_misc, const float min_ratio) {
+    _threshold_ellipse_ratio(RoIs_misc->a, RoIs_misc->b, *RoIs_misc->_size, RoIs_misc->id, min_ratio);
 }
 
 // void threshold_high(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,

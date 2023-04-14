@@ -138,9 +138,9 @@ void features_free_RoIs(RoIs_t* RoIs);
  */
 void _features_extract(const uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
                        uint32_t* RoIs_id, uint32_t* RoIs_xmin, uint32_t* RoIs_xmax, uint32_t* RoIs_ymin,
-                       uint32_t* RoIs_ymax, uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, float* RoIs_x,
-                       float* RoIs_y,
-                       const size_t n_RoIs);
+                       uint32_t* RoIs_ymax, uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, 
+                       uint64_t* RoIs_Sx2, uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x,
+                       float* RoIs_y, const size_t n_RoIs);
 
 /**
  * @param labels Input 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
@@ -238,22 +238,50 @@ void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI
  * @see features_merge_CCL_HI_v2 for more explanations about why some identifiers can be set to 0.
  * @see RoIs_basic_t for more explanations about the features.
  */
-size_t _features_shrink(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xmin,
-                        const uint32_t* RoIs_src_xmax, const uint32_t* RoIs_src_ymin,
-                        const uint32_t* RoIs_src_ymax, const uint32_t* RoIs_src_S, const uint32_t* RoIs_src_Sx,
-                        const uint32_t* RoIs_src_Sy, const float* RoIs_src_x, const float* RoIs_src_y,
-                        const size_t n_RoIs_src, uint32_t* RoIs_dst_id, uint32_t* RoIs_dst_xmin,
-                        uint32_t* RoIs_dst_xmax, uint32_t* RoIs_dst_ymin, uint32_t* RoIs_dst_ymax,
-                        uint32_t* RoIs_dst_S, uint32_t* RoIs_dst_Sx, uint32_t* RoIs_dst_Sy, float* RoIs_dst_x,
-                        float* RoIs_dst_y);
 
+size_t _features_shrink_basic(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xmin,
+                              const uint32_t* RoIs_src_xmax, const uint32_t* RoIs_src_ymin,
+                              const uint32_t* RoIs_src_ymax, const uint32_t* RoIs_src_S, const uint32_t* RoIs_src_Sx,
+                              const uint32_t* RoIs_src_Sy, const uint64_t* RoIs_src_Sx2, const uint64_t* RoIs_src_Sy2,
+                              const uint64_t* RoIs_src_Sxy, const float* RoIs_src_x, const float* RoIs_src_y,
+                              const size_t n_RoIs_src, uint32_t* RoIs_dest_id, uint32_t* RoIs_dest_xmin,
+                              uint32_t* RoIs_dest_xmax, uint32_t* RoIs_dest_ymin, uint32_t* RoIs_dest_ymax,
+                              uint32_t* RoIs_dest_S, uint32_t* RoIs_dest_Sx, uint32_t* RoIs_dest_Sy, uint64_t* RoIs_dest_Sx2,
+                              uint64_t* RoIs_dest_Sy2, uint64_t* RoIs_dest_Sxy, float* RoIs_dest_x, float* RoIs_dest_y);
 /**
  * @param RoIs_basic_src Source features.
  * @param RoIs_basic_dst Destination features.
- * @see _features_shrink for the explanations about the nature of the processing.
+ * @see _features_shrink_basic for the explanations about the nature of the processing.
  * @see RoIs_basic_t for more explanations about the features.
  */
-void features_shrink(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoIs_basic_dst);
+void features_shrink_basic(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoIs_basic_dst);
+
+
+/**
+ * @param RoIs_src_id Source array of RoI unique identifiers.
+ * @param RoIs_src_magnitude Array of RoI magnitudes.
+ * @param RoIs_src_a Array of RoI semi-major axis.
+ * @param RoIs_src_b Array of RoI semi-minor axis.
+ * @param n_RoIs_src Number of RoIs in the previous arrays.
+ * @param RoIs_dest_id Destination array of RoI unique identifiers.
+ * @param RoIs_dest_magnitude Destination array of RoI magnitudes.
+ * @param RoIs_dest_a Destination array of RoI semi-major axis.
+ * @param RoIs_dest_b Destination array of RoI semi-minor axis.
+ * @return size_t Number of regions of interest (RoIs) after the data shrink.
+ * @see features_merge_CCL_HI_v2 for more explanations about why some identifiers can be set to 0.
+ * @see RoIs_misc_t for more explanations about the features.
+ */
+size_t _features_shrink_misc(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_magnitude,
+                        const float* RoIs_src_a, const float* RoIs_src_b, const size_t n_RoIs_src, 
+                        uint32_t* RoIs_dest_id, uint32_t* RoIs_dest_magnitude, float* RoIs_dest_a,
+                        float* RoIs_dest_b);
+/**
+ * @param RoIs_misc_src Source features.
+ * @param RoIs_misc_dst Destination features.
+ * @see _features_shrink_misc for the explanations about the nature of the processing.
+ * @see RoIs_misc_t for more explanations about the features.
+ */
+void features_shrink_misc(const RoIs_misc_t* RoIs_misc_src, RoIs_misc_t* RoIs_misc_dest);
 
 /**
  * Compute magnitude features. The magnitude represents the brightness of a RoI.
@@ -297,3 +325,22 @@ void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, 
  */
 void features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
                                 const uint32_t** labels, const RoIs_basic_t* RoIs_basic, RoIs_misc_t* RoIs_misc);
+
+/**
+ * Compute the semi-major and the semi-minor axes of RoIs.
+ * 
+ * @param RoIs_S 
+ * @param RoIs_Sx Sums of \f$x\f$ properties.
+ * @param RoIs_Sy Sums of \f$y\f$ properties.
+ * @param RoIs_Sx2 Sums of squared \f$x\f$ properties.
+ * @param RoIs_Sy2 Sums of squared \f$x\f$ properties.
+ * @param RoIs_Sxy Sums of \f$xy\f$ properties.
+ * @param RoIs_a Semi-major axis.
+ * @param RoIs_b Semi-minor axis.
+ * @param n_RoIs Number of connected-components (= number of RoIs).
+ */
+void _features_compute_ellipse(const uint32_t *RoIs_S, const uint32_t *RoIs_Sx, const uint32_t *RoIs_Sy, 
+                               const uint64_t *RoIs_Sx2, const uint64_t *RoIs_Sy2, const uint64_t* RoIs_Sxy, 
+                               float *RoIs_a, float *RoIs_b, const size_t n_RoIs);
+
+void features_compute_ellipse(const RoIs_basic_t* RoIs_basic, RoIs_misc_t* RoIs_misc);
