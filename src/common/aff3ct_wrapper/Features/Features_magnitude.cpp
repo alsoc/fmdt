@@ -51,6 +51,7 @@ Features_magnitude::Features_magnitude(const int i0, const int i1, const int j0,
                                     static_cast<const uint32_t*>(t[ps_in_RoIs_ymax].get_dataptr()),
                                     static_cast<const uint32_t*>(t[ps_in_RoIs_S].get_dataptr()),
                                     static_cast<uint32_t*>(t[ps_out_RoIs_magnitude].get_dataptr()),
+                                    nullptr,
                                     in_n_RoIs);
 
         return aff3ct::runtime::status_t::SUCCESS;

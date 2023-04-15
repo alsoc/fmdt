@@ -71,6 +71,7 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
                                         static_cast<const float*>(t[ps_in_RoIs0_x].get_dataptr()),
                                         static_cast<const float*>(t[ps_in_RoIs0_y].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs0_magnitude].get_dataptr()),
+                                        nullptr,
                                         *static_cast<const uint32_t*>(t[ps_in_n_RoIs0].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_id].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_xmin].get_dataptr()),
@@ -83,6 +84,7 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
                                         static_cast<const float*>(t[ps_in_RoIs1_x].get_dataptr()),
                                         static_cast<const float*>(t[ps_in_RoIs1_y].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_magnitude].get_dataptr()),
+                                        nullptr,
                                         *static_cast<const uint32_t*>(t[ps_in_n_RoIs1].get_dataptr()),
                                         lgr_roi.tracking_data->tracks);
             fclose(file);
