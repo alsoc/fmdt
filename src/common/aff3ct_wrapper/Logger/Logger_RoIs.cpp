@@ -24,6 +24,7 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
     auto ps_in_RoIs0_x = this->template create_socket_in<float>(p, "in_RoIs0_x", max_RoIs_size);
     auto ps_in_RoIs0_y = this->template create_socket_in<float>(p, "in_RoIs0_y", max_RoIs_size);
     auto ps_in_RoIs0_magnitude = this->template create_socket_in<uint32_t>(p, "in_RoIs0_magnitude", max_RoIs_size);
+    auto ps_in_RoIs0_sat_count = this->template create_socket_in<uint32_t>(p, "in_RoIs0_sat_count", max_RoIs_size);
     auto ps_in_n_RoIs0 = this->template create_socket_in<uint32_t>(p, "in_n_RoIs0", 1);
 
     auto ps_in_RoIs1_id = this->template create_socket_in<uint32_t>(p, "in_RoIs1_id", max_RoIs_size);
@@ -37,6 +38,7 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
     auto ps_in_RoIs1_x = this->template create_socket_in<float>(p, "in_RoIs1_x", max_RoIs_size);
     auto ps_in_RoIs1_y = this->template create_socket_in<float>(p, "in_RoIs1_y", max_RoIs_size);
     auto ps_in_RoIs1_magnitude = this->template create_socket_in<uint32_t>(p, "in_RoIs1_magnitude", max_RoIs_size);
+    auto ps_in_RoIs1_sat_count = this->template create_socket_in<uint32_t>(p, "in_RoIs1_sat_count", max_RoIs_size);
     auto ps_in_n_RoIs1 = this->template create_socket_in<uint32_t>(p, "in_n_RoIs1", 1);
     auto ps_in_frame = this->template create_socket_in<uint32_t>(p, "in_frame", 1);
 
@@ -45,9 +47,10 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
 
     this->create_codelet(p, [ps_in_RoIs0_id, ps_in_RoIs0_xmin, ps_in_RoIs0_xmax, ps_in_RoIs0_ymin, ps_in_RoIs0_ymax,
                              ps_in_RoIs0_S, ps_in_RoIs0_Sx, ps_in_RoIs0_Sy, ps_in_RoIs0_x, ps_in_RoIs0_y,
-                             ps_in_RoIs0_magnitude, ps_in_n_RoIs0, ps_in_RoIs1_id, ps_in_RoIs1_xmin, ps_in_RoIs1_xmax,
-                             ps_in_RoIs1_ymin, ps_in_RoIs1_ymax, ps_in_RoIs1_S, ps_in_RoIs1_Sx, ps_in_RoIs1_Sy,
-                             ps_in_RoIs1_x, ps_in_RoIs1_y, ps_in_RoIs1_magnitude, ps_in_n_RoIs1, ps_in_frame]
+                             ps_in_RoIs0_magnitude, ps_in_RoIs0_sat_count, ps_in_n_RoIs0, ps_in_RoIs1_id,
+                             ps_in_RoIs1_xmin, ps_in_RoIs1_xmax, ps_in_RoIs1_ymin, ps_in_RoIs1_ymax, ps_in_RoIs1_S,
+                             ps_in_RoIs1_Sx, ps_in_RoIs1_Sy, ps_in_RoIs1_x, ps_in_RoIs1_y, ps_in_RoIs1_magnitude,
+                             ps_in_RoIs1_sat_count, ps_in_n_RoIs1, ps_in_frame]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_roi = static_cast<Logger_RoIs&>(m);
 
@@ -71,7 +74,7 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
                                         static_cast<const float*>(t[ps_in_RoIs0_x].get_dataptr()),
                                         static_cast<const float*>(t[ps_in_RoIs0_y].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs0_magnitude].get_dataptr()),
-                                        nullptr,
+                                        static_cast<const uint32_t*>(t[ps_in_RoIs0_sat_count].get_dataptr()),
                                         *static_cast<const uint32_t*>(t[ps_in_n_RoIs0].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_id].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_xmin].get_dataptr()),
@@ -84,7 +87,7 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
                                         static_cast<const float*>(t[ps_in_RoIs1_x].get_dataptr()),
                                         static_cast<const float*>(t[ps_in_RoIs1_y].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_magnitude].get_dataptr()),
-                                        nullptr,
+                                        static_cast<const uint32_t*>(t[ps_in_RoIs1_sat_count].get_dataptr()),
                                         *static_cast<const uint32_t*>(t[ps_in_n_RoIs1].get_dataptr()),
                                         lgr_roi.tracking_data->tracks);
             fclose(file);

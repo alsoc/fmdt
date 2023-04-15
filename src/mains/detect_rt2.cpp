@@ -293,6 +293,7 @@ int main(int argc, char** argv) {
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");
     Logger_tracks log_track(p_log_path ? p_log_path : "", p_vid_in_start, tracking.get_data());
+    log_track.set_custom_name("Logger_trk");
     std::unique_ptr<Logger_frame> log_frame;
     if (p_ccl_fra_path)
         log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
@@ -421,6 +422,7 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs0_x] = merger0[ftr_mrg::sck::merge::out_RoIs_x];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_y] = merger0[ftr_mrg::sck::merge::out_RoIs_y];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_magnitude] = magnitude0[ftr_mgn::sck::compute::out_RoIs_magnitude];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_sat_count] = magnitude0[ftr_mgn::sck::compute::out_RoIs_sat_count];
         log_RoIs[lgr_roi::sck::write::in_n_RoIs0] = merger0[ftr_mrg::sck::merge::out_n_RoIs];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_id] = merger1[ftr_mrg::sck::merge::out_RoIs_id];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_xmin] = merger1[ftr_mrg::sck::merge::out_RoIs_xmin];
@@ -433,6 +435,7 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs1_x] = merger1[ftr_mrg::sck::merge::out_RoIs_x];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_y] = merger1[ftr_mrg::sck::merge::out_RoIs_y];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_magnitude] = magnitude1[ftr_mgn::sck::compute::out_RoIs_magnitude];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_sat_count] = magnitude1[ftr_mgn::sck::compute::out_RoIs_sat_count];
         log_RoIs[lgr_roi::sck::write::in_n_RoIs1] = merger1[ftr_mrg::sck::merge::out_n_RoIs];
         log_RoIs[lgr_roi::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
 
