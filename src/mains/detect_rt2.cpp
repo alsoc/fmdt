@@ -589,7 +589,7 @@ int main(int argc, char** argv) {
                   &magnitude0[ftr_mgn::tsk::compute], &threshold_min1[thr::tsk::apply], 
                   &threshold_max1[thr::tsk::apply],  &magnitude1[ftr_mgn::tsk::compute],},
                 { &motion[mtn::tsk::compute],},
-                { } ),
+                { /* no exclusions in this stage */ } ),
             // pipeline stage 3
             std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                             std::vector<aff3ct::runtime::Task*>>(
@@ -617,7 +617,7 @@ int main(int argc, char** argv) {
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                           std::vector<aff3ct::runtime::Task*>>(
             { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe],
-              &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe],             
+              &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe],           
               &tracking[trk::tsk::perform],
               },
             { },
@@ -634,13 +634,14 @@ int main(int argc, char** argv) {
 
     if (p_ccl_fra_path) {
         std::get<0>(sep_stages[2]).push_back(&(*log_frame)[lgr_fra::tsk::write]);
+        std::get<2>(sep_stages[1]).push_back(&(*log_frame)[lgr_fra::tsk::write]);
     }
 
     aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
                                                    sep_stages,
                                                    {
                                                      1, // number of threads in the stage 0
-                                                     2, // number of threads in the stage 1
+                                                     4, // number of threads in the stage 1
                                                      1, // number of threads in the stage 2
                                                    }, {
                                                      1, // synchronization buffer size between stages 0 and 1
