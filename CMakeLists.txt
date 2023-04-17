@@ -6,10 +6,10 @@ project(fmdt)
 # CMake options ---------------------------------------------------------------
 # -----------------------------------------------------------------------------
 option(FMDT_DETECT_EXE "compile the detection chain executable." ON)
+option(FMDT_ELLIPSE_EXE "compile the ellipse chain executable." ON)
 option(FMDT_VISU_EXE "compile the visualization executable." ON)
 option(FMDT_CHECK_EXE "compile the checking executable." ON)
 option(FMDT_MAXRED_EXE "compile the max reduction executable." ON)
-option(FMDT_VID2IMG_EXE "compile the video to images executable." ON)
 option(FMDT_DEBUG "build the project using debugging code" OFF)
 option(FMDT_OPENCV_LINK "link with OpenCV library." OFF)
 option(FMDT_AFF3CT_RUNTIME "link with AFF3CT for execution runtime." OFF)
@@ -24,10 +24,10 @@ endif()
 # -----------------------------------------------------------------------------
 message(STATUS "FMDT options: ")
 message(STATUS "  * FMDT_DETECT_EXE: '${FMDT_DETECT_EXE}'")
+message(STATUS "  * FMDT_ELLIPSE_EXE: '${FMDT_ELLIPSE_EXE}'")
 message(STATUS "  * FMDT_VISU_EXE: '${FMDT_VISU_EXE}'")
 message(STATUS "  * FMDT_CHECK_EXE: '${FMDT_CHECK_EXE}'")
 message(STATUS "  * FMDT_MAXRED_EXE: '${FMDT_MAXRED_EXE}'")
-message(STATUS "  * FMDT_VID2IMG_EXE: '${FMDT_VID2IMG_EXE}'")
 message(STATUS "  * FMDT_DEBUG: '${FMDT_DEBUG}'")
 message(STATUS "  * FMDT_OPENCV_LINK: '${FMDT_OPENCV_LINK}'")
 message(STATUS "  * FMDT_AFF3CT_RUNTIME: '${FMDT_AFF3CT_RUNTIME}'")
@@ -43,7 +43,8 @@ message(STATUS "  * CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
 # -----------------------------------------------------------------------------
 set(src_dir src)
 set(inc_dir include)
-set(exe_dir exe)
+set(exe_dir bin)
+set(lib_dir lib)
 
 # Compiler generic options ----------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -60,16 +61,37 @@ endif()
 # -----------------------------------------------------------------------------
 set(EXECUTABLE_OUTPUT_PATH ${exe_dir})
 
+# Check c-vector mandatory dependency -----------------------------------------
+# -----------------------------------------------------------------------------
+if (NOT EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/c-vector/vec.h")
+	message(FATAL_ERROR "'c-vector' can't be found, try to init the submodule with the following cmd:\n"
+	                    "$ git submodule update --init -- ../lib/c-vector/")
+endif()
+
 # Declare source files to compile ---------------------------------------------
 # -----------------------------------------------------------------------------
 set(src_common_files
     ${src_dir}/common/args.c
-    ${src_dir}/common/features.c
     ${src_dir}/common/tools.c
-    ${src_dir}/common/tracking.c
-    ${src_dir}/common/validation.c
-    ${src_dir}/common/video.c
-    ${src_dir}/common/images.c)
+    ${src_dir}/common/CCL/CCL_compute.c
+    ${src_dir}/common/features/features_compute.c
+    ${src_dir}/common/features/features_io.c
+    ${src_dir}/common/image/image_compute.c
+    ${src_dir}/common/image/image_io.c
+    ${src_dir}/common/kNN/kNN_compute.c
+    ${src_dir}/common/kNN/kNN_io.c
+    ${src_dir}/common/motion/motion_compute.c
+    ${src_dir}/common/motion/motion_io.c
+    ${src_dir}/common/threshold/threshold_compute.c
+    ${src_dir}/common/tracking/tracking_compute.c
+    ${src_dir}/common/tracking/tracking_global.c
+    ${src_dir}/common/tracking/tracking_io.c
+    ${src_dir}/common/tracking/tracking_struct.c
+    ${src_dir}/common/validation/validation_compute.c
+    ${src_dir}/common/validation/validation_global.c
+    ${src_dir}/common/validation/validation_io.c
+    ${src_dir}/common/video/video_io.c
+    ${lib_dir}/c-vector/vec.c)
 list(APPEND fmdt_src_list ${src_common_files})
 
 # Create binaries -------------------------------------------------------------
@@ -80,45 +102,38 @@ list(APPEND fmdt_targets_list fmdt-common-obj)
 
 # executables
 if(FMDT_DETECT_EXE)
-	set(src_detect_common_files
-	    ${src_dir}/detect/CCL.c
-	    ${src_dir}/detect/KPPV.c
-	    ${src_dir}/detect/threshold.c)
-	list(APPEND fmdt_src_list ${src_detect_common_files})
-	add_library(fmdt-detect-common-obj OBJECT ${src_detect_common_files})
-	list(APPEND fmdt_targets_list fmdt-detect-common-obj)
 	set(src_detect_files
-	    ${src_dir}/detect/main.c)
+	    ${src_dir}/mains/detect.c)
 	list(APPEND fmdt_src_list ${src_detect_files})
-	add_executable(fmdt-detect-exe $<TARGET_OBJECTS:fmdt-common-obj> $<TARGET_OBJECTS:fmdt-detect-common-obj> ${src_detect_files})
+	add_executable(fmdt-detect-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_detect_files})
 	list(APPEND fmdt_targets_list fmdt-detect-exe)
 	set_target_properties(fmdt-detect-exe PROPERTIES OUTPUT_NAME fmdt-detect)
 	if (FMDT_AFF3CT_RUNTIME)
 		set(src_detectrt_common_files
-		    ${src_dir}/runtime/CCL_LSL/CCL_LSL.cpp
-		    ${src_dir}/runtime/Features/Features_extractor.cpp
-		    ${src_dir}/runtime/Features/Features_merger.cpp
-		    ${src_dir}/runtime/Features/Features_motion.cpp
-		    ${src_dir}/runtime/KNN_matcher/KNN_matcher.cpp
-		    ${src_dir}/runtime/Logger/Logger_frame.cpp
-		    ${src_dir}/runtime/Logger/Logger_KNN.cpp
-		    ${src_dir}/runtime/Logger/Logger_motion.cpp
-		    ${src_dir}/runtime/Logger/Logger_ROI.cpp
-		    ${src_dir}/runtime/Logger/Logger_track.cpp
-		    ${src_dir}/runtime/Threshold/Threshold.cpp
-		    ${src_dir}/runtime/Tracking/Tracking.cpp)
+			${src_dir}/common/aff3ct_wrapper/Video/Video.cpp
+			${src_dir}/common/aff3ct_wrapper/Video/Video2.cpp
+		    ${src_dir}/common/aff3ct_wrapper/CCL_LSL/CCL_LSL.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Features/Features_extractor.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Features/Features_merger_CCL_HI.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Features/Features_magnitude.cpp
+		    ${src_dir}/common/aff3ct_wrapper/kNN_matcher/kNN_matcher.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Motion/Motion.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_frame.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_kNN.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_motion.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_RoIs.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_tracks.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Threshold/Threshold.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Tracking/Tracking.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt_common_files})
         add_library(fmdt-detect-rt-common-obj OBJECT ${src_detectrt_common_files})
         list(APPEND fmdt_targets_list fmdt-detect-rt-common-obj)
 
         set(src_detectrt1_files
-            ${src_dir}/runtime/Video/Video.cpp
-            ${src_dir}/runtime/Images/Images.cpp
-            ${src_dir}/detect/main_rt.cpp)
+            ${src_dir}/mains/detect_rt.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt1_files})
         add_executable(fmdt-detect-rt-seq-exe
             $<TARGET_OBJECTS:fmdt-common-obj>
-            $<TARGET_OBJECTS:fmdt-detect-common-obj>
             $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
             ${src_detectrt1_files})
         list(APPEND fmdt_targets_list fmdt-detect-rt-seq-exe)
@@ -126,7 +141,6 @@ if(FMDT_DETECT_EXE)
 
         add_executable(fmdt-detect-rt-pip-exe
             $<TARGET_OBJECTS:fmdt-common-obj> 
-            $<TARGET_OBJECTS:fmdt-detect-common-obj> 
             $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
             ${src_detectrt1_files})
         list(APPEND fmdt_targets_list fmdt-detect-rt-pip-exe)
@@ -134,21 +148,27 @@ if(FMDT_DETECT_EXE)
         target_compile_definitions(fmdt-detect-rt-pip-exe PUBLIC FMDT_ENABLE_PIPELINE)
         
         set(src_detectrt2_files
-            ${src_dir}/runtime/Video/Video2.cpp
-            ${src_dir}/detect/main_rt2.cpp)
+            ${src_dir}/mains/detect_rt2.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt2_files})
         add_executable(fmdt-detect-rt2-exe 
             $<TARGET_OBJECTS:fmdt-common-obj> 
-            $<TARGET_OBJECTS:fmdt-detect-common-obj> 
             $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
             ${src_detectrt2_files})
 		list(APPEND fmdt_targets_list fmdt-detect-rt2-exe)
 		set_target_properties(fmdt-detect-rt2-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2)
 	endif()
 endif()
+if(FMDT_ELLIPSE_EXE)
+	set(src_ellipse_files
+	    ${src_dir}/mains/ellipse.c)
+	list(APPEND fmdt_src_list ${src_ellipse_files})
+	add_executable(fmdt-ellipse-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_ellipse_files})
+	list(APPEND fmdt_targets_list fmdt-ellipse-exe)
+	set_target_properties(fmdt-ellipse-exe PROPERTIES OUTPUT_NAME fmdt-ellipse)
+endif()
 if(FMDT_VISU_EXE)
 	set(src_visu_files
-	    ${src_dir}/visu/main.c)
+	    ${src_dir}/mains/visu.c)
 	list(APPEND fmdt_src_list ${src_visu_files})
 	add_executable(fmdt-visu-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_visu_files})
 	list(APPEND fmdt_targets_list fmdt-visu-exe)
@@ -156,7 +176,7 @@ if(FMDT_VISU_EXE)
 endif()
 if(FMDT_CHECK_EXE)
 	set(src_check_files
-	    ${src_dir}/check/main.c)
+	    ${src_dir}/mains/check.c)
 	list(APPEND fmdt_src_list ${src_check_files})
 	add_executable(fmdt-check-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_check_files})
 	list(APPEND fmdt_targets_list fmdt-check-exe)
@@ -164,19 +184,11 @@ if(FMDT_CHECK_EXE)
 endif()
 if(FMDT_MAXRED_EXE)
 	set(src_maxred_files
-	    ${src_dir}/maxred/main.c)
+	    ${src_dir}/mains/maxred.c)
 	list(APPEND fmdt_src_list ${src_maxred_files})
 	add_executable(fmdt-maxred-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_maxred_files})
 	list(APPEND fmdt_targets_list fmdt-maxred-exe)
 	set_target_properties(fmdt-maxred-exe PROPERTIES OUTPUT_NAME fmdt-maxred)
-endif()
-if(FMDT_VID2IMG_EXE)
-	set(src_vid2img_files
-	    ${src_dir}/vid2img/main.c)
-	list(APPEND fmdt_src_list ${src_vid2img_files})
-	add_executable(fmdt-vid2img-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_vid2img_files})
-	list(APPEND fmdt_targets_list fmdt-vid2img-exe)
-	set_target_properties(fmdt-vid2img-exe PROPERTIES OUTPUT_NAME fmdt-vid2img)
 endif()
 
 macro(fmdt_set_source_files_properties files key value)
@@ -185,7 +197,7 @@ macro(fmdt_set_source_files_properties files key value)
 	endforeach()
 endmacro()
 
-# force C++ language when linking with OpenCV
+# force C++ language when linking with OpenCV and/or AFF3CT
 if (FMDT_CPP)
 	fmdt_set_source_files_properties("${fmdt_src_list}" LANGUAGE CXX)
 endif()
@@ -239,13 +251,13 @@ macro(fmdt_target_compile_definitions targets privacy dir)
 endmacro()
 
 if (FMDT_DEBUG)
-	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC ENABLE_DEBUG)
+	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_ENABLE_DEBUG)
 endif()
 if (FMDT_OPENCV_LINK)
-	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC OPENCV_LINK)
+	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_OPENCV_LINK)
 endif()
 if (FMDT_AFF3CT_RUNTIME)
-	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC AFF3CT_LINK)
+	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_AFF3CT_LINK)
 endif()
 
 # Set include directory -------------------------------------------------------
@@ -256,13 +268,13 @@ macro(fmdt_target_include_directories targets privacy dir)
 	endforeach()
 endmacro()
 
-fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/common)
-fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/detect)
+fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/c)
+fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${lib_dir}/c-vector)
 if (FMDT_OPENCV_LINK)
-	include_directories(${OpenCV_INCLUDE_DIRS})
+	fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${OpenCV_INCLUDE_DIRS})
 endif()
 if (FMDT_AFF3CT_RUNTIME)
-	fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/runtime)
+	fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/cpp)
 endif()
 
 # Link with dependencies ------------------------------------------------------
