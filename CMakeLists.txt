@@ -44,6 +44,43 @@ set(inc_dir include)
 set(exe_dir bin)
 set(lib_dir lib)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
+
+# Get version from Git --------------------------------------------------------
+# -----------------------------------------------------------------------------
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+git_describe(GIT_VERSION "--tags" "--abbrev=7")
+
+string(REGEX REPLACE "^v"              ""    FMDT_VERSION_FULL  ${GIT_VERSION})
+string(REGEX REPLACE "-.*"             ""    FMDT_VERSION       ${FMDT_VERSION_FULL})
+string(REGEX REPLACE "^.*-"            ""    FMDT_HASH          ${FMDT_VERSION_FULL})
+string(      REPLACE "-"               ""    FMDT_BUILD         ${FMDT_VERSION_FULL})
+string(      REPLACE "${FMDT_VERSION}" ""    FMDT_BUILD         ${FMDT_BUILD})
+string(REGEX REPLACE "(.*)\\..*\\..*"  "\\1" FMDT_VERSION_MAJOR ${FMDT_VERSION})
+string(REGEX REPLACE ".*\\.(.*)\\..*"  "\\1" FMDT_VERSION_MINOR ${FMDT_VERSION})
+string(REGEX REPLACE ".*\\..*\\.(.*)"  "\\1" FMDT_VERSION_PATCH ${FMDT_VERSION})
+
+if(NOT "${FMDT_BUILD}" STREQUAL "")
+    string(REPLACE "${FMDT_HASH}" "" FMDT_BUILD ${FMDT_BUILD})
+else()
+    set(FMDT_HASH "")
+endif()
+
+message(STATUS "  * FMDT_VERSION: ${FMDT_VERSION}")
+if(NOT "${FMDT_BUILD}" STREQUAL "")
+    message(STATUS "  * FMDT_BUILD: ${FMDT_BUILD}")
+endif()
+if(NOT "${FMDT_HASH}" STREQUAL "")
+    message(STATUS "  * FMDT_HASH: ${FMDT_HASH}")
+endif()
+
+if(("${FMDT_BUILD}" STREQUAL "") OR ("${FMDT_HASH}" STREQUAL ""))
+    set(FMDT_VERSION_EXTRA "")
+else()
+    set(FMDT_VERSION_EXTRA "-${FMDT_BUILD}-${FMDT_HASH}")
+endif()
+
 # Compiler generic options ----------------------------------------------------
 # -----------------------------------------------------------------------------
 # enable C11
@@ -91,6 +128,14 @@ set(src_common_files
     ${src_dir}/common/video/video_io.c
     ${lib_dir}/c-vector/vec.c)
 list(APPEND fmdt_src_list ${src_common_files})
+
+# Generate version file -------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Auto generate a header containing the last Git SHA1
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/common/version.c.in"
+               "${CMAKE_CURRENT_SOURCE_DIR}/src/common/version.c" @ONLY)
+list(APPEND src_common_files "${CMAKE_CURRENT_SOURCE_DIR}/src/common/version.c")
+list(APPEND fmdt_src_list "${CMAKE_CURRENT_SOURCE_DIR}/src/common/version.c")
 
 # Create binaries -------------------------------------------------------------
 # -----------------------------------------------------------------------------

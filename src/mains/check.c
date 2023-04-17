@@ -8,6 +8,7 @@
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/tracking/tracking_io.h"
 #include "fmdt/validation.h"
+#include "fmdt/version.h"
 
 int main(int argc, char** argv) {
     // default values
@@ -21,12 +22,19 @@ int main(int argc, char** argv) {
         fprintf(stderr, "  --gt-path      Path to ground truth file  [%s]\n",
                 def_p_gt_path ? def_p_gt_path : "NULL");
         fprintf(stderr, "  --help, -h     This help                      \n");
+        fprintf(stderr, "  --version, -v  Print the version              \n");
         exit(1);
     }
 
     // Parsing Arguments
     const char* p_trk_path = args_find_char(argc, argv, "--trk-path,--in-tracks", def_p_trk_path);
     const char* p_gt_path = args_find_char(argc, argv, "--gt-path,--in-gt", def_p_gt_path);
+
+    // version
+    if (args_find(argc, argv, "--version,-v")) {
+        print_version("check");
+        exit(0);
+    }
 
     // heading display
     printf("#  --------------------\n");

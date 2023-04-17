@@ -17,6 +17,7 @@
 #include "fmdt/tracking.h"
 #include "fmdt/video.h"
 #include "fmdt/image.h"
+#include "fmdt/version.h"
 
 int main(int argc, char** argv) {
     // default values
@@ -131,7 +132,15 @@ int main(int argc, char** argv) {
                 def_p_log_path ? def_p_log_path : "NULL");
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
+        fprintf(stderr,
+                "  --version, -v       Print the version                                                          \n");
         exit(1);
+    }
+
+    // version
+    if (args_find(argc, argv, "--version,-v")) {
+        print_version("detect");
+        exit(0);
     }
 
     // parse arguments

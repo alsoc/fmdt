@@ -10,6 +10,7 @@
 #include "fmdt/macros.h"
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/tracking/tracking_io.h"
+#include "fmdt/version.h"
 
 #include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_LSL.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_extractor.hpp"
@@ -137,7 +138,19 @@ int main(int argc, char** argv) {
                 "  --rt-stats          Display runtime statistics (executed tasks report)                         \n");
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
+        fprintf(stderr,
+                "  --version, -v       Print the version                                                          \n");
         exit(1);
+    }
+
+    // version
+    if (args_find(argc, argv, "--version,-v")) {
+#ifdef FMDT_ENABLE_PIPELINE
+        print_version("detect-rt2-pip");
+#else
+        print_version("detect-rt2-seq");
+#endif
+        exit(0);
     }
 
     // parse arguments

@@ -15,6 +15,7 @@
 #include "fmdt/tracking/tracking_io.h"
 #include "fmdt/validation.h"
 #include "fmdt/video.h"
+#include "fmdt/version.h"
 
 void max_reduce(uint8_t** M, int i0, int i1, int j0, int j1, const uint8_t** I) {
     for (int i = i0; i <= i1; i++) {
@@ -61,7 +62,14 @@ int main(int argc, char** argv) {
         fprintf(stderr, "  --fra-out-path     Path to the frame output file            [%s]\n",
                 def_p_fra_out_path ? def_p_fra_out_path : "NULL");
         fprintf(stderr, "  --help, -h         This help                                    \n");
+        fprintf(stderr, "  --version, -v      Print the version                            \n");
         exit(1);
+    }
+
+    // version
+    if (args_find(argc, argv, "--version,-v")) {
+        print_version("maxred");
+        exit(0);
     }
 
     // Parsing Arguments
