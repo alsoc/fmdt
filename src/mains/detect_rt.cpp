@@ -160,9 +160,9 @@ int main(int argc, char** argv) {
     // version
     if (args_find(argc, argv, "--version,-v")) {
 #ifdef FMDT_ENABLE_PIPELINE
-        print_version("detect-rt-pip");
+        version_print("detect-rt-pip");
 #else
-        print_version("detect-rt-seq");
+        version_print("detect-rt-seq");
 #endif
         exit(0);
     }

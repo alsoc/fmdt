@@ -32,7 +32,7 @@ int main(int argc, char** argv) {
 
     // version
     if (args_find(argc, argv, "--version,-v")) {
-        print_version("check");
+        version_print("check");
         exit(0);
     }
 

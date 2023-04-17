@@ -10,7 +10,7 @@ unsigned g_fmdt_version_minor = @FMDT_VERSION_MINOR@;
 unsigned g_fmdt_version_patch = @FMDT_VERSION_PATCH@;
 unsigned g_fmdt_build = @FMDT_BUILD@;
 
-void print_version(const char* bin_name) {
+void version_print(const char* bin_name) {
     char os[256], compiler[256], compiler_version[256];
 
 #if defined(_WIN64) || defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)

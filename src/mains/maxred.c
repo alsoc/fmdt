@@ -68,7 +68,7 @@ int main(int argc, char** argv) {
 
     // version
     if (args_find(argc, argv, "--version,-v")) {
-        print_version("maxred");
+        version_print("maxred");
         exit(0);
     }
 
