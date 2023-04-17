@@ -75,6 +75,7 @@ else()
 	if(NOT "${FMDT_BUILD}" STREQUAL "")
 	    string(REPLACE "${FMDT_HASH}" "" FMDT_BUILD ${FMDT_BUILD})
 	else()
+		set(FMDT_BUILD "0")
 	    set(FMDT_HASH "")
 	endif()
 
