@@ -5,9 +5,10 @@
 
 char g_fmdt_sha1[256] = "@GIT_SHA1@";
 char g_fmdt_version[256] = "@GIT_VERSION@";
-char g_fmdt_version_major[256] = "@FMDT_VERSION_MAJOR@";
-char g_fmdt_version_minor[256] = "@FMDT_VERSION_MINOR@";
-char g_fmdt_version_patch[256] = "@FMDT_VERSION_PATCH@";
+unsigned g_fmdt_version_major = @FMDT_VERSION_MAJOR@;
+unsigned g_fmdt_version_minor = @FMDT_VERSION_MINOR@;
+unsigned g_fmdt_version_patch = @FMDT_VERSION_PATCH@;
+unsigned g_fmdt_build = @FMDT_BUILD@;
 
 void print_version(const char* bin_name) {
     char os[256], compiler[256], compiler_version[256];
