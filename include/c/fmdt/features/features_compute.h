@@ -269,7 +269,7 @@ void features_shrink(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoIs_basi
  * where \f$P\f$ is the the number of pixels in the current CC, \f$i_x\f$ is the brightness of the pixel \f$x\f$
  * and \f$N\f$ is the number of noisy pixels considered.
  * In addition, this function can also compute the saturation counter for each RoI (e. g. the number of pixels that have
- * an intensity \f$I_p = 255\f$).
+ * an intensity \f$i_x = 255\f$).
  * @param img Image in grayscale (\f$[\texttt{img\_height}][\texttt{img\_width}]\f$, the values of the pixel
  *            range are \f$ [ 0;255 ] \f$).
  * @param img_width Image width.

@@ -508,8 +508,8 @@ Each line corresponds to one |RoI|:
 - ``{cy}``: :math:`y` center of mass,
 - ``{mag}``: magnitude of the current |RoI| (accumulated brightness of the
   |RoI|, see the :func:`_features_compute_magnitude` function),
-- ``{sat}``: number of pixels that are saturated in the current |RoI| (a pixel :math:`p` is saturated when its intensity
-  :math:`I_p = 255`, see the :func:`_features_compute_magnitude` function).
+- ``{sat}``: number of pixels that are saturated in the current |RoI| (a pixel :math:`x` is saturated when its intensity
+  :math:`i_x = 255`, see the :func:`_features_compute_magnitude` function).
 
 Table 3: List of associations between |RoIs|
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
