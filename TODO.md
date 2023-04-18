@@ -8,8 +8,9 @@ TODO list:
 - [ ] For each detection: extract meteor video sequence + - a few seconds: this 
       way if we need to re-process it we don't have to run it through the whole 
       video again
-- [ ] Put a saturation flag for each detected object: meteor and star -> this 
-      will help for photometry 
+- [x] Put a saturation flag for each detected object: meteor and star -> this 
+      will help for photometry => in the connected-components analysis, compute 
+      the number of saturated pixels per RoI (if I_p = 255)
 - [ ] Add CI tests with `fmdt-check` 
 - [x] Support more image input formats
 - [x] Add `--video-loop` and `--video-buff` support to the video module (based 

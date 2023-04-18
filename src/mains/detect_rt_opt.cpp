@@ -13,6 +13,7 @@
 #include "fmdt/macros.h"
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/tracking/tracking_io.h"
+#include "fmdt/version.h"
 
 #include "fmdt/aff3ct_wrapper/CCL/CCL_threshold_features.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_merger_CCL_HI_v3.hpp"
@@ -150,7 +151,19 @@ int main(int argc, char** argv) {
                 def_p_out_probes ? def_p_out_probes : "NULL");
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
+        fprintf(stderr,
+                "  --version, -v       Print the version                                                          \n");
         exit(1);
+    }
+
+    // version
+    if (args_find(argc, argv, "--version,-v")) {
+#ifdef FMDT_ENABLE_PIPELINE
+        version_print("detect-rt-opt-pip");
+#else
+        version_print("detect-rt-opt-seq");
+#endif
+        exit(0);
     }
 
     // parse arguments
@@ -309,6 +322,7 @@ int main(int argc, char** argv) {
     aff3ct::module::Delayer<float> delayer_RoIs_x(MAX_ROI_SIZE, 0.f);
     aff3ct::module::Delayer<float> delayer_RoIs_y(MAX_ROI_SIZE, 0.f);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_magnitude(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoIs_sat_count(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_n_RoIs(1, 0);
     delayer_RoIs_id.set_custom_name("D<RoIs_id>");
     delayer_RoIs_xmin.set_custom_name("D<RoIs_xmin>");
@@ -321,6 +335,7 @@ int main(int argc, char** argv) {
     delayer_RoIs_x.set_custom_name("D<RoIs_x>");
     delayer_RoIs_y.set_custom_name("D<RoIs_y>");
     delayer_RoIs_magnitude.set_custom_name("D<RoIs_mag>");
+    delayer_RoIs_sat_count.set_custom_name("D<RoIs_sat>");
     delayer_n_RoIs.set_custom_name("D<n_RoIs>");
     Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data());
     Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_ROI_SIZE);
@@ -443,6 +458,8 @@ int main(int argc, char** argv) {
     if (p_trk_mag_path) {
         delayer_RoIs_magnitude[aff3ct::module::dly::tsk::produce] =
             magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
+        delayer_RoIs_sat_count[aff3ct::module::dly::tsk::produce] =
+            magnitude[ftr_mgn::sck::compute::out_RoIs_sat_count];
     }
     delayer_n_RoIs[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg3::sck::merge::out_RoIs_id];
 
@@ -500,6 +517,8 @@ int main(int argc, char** argv) {
     if (p_trk_mag_path) {
         delayer_RoIs_magnitude[aff3ct::module::dly::sck::memorize::in] =
             magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
+        delayer_RoIs_sat_count[aff3ct::module::dly::sck::memorize::in] =
+            magnitude[ftr_mgn::sck::compute::out_RoIs_sat_count];
     }
     delayer_n_RoIs[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg3::sck::merge::out_n_RoIs];
 
@@ -517,9 +536,13 @@ int main(int argc, char** argv) {
         if (p_trk_mag_path) {
             log_RoIs[lgr_roi::sck::write::in_RoIs0_magnitude] =
                 delayer_RoIs_magnitude[aff3ct::module::dly::sck::produce::out];
+            log_RoIs[lgr_roi::sck::write::in_RoIs0_sat_count] =
+                delayer_RoIs_sat_count[aff3ct::module::dly::sck::produce::out];
         } else {
             log_RoIs[lgr_roi::sck::write::in_RoIs0_magnitude] =
                 magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude].get_dataptr();
+            log_RoIs[lgr_roi::sck::write::in_RoIs0_sat_count] =
+                magnitude[ftr_mgn::sck::compute::out_RoIs_sat_count].get_dataptr();
         }
         log_RoIs[lgr_roi::sck::write::in_n_RoIs0] = delayer_n_RoIs[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_id] = merger[ftr_mrg3::sck::merge::out_RoIs_id];
@@ -534,9 +557,12 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs1_y] = merger[ftr_mrg3::sck::merge::out_RoIs_y];
         if (p_trk_mag_path) {
             log_RoIs[lgr_roi::sck::write::in_RoIs1_magnitude] = magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
+            log_RoIs[lgr_roi::sck::write::in_RoIs1_sat_count] = magnitude[ftr_mgn::sck::compute::out_RoIs_sat_count];
         } else {
             log_RoIs[lgr_roi::sck::write::in_RoIs1_magnitude] =
                 magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude].get_dataptr();
+            log_RoIs[lgr_roi::sck::write::in_RoIs1_sat_count] =
+                magnitude[ftr_mgn::sck::compute::out_RoIs_sat_count].get_dataptr();
         }
         log_RoIs[lgr_roi::sck::write::in_n_RoIs1] = merger[ftr_mrg3::sck::merge::out_n_RoIs];
         log_RoIs[lgr_roi::sck::write::in_frame] = video[vid::sck::generate::out_frame];
@@ -630,6 +656,7 @@ int main(int argc, char** argv) {
               &delayer_RoIs_x[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_sat_count[aff3ct::module::dly::tsk::produce],
               &delayer_n_RoIs[aff3ct::module::dly::tsk::produce],
               &matcher[knn::tsk::match],
               &motion[mtn::tsk::compute],
@@ -645,6 +672,7 @@ int main(int argc, char** argv) {
               &delayer_RoIs_x[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_sat_count[aff3ct::module::dly::tsk::memorize],
               &delayer_n_RoIs[aff3ct::module::dly::tsk::memorize],
               },
             { },
@@ -656,6 +684,8 @@ int main(int argc, char** argv) {
             std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 2);
             std::get<1>(sep_stages[1]).erase(std::get<1>(sep_stages[1]).begin() + 1);
             std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 10);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 10);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 24);
             std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 24);
         }
 
@@ -690,6 +720,7 @@ int main(int argc, char** argv) {
               &delayer_RoIs_x[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_sat_count[aff3ct::module::dly::tsk::produce],
               &delayer_n_RoIs[aff3ct::module::dly::tsk::produce],
               &matcher[knn::tsk::match],
               &motion[mtn::tsk::compute],
@@ -705,6 +736,7 @@ int main(int argc, char** argv) {
               &delayer_RoIs_x[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_sat_count[aff3ct::module::dly::tsk::memorize],
               &delayer_n_RoIs[aff3ct::module::dly::tsk::memorize],
               },
             { },
@@ -716,6 +748,8 @@ int main(int argc, char** argv) {
             std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 3);
             std::get<1>(sep_stages[1]).erase(std::get<1>(sep_stages[1]).begin() + 1);
             std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 12);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 12);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 26);
             std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 26);
         }
     }

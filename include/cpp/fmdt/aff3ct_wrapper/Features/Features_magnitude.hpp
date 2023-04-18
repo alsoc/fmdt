@@ -12,7 +12,7 @@ namespace ftr_mgn {
     enum class tsk : size_t { compute, SIZE };
     namespace sck {
         enum class compute : size_t { in_img, in_labels, in_RoIs_xmin, in_RoIs_xmax, in_RoIs_ymin, in_RoIs_ymax,
-                                      in_RoIs_S, in_n_RoIs, out_RoIs_magnitude, status };
+                                      in_RoIs_S, in_n_RoIs, out_RoIs_magnitude, out_RoIs_sat_count, status };
     }
 }
 

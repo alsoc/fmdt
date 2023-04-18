@@ -14,6 +14,7 @@
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/validation.h"
 #include "fmdt/video.h"
+#include "fmdt/version.h"
 
 void add_to_BB_coord_list(vec_BB_t* BBs, vec_color_e* BBs_color, size_t elem, int rx, int ry, int bb_x,
                           int bb_y, int frame_id, int track_id, int is_extrapolated, enum color_e color) {
@@ -82,7 +83,14 @@ int main(int argc, char** argv) {
         fprintf(stderr, "  --vid-out-path     Path to the output video file (MPEG-4 format)        [%s]\n",
                 def_p_vid_out_path ? def_p_vid_out_path : "NULL");
         fprintf(stderr, "  --help, -h         This help                                                \n");
+        fprintf(stderr, "  --version, -v      Print the version                                        \n");
         exit(1);
+    }
+
+    // version
+    if (args_find(argc, argv, "--version,-v")) {
+        version_print("visu");
+        exit(0);
     }
 
     // Parsing Arguments

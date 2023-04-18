@@ -12,7 +12,7 @@ for Exe in 'fmdt-common-obj' 'fmdt-detect-rt-common-obj' 'fmdt-detect-exe' 'fmdt
     rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
     sed -i -e "s#${WD}/#\./#g" code_coverage_files/${Exe}2.info
     rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-    lcov --remove code_coverage_files/${Exe}2.info "*/usr*" "*lib/*" --output-file ${WD}/code_coverage_files/${Exe}_clean.info
+    lcov --remove code_coverage_files/${Exe}2.info "*/usr*" "*lib/*" "*/version.c" --output-file ${WD}/code_coverage_files/${Exe}_clean.info
 done
 
 mkdir code_coverage_report || true

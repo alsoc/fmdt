@@ -10,6 +10,7 @@
 #include "fmdt/macros.h"
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/tracking/tracking_io.h"
+#include "fmdt/version.h"
 
 #include "fmdt/aff3ct_wrapper/CCL/CCL.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_extractor.hpp"
@@ -141,7 +142,19 @@ int main(int argc, char** argv) {
                 "  --rt-stats          Display runtime statistics (executed tasks report)                         \n");
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
+        fprintf(stderr,
+                "  --version, -v       Print the version                                                          \n");
         exit(1);
+    }
+
+    // version
+    if (args_find(argc, argv, "--version,-v")) {
+#ifdef FMDT_ENABLE_PIPELINE
+        version_print("detect-rt2-pip");
+#else
+        version_print("detect-rt2-seq");
+#endif
+        exit(0);
     }
 
     // parse arguments
@@ -301,6 +314,7 @@ int main(int argc, char** argv) {
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");
     Logger_tracks log_track(p_log_path ? p_log_path : "", p_vid_in_start, tracking.get_data());
+    log_track.set_custom_name("Logger_trk");
     std::unique_ptr<Logger_frame> log_frame;
     if (p_ccl_fra_path)
         log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
@@ -442,6 +456,7 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs1_x] = merger1[ftr_mrg2::sck::merge::out_RoIs_x];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_y] = merger1[ftr_mrg2::sck::merge::out_RoIs_y];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_magnitude] = magnitude1[ftr_mgn::sck::compute::out_RoIs_magnitude];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_sat_count] = magnitude1[ftr_mgn::sck::compute::out_RoIs_sat_count];
         log_RoIs[lgr_roi::sck::write::in_n_RoIs1] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
         log_RoIs[lgr_roi::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
 

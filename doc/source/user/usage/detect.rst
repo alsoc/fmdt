@@ -391,7 +391,7 @@ than :math:`ddev \times stddev` to be considered in movement).
 By default the program only tracks ``meteor`` object type. If ``--trk-all`` is
 set, all object types are tracked (``meteor``, ``star`` or ``noise``).
 
-This parameter is used in the :func:`tracking_perform` function.
+This parameter is used in the :func:`_tracking_perform` function.
 
 .. _detect_trk-bb-path:
 
@@ -482,13 +482,13 @@ Table 1 and table 2: |RoIs|
 
 .. code-block:: bash
 
-	# ------||----------------||---------------------------||---------------------------||-------------------||-----------
-	#   RoI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       || Magnitude
-	# ------||----------------||---------------------------||---------------------------||-------------------||-----------
-	# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------
-	#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y ||        --
-	# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------
-	  {rid} || {tid}| {otype} ||{xmin}|{xmax}|{ymin}|{ymax}|| {S} |     {Sx} |     {Sy} ||    {cx} |    {cy} ||      {mag}
+	# ------||----------------||---------------------------||---------------------------||-------------------||-----------||------------
+	#   RoI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       || Magnitude || Saturation
+	# ------||----------------||---------------------------||---------------------------||-------------------||-----------||------------
+	# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------||------------
+	#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y ||        -- ||    Counter
+	# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------||------------
+	  {rid} || {tid}| {otype} ||{xmin}|{xmax}|{ymin}|{ymax}|| {S} |     {Sx} |     {Sy} ||    {cx} |    {cy} ||     {mag} ||      {sat}
 
 Each line corresponds to one |RoI|:
 
@@ -507,7 +507,9 @@ Each line corresponds to one |RoI|:
 - ``{cx}``: :math:`x` center of mass,
 - ``{cy}``: :math:`y` center of mass,
 - ``{mag}``: magnitude of the current |RoI| (accumulated brightness of the
-  |RoI|).
+  |RoI|, see the :func:`_features_compute_magnitude` function),
+- ``{sat}``: number of pixels that are saturated in the current |RoI| (a pixel :math:`x` is saturated when its intensity
+  :math:`i_x = 255`, see the :func:`_features_compute_magnitude` function).
 
 Table 3: List of associations between |RoIs|
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
