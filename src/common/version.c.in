@@ -78,11 +78,11 @@ void version_print(const char* bin_name) {
 #endif
 
     if (strnlen(g_fmdt_version, sizeof(g_fmdt_version))) {
-        char hash7[sizeof(g_fmdt_sha1)];
-        strncpy(hash7, g_fmdt_sha1, sizeof(hash7));
-        hash7[7] = '\0';
+        char hash8[sizeof(g_fmdt_sha1)];
+        strncpy(hash8, g_fmdt_sha1, sizeof(hash8));
+        hash8[8] = '\0';
         printf("fmdt-%s (system: %s, compiler: %s-%s) %s (%s)\n", bin_name, os, compiler, compiler_version,
-               g_fmdt_version, hash7);
+               g_fmdt_version, hash8);
     } else
         printf("fmdt-%s (system: %s, compiler: %s-%s)\n", bin_name, os, compiler, compiler_version);
 
