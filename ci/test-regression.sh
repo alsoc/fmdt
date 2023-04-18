@@ -13,7 +13,7 @@ fi
 cd scripts/regression
 curl https://lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4 --output 2022_05_31_tauh_34_meteors.mp4
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-curl https://lip6.fr/adrien.cassagne/data/fmdt/refs_2022_05_31_tauh_34_meteors_854f2731.zip --output refs.zip
+curl https://lip6.fr/adrien.cassagne/data/fmdt/refs_2022_05_31_tauh_34_meteors_b34a8a1f.zip --output refs.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 unzip refs.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
