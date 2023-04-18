@@ -272,12 +272,13 @@ void features_extract(const uint32_t** labels, const int i0, const int i1, const
      _features_extract(labels, i0, i1, j0, j1, RoIs_basic->id, RoIs_basic->xmin, RoIs_basic->xmax, RoIs_basic->ymin,
                       RoIs_basic->ymax, RoIs_basic->S, RoIs_basic->Sx, RoIs_basic->Sy, RoIs_basic->Sx2, RoIs_basic->Sy2,
                       RoIs_basic->Sxy, RoIs_basic->x, RoIs_basic->y, *RoIs_basic->_size);
+}
 
 void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
                                const int i1, const int j0, const int j1, uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
                                const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
-                               const uint32_t* RoIs_S, const size_t n_RoIs, const uint32_t S_min, const uint32_t S_max)
-{
+                               const uint32_t* RoIs_S, const size_t n_RoIs, const uint32_t S_min, 
+                               const uint32_t S_max) {
     if (out_labels != NULL && (void*)in_labels != (void*)out_labels)
         for (int i = i0; i <= i1; i++)
             memset(out_labels[i], 0, (j1 - j0 + 1) * sizeof(uint32_t));
