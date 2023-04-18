@@ -161,7 +161,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--ccl-fra-id' has to be combined with the '--ccl-fra-path' parameter\n");
 #endif
 
-    int maxred_diam = 2 * p_maxred_r +1;
+    int maxred_diam = 2 * p_maxred_r + 1;
     int ellipse_nb = 0;
 
     // --------------------------------------- //
@@ -199,10 +199,9 @@ int main(int argc, char** argv) {
     uint32_t **L1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL)
     uint32_t **L2 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL + hysteresis)
 
-
     // buffer circulaire d'images 
     uint8_t **T[maxred_diam];
-     for(int t = 0; t < maxred_diam; t++) {
+     for (int t = 0; t < maxred_diam; t++) {
         T[t] = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
     }
 
@@ -231,11 +230,11 @@ int main(int argc, char** argv) {
     int cur_fra;
     while ((cur_fra = video_reader_get_frame(video, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
-        //step 1: max-reduction
-        tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0-b, i1+b, j0-b, j1+b, T[cur_fra % maxred_diam]);
-        zero_ui8matrix(Max, i0-b, i1+b, j0-b, j1+b);
+        // step 1: max-reduction
+        tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0 - b, i1 + b, j0 - b, j1 + b, T[cur_fra % maxred_diam]);
+        zero_ui8matrix(Max, i0 - b, i1 + b, j0 - b, j1 + b);
 
-        for(int k = 0; k < maxred_diam; k++) {
+        for (int k = 0; k < maxred_diam; k++) {
            // max temporel
             image_max_reduce(T[k], i0, i1, j0, j1, Max);
         }
@@ -255,7 +254,7 @@ int main(int argc, char** argv) {
         // step 4: ellipse feature computation
         features_compute_ellipse(RoIs1->basic, RoIs1->misc);
 
-        //step 5: filter on ellipse ratio
+        // step 5: filter on ellipse ratio
         threshold_ellipse_ratio(RoIs1->misc, p_ellipse);
         features_shrink_misc(RoIs1->misc, RoIs1->misc);
         
@@ -299,7 +298,7 @@ int main(int argc, char** argv) {
     // ----------
     // -- FREE --
     // ----------
-    for(int t = 0; t < maxred_diam; t++) {
+    for (int t = 0; t < maxred_diam; t++) {
         free_ui8matrix(T[t], i0 - b, i1 + b, j0 - b, j1 + b);
     }
     

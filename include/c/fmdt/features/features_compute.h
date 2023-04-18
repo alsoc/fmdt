@@ -131,6 +131,9 @@ void features_free_RoIs(RoIs_t* RoIs);
  * @param RoIs_S Array of RoI surfaces.
  * @param RoIs_Sx Array of sums of \f$x\f$ properties.
  * @param RoIs_Sy Array of sums of \f$y\f$ properties.
+ * @param RoIs_Sx2 Array of squared sums of \f$x\f$ properties.
+ * @param RoIs_Sy2 Array of squared sums of \f$y\f$ properties.
+ * @param RoIs_Sxy Array of sums of \f$x * y\f$ properties.
  * @param RoIs_x Array of centroids abscissa.
  * @param RoIs_y Array of centroids ordinate.
  * @param n_RoIs Number of connected-components (= number of RoIs) in the 2D array of `labels`.
@@ -221,6 +224,9 @@ void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI
  * @param RoIs_src_S Source array of RoI surfaces.
  * @param RoIs_src_Sx Source array of sums of \f$x\f$ properties.
  * @param RoIs_src_Sy Source array of sums of \f$y\f$ properties.
+ * @param RoIs_src_Sx2 Source array of squared sums of \f$x\f$ properties.
+ * @param RoIs_src_Sy2 Source array of squared sums of \f$y\f$ properties.
+ * @param RoIs_src_Sxy Source array of sums of \f$x * y\f$ properties.
  * @param RoIs_src_x Source array of centroids abscissas.
  * @param RoIs_src_y Source array of centroids ordinates.
  * @param n_RoIs_src Number of RoIs in the previous arrays.
@@ -232,6 +238,9 @@ void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI
  * @param RoIs_dst_S Destination array of RoI surfaces.
  * @param RoIs_dst_Sx Destination array of sums of \f$x\f$ properties.
  * @param RoIs_dst_Sy Destination array of sums of \f$y\f$ properties.
+ * @param RoIs_src_Sx2 Destination array of squared sums of \f$x\f$ properties.
+ * @param RoIs_src_Sy2 Destination array of squared sums of \f$y\f$ properties.
+ * @param RoIs_src_Sxy Destination array of sums of \f$x * y\f$ properties.
  * @param RoIs_dst_x Destination array of centroids abscissas.
  * @param RoIs_dst_y Destination array of centroids ordinates.
  * @return Number of regions of interest (RoIs) after the data shrink.

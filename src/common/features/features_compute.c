@@ -40,7 +40,7 @@ void features_init_RoIs_basic(RoIs_basic_t* RoIs_basic, const uint8_t init_id) {
     memset(RoIs_basic->ymax, 0, *RoIs_basic->_max_size * sizeof(uint32_t));
     memset(RoIs_basic->S, 0, *RoIs_basic->_max_size * sizeof(uint32_t));
     memset(RoIs_basic->Sx, 0, *RoIs_basic->_max_size * sizeof(uint32_t));
-    memset(RoIs_basic->Sx, 0, *RoIs_basic->_max_size * sizeof(uint32_t));
+    memset(RoIs_basic->Sy, 0, *RoIs_basic->_max_size * sizeof(uint32_t));
     memset(RoIs_basic->Sx2, 0, *RoIs_basic->_max_size * sizeof(uint64_t));
     memset(RoIs_basic->Sy2, 0, *RoIs_basic->_max_size * sizeof(uint64_t));
     memset(RoIs_basic->Sxy, 0, *RoIs_basic->_max_size * sizeof(uint64_t));
@@ -243,9 +243,9 @@ void _features_extract(const uint32_t** labels, const int i0, const int i1, cons
                 RoIs_id[r] = e;
                 RoIs_Sx[r] += j;
                 RoIs_Sy[r] += i;
-                RoIs_Sx2[r] += j*j;
-                RoIs_Sy2[r] += i*i;
-                RoIs_Sxy[r] += j*i;
+                RoIs_Sx2[r] += j * j;
+                RoIs_Sy2[r] += i * i;
+                RoIs_Sxy[r] += j * i;
                 if (j < (int)RoIs_xmin[r])
                     RoIs_xmin[r] = j;
                 if (j > (int)RoIs_xmax[r])
@@ -269,11 +269,9 @@ void features_extract(const uint32_t** labels, const int i0, const int i1, const
     const uint8_t init_id = 1;
     features_init_RoIs_basic(RoIs_basic, init_id);
     *RoIs_basic->_size = n_RoIs;
-    _features_extract(labels, i0, i1, j0, j1, RoIs_basic->id, RoIs_basic->xmin, RoIs_basic->xmax,
-                      RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S, RoIs_basic->Sx,
-                      RoIs_basic->Sy, RoIs_basic->Sx2, RoIs_basic->Sy2, RoIs_basic->Sxy,
-                      RoIs_basic->x, RoIs_basic->y, *RoIs_basic->_size);
-}
+     _features_extract(labels, i0, i1, j0, j1, RoIs_basic->id, RoIs_basic->xmin, RoIs_basic->xmax, RoIs_basic->ymin,
+                      RoIs_basic->ymax, RoIs_basic->S, RoIs_basic->Sx, RoIs_basic->Sy, RoIs_basic->Sx2, RoIs_basic->Sy2,
+                      RoIs_basic->Sxy, RoIs_basic->x, RoIs_basic->y, *RoIs_basic->_size);
 
 void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
                                const int i1, const int j0, const int j1, uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
@@ -345,14 +343,14 @@ void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI
 }
 
 size_t _features_shrink_basic(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xmin,
-                        const uint32_t* RoIs_src_xmax, const uint32_t* RoIs_src_ymin,
-                        const uint32_t* RoIs_src_ymax, const uint32_t* RoIs_src_S, const uint32_t* RoIs_src_Sx,
-                        const uint32_t* RoIs_src_Sy, const uint64_t* RoIs_src_Sx2, const uint64_t* RoIs_src_Sy2,
-                        const uint64_t* RoIs_src_Sxy, const float* RoIs_src_x, const float* RoIs_src_y,
-                        const size_t n_RoIs_src, uint32_t* RoIs_dest_id, uint32_t* RoIs_dest_xmin,
-                        uint32_t* RoIs_dest_xmax, uint32_t* RoIs_dest_ymin, uint32_t* RoIs_dest_ymax,
-                        uint32_t* RoIs_dest_S, uint32_t* RoIs_dest_Sx, uint32_t* RoIs_dest_Sy, uint64_t* RoIs_dest_Sx2,
-                        uint64_t* RoIs_dest_Sy2, uint64_t* RoIs_dest_Sxy, float* RoIs_dest_x, float* RoIs_dest_y) {
+                              const uint32_t* RoIs_src_xmax, const uint32_t* RoIs_src_ymin,
+                              const uint32_t* RoIs_src_ymax, const uint32_t* RoIs_src_S, const uint32_t* RoIs_src_Sx,
+                              const uint32_t* RoIs_src_Sy, const uint64_t* RoIs_src_Sx2, const uint64_t* RoIs_src_Sy2,
+                              const uint64_t* RoIs_src_Sxy, const float* RoIs_src_x, const float* RoIs_src_y,
+                              const size_t n_RoIs_src, uint32_t* RoIs_dest_id, uint32_t* RoIs_dest_xmin,
+                              uint32_t* RoIs_dest_xmax, uint32_t* RoIs_dest_ymin, uint32_t* RoIs_dest_ymax,
+                              uint32_t* RoIs_dest_S, uint32_t* RoIs_dest_Sx, uint32_t* RoIs_dest_Sy, uint64_t* RoIs_dest_Sx2,
+                              uint64_t* RoIs_dest_Sy2, uint64_t* RoIs_dest_Sxy, float* RoIs_dest_x, float* RoIs_dest_y) {
     size_t cpt = 0;
     for (size_t i = 0; i < n_RoIs_src; i++) {
         if (RoIs_src_id[i]) {
@@ -394,9 +392,9 @@ void features_shrink_basic(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoI
 }
 
 size_t _features_shrink_misc(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_magnitude,
-                        const float* RoIs_src_a, const float* RoIs_src_b, const size_t n_RoIs_src, 
-                        uint32_t* RoIs_dest_id, uint32_t* RoIs_dest_magnitude, float* RoIs_dest_a,
-                        float* RoIs_dest_b) {
+                             const float* RoIs_src_a, const float* RoIs_src_b, const size_t n_RoIs_src, 
+                             uint32_t* RoIs_dest_id, uint32_t* RoIs_dest_magnitude, float* RoIs_dest_a,
+                             float* RoIs_dest_b) {
     size_t cpt = 0;
     for (size_t i = 0; i < n_RoIs_src; i++) {
         if (RoIs_src_id[i]) {
@@ -412,9 +410,9 @@ size_t _features_shrink_misc(const uint32_t* RoIs_src_id, const uint32_t* RoIs_s
 }
 
 void features_shrink_misc(const RoIs_misc_t* RoIs_misc_src, RoIs_misc_t* RoIs_misc_dest) {
-    *RoIs_misc_dest->_size = _features_shrink_misc(RoIs_misc_src->id, RoIs_misc_src->magnitude, RoIs_misc_src->a, RoIs_misc_src->b,
-                                                    *RoIs_misc_src->_size, RoIs_misc_dest->id, RoIs_misc_dest->magnitude, RoIs_misc_dest->a,
-                                                    RoIs_misc_dest->b);
+    *RoIs_misc_dest->_size = _features_shrink_misc(RoIs_misc_src->id, RoIs_misc_src->magnitude, RoIs_misc_src->a, 
+                                                   RoIs_misc_src->b, *RoIs_misc_src->_size, RoIs_misc_dest->id,
+                                                   RoIs_misc_dest->magnitude, RoIs_misc_dest->a, RoIs_misc_dest->b);
 }
 
 void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
@@ -466,23 +464,21 @@ void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, 
 }
 
 void features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
-                                const uint32_t** labels, const RoIs_basic_t* RoIs_basic,
-                                RoIs_misc_t* RoIs_misc) {
+                                const uint32_t** labels, const RoIs_basic_t* RoIs_basic, RoIs_misc_t* RoIs_misc) {
     _features_compute_magnitude(img, img_width, img_height, labels, RoIs_basic->xmin, RoIs_basic->xmax,
-                                RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S,
-                                RoIs_misc->magnitude, *RoIs_misc->_size);
+                                RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S, RoIs_misc->magnitude,
+                                *RoIs_misc->_size);
 }
 
 void _features_compute_ellipse(const uint32_t *RoIs_S, const uint32_t *RoIs_Sx, const uint32_t *RoIs_Sy, 
                                const uint64_t *RoIs_Sx2, const uint64_t *RoIs_Sy2, const uint64_t* RoIs_Sxy, 
-                               float *RoIs_a, float *RoIs_b, const size_t n_RoIs)
-{
+                               float *RoIs_a, float *RoIs_b, const size_t n_RoIs) {
 
     // set all RoIs (Regions of Interest) axes to 0
     memset(RoIs_a, 0, n_RoIs * sizeof(float));
     memset(RoIs_b, 0, n_RoIs * sizeof(float));
 
-    for(int e = 0; e < n_RoIs; e++) {
+    for (size_t e = 0; e < n_RoIs; e++) {
         double S = RoIs_S[e];
         
         double Sx = RoIs_Sx[e];
@@ -499,8 +495,8 @@ void _features_compute_ellipse(const uint32_t *RoIs_S, const uint32_t *RoIs_Sx, 
         double m02 = S * Syy - Sy * Sy;
         
         // par construction a > b
-        double a2 = (m20 + m02 + sqrtf( (m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
-        double b2 = (m20 + m02 - sqrtf( (m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
+        double a2 = (m20 + m02 + sqrtf((m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
+        double b2 = (m20 + m02 - sqrtf((m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
         
         float a = sqrt(a2);
         float b = sqrt(b2);
@@ -509,13 +505,12 @@ void _features_compute_ellipse(const uint32_t *RoIs_S, const uint32_t *RoIs_Sx, 
         RoIs_b[e] = b;
 
         // float ratio = a / b; // metrique plus simple a visualiser que l'applatissement
-        // fprintf(stderr, "# %2d   S = %f   m20 = %f a = %5.1f   b = %5.1f   ratio = %5.1f \n", e, S, m11, RoIs_a[e], RoIs_b[e], ratio);
+        // fprintf(stderr, "# %2d   S = %f   m20 = %f a = %5.1f   b = %5.1f   ratio = %5.1f \n", e, S, m11, 
+        // RoIs_a[e], RoIs_b[e], ratio);
         
         //putchar('\n');
     }
 }
-
-
 
 void features_compute_ellipse(const RoIs_basic_t* RoIs_basic, RoIs_misc_t* RoIs_misc) {
     _features_compute_ellipse(RoIs_basic->S, RoIs_basic->Sx, RoIs_basic->Sy, RoIs_basic->Sx2, RoIs_basic->Sy2, 

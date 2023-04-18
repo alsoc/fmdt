@@ -35,6 +35,6 @@ void threshold(const uint8_t** img_in, uint8_t** img_out, const int i0, const in
  * @param min_ratio Value that define if the RoIs is kept or not.
  */
 void _threshold_ellipse_ratio(const float* RoIs_a, const float* RoIs_b, const size_t n_RoIs, uint32_t* RoIs_id,
-                                    const float min_ratio);
+                              const float min_ratio);
 
 void threshold_ellipse_ratio(RoIs_misc_t* RoIs_misc, const float min_ratio);
