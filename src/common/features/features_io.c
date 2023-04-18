@@ -140,13 +140,13 @@ void _features_RoIs_write(FILE* f, const int frame, const uint32_t* RoIs_id, con
             else
                 snprintf(task_obj_type, sizeof(task_obj_type), "%s",
                     g_obj_to_string_with_spaces[tracks[t].obj_type]);
-            int64_t mag = -1;
+            int32_t mag = -1;
             if (RoIs_magnitude != NULL)
-                mag = (int64_t)RoIs_magnitude[i];
-            int64_t satc = -1;
+                mag = (int32_t)RoIs_magnitude[i];
+            int32_t satc = -1;
             if (RoIs_sat_count != NULL)
-                satc = (int64_t)RoIs_sat_count[i];
-            fprintf(f, "   %4d || %s | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f || %9lld || %10lld \n",
+                satc = (int32_t)RoIs_sat_count[i];
+            fprintf(f, "   %4d || %s | %s || %4d | %4d | %4d | %4d || %3d | %8d | %8d || %7.1f | %7.1f || %9d || %10d \n",
                     RoIs_id[i], task_id_str, task_obj_type, RoIs_xmin[i], RoIs_xmax[i], RoIs_ymin[i], RoIs_ymax[i],
                     RoIs_S[i], RoIs_Sx[i], RoIs_Sy[i], RoIs_x[i], RoIs_y[i], mag, satc);
         }

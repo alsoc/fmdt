@@ -342,7 +342,8 @@ int main(int argc, char** argv) {
     delayer_RoIs_magnitude.set_custom_name("D<RoIs_mag>");
     delayer_RoIs_sat_count.set_custom_name("D<RoIs_sat>");
     delayer_n_RoIs.set_custom_name("D<n_RoIs>");
-    Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data());
+    Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data(),
+                         p_trk_mag_path != NULL, p_trk_mag_path != NULL);
     Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_ROI_SIZE);
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");

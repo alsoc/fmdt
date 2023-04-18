@@ -50,7 +50,7 @@ set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Mo
 # -----------------------------------------------------------------------------
 include(GetGitRevisionDescription)
 get_git_head_revision(GIT_REFSPEC GIT_SHA1)
-git_describe(GIT_VERSION "--tags" "--abbrev=7")
+git_describe(GIT_VERSION "--tags" "--abbrev=8")
 
 if(GIT_VERSION MATCHES "NOTFOUND")
 	set(GIT_VERSION "")
@@ -76,13 +76,14 @@ else()
 	    string(REPLACE "${FMDT_HASH}" "" FMDT_BUILD ${FMDT_BUILD})
 	else()
 		set(FMDT_BUILD "0")
-	    set(FMDT_HASH "")
 	endif()
 
 	message(STATUS "  * FMDT_VERSION: ${FMDT_VERSION}")
 	if(NOT "${FMDT_BUILD}" STREQUAL "")
 	    message(STATUS "  * FMDT_BUILD: ${FMDT_BUILD}")
 	endif()
+
+	string(SUBSTRING ${GIT_SHA1} 0 8 FMDT_HASH)
 	if(NOT "${FMDT_HASH}" STREQUAL "")
 	    message(STATUS "  * FMDT_HASH: ${FMDT_HASH}")
 	endif()

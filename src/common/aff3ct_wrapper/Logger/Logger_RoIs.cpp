@@ -4,8 +4,10 @@
 #include "fmdt/aff3ct_wrapper/Logger/Logger_RoIs.hpp"
 
 Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, const size_t fra_skip,
-                         const size_t max_RoIs_size, const tracking_data_t* tracking_data)
-: Module(), RoIs_path(RoIs_path), fra_start(fra_start), fra_skip(fra_skip), tracking_data(tracking_data) {
+                         const size_t max_RoIs_size, const tracking_data_t* tracking_data, const bool enable_magnitude,
+                         const bool enable_sat_count)
+: Module(), RoIs_path(RoIs_path), fra_start(fra_start), fra_skip(fra_skip), tracking_data(tracking_data),
+  enable_magnitude(enable_magnitude), enable_sat_count(enable_sat_count)  {
     assert(tracking_data != NULL);
 
     const std::string name = "Logger_RoIs";
@@ -73,8 +75,12 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
                                         static_cast<const uint32_t*>(t[ps_in_RoIs0_Sy].get_dataptr()),
                                         static_cast<const float*>(t[ps_in_RoIs0_x].get_dataptr()),
                                         static_cast<const float*>(t[ps_in_RoIs0_y].get_dataptr()),
-                                        static_cast<const uint32_t*>(t[ps_in_RoIs0_magnitude].get_dataptr()),
-                                        static_cast<const uint32_t*>(t[ps_in_RoIs0_sat_count].get_dataptr()),
+                                        lgr_roi.enable_magnitude ?
+                                            static_cast<const uint32_t*>(t[ps_in_RoIs0_magnitude].get_dataptr()) :
+                                            nullptr,
+                                        lgr_roi.enable_sat_count ?
+                                            static_cast<const uint32_t*>(t[ps_in_RoIs0_sat_count].get_dataptr()) :
+                                            nullptr,
                                         *static_cast<const uint32_t*>(t[ps_in_n_RoIs0].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_id].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_xmin].get_dataptr()),
@@ -86,8 +92,12 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_Sy].get_dataptr()),
                                         static_cast<const float*>(t[ps_in_RoIs1_x].get_dataptr()),
                                         static_cast<const float*>(t[ps_in_RoIs1_y].get_dataptr()),
-                                        static_cast<const uint32_t*>(t[ps_in_RoIs1_magnitude].get_dataptr()),
-                                        static_cast<const uint32_t*>(t[ps_in_RoIs1_sat_count].get_dataptr()),
+                                        lgr_roi.enable_magnitude ?
+                                            static_cast<const uint32_t*>(t[ps_in_RoIs1_magnitude].get_dataptr()) :
+                                            nullptr,
+                                        lgr_roi.enable_sat_count ?
+                                            static_cast<const uint32_t*>(t[ps_in_RoIs1_sat_count].get_dataptr()) :
+                                            nullptr,
                                         *static_cast<const uint32_t*>(t[ps_in_n_RoIs1].get_dataptr()),
                                         lgr_roi.tracking_data->tracks);
             fclose(file);
