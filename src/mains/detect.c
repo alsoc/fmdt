@@ -260,11 +260,9 @@ int main(int argc, char** argv) {
     // -- DATA ALLOCATION -- //
     // --------------------- //
 
-    uint8_t enable_magnitude = 1; /* p_trk_mag_path != NULL; */
-    uint8_t enable_sat_count = enable_magnitude;
-    RoIs_t* RoIs_tmp = features_alloc_RoIs(enable_magnitude, enable_sat_count, MAX_ROI_SIZE_BEFORE_SHRINK);
-    RoIs_t* RoIs0 = features_alloc_RoIs(enable_magnitude, enable_sat_count, MAX_ROI_SIZE);
-    RoIs_t* RoIs1 = features_alloc_RoIs(enable_magnitude, enable_sat_count, MAX_ROI_SIZE);
+    RoIs_t* RoIs_tmp = features_alloc_RoIs(p_trk_mag_path != NULL, p_trk_mag_path != NULL, MAX_ROI_SIZE_BEFORE_SHRINK);
+    RoIs_t* RoIs0 = features_alloc_RoIs(p_trk_mag_path != NULL, p_trk_mag_path != NULL, MAX_ROI_SIZE);
+    RoIs_t* RoIs1 = features_alloc_RoIs(p_trk_mag_path != NULL, p_trk_mag_path != NULL, MAX_ROI_SIZE);
     CCL_data_t* ccl_data = CCL_LSL_alloc_data(i0, i1, j0, j1);
     kNN_data_t* knn_data = kNN_alloc_data(MAX_ROI_SIZE);
     vec_BB_t* BBs = NULL;
@@ -318,7 +316,7 @@ int main(int argc, char** argv) {
         features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, RoIs_tmp->basic,
                                  p_mrp_s_min, p_mrp_s_max);
         features_shrink(RoIs_tmp->basic, RoIs1->basic);
-        if (enable_magnitude)
+        if (p_trk_mag_path)
             features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L2, RoIs1->basic, RoIs1->misc);
 
         // step 4: k-NN matching

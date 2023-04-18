@@ -27,9 +27,12 @@ protected:
     const size_t fra_start;
     const size_t fra_skip;
     const tracking_data_t* tracking_data;
+    const bool enable_magnitude;
+    const bool enable_sat_count;
 public:
     Logger_RoIs(const std::string RoIs_path, const size_t fra_start, const size_t frame_skip,
-                const size_t max_RoIs_size, const tracking_data_t* tracking_data);
+                const size_t max_RoIs_size, const tracking_data_t* tracking_data, const bool enable_magnitude = true,
+                const bool enable_sat_count = true);
     virtual ~Logger_RoIs();
     inline aff3ct::runtime::Task& operator[](const lgr_roi::tsk t);
     inline aff3ct::runtime::Socket& operator[](const lgr_roi::sck::write s);
