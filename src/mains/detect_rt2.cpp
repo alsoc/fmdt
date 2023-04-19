@@ -10,6 +10,7 @@
 #include "fmdt/macros.h"
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/tracking/tracking_io.h"
+#include "fmdt/version.h"
 
 #include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_LSL.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_extractor.hpp"
@@ -149,7 +150,19 @@ int main(int argc, char** argv) {
                 def_p_out_probes ? def_p_out_probes : "NULL");        
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
+        fprintf(stderr,
+                "  --version, -v       Print the version                                                          \n");
         exit(1);
+    }
+
+    // version
+    if (args_find(argc, argv, "--version,-v")) {
+#ifdef FMDT_ENABLE_PIPELINE
+        version_print("detect-rt2-pip");
+#else
+        version_print("detect-rt2-seq");
+#endif
+        exit(0);
     }
 
     // parse arguments
@@ -311,7 +324,8 @@ int main(int argc, char** argv) {
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
                       p_trk_meteor_max, p_trk_bb_path, p_trk_mag_path, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
-    Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data());
+    Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data(),
+                         p_trk_mag_path != NULL, p_trk_mag_path != NULL);
     Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_ROI_SIZE);
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");
@@ -510,6 +524,7 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs0_x] = merger0[ftr_mrg::sck::merge::out_RoIs_x];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_y] = merger0[ftr_mrg::sck::merge::out_RoIs_y];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_magnitude] = magnitude0[ftr_mgn::sck::compute::out_RoIs_magnitude];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_sat_count] = magnitude0[ftr_mgn::sck::compute::out_RoIs_sat_count];
         log_RoIs[lgr_roi::sck::write::in_n_RoIs0] = merger0[ftr_mrg::sck::merge::out_n_RoIs];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_id] = merger1[ftr_mrg::sck::merge::out_RoIs_id];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_xmin] = merger1[ftr_mrg::sck::merge::out_RoIs_xmin];
@@ -522,6 +537,7 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs1_x] = merger1[ftr_mrg::sck::merge::out_RoIs_x];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_y] = merger1[ftr_mrg::sck::merge::out_RoIs_y];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_magnitude] = magnitude1[ftr_mgn::sck::compute::out_RoIs_magnitude];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_sat_count] = magnitude1[ftr_mgn::sck::compute::out_RoIs_sat_count];
         log_RoIs[lgr_roi::sck::write::in_n_RoIs1] = merger1[ftr_mrg::sck::merge::out_n_RoIs];
         log_RoIs[lgr_roi::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
 

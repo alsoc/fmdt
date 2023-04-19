@@ -24,7 +24,8 @@
  * @param RoIs_Sy Array of sums of \f$y\f$ properties.
  * @param RoIs_x Array of centroids abscissa.
  * @param RoIs_y Array of centroids ordinate.
- * @param RoIs_magnitude Array of RoI magnitudes.
+ * @param RoIs_magnitude Array of RoI magnitudes (if NULL, the magnitudes are not shown).
+ * @param RoIs_sat_count Array of RoI saturation counters (if NULL, the saturation counters are not shown).
  * @param n_RoIs Number of connected-components (= number of RoIs) in the 2D array of `labels`.
  * @param tracks Vector of tracks. It enables to match RoIs with corresponding track in the table of RoIs.
  * @param age 0 if `frame` is the current frame, 1 if `frame` is the \f$t - 1\f$ frame. This is mandatory to find the
@@ -35,8 +36,8 @@
 void _features_RoIs_write(FILE* f, const int frame, const uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
                          const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
                          const uint32_t* RoIs_S, const uint32_t* RoIs_Sx, const uint32_t* RoIs_Sy, const float* RoIs_x,
-                         const float* RoIs_y, const uint32_t* RoIs_magnitude, const size_t n_RoIs,
-                         const vec_track_t tracks, const unsigned age);
+                         const float* RoIs_y, const uint32_t* RoIs_magnitude, const uint32_t* RoIs_sat_count,
+                         const size_t n_RoIs, const vec_track_t tracks, const unsigned age);
 
 /**
  * @param f File descriptor (write mode).
@@ -68,7 +69,9 @@ void features_RoIs_write(FILE* f, const int frame, const RoIs_basic_t* RoIs_basi
  * @param RoIs0_Sy Array of sums of \f$y\f$ properties (at \f$t -1\f$).
  * @param RoIs0_x Array of centroids abscissa (at \f$t -1\f$).
  * @param RoIs0_y Array of centroids ordinate (at \f$t -1\f$).
- * @param RoIs0_magnitude Array of RoI magnitudes (at \f$t -1\f$).
+ * @param RoIs0_magnitude Array of RoI magnitudes (at \f$t -1\f$) (if NULL, the magnitudes are not shown).
+ * @param RoIs0_sat_count Array of RoI saturation counters (at \f$t -1\f$) (if NULL, the saturation counters are not
+ *                        shown).
  * @param n_RoIs0 Number of connected-components (= number of RoIs) in the 2D array of `labels` (at \f$t -1\f$).
  * @param RoIs1_id Array of RoI unique identifiers (at \f$t\f$).
  * @param RoIs1_xmin Array of minimum \f$x\f$ coordinates of the bounding box (at \f$t\f$).
@@ -80,7 +83,9 @@ void features_RoIs_write(FILE* f, const int frame, const RoIs_basic_t* RoIs_basi
  * @param RoIs1_Sy Array of sums of \f$y\f$ properties (at \f$t\f$).
  * @param RoIs1_x Array of centroids abscissa (at \f$t\f$).
  * @param RoIs1_y Array of centroids ordinate (at \f$t\f$).
- * @param RoIs1_magnitude Array of RoI magnitudes (at \f$t\f$).
+ * @param RoIs1_magnitude Array of RoI magnitudes (at \f$t\f$) (if NULL, the magnitudes are not shown).
+ * @param RoIs1_sat_count Array of RoI saturation counters (at \f$t\f$) (if NULL, the saturation counters are not
+ *                        shown).
  * @param n_RoIs1 Number of connected-components (= number of RoIs) in the 2D array of `labels` (at \f$t\f$).
  * @param tracks Vector of tracks. It enables to match RoIs with corresponding track in the table of RoIs.
  * @see RoIs_basic_t for more explanations about the features.
@@ -90,11 +95,12 @@ void _features_RoIs0_RoIs1_write(FILE* f, const int prev_frame, const int cur_fr
                                  const uint32_t* RoIs0_xmin, const uint32_t* RoIs0_xmax, const uint32_t* RoIs0_ymin,
                                  const uint32_t* RoIs0_ymax, const uint32_t* RoIs0_S, const uint32_t* RoIs0_Sx,
                                  const uint32_t* RoIs0_Sy, const float* RoIs0_x, const float* RoIs0_y,
-                                 const uint32_t* RoIs0_magnitude, const size_t n_RoIs0, const uint32_t* RoIs1_id,
-                                 const uint32_t* RoIs1_xmin, const uint32_t* RoIs1_xmax, const uint32_t* RoIs1_ymin,
-                                 const uint32_t* RoIs1_ymax, const uint32_t* RoIs1_S, const uint32_t* RoIs1_Sx,
-                                 const uint32_t* RoIs1_Sy, const float* RoIs1_x, const float* RoIs1_y,
-                                 const uint32_t* RoIs1_magnitude, const size_t n_RoIs1, const vec_track_t tracks);
+                                 const uint32_t* RoIs0_magnitude, const uint32_t* RoIs0_sat_count, const size_t n_RoIs0,
+                                 const uint32_t* RoIs1_id, const uint32_t* RoIs1_xmin, const uint32_t* RoIs1_xmax,
+                                 const uint32_t* RoIs1_ymin, const uint32_t* RoIs1_ymax, const uint32_t* RoIs1_S,
+                                 const uint32_t* RoIs1_Sx, const uint32_t* RoIs1_Sy, const float* RoIs1_x,
+                                 const float* RoIs1_y, const uint32_t* RoIs1_magnitude, const uint32_t* RoIs1_sat_count,
+                                 const size_t n_RoIs1, const vec_track_t tracks);
 
 /**
  * Print two tables of RoIs, one at \f$t - 1\f$ and one at \f$t\f$.

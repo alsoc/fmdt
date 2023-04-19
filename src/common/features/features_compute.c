@@ -131,10 +131,12 @@ void features_free_RoIs_motion(RoIs_motion_t* RoIs_motion, const uint8_t free_id
     free(RoIs_motion);
 }
 
-RoIs_misc_t* features_alloc_RoIs_misc(const size_t max_size, uint32_t* RoIs_id) {
+RoIs_misc_t* features_alloc_RoIs_misc(const uint8_t enable_magnitude, const uint8_t enable_sat_count,
+                                      const size_t max_size, uint32_t* RoIs_id) {
     RoIs_misc_t* RoIs_misc = (RoIs_misc_t*)malloc(sizeof(RoIs_misc_t));
     RoIs_misc->id = (RoIs_id == NULL) ? (uint32_t*)malloc(max_size * sizeof(uint32_t)) : RoIs_id;
-    RoIs_misc->magnitude = (uint32_t*)malloc(max_size * sizeof(uint32_t));
+    RoIs_misc->magnitude = enable_magnitude ? (uint32_t*)malloc(max_size * sizeof(uint32_t)) : NULL;
+    RoIs_misc->sat_count = enable_sat_count ? (uint32_t*)malloc(max_size * sizeof(uint32_t)) : NULL;
     if (RoIs_id == NULL) {
         RoIs_misc->_max_size = (size_t*)malloc(sizeof(size_t));
         RoIs_misc->_size = (size_t*)malloc(sizeof(size_t));
@@ -146,7 +148,10 @@ RoIs_misc_t* features_alloc_RoIs_misc(const size_t max_size, uint32_t* RoIs_id) 
 void features_init_RoIs_misc(RoIs_misc_t* RoIs_misc, const uint8_t init_id) {
     if (init_id)
         memset(RoIs_misc->id, 0, *RoIs_misc->_max_size * sizeof(uint32_t));
-    memset(RoIs_misc->magnitude, 0, *RoIs_misc->_max_size * sizeof(uint32_t));
+    if (RoIs_misc->magnitude != NULL)
+        memset(RoIs_misc->magnitude, 0, *RoIs_misc->_max_size * sizeof(uint32_t));
+    if (RoIs_misc->sat_count != NULL)
+        memset(RoIs_misc->sat_count, 0, *RoIs_misc->_max_size * sizeof(uint32_t));
     *RoIs_misc->_size = 0;
 }
 
@@ -156,11 +161,14 @@ void features_free_RoIs_misc(RoIs_misc_t* RoIs_misc, const uint8_t free_id) {
         free(RoIs_misc->_size);
         free(RoIs_misc->_max_size);
     }
-    free(RoIs_misc->magnitude);
+    if (RoIs_misc->magnitude != NULL)
+        free(RoIs_misc->magnitude);
+    if (RoIs_misc->sat_count != NULL)
+        free(RoIs_misc->sat_count);
     free(RoIs_misc);
 }
 
-RoIs_t* features_alloc_RoIs(const size_t max_size) {
+RoIs_t* features_alloc_RoIs(const uint8_t enable_magnitude, const uint8_t enable_sat_count, const size_t max_size) {
     RoIs_t* RoI = (RoIs_t*)malloc(sizeof(RoIs_t));
     RoI->id = (uint32_t*)malloc(max_size * sizeof(uint32_t));
     RoI->basic = features_alloc_RoIs_basic(max_size, RoI->id);
@@ -172,7 +180,7 @@ RoIs_t* features_alloc_RoIs(const size_t max_size) {
     RoI->motion = features_alloc_RoIs_motion(max_size, RoI->id);
     RoI->motion->_max_size = &RoI->_max_size;
     RoI->motion->_size = &RoI->_size;
-    RoI->misc = features_alloc_RoIs_misc(max_size, RoI->id);
+    RoI->misc = features_alloc_RoIs_misc(enable_magnitude, enable_sat_count, max_size, RoI->id);
     RoI->misc->_max_size = &RoI->_max_size;
     RoI->misc->_size = &RoI->_size;
     RoI->_max_size = max_size;
@@ -366,9 +374,12 @@ void features_shrink(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoIs_basi
 void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
                                  const uint32_t** labels, const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax,
                                  const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax, const uint32_t* RoIs_S,
-                                 uint32_t* RoIs_magnitude, const size_t n_RoIs) {
-    // set all RoIs (Regions of Interest) magnitudes to 0
+                                 uint32_t* RoIs_magnitude, uint32_t* RoIs_sat_count, const size_t n_RoIs) {
+    assert(RoIs_magnitude != NULL);
+    // set all RoIs (Regions of Interest) magnitudes to 0 (same for the saturation counter)
     memset(RoIs_magnitude, 0, n_RoIs * sizeof(uint32_t));
+    if (RoIs_sat_count != NULL)
+        memset(RoIs_sat_count, 0, n_RoIs * sizeof(uint32_t));
     // for each RoI (= Region of Interest = object)
     for (uint32_t r = 0; r < n_RoIs; r++) {
         // width and height of the current RoI
@@ -397,6 +408,9 @@ void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, 
                 if (l == r + 1) {
                     RoIs_magnitude[r] += (uint32_t)img[i][j];
                     count_px++;
+                    // increment the saturation counter if the current pixel is saturated
+                    if (RoIs_sat_count != NULL && img[i][j] == 255)
+                        RoIs_sat_count[r]++;
                 } else if (l == 0) {
                     acc_noise += (uint32_t)img[i][j];
                     count_noise++;
@@ -416,5 +430,5 @@ void features_compute_magnitude(const uint8_t** img, const uint32_t img_width, c
                                 RoIs_misc_t* RoIs_misc) {
     _features_compute_magnitude(img, img_width, img_height, labels, RoIs_basic->xmin, RoIs_basic->xmax,
                                 RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S,
-                                RoIs_misc->magnitude, *RoIs_misc->_size);
+                                RoIs_misc->magnitude, RoIs_misc->sat_count, *RoIs_misc->_size);
 }

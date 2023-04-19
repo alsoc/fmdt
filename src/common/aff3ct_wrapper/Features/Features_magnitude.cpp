@@ -26,9 +26,10 @@ Features_magnitude::Features_magnitude(const int i0, const int i1, const int j0,
     auto ps_in_n_RoIs = this->template create_socket_in<uint32_t>(p, "in_n_RoIs", 1);
 
     auto ps_out_RoIs_magnitude = this->template create_socket_out<uint32_t>(p, "out_RoIs_magnitude", max_RoIs_size);
+    auto ps_out_RoIs_sat_count = this->template create_socket_out<uint32_t>(p, "out_RoIs_sat_count", max_RoIs_size);
 
     this->create_codelet(p, [ps_in_img, ps_in_labels, ps_in_RoIs_xmin, ps_in_RoIs_xmax, ps_in_RoIs_ymin,
-                             ps_in_RoIs_ymax, ps_in_RoIs_S, ps_in_n_RoIs, ps_out_RoIs_magnitude]
+                             ps_in_RoIs_ymax, ps_in_RoIs_S, ps_in_n_RoIs, ps_out_RoIs_magnitude, ps_out_RoIs_sat_count]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &mgn = static_cast<Features_magnitude&>(m);
         const uint8_t* m_in_img = static_cast<const uint8_t*>(t[ps_in_img].get_dataptr());
@@ -51,6 +52,7 @@ Features_magnitude::Features_magnitude(const int i0, const int i1, const int j0,
                                     static_cast<const uint32_t*>(t[ps_in_RoIs_ymax].get_dataptr()),
                                     static_cast<const uint32_t*>(t[ps_in_RoIs_S].get_dataptr()),
                                     static_cast<uint32_t*>(t[ps_out_RoIs_magnitude].get_dataptr()),
+                                    static_cast<uint32_t*>(t[ps_out_RoIs_sat_count].get_dataptr()),
                                     in_n_RoIs);
 
         return aff3ct::runtime::status_t::SUCCESS;

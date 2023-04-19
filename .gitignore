@@ -60,3 +60,6 @@ output*/
 
 # References
 ref*/
+
+# Generated fils
+src/common/version.c

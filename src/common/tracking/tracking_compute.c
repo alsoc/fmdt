@@ -368,8 +368,8 @@ void _create_new_tracks(RoIs_history_t* RoIs_history, RoI_t* RoIs_list, vec_trac
 {
     for (size_t i = 0; i < RoIs_history->n_RoIs[1]; i++) {
         int asso = RoIs_history->array[1][i].next_id;
-        float e = RoIs_history->array[0][asso - 1].error;
         if (asso) {
+            float e = RoIs_history->array[0][asso - 1].error;
             int is_new_meteor = 0;
             // if motion detected
             if (fabs(e - RoIs_history->motion[0].mean_error) > diff_dev * RoIs_history->motion[0].std_deviation) {
@@ -434,7 +434,7 @@ void _light_copy_RoIs(const uint32_t* RoIs_src_id, const uint32_t frame, const u
         RoIs_dst[i].time_motion = 0;
         RoIs_dst[i].prev_id = RoIs_src_prev_id[i];
         RoIs_dst[i].is_extrapolated = 0;
-        RoIs_dst[i].magnitude = RoIs_magnitude[i];
+        RoIs_dst[i].magnitude = RoIs_magnitude != NULL ? RoIs_magnitude[i] : 0;
     }
 }
 
