@@ -164,7 +164,6 @@ void _motion_compute(const float* RoIs0_x, const float* RoIs0_y, const float* Ro
                      float* RoIs1_dx, float* RoIs1_dy, float* RoIs1_error, const uint32_t* RoIs1_prev_id,
                      uint8_t* RoIs1_is_moving, const size_t n_RoIs1, motion_t* motion_est1, motion_t* motion_est2) {
     memset(RoIs1_is_moving, 0, n_RoIs1 * sizeof(uint8_t));
-    memset(RoIs1_error, 0, n_RoIs1 * sizeof(float));
 
     _motion_rigid_registration(RoIs0_x, RoIs0_y, RoIs1_x, RoIs1_y, RoIs1_prev_id, n_RoIs1, &motion_est1->theta,
                                &motion_est1->tx, &motion_est1->ty);
