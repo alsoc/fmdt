@@ -28,7 +28,6 @@ public:
     inline aff3ct::runtime::Socket& operator[](const mtn::sck::compute s);
 
 protected:
-    void init_data();
     using Module::deep_copy;
     void deep_copy(const Motion &m);
 };

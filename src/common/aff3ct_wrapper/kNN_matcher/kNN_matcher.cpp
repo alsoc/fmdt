@@ -69,8 +69,8 @@ kNN_matcher::kNN_matcher(const size_t k, const uint32_t max_dist, const float mi
 }
 
 void kNN_matcher::init_data() {
-    this->out_data_nearest = (uint32_t**)malloc((size_t)(max_size * sizeof(const uint32_t*)));
-    this->out_data_distances = (float**)malloc((size_t)(max_size * sizeof(float*)));
+    this->out_data_nearest = (uint32_t**)malloc((size_t)(this->max_size * sizeof(const uint32_t*)));
+    this->out_data_distances = (float**)malloc((size_t)(this->max_size * sizeof(float*)));
 }
 
 kNN_matcher::~kNN_matcher() {

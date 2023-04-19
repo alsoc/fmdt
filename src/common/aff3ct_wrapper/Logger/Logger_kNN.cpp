@@ -51,7 +51,11 @@ Logger_kNN::Logger_kNN(const std::string kNN_path, const size_t fra_start, const
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
             _kNN_asso_conflicts_write(file, lgr_knn.in_data_distances, lgr_knn.in_data_nearest,
+#ifdef FMDT_ENABLE_DEBUG
                                       static_cast<const uint32_t*>(t[ps_in_data_conflicts].get_dataptr()),
+#else
+                                      NULL, 
+#endif
                                       static_cast<const uint32_t*>(t[ps_in_RoIs0_id].get_dataptr()),
                                       static_cast<const uint32_t*>(t[ps_in_RoIs0_next_id].get_dataptr()),
                                       *static_cast<const uint32_t*>(t[ps_in_n_RoIs0].get_dataptr()),
