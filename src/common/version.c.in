@@ -11,7 +11,7 @@ unsigned g_fmdt_version_patch = @FMDT_VERSION_PATCH@;
 unsigned g_fmdt_build = @FMDT_BUILD@;
 
 void version_print(const char* bin_name) {
-    char os[256], compiler[256], compiler_version[256];
+    char os[256] = "", compiler[256] = "", compiler_version[256] = "";
 
 #if defined(_WIN64) || defined(_WIN32) || defined(WIN32) || defined(__MINGW32__)
     snprintf(os, sizeof(os), "Windows");
@@ -57,7 +57,6 @@ void version_print(const char* bin_name) {
     snprintf(compiler_version, sizeof(compiler_version), "%d", _MSC_VER);
 #else
     snprintf(compiler, sizeof(compiler), "Unknown compiler");
-    snprintf(compiler_version, sizeof(compiler_version), "");
 #endif
 
 #if defined(FMDT_DEBUG)
@@ -79,11 +78,11 @@ void version_print(const char* bin_name) {
 #endif
 
     if (strnlen(g_fmdt_version, sizeof(g_fmdt_version))) {
-        char hash7[sizeof(g_fmdt_sha1)];
-        strncpy(hash7, g_fmdt_sha1, sizeof(hash7));
-        hash7[7] = '\0';
+        char hash8[sizeof(g_fmdt_sha1)];
+        strncpy(hash8, g_fmdt_sha1, sizeof(hash8));
+        hash8[8] = '\0';
         printf("fmdt-%s (system: %s, compiler: %s-%s) %s (%s)\n", bin_name, os, compiler, compiler_version,
-               g_fmdt_version, hash7);
+               g_fmdt_version, hash8);
     } else
         printf("fmdt-%s (system: %s, compiler: %s-%s)\n", bin_name, os, compiler, compiler_version);
 
