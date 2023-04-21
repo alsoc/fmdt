@@ -25,9 +25,6 @@ Motion::Motion(const size_t max_RoIs_size)
     auto ps_out_motion_est1 = this->template create_socket_out<uint8_t>(p, "out_motion_est1", sizeof(motion_t));
     auto ps_out_motion_est2 = this->template create_socket_out<uint8_t>(p, "out_motion_est2", sizeof(motion_t));
 
-    auto data_error = static_cast<float*>(p[ps_out_RoIs1_error].get_dataptr());
-    std::fill(data_error, data_error + max_RoIs_size, 0);
-
     this->create_codelet(p, [ps_in_RoIs0_x, ps_in_RoIs0_y, ps_in_RoIs1_x, ps_in_RoIs1_y, ps_out_RoIs1_dx,
                              ps_out_RoIs1_dy, ps_out_RoIs1_error, ps_in_RoIs1_prev_id, ps_out_RoIs1_is_moving,
                              ps_in_n_RoIs1, ps_out_motion_est1, ps_out_motion_est2]
