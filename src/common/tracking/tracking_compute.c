@@ -176,10 +176,18 @@ void _track_extrapolate(const RoI_t* track_end, float* track_extrapol_x, float* 
     *track_extrapol_y = y + (float)extrapol_order * *track_extrapol_v;
 }
 
+int search_motion(RoIs_history_t* RoIs_history){
+    for (int i = 0; i < (int)(RoIs_history->_max_size); i++) {
+        if (!isnan(RoIs_history->motion[i].tx) && !isnan(RoIs_history->motion[i].ty))
+            return i;
+    }
+    return 0;
+}
 void _update_existing_tracks(RoIs_history_t* RoIs_history, vec_track_t track_array, vec_BB_t* BBs,
                              const size_t frame, const size_t r_extrapol, const float angle_max, const int track_all,
                              const size_t fra_meteor_max, const uint8_t extrapol_order_max,
                              const float min_extrapol_ratio_S) {
+    int hist_motion_id = 0;
     size_t n_tracks = vector_size(track_array);
     for (size_t i = 0; i < n_tracks; i++) {
         track_t* cur_track = &track_array[i];
@@ -193,9 +201,11 @@ void _update_existing_tracks(RoIs_history_t* RoIs_history, vec_track_t track_arr
                         assert(cur_track->extrapol_x == cur_track->extrapol_x);
                         assert(cur_track->extrapol_y == cur_track->extrapol_y);
 
-                        float theta = RoIs_history->motion[0].theta;
-                        float tx = RoIs_history->motion[0].tx;
-                        float ty = RoIs_history->motion[0].ty;
+                        hist_motion_id = search_motion(RoIs_history);
+                        
+                        float theta = RoIs_history->motion[hist_motion_id].theta;
+                        float tx = RoIs_history->motion[hist_motion_id].tx;
+                        float ty = RoIs_history->motion[hist_motion_id].ty;
 
                         float x_0 = RoIs_history->array[0][j].x;
                         float y_0 = RoIs_history->array[0][j].y;
@@ -312,9 +322,10 @@ void _update_existing_tracks(RoIs_history_t* RoIs_history, vec_track_t track_arr
                     cur_track->state = STATE_FINISHED;
                 } else {
                     // on extrapole si pas finished
+                    hist_motion_id = search_motion(RoIs_history);
                     _track_extrapolate(&cur_track->end, &cur_track->extrapol_x, &cur_track->extrapol_y,
-                                       &cur_track->extrapol_u, &cur_track->extrapol_v, RoIs_history->motion[0].theta,
-                                       RoIs_history->motion[0].tx, RoIs_history->motion[0].ty,
+                                       &cur_track->extrapol_u, &cur_track->extrapol_v, RoIs_history->motion[hist_motion_id].theta,
+                                       RoIs_history->motion[hist_motion_id].tx, RoIs_history->motion[hist_motion_id].ty,
                                        cur_track->extrapol_order);
                 }
             }
@@ -368,8 +379,8 @@ void _create_new_tracks(RoIs_history_t* RoIs_history, RoI_t* RoIs_list, vec_trac
 {
     for (size_t i = 0; i < RoIs_history->n_RoIs[1]; i++) {
         int asso = RoIs_history->array[1][i].next_id;
+        float e = RoIs_history->array[0][asso - 1].error;
         if (asso) {
-            float e = RoIs_history->array[0][asso - 1].error;
             int is_new_meteor = 0;
             // if motion detected
             if (fabs(e - RoIs_history->motion[0].mean_error) > diff_dev * RoIs_history->motion[0].std_deviation) {

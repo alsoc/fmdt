@@ -305,8 +305,8 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         // step 1: threshold low
-        threshold((const uint8_t**)I, IL, i0, i1, j0, j1, p_ccl_hyst_lo);
-
+        threshold((const uint8_t**)I, IL, i0, i1, j0, j1, p_ccl_hyst_lo); 
+        
         // step 2: CCL/CCA
         const int n_RoI = CCL_LSL_apply(ccl_data, (const uint8_t**)IL, L1);
         features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoI, RoIs_tmp->basic);
