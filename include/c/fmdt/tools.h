@@ -101,11 +101,11 @@ int tools_is_dir(const char *path);
  * @param arg Input string (ex: \f$[1, 5, 1]\f$).
  * @param res Output 1D (linear) array.
  */
-void tools_convert_char_vector_int(const char* arg, vec_int *res);
+void tools_convert_char_int_cvector(const char* arg, vec_int *res);
 
 /**
  * Display the values of a 1D (linear) array (ex: \f$[1, 5, 1]\f$).
  * @param stream Output stream.
  * @param tab Input 1D (linear) array.
  */
-void tools_cvector_print(FILE* stream, vec_int tab);
+void tools_int_cvector_print(FILE* stream, vec_int tab);

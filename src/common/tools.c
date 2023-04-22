@@ -111,7 +111,7 @@ void tools_save_max(const char* filename, uint8_t** I, int i0, int i1, int j0, i
 //             out[i][j] = stats[in[i][j]].S ? 0xFF : 0;
 // }
 
-void tools_convert_char_vector_int(const char* arg, vec_int *res){
+void tools_convert_char_int_cvector(const char* arg, vec_int *res) {
     char *saveptr1;
     char arg_cpy[2048];
     strncpy(arg_cpy, arg, sizeof(arg_cpy));
@@ -124,7 +124,7 @@ void tools_convert_char_vector_int(const char* arg, vec_int *res){
     } while((cur_arg = strtok_r(NULL, "[,]", &saveptr1)) != NULL);
 }
 
-void tools_cvector_print(FILE* stream, vec_int tab) {
+void tools_int_cvector_print(FILE* stream, vec_int tab) {
     int size = vector_size(tab);
     fprintf(stream, "[");
     for (int i = 0; i < size - 1; i++) {

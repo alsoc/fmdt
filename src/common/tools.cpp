@@ -5,7 +5,7 @@
 
 #include "fmdt/tools.hpp"
 
-std::vector<std::size_t> tools_convert_int_cvector_stdvector(const vec_int arg){
+std::vector<std::size_t> tools_convert_int_cvector_int_stdvector(const vec_int arg) {
     std::vector<std::size_t> v;
     int size = vector_size(arg);
     
@@ -15,7 +15,7 @@ std::vector<std::size_t> tools_convert_int_cvector_stdvector(const vec_int arg){
     return v;
 }
 
-void tools_stdvector_print(FILE* stream, std::vector<std::size_t> v) {
+void tools_int_stdvector_print(FILE* stream, const std::vector<std::size_t> v) {
     int size = v.size();
     fprintf(stream, "[");
     for (int i = 0; i < size - 1; i++) {

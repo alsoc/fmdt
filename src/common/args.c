@@ -176,7 +176,7 @@ vec_int args_find_vector_int(int argc, char** argv, const char* arg, vec_int def
             if (!argv[i])
                 continue;
             if (strcmp(argv[i], cur_arg) == 0) {
-                tools_convert_char_vector_int(argv[i + 1], &res);
+                tools_convert_char_int_cvector(argv[i + 1], &res);
                 break;
             }
         }

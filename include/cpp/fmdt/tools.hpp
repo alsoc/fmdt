@@ -9,15 +9,15 @@
 #include <vec.h>
 
 /**
- * Convert cvector of int into std::vector.
- * @param arg Input cvector of int.
- * @return Data converted in std::vector.
+ * Convert int cvector into int std::vector.
+ * @param arg Input int cvector.
+ * @return Data converted in int std::vector.
  */
-std::vector<std::size_t> tools_convert_int_cvector_stdvector(const vec_int arg);
+std::vector<std::size_t> tools_convert_int_cvector_int_stdvector(const vec_int arg);
 
 /**
- * Display the values of a std::vector (ex: \f$[1, 5, 1]\f$).
+ * Display the int values of a std::vector (ex: \f$[1, 5, 1]\f$).
  * @param stream Output stream.
- * @param v Input std::vector.
+ * @param v Input int std::vector.
  */
-void tools_stdvector_print(FILE* stream, std::vector<std::size_t> v);
+void tools_int_stdvector_print(FILE* stream, const std::vector<std::size_t> v);

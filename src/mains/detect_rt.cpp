@@ -163,10 +163,10 @@ int main(int argc, char** argv) {
 #ifdef FMDT_ENABLE_PIPELINE
         fprintf(stderr,
                 "  --pip-threads       Number of threads for each stage of the pipeline                       "); 
-                tools_cvector_print(stderr, def_p_pip_threads); fprintf(stderr,"\n");
+                tools_int_cvector_print(stderr, def_p_pip_threads); fprintf(stderr,"\n");
         fprintf(stderr,
-                "  --pip-sync          Buffer size for each stage of the pipeline                       "); 
-                tools_cvector_print(stderr, def_p_pip_sync); fprintf(stderr,"\n");
+                "  --pip-sync          Buffer size for each stage of the pipeline                             "); 
+                tools_int_cvector_print(stderr, def_p_pip_sync); fprintf(stderr,"\n");
 #endif
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
@@ -224,9 +224,8 @@ int main(int argc, char** argv) {
     vec_int tmp_pip_sync = (vec_int)vector_create();
     tmp_pip_threads = args_find_vector_int(argc, argv, "--pip-threads", def_p_pip_threads, tmp_pip_threads);
     tmp_pip_sync = args_find_vector_int(argc, argv, "--pip-sync", def_p_pip_sync, tmp_pip_sync);
-    const std::vector<std::size_t> p_pip_threads = tools_convert_int_cvector_stdvector(tmp_pip_threads);
-    const std::vector<std::size_t> p_pip_sync = tools_convert_int_cvector_stdvector(tmp_pip_sync);
-
+    const std::vector<std::size_t> p_pip_threads = tools_convert_int_cvector_int_stdvector(tmp_pip_threads);
+    const std::vector<std::size_t> p_pip_sync = tools_convert_int_cvector_int_stdvector(tmp_pip_sync);
     
 #endif
     // heading display
@@ -270,8 +269,8 @@ int main(int argc, char** argv) {
     printf("#  * rt-stats       = %d\n", p_task_stats);
     printf("#  * rt-prb-path    = %s\n", p_out_probes);
 #ifdef FMDT_ENABLE_PIPELINE
-    printf("#  * pip-threads    = "); tools_stdvector_print(stdout, p_pip_threads); printf("\n");
-    printf("#  * pip-sync       = "); tools_stdvector_print(stdout, p_pip_sync); printf("\n");
+    printf("#  * pip-threads    = "); tools_int_stdvector_print(stdout, p_pip_threads); printf("\n");
+    printf("#  * pip-sync       = "); tools_int_stdvector_print(stdout, p_pip_sync); printf("\n");
 #endif
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
