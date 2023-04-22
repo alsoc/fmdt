@@ -195,8 +195,7 @@ int main(int argc, char** argv) {
     // --------------------- //
 
     RoIs_t* RoIs_tmp = features_alloc_RoIs(false, false, true, MAX_ROI_SIZE_BEFORE_SHRINK);
-    RoIs_t* RoIs0 = features_alloc_RoIs(false, false, true, MAX_ROI_SIZE);
-    RoIs_t* RoIs1 = features_alloc_RoIs(false, false, true, MAX_ROI_SIZE);
+    RoIs_t* RoIs = features_alloc_RoIs(false, false, true, MAX_ROI_SIZE);
     CCL_data_t* ccl_data = CCL_LSL_alloc_data(i0, i1, j0, j1);
 
     int b = 1; // image border
@@ -211,6 +210,7 @@ int main(int argc, char** argv) {
     uint8_t **T[maxred_diam];
     for (int t = 0; t < maxred_diam; t++) {
         T[t] = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
+        zero_ui8matrix(T[t], i0 - b, i1 + b, j0 - b, j1 + b);
     }
 
     // ------------------------- //
@@ -218,8 +218,7 @@ int main(int argc, char** argv) {
     // ------------------------- //
 
     features_init_RoIs(RoIs_tmp);
-    features_init_RoIs(RoIs0);
-    features_init_RoIs(RoIs1);
+    features_init_RoIs(RoIs);
     CCL_LSL_init_data(ccl_data);
     zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -233,74 +232,71 @@ int main(int argc, char** argv) {
     // ----------------//
 
     printf("# The program is running...\n");
-    size_t real_n_tracks = 0;
-    unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
+    unsigned n_frames = 0;
     int cur_fra;
     while ((cur_fra = video_reader_get_frame(video, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
         // step 1: max-reduction
         tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0 - b, i1 + b, j0 - b, j1 + b, T[cur_fra % maxred_diam]);
         zero_ui8matrix(Max, i0 - b, i1 + b, j0 - b, j1 + b);
-
         for (int k = 0; k < maxred_diam; k++) {
             // max temporel
             image_max_reduce(T[k], i0, i1, j0, j1, Max);
         }
 
-        // step 1: threshold low
+        // step 2: threshold low
         threshold((const uint8_t**)Max, IL, i0, i1, j0, j1, p_ccl_hyst_lo);
 
-        // step 2: CCL/CCA
+        // step 3: CCL/CCA
         const int n_RoI = CCL_LSL_apply(ccl_data, (const uint8_t**)IL, L1);
         features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoI, RoIs_tmp->basic);
 
-        // step 3: hysteresis threshold & surface filtering
+        // step 4: hysteresis threshold & surface filtering
         threshold((const uint8_t**)Max, IH, i0, i1, j0, j1, p_ccl_hyst_hi);
         features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, RoIs_tmp->basic,
                                  p_mrp_s_min, p_mrp_s_max);
-        features_shrink_basic(RoIs_tmp->basic, RoIs1->basic);
+        features_shrink_basic(RoIs_tmp->basic, RoIs->basic);
 
-        // step 4: ellipse feature computation
-        features_compute_ellipse(RoIs1->basic, RoIs1->misc);
+        // step 5: ellipse feature computation
+        features_compute_ellipse(RoIs->basic, RoIs->misc);
 
-        // step 5: filter on ellipse ratio
-        threshold_ellipse_ratio(RoIs1->misc, p_ellipse);
-        features_shrink_misc(RoIs1->misc, RoIs1->misc);
-        
+        // save stats
+        FILE* f = NULL;
+        if (p_log_path) {
+            tools_create_folder(p_log_path);
+            char filename[1024];
+            snprintf(filename, sizeof(filename), "%s/%05d.txt", p_log_path, cur_fra);
+            f = fopen(filename, "w");
+            if (f == NULL) {
+                fprintf(stderr, "(EE) error while opening '%s'\n", filename);
+                exit(1);
+            }
+            fprintf(f, "# Frame n°%05d (BEFORE ellipse ratio threshold) -- ", cur_fra);
+            features_RoIs_write(f, cur_fra, RoIs->basic, RoIs->misc, NULL, 0);
+            fprintf(f, "#\n");
+        }
+
+        // step 6: filter on ellipse ratio
+        threshold_ellipse_ratio(RoIs->misc, p_ellipse);
+        features_shrink_basic_misc(RoIs->basic, RoIs->misc, RoIs->basic, RoIs->misc);
+
         // save frames (CCs)
         if (img_data) {
-            image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs1->basic, p_ccl_fra_id);
+            image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs->basic, p_ccl_fra_id);
             video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
 
         // save stats
         if (p_log_path) {
-            tools_create_folder(p_log_path);
-            char filename[1024];
-            snprintf(filename, sizeof(filename), "%s/%05d.txt", p_log_path, cur_fra);
-            FILE* f = fopen(filename, "w");
-            if (f == NULL) {
-                fprintf(stderr, "(EE) error while opening '%s'\n", filename);
-                exit(1);
-            }
-            if (f) {
-                int prev_fra = cur_fra > p_vid_in_start ? cur_fra - (p_vid_in_skip + 1) : -1;
-                // features_RoIs0_RoIs1_write(f, prev_fra, cur_fra, RoIs0->basic, RoIs0->misc, RoIs1->basic, RoIs1->misc,
-                                        //    tracking_data->tracks);
-                fclose(f);
-            } else {
-                fprintf(stderr, "(WW) cannot open '%s' file.", filename);
-            }
+            fprintf(f, "# Frame n°%05d (AFTER ellipse ratio threshold) -- ", cur_fra);
+            features_RoIs_write(f, cur_fra, RoIs->basic, RoIs->misc, NULL, 0);
+            fclose(f);
         }
 
         n_frames++;
-        ellipse_nb += RoIs1->_size;
+        ellipse_nb += RoIs->_size;
         fprintf(stderr, " -- Ellipses =  %3d\r", ellipse_nb);
         fflush(stderr);
-
-        RoIs_t* tmp = RoIs0;
-        RoIs0 = RoIs1;
-        RoIs1 = tmp;
     }
     fprintf(stderr, "\n");
 
@@ -318,8 +314,7 @@ int main(int argc, char** argv) {
     free_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
     features_free_RoIs(RoIs_tmp);
-    features_free_RoIs(RoIs0);
-    features_free_RoIs(RoIs1);
+    features_free_RoIs(RoIs);
     video_reader_free(video);
     if (img_data) {
         image_gs_free(img_data);

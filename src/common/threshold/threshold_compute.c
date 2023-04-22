@@ -1,4 +1,5 @@
 #include <string.h>
+#include <assert.h>
 
 #include "fmdt/threshold/threshold_compute.h"
 #include <stdio.h>
@@ -26,7 +27,9 @@ void threshold(const uint8_t** img_in, uint8_t** img_out, const int i0, const in
 }
 
 void _threshold_ellipse_ratio(const float* RoIs_a, const float* RoIs_b, const size_t n_RoIs, uint32_t* RoIs_id,
-                                    const float min_ratio) {
+                              const float min_ratio) {
+    assert(RoIs_a != NULL);
+    assert(RoIs_b != NULL);
     for (size_t e = 0; e < n_RoIs; e++) {
         if (RoIs_id[e]) {
             float a = RoIs_a[e];

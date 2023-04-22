@@ -26,7 +26,7 @@ void threshold(const uint8_t** img_in, uint8_t** img_out, const int i0, const in
                const uint8_t threshold);
 
 /**
- * Filter the RoIs ellipses that have a ratio (a/b) superior to \f$min_ratio\f$. 
+ * Filter (= select / keep) the RoIs ellipses that have a ratio (a/b) superior to \f$min_ratio\f$.
  * 
  * @param RoIs_a Semi-major ellipse axis.
  * @param RoIs_b Semi-minor ellipse axis.
@@ -37,4 +37,10 @@ void threshold(const uint8_t** img_in, uint8_t** img_out, const int i0, const in
 void _threshold_ellipse_ratio(const float* RoIs_a, const float* RoIs_b, const size_t n_RoIs, uint32_t* RoIs_id,
                               const float min_ratio);
 
+/**
+ * Filter (= select / keep) the RoIs ellipses that have a ratio (a/b) superior to \f$min_ratio\f$.
+ *
+ * @param RoIs_basic Basic features.
+ * @param RoIs_misc Miscellaneous features (including the `a` and `b` features).
+ */
 void threshold_ellipse_ratio(RoIs_misc_t* RoIs_misc, const float min_ratio);

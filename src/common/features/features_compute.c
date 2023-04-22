@@ -361,75 +361,114 @@ size_t _features_shrink_basic(const uint32_t* RoIs_src_id, const uint32_t* RoIs_
                               const uint32_t* RoIs_src_ymax, const uint32_t* RoIs_src_S, const uint32_t* RoIs_src_Sx,
                               const uint32_t* RoIs_src_Sy, const uint64_t* RoIs_src_Sx2, const uint64_t* RoIs_src_Sy2,
                               const uint64_t* RoIs_src_Sxy, const float* RoIs_src_x, const float* RoIs_src_y,
-                              const size_t n_RoIs_src, uint32_t* RoIs_dest_id, uint32_t* RoIs_dest_xmin,
-                              uint32_t* RoIs_dest_xmax, uint32_t* RoIs_dest_ymin, uint32_t* RoIs_dest_ymax,
-                              uint32_t* RoIs_dest_S, uint32_t* RoIs_dest_Sx, uint32_t* RoIs_dest_Sy, uint64_t* RoIs_dest_Sx2,
-                              uint64_t* RoIs_dest_Sy2, uint64_t* RoIs_dest_Sxy, float* RoIs_dest_x, float* RoIs_dest_y) {
+                              const size_t n_RoIs_src, uint32_t* RoIs_dst_id, uint32_t* RoIs_dst_xmin,
+                              uint32_t* RoIs_dst_xmax, uint32_t* RoIs_dst_ymin, uint32_t* RoIs_dst_ymax,
+                              uint32_t* RoIs_dst_S, uint32_t* RoIs_dst_Sx, uint32_t* RoIs_dst_Sy,
+                              uint64_t* RoIs_dst_Sx2, uint64_t* RoIs_dst_Sy2, uint64_t* RoIs_dst_Sxy, float* RoIs_dst_x,
+                              float* RoIs_dst_y) {
     size_t cpt = 0;
     for (size_t i = 0; i < n_RoIs_src; i++) {
         if (RoIs_src_id[i]) {
             assert(cpt < MAX_ROI_SIZE);
-            RoIs_dest_id[cpt] = cpt + 1;
-            RoIs_dest_xmin[cpt] = RoIs_src_xmin[i];
-            RoIs_dest_xmax[cpt] = RoIs_src_xmax[i];
-            RoIs_dest_ymin[cpt] = RoIs_src_ymin[i];
-            RoIs_dest_ymax[cpt] = RoIs_src_ymax[i];
-            RoIs_dest_S[cpt] = RoIs_src_S[i];
-            RoIs_dest_Sx[cpt] = RoIs_src_Sx[i];
-            RoIs_dest_Sy[cpt] = RoIs_src_Sy[i];
-            RoIs_dest_Sx2[cpt] = RoIs_src_Sx2[i];
-            RoIs_dest_Sy2[cpt] = RoIs_src_Sy2[i];
-            RoIs_dest_Sxy[cpt] = RoIs_src_Sxy[i];
-            RoIs_dest_x[cpt] = RoIs_src_x[i];
-            RoIs_dest_y[cpt] = RoIs_src_y[i];
+            RoIs_dst_id[cpt] = cpt + 1;
+            RoIs_dst_xmin[cpt] = RoIs_src_xmin[i];
+            RoIs_dst_xmax[cpt] = RoIs_src_xmax[i];
+            RoIs_dst_ymin[cpt] = RoIs_src_ymin[i];
+            RoIs_dst_ymax[cpt] = RoIs_src_ymax[i];
+            RoIs_dst_S[cpt] = RoIs_src_S[i];
+            RoIs_dst_Sx[cpt] = RoIs_src_Sx[i];
+            RoIs_dst_Sy[cpt] = RoIs_src_Sy[i];
+            RoIs_dst_Sx2[cpt] = RoIs_src_Sx2[i];
+            RoIs_dst_Sy2[cpt] = RoIs_src_Sy2[i];
+            RoIs_dst_Sxy[cpt] = RoIs_src_Sxy[i];
+            RoIs_dst_x[cpt] = RoIs_src_x[i];
+            RoIs_dst_y[cpt] = RoIs_src_y[i];
             cpt++;
         }
     }
     return cpt;
 }
 
-void features_shrink_basic(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoIs_basic_dest) {
-    *RoIs_basic_dest->_size = _features_shrink_basic(RoIs_basic_src->id, RoIs_basic_src->xmin,
+void features_shrink_basic(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoIs_basic_dst) {
+    *RoIs_basic_dst->_size = _features_shrink_basic(RoIs_basic_src->id, RoIs_basic_src->xmin,
                                                      RoIs_basic_src->xmax, RoIs_basic_src->ymin,
                                                      RoIs_basic_src->ymax, RoIs_basic_src->S,
                                                      RoIs_basic_src->Sx, RoIs_basic_src->Sy,
                                                      RoIs_basic_src->Sx2, RoIs_basic_src->Sy2,
                                                      RoIs_basic_src->Sxy, RoIs_basic_src->x,
                                                      RoIs_basic_src->y, *RoIs_basic_src->_size,
-                                                     RoIs_basic_dest->id,
-                                                     RoIs_basic_dest->xmin, RoIs_basic_dest->xmax,
-                                                     RoIs_basic_dest->ymin, RoIs_basic_dest->ymax,
-                                                     RoIs_basic_dest->S, RoIs_basic_dest->Sx,
-                                                     RoIs_basic_dest->Sy, RoIs_basic_dest->Sx2,
-                                                     RoIs_basic_dest->Sy2, RoIs_basic_dest->Sxy,
-                                                     RoIs_basic_dest->x, RoIs_basic_dest->y);
+                                                     RoIs_basic_dst->id,
+                                                     RoIs_basic_dst->xmin, RoIs_basic_dst->xmax,
+                                                     RoIs_basic_dst->ymin, RoIs_basic_dst->ymax,
+                                                     RoIs_basic_dst->S, RoIs_basic_dst->Sx,
+                                                     RoIs_basic_dst->Sy, RoIs_basic_dst->Sx2,
+                                                     RoIs_basic_dst->Sy2, RoIs_basic_dst->Sxy,
+                                                     RoIs_basic_dst->x, RoIs_basic_dst->y);
 }
 
-size_t _features_shrink_misc(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_magnitude,
-                             const float* RoIs_src_a, const float* RoIs_src_b, const size_t n_RoIs_src,
-                             uint32_t* RoIs_dest_id, uint32_t* RoIs_dest_magnitude, float* RoIs_dest_a,
-                             float* RoIs_dest_b) {
+size_t _features_shrink_basic_misc(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xmin,
+                                   const uint32_t* RoIs_src_xmax, const uint32_t* RoIs_src_ymin,
+                                   const uint32_t* RoIs_src_ymax, const uint32_t* RoIs_src_S,
+                                   const uint32_t* RoIs_src_Sx, const uint32_t* RoIs_src_Sy,
+                                   const uint64_t* RoIs_src_Sx2, const uint64_t* RoIs_src_Sy2,
+                                   const uint64_t* RoIs_src_Sxy, const float* RoIs_src_x, const float* RoIs_src_y,
+                                   const uint32_t* RoIs_src_magnitude, const uint32_t* RoIs_src_sat_count,
+                                   const float* RoIs_src_a, const float* RoIs_src_b, const size_t n_RoIs_src,
+                                   uint32_t* RoIs_dst_id, uint32_t* RoIs_dst_xmin, uint32_t* RoIs_dst_xmax,
+                                   uint32_t* RoIs_dst_ymin, uint32_t* RoIs_dst_ymax, uint32_t* RoIs_dst_S,
+                                   uint32_t* RoIs_dst_Sx, uint32_t* RoIs_dst_Sy, uint64_t* RoIs_dst_Sx2,
+                                   uint64_t* RoIs_dst_Sy2, uint64_t* RoIs_dst_Sxy, float* RoIs_dst_x,
+                                   float* RoIs_dst_y, uint32_t* RoIs_dst_magnitude, uint32_t* RoIs_dst_sat_count,
+                                   float* RoIs_dst_a, float* RoIs_dst_b) {
+
     size_t cpt = 0;
     for (size_t i = 0; i < n_RoIs_src; i++) {
         if (RoIs_src_id[i]) {
             assert(cpt < MAX_ROI_SIZE);
-            RoIs_dest_id[cpt] = cpt + 1;
-            if (RoIs_dest_magnitude && RoIs_src_magnitude)
-                RoIs_dest_magnitude[cpt] = RoIs_src_magnitude[i];
-            if (RoIs_dest_a && RoIs_src_a)
-                RoIs_dest_a[cpt] = RoIs_src_a[i];
-            if (RoIs_dest_b && RoIs_src_b)
-                RoIs_dest_b[cpt] = RoIs_src_b[i];
+            RoIs_dst_id[cpt] = cpt + 1;
+            RoIs_dst_xmin[cpt] = RoIs_src_xmin[i];
+            RoIs_dst_xmax[cpt] = RoIs_src_xmax[i];
+            RoIs_dst_ymin[cpt] = RoIs_src_ymin[i];
+            RoIs_dst_ymax[cpt] = RoIs_src_ymax[i];
+            RoIs_dst_S[cpt] = RoIs_src_S[i];
+            RoIs_dst_Sx[cpt] = RoIs_src_Sx[i];
+            RoIs_dst_Sy[cpt] = RoIs_src_Sy[i];
+            RoIs_dst_Sx2[cpt] = RoIs_src_Sx2[i];
+            RoIs_dst_Sy2[cpt] = RoIs_src_Sy2[i];
+            RoIs_dst_Sxy[cpt] = RoIs_src_Sxy[i];
+            RoIs_dst_x[cpt] = RoIs_src_x[i];
+            RoIs_dst_y[cpt] = RoIs_src_y[i];
+            if (RoIs_dst_magnitude && RoIs_src_magnitude)
+                RoIs_dst_magnitude[cpt] = RoIs_src_magnitude[i];
+            if (RoIs_dst_sat_count && RoIs_src_sat_count)
+                RoIs_dst_sat_count[cpt] = RoIs_src_sat_count[i];
+            if (RoIs_dst_a && RoIs_src_a)
+                RoIs_dst_a[cpt] = RoIs_src_a[i];
+            if (RoIs_dst_b && RoIs_src_b)
+                RoIs_dst_b[cpt] = RoIs_src_b[i];
             cpt++;
         }
     }
     return cpt;
 }
 
-void features_shrink_misc(const RoIs_misc_t* RoIs_misc_src, RoIs_misc_t* RoIs_misc_dest) {
-    *RoIs_misc_dest->_size = _features_shrink_misc(RoIs_misc_src->id, RoIs_misc_src->magnitude, RoIs_misc_src->a,
-                                                   RoIs_misc_src->b, *RoIs_misc_src->_size, RoIs_misc_dest->id,
-                                                   RoIs_misc_dest->magnitude, RoIs_misc_dest->a, RoIs_misc_dest->b);
+void features_shrink_basic_misc(const RoIs_basic_t* RoIs_basic_src, const RoIs_misc_t* RoIs_misc_src,
+                                RoIs_basic_t* RoIs_basic_dst, RoIs_misc_t* RoIs_misc_dst) {
+    *RoIs_basic_dst->_size = _features_shrink_basic_misc(RoIs_basic_src->id, RoIs_basic_src->xmin,
+                                                         RoIs_basic_src->xmax, RoIs_basic_src->ymin,
+                                                         RoIs_basic_src->ymax, RoIs_basic_src->S,
+                                                         RoIs_basic_src->Sx, RoIs_basic_src->Sy,
+                                                         RoIs_basic_src->Sx2, RoIs_basic_src->Sy2,
+                                                         RoIs_basic_src->Sxy, RoIs_basic_src->x,
+                                                         RoIs_basic_src->y, RoIs_misc_src->magnitude,
+                                                         RoIs_misc_src->sat_count, RoIs_misc_src->a, RoIs_misc_src->b,
+                                                         *RoIs_basic_src->_size, RoIs_basic_dst->id,
+                                                         RoIs_basic_dst->xmin, RoIs_basic_dst->xmax,
+                                                         RoIs_basic_dst->ymin, RoIs_basic_dst->ymax, RoIs_basic_dst->S,
+                                                         RoIs_basic_dst->Sx, RoIs_basic_dst->Sy, RoIs_basic_dst->Sx2,
+                                                         RoIs_basic_dst->Sy2, RoIs_basic_dst->Sxy, RoIs_basic_dst->x,
+                                                         RoIs_basic_dst->y, RoIs_misc_dst->magnitude,
+                                                         RoIs_misc_dst->sat_count, RoIs_misc_dst->a, RoIs_misc_dst->b);
 }
 
 void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
@@ -496,6 +535,8 @@ void features_compute_magnitude(const uint8_t** img, const uint32_t img_width, c
 void _features_compute_ellipse(const uint32_t *RoIs_S, const uint32_t *RoIs_Sx, const uint32_t *RoIs_Sy,
                                const uint64_t *RoIs_Sx2, const uint64_t *RoIs_Sy2, const uint64_t* RoIs_Sxy,
                                float *RoIs_a, float *RoIs_b, const size_t n_RoIs) {
+    assert(RoIs_a != NULL);
+    assert(RoIs_b != NULL);
 
     // set all RoIs (Regions of Interest) axes to 0
     memset(RoIs_a, 0, n_RoIs * sizeof(float));

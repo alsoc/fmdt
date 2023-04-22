@@ -244,25 +244,26 @@ void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI
  * @param RoIs_dst_S Destination array of RoI surfaces.
  * @param RoIs_dst_Sx Destination array of sums of \f$x\f$ properties.
  * @param RoIs_dst_Sy Destination array of sums of \f$y\f$ properties.
- * @param RoIs_src_Sx2 Destination array of squared sums of \f$x\f$ properties.
- * @param RoIs_src_Sy2 Destination array of squared sums of \f$y\f$ properties.
- * @param RoIs_src_Sxy Destination array of sums of \f$x * y\f$ properties.
+ * @param RoIs_dst_Sx2 Destination array of squared sums of \f$x\f$ properties.
+ * @param RoIs_dst_Sy2 Destination array of squared sums of \f$y\f$ properties.
+ * @param RoIs_dst_Sxy Destination array of sums of \f$x * y\f$ properties.
  * @param RoIs_dst_x Destination array of centroids abscissas.
  * @param RoIs_dst_y Destination array of centroids ordinates.
  * @return Number of regions of interest (RoIs) after the data shrink.
  * @see features_merge_CCL_HI_v2 for more explanations about why some identifiers can be set to 0.
  * @see RoIs_basic_t for more explanations about the features.
  */
-
 size_t _features_shrink_basic(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xmin,
                               const uint32_t* RoIs_src_xmax, const uint32_t* RoIs_src_ymin,
                               const uint32_t* RoIs_src_ymax, const uint32_t* RoIs_src_S, const uint32_t* RoIs_src_Sx,
                               const uint32_t* RoIs_src_Sy, const uint64_t* RoIs_src_Sx2, const uint64_t* RoIs_src_Sy2,
                               const uint64_t* RoIs_src_Sxy, const float* RoIs_src_x, const float* RoIs_src_y,
-                              const size_t n_RoIs_src, uint32_t* RoIs_dest_id, uint32_t* RoIs_dest_xmin,
-                              uint32_t* RoIs_dest_xmax, uint32_t* RoIs_dest_ymin, uint32_t* RoIs_dest_ymax,
-                              uint32_t* RoIs_dest_S, uint32_t* RoIs_dest_Sx, uint32_t* RoIs_dest_Sy, uint64_t* RoIs_dest_Sx2,
-                              uint64_t* RoIs_dest_Sy2, uint64_t* RoIs_dest_Sxy, float* RoIs_dest_x, float* RoIs_dest_y);
+                              const size_t n_RoIs_src, uint32_t* RoIs_dst_id, uint32_t* RoIs_dst_xmin,
+                              uint32_t* RoIs_dst_xmax, uint32_t* RoIs_dst_ymin, uint32_t* RoIs_dst_ymax,
+                              uint32_t* RoIs_dst_S, uint32_t* RoIs_dst_Sx, uint32_t* RoIs_dst_Sy,
+                              uint64_t* RoIs_dst_Sx2, uint64_t* RoIs_dst_Sy2, uint64_t* RoIs_dst_Sxy, float* RoIs_dst_x,
+                              float* RoIs_dst_y);
+
 /**
  * @param RoIs_basic_src Source features.
  * @param RoIs_basic_dst Destination features.
@@ -271,32 +272,74 @@ size_t _features_shrink_basic(const uint32_t* RoIs_src_id, const uint32_t* RoIs_
  */
 void features_shrink_basic(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoIs_basic_dst);
 
-
 /**
+ * Shrink features. Remove features when feature identifier value is 0.
+ * Source features (`RoIs_src_X`) are copied into destination features (`RoIs_dst_X`) if `RoIs_src_id` > 0.
+ * This function adds the miscellaneous features compared to the `_features_shrink_basic` function.
  * @param RoIs_src_id Source array of RoI unique identifiers.
+ * @param RoIs_src_xmin Source array of minimum \f$x\f$ coordinates of the bounding box.
+ * @param RoIs_src_xmax Source array of maximum \f$x\f$ coordinates of the bounding box.
+ * @param RoIs_src_ymin Source array of minimum \f$y\f$ coordinates of the bounding box.
+ * @param RoIs_src_ymax Source array of maximum \f$y\f$ coordinates of the bounding box.
+ * @param RoIs_src_S Source array of RoI surfaces.
+ * @param RoIs_src_Sx Source array of sums of \f$x\f$ properties.
+ * @param RoIs_src_Sy Source array of sums of \f$y\f$ properties.
+ * @param RoIs_src_Sx2 Source array of squared sums of \f$x\f$ properties.
+ * @param RoIs_src_Sy2 Source array of squared sums of \f$y\f$ properties.
+ * @param RoIs_src_Sxy Source array of sums of \f$x * y\f$ properties.
+ * @param RoIs_src_x Source array of centroids abscissas.
+ * @param RoIs_src_y Source array of centroids ordinates.
  * @param RoIs_src_magnitude Array of RoI magnitudes.
+ * @param RoIs_src_sat_count Array of saturation counters.
  * @param RoIs_src_a Array of RoI semi-major axis.
  * @param RoIs_src_b Array of RoI semi-minor axis.
  * @param n_RoIs_src Number of RoIs in the previous arrays.
- * @param RoIs_dest_id Destination array of RoI unique identifiers.
- * @param RoIs_dest_magnitude Destination array of RoI magnitudes.
- * @param RoIs_dest_a Destination array of RoI semi-major axis.
- * @param RoIs_dest_b Destination array of RoI semi-minor axis.
+ * @param RoIs_dst_id Destination array of RoI unique identifiers.
+ * @param RoIs_dst_xmin Destination array of minimum \f$x\f$ coordinates of the bounding box.
+ * @param RoIs_dst_xmax Destination array of maximum \f$x\f$ coordinates of the bounding box.
+ * @param RoIs_dst_ymin Destination array of minimum \f$y\f$ coordinates of the bounding box.
+ * @param RoIs_dst_ymax Destination array of maximum \f$y\f$ coordinates of the bounding box.
+ * @param RoIs_dst_S Destination array of RoI surfaces.
+ * @param RoIs_dst_Sx Destination array of sums of \f$x\f$ properties.
+ * @param RoIs_dst_Sy Destination array of sums of \f$y\f$ properties.
+ * @param RoIs_dst_Sx2 Destination array of squared sums of \f$x\f$ properties.
+ * @param RoIs_dst_Sy2 Destination array of squared sums of \f$y\f$ properties.
+ * @param RoIs_dst_Sxy Destination array of sums of \f$x * y\f$ properties.
+ * @param RoIs_dst_x Destination array of centroids abscissas.
+ * @param RoIs_dst_y Destination array of centroids ordinates.
+ * @param RoIs_dst_magnitude Destination array of RoI magnitudes.
+ * @param RoIs_dst_sat_count Destination array of saturation counters.
+ * @param RoIs_dst_a Destination array of RoI semi-major axis.
+ * @param RoIs_dst_b Destination array of RoI semi-minor axis.
  * @return size_t Number of regions of interest (RoIs) after the data shrink.
  * @see features_merge_CCL_HI_v2 for more explanations about why some identifiers can be set to 0.
+ * @see RoIs_basic_t for more explanations about the features.
  * @see RoIs_misc_t for more explanations about the features.
  */
-size_t _features_shrink_misc(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_magnitude,
-                        const float* RoIs_src_a, const float* RoIs_src_b, const size_t n_RoIs_src, 
-                        uint32_t* RoIs_dest_id, uint32_t* RoIs_dest_magnitude, float* RoIs_dest_a,
-                        float* RoIs_dest_b);
+size_t _features_shrink_basic_misc(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xmin,
+                                   const uint32_t* RoIs_src_xmax, const uint32_t* RoIs_src_ymin,
+                                   const uint32_t* RoIs_src_ymax, const uint32_t* RoIs_src_S,
+                                   const uint32_t* RoIs_src_Sx, const uint32_t* RoIs_src_Sy,
+                                   const uint64_t* RoIs_src_Sx2, const uint64_t* RoIs_src_Sy2,
+                                   const uint64_t* RoIs_src_Sxy, const float* RoIs_src_x, const float* RoIs_src_y,
+                                   const uint32_t* RoIs_src_magnitude, const uint32_t* RoIs_src_sat_count,
+                                   const float* RoIs_src_a, const float* RoIs_src_b, const size_t n_RoIs_src,
+                                   uint32_t* RoIs_dst_id, uint32_t* RoIs_dst_xmin, uint32_t* RoIs_dst_xmax,
+                                   uint32_t* RoIs_dst_ymin, uint32_t* RoIs_dst_ymax, uint32_t* RoIs_dst_S,
+                                   uint32_t* RoIs_dst_Sx, uint32_t* RoIs_dst_Sy, uint64_t* RoIs_dst_Sx2,
+                                   uint64_t* RoIs_dst_Sy2, uint64_t* RoIs_dst_Sxy, float* RoIs_dst_x,
+                                   float* RoIs_dst_y, uint32_t* RoIs_dst_magnitude, uint32_t* RoIs_dst_sat_count,
+                                   float* RoIs_dst_a, float* RoIs_dst_b);
+
 /**
+ * @param RoIs_basic_src Source features.
  * @param RoIs_misc_src Source features.
+ * @param RoIs_basic_dst Destination features.
  * @param RoIs_misc_dst Destination features.
- * @see _features_shrink_misc for the explanations about the nature of the processing.
- * @see RoIs_misc_t for more explanations about the features.
+ * @see _features_shrink_basic_misc for the explanations about the nature of the processing.
  */
-void features_shrink_misc(const RoIs_misc_t* RoIs_misc_src, RoIs_misc_t* RoIs_misc_dest);
+void features_shrink_basic_misc(const RoIs_basic_t* RoIs_basic_src, const RoIs_misc_t* RoIs_misc_src,
+                                RoIs_basic_t* RoIs_basic_dst, RoIs_misc_t* RoIs_misc_dst);
 
 /**
  * Compute magnitude features. The magnitude represents the brightness of a RoI.
@@ -361,4 +404,10 @@ void _features_compute_ellipse(const uint32_t *RoIs_S, const uint32_t *RoIs_Sx, 
                                const uint64_t *RoIs_Sx2, const uint64_t *RoIs_Sy2, const uint64_t* RoIs_Sxy, 
                                float *RoIs_a, float *RoIs_b, const size_t n_RoIs);
 
+/**
+ * Compute the semi-major and the semi-minor axes of RoIs.
+ *
+ * @param RoIs_basic Basic features.
+ * @param RoIs_misc Miscellaneous features (including the `a` and `b` features).
+ */
 void features_compute_ellipse(const RoIs_basic_t* RoIs_basic, RoIs_misc_t* RoIs_misc);

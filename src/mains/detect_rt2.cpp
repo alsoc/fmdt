@@ -527,6 +527,9 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs0_S] = merger0[ftr_mrg::sck::merge::out_RoIs_S];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_Sx] = merger0[ftr_mrg::sck::merge::out_RoIs_Sx];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_Sy] = merger0[ftr_mrg::sck::merge::out_RoIs_Sy];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sx2] = merger0[ftr_mrg::sck::merge::out_RoIs_Sx2];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sy2] = merger0[ftr_mrg::sck::merge::out_RoIs_Sy2];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sxy] = merger0[ftr_mrg::sck::merge::out_RoIs_Sxy];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_x] = merger0[ftr_mrg::sck::merge::out_RoIs_x];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_y] = merger0[ftr_mrg::sck::merge::out_RoIs_y];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_magnitude] = magnitude0[ftr_mgn::sck::compute::out_RoIs_magnitude];
@@ -540,6 +543,9 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs1_S] = merger1[ftr_mrg::sck::merge::out_RoIs_S];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_Sx] = merger1[ftr_mrg::sck::merge::out_RoIs_Sx];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_Sy] = merger1[ftr_mrg::sck::merge::out_RoIs_Sy];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sx2] = merger1[ftr_mrg::sck::merge::out_RoIs_Sx2];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sy2] = merger1[ftr_mrg::sck::merge::out_RoIs_Sy2];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sxy] = merger1[ftr_mrg::sck::merge::out_RoIs_Sxy];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_x] = merger1[ftr_mrg::sck::merge::out_RoIs_x];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_y] = merger1[ftr_mrg::sck::merge::out_RoIs_y];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_magnitude] = magnitude1[ftr_mgn::sck::compute::out_RoIs_magnitude];

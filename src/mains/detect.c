@@ -348,22 +348,18 @@ int main(int argc, char** argv) {
                 fprintf(stderr, "(EE) error while opening '%s'\n", filename);
                 exit(1);
             }
-            if (f) {
-                int prev_fra = cur_fra > p_vid_in_start ? cur_fra - (p_vid_in_skip + 1) : -1;
-                features_RoIs0_RoIs1_write(f, prev_fra, cur_fra, RoIs0->basic, RoIs0->misc, RoIs1->basic, RoIs1->misc,
-                                           tracking_data->tracks);
-                if (cur_fra > p_vid_in_start) {
-                    fprintf(f, "#\n");
-                    kNN_asso_conflicts_write(f, knn_data, RoIs0->asso, RoIs1->asso, RoIs1->motion);
-                    fprintf(f, "#\n");
-                    motion_write(f, &motion_est1, &motion_est2);
-                    fprintf(f, "#\n");
-                    tracking_tracks_write_full(f, tracking_data->tracks);
-                }
-                fclose(f);
-            } else {
-                fprintf(stderr, "(WW) cannot open '%s' file.", filename);
+            int prev_fra = cur_fra > p_vid_in_start ? cur_fra - (p_vid_in_skip + 1) : -1;
+            features_RoIs0_RoIs1_write(f, prev_fra, cur_fra, RoIs0->basic, RoIs0->misc, RoIs1->basic, RoIs1->misc,
+                                       tracking_data->tracks);
+            if (cur_fra > p_vid_in_start) {
+                fprintf(f, "#\n");
+                kNN_asso_conflicts_write(f, knn_data, RoIs0->asso, RoIs1->asso, RoIs1->motion);
+                fprintf(f, "#\n");
+                motion_write(f, &motion_est1, &motion_est2);
+                fprintf(f, "#\n");
+                tracking_tracks_write_full(f, tracking_data->tracks);
             }
+            fclose(f);
         }
 
         n_frames++;
