@@ -209,7 +209,7 @@ int main(int argc, char** argv) {
 
     // buffer circulaire d'images 
     uint8_t **T[maxred_diam];
-     for (int t = 0; t < maxred_diam; t++) {
+    for (int t = 0; t < maxred_diam; t++) {
         T[t] = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
     }
 
@@ -243,9 +243,10 @@ int main(int argc, char** argv) {
         zero_ui8matrix(Max, i0 - b, i1 + b, j0 - b, j1 + b);
 
         for (int k = 0; k < maxred_diam; k++) {
-           // max temporel
+            // max temporel
             image_max_reduce(T[k], i0, i1, j0, j1, Max);
         }
+
         // step 1: threshold low
         threshold((const uint8_t**)Max, IL, i0, i1, j0, j1, p_ccl_hyst_lo);
 
@@ -306,10 +307,10 @@ int main(int argc, char** argv) {
     // ----------
     // -- FREE --
     // ----------
+
     for (int t = 0; t < maxred_diam; t++) {
         free_ui8matrix(T[t], i0 - b, i1 + b, j0 - b, j1 + b);
     }
-    
     free_ui8matrix(Max, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);
