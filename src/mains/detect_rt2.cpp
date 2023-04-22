@@ -423,6 +423,9 @@ int main(int argc, char** argv) {
     merger0[ftr_mrg::sck::merge::in_RoIs_S] = extractor0[ftr_ext::sck::extract::out_RoIs_S];
     merger0[ftr_mrg::sck::merge::in_RoIs_Sx] = extractor0[ftr_ext::sck::extract::out_RoIs_Sx];
     merger0[ftr_mrg::sck::merge::in_RoIs_Sy] = extractor0[ftr_ext::sck::extract::out_RoIs_Sy];
+    merger0[ftr_mrg::sck::merge::in_RoIs_Sx2] = extractor0[ftr_ext::sck::extract::out_RoIs_Sx2];
+    merger0[ftr_mrg::sck::merge::in_RoIs_Sy2] = extractor0[ftr_ext::sck::extract::out_RoIs_Sy2];
+    merger0[ftr_mrg::sck::merge::in_RoIs_Sxy] = extractor0[ftr_ext::sck::extract::out_RoIs_Sxy];
     merger0[ftr_mrg::sck::merge::in_RoIs_x] = extractor0[ftr_ext::sck::extract::out_RoIs_x];
     merger0[ftr_mrg::sck::merge::in_RoIs_y] = extractor0[ftr_ext::sck::extract::out_RoIs_y];
     merger0[ftr_mrg::sck::merge::in_n_RoIs] = lsl0[ccl::sck::apply::out_n_RoIs];
@@ -437,6 +440,9 @@ int main(int argc, char** argv) {
     merger1[ftr_mrg::sck::merge::in_RoIs_S] = extractor1[ftr_ext::sck::extract::out_RoIs_S];
     merger1[ftr_mrg::sck::merge::in_RoIs_Sx] = extractor1[ftr_ext::sck::extract::out_RoIs_Sx];
     merger1[ftr_mrg::sck::merge::in_RoIs_Sy] = extractor1[ftr_ext::sck::extract::out_RoIs_Sy];
+    merger1[ftr_mrg::sck::merge::in_RoIs_Sx2] = extractor1[ftr_ext::sck::extract::out_RoIs_Sx2];
+    merger1[ftr_mrg::sck::merge::in_RoIs_Sy2] = extractor1[ftr_ext::sck::extract::out_RoIs_Sy2];
+    merger1[ftr_mrg::sck::merge::in_RoIs_Sxy] = extractor1[ftr_ext::sck::extract::out_RoIs_Sxy];
     merger1[ftr_mrg::sck::merge::in_RoIs_x] = extractor1[ftr_ext::sck::extract::out_RoIs_x];
     merger1[ftr_mrg::sck::merge::in_RoIs_y] = extractor1[ftr_ext::sck::extract::out_RoIs_y];
     merger1[ftr_mrg::sck::merge::in_n_RoIs] = lsl1[ccl::sck::apply::out_n_RoIs];
