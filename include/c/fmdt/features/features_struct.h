@@ -102,6 +102,8 @@ typedef struct {
     uint32_t* id; /**< RoI unique identifiers. A RoI identifier should starts from 1 while 0 should be reserved for
                        uninitialized structure. */
     uint32_t* magnitude; /**< Magnitudes or brightness of the RoIs. Sums of the pixels intensities. */
+    uint32_t* sat_count; /**< Number of pixels that are saturated in the CC. A pixel is saturated if its intensity
+                              \f$I_p\f$ is equal to the maximum value (here it is 255). */
 
     float* a; /**< Semi-major axis of the RoIs.*/
     float* b; /**< Semi-minor axis of the RoIs.*/

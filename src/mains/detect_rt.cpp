@@ -13,6 +13,7 @@
 #include "fmdt/macros.h"
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/tracking/tracking_io.h"
+#include "fmdt/version.h"
 
 #include "fmdt/aff3ct_wrapper/CCL_LSL/CCL_LSL.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_extractor.hpp"
@@ -151,7 +152,19 @@ int main(int argc, char** argv) {
                 def_p_out_probes ? def_p_out_probes : "NULL");
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
+        fprintf(stderr,
+                "  --version, -v       Print the version                                                          \n");
         exit(1);
+    }
+
+    // version
+    if (args_find(argc, argv, "--version,-v")) {
+#ifdef FMDT_ENABLE_PIPELINE
+        version_print("detect-rt-pip");
+#else
+        version_print("detect-rt-seq");
+#endif
+        exit(0);
     }
 
     // parse arguments
@@ -311,6 +324,7 @@ int main(int argc, char** argv) {
     aff3ct::module::Delayer<float> delayer_RoIs_x(MAX_ROI_SIZE, 0.f);
     aff3ct::module::Delayer<float> delayer_RoIs_y(MAX_ROI_SIZE, 0.f);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_magnitude(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoIs_sat_count(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_n_RoIs(1, 0);
     delayer_RoIs_id.set_custom_name("D<RoIs_id>");
     delayer_RoIs_xmin.set_custom_name("D<RoIs_xmin>");
@@ -323,12 +337,15 @@ int main(int argc, char** argv) {
     delayer_RoIs_x.set_custom_name("D<RoIs_x>");
     delayer_RoIs_y.set_custom_name("D<RoIs_y>");
     delayer_RoIs_magnitude.set_custom_name("D<RoIs_mag>");
+    delayer_RoIs_sat_count.set_custom_name("D<RoIs_sat>");
     delayer_n_RoIs.set_custom_name("D<n_RoIs>");
-    Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data());
+    Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data(),
+                         p_trk_mag_path != NULL, p_trk_mag_path != NULL);
     Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_ROI_SIZE);
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");
     Logger_tracks log_track(p_log_path ? p_log_path : "", p_vid_in_start, tracking.get_data());
+    log_track.set_custom_name("Logger_trk");
     std::unique_ptr<Logger_frame> log_frame;
     if (p_ccl_fra_path)
         log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
@@ -447,6 +464,7 @@ int main(int argc, char** argv) {
     delayer_RoIs_x[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_RoIs_id];
     delayer_RoIs_y[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_RoIs_id];
     delayer_RoIs_magnitude[aff3ct::module::dly::tsk::produce] = magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
+    delayer_RoIs_sat_count[aff3ct::module::dly::tsk::produce] = magnitude[ftr_mgn::sck::compute::out_RoIs_sat_count];
     delayer_n_RoIs[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_RoIs_id];
 
     // step 4: k-NN matching
@@ -496,6 +514,7 @@ int main(int argc, char** argv) {
     delayer_RoIs_x[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_RoIs_x];
     delayer_RoIs_y[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_RoIs_y];
     delayer_RoIs_magnitude[aff3ct::module::dly::sck::memorize::in] = magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
+    delayer_RoIs_sat_count[aff3ct::module::dly::sck::memorize::in] = magnitude[ftr_mgn::sck::compute::out_RoIs_sat_count];
     delayer_n_RoIs[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_n_RoIs];
 
     if (p_log_path) {
@@ -510,6 +529,7 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs0_x] = delayer_RoIs_x[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_y] = delayer_RoIs_y[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_magnitude] = delayer_RoIs_magnitude[aff3ct::module::dly::sck::produce::out];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_sat_count] = delayer_RoIs_sat_count[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_n_RoIs0] = delayer_n_RoIs[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_id] = merger[ftr_mrg::sck::merge::out_RoIs_id];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_xmin] = merger[ftr_mrg::sck::merge::out_RoIs_xmin];
@@ -522,6 +542,7 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs1_x] = merger[ftr_mrg::sck::merge::out_RoIs_x];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_y] = merger[ftr_mrg::sck::merge::out_RoIs_y];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_magnitude] = magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_sat_count] = magnitude[ftr_mgn::sck::compute::out_RoIs_sat_count];
         log_RoIs[lgr_roi::sck::write::in_n_RoIs1] = merger[ftr_mrg::sck::merge::out_n_RoIs];
         log_RoIs[lgr_roi::sck::write::in_frame] = video[vid::sck::generate::out_frame];
 
@@ -612,6 +633,7 @@ int main(int argc, char** argv) {
               &delayer_RoIs_x[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_sat_count[aff3ct::module::dly::tsk::produce],
               &delayer_n_RoIs[aff3ct::module::dly::tsk::produce],
               &matcher[knn::tsk::match],
               &motion[mtn::tsk::compute],
@@ -627,6 +649,7 @@ int main(int argc, char** argv) {
               &delayer_RoIs_x[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_sat_count[aff3ct::module::dly::tsk::memorize],
               &delayer_n_RoIs[aff3ct::module::dly::tsk::memorize],
               },
             { },

@@ -186,9 +186,9 @@ int main(int argc, char** argv) {
     // -- DATA ALLOCATION -- //
     // --------------------- //
 
-    RoIs_t* RoIs_tmp = features_alloc_RoIs(MAX_ROI_SIZE_BEFORE_SHRINK);
-    RoIs_t* RoIs0 = features_alloc_RoIs(MAX_ROI_SIZE);
-    RoIs_t* RoIs1 = features_alloc_RoIs(MAX_ROI_SIZE);
+    RoIs_t* RoIs_tmp = features_alloc_RoIs(false, false, true, MAX_ROI_SIZE_BEFORE_SHRINK);
+    RoIs_t* RoIs0 = features_alloc_RoIs(false, false, true, MAX_ROI_SIZE);
+    RoIs_t* RoIs1 = features_alloc_RoIs(false, false, true, MAX_ROI_SIZE);
     CCL_data_t* ccl_data = CCL_LSL_alloc_data(i0, i1, j0, j1);
 
     int b = 1; // image border

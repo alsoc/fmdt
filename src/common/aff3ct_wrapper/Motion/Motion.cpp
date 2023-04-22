@@ -49,3 +49,14 @@ Motion::Motion(const size_t max_RoIs_size)
 }
 
 Motion::~Motion() {}
+
+Motion* Motion::clone() const {
+    auto m = new Motion(*this);
+    m->deep_copy(*this);
+    return m;
+}
+
+void Motion::deep_copy(const Motion &m)
+{
+    Module::deep_copy(m);
+}

@@ -76,10 +76,13 @@ void features_free_RoIs_motion(RoIs_motion_t* RoIs_motion, const uint8_t free_id
 /**
  * Allocation of the miscellaneous features.
  * @param max_size Maximum capacity of each *feature* field (= maximum number of elements in the arrays).
+ * @param enable_magnitude Boolean to allocate the buffer of magnitudes.
+ * @param enable_sat_count Boolean to allocate the buffer of saturation counters.
  * @param RoIs_id Pointer of `max_size` elements to use for the `id` field. If set to NULL, the `id` field is allocated.
  * @return Pointer of allocated RoIs.
  */
-RoIs_misc_t* features_alloc_RoIs_misc(const size_t max_size, uint32_t* RoIs_id);
+RoIs_misc_t* features_alloc_RoIs_misc(const uint8_t enable_magnitude, const uint8_t enable_sat_count,
+                                      const uint8_t enable_ellipse, const size_t max_size, uint32_t* RoIs_id);
 
 /**
  * Initialization of the miscellaneous features. Set all zeros.
@@ -97,10 +100,13 @@ void features_free_RoIs_misc(RoIs_misc_t* RoIs_misc, const uint8_t free_id);
 
 /**
  * Allocation of all the features.
+ * @param enable_magnitude Boolean to allocate the buffer of magnitudes.
+ * @param enable_sat_count Boolean to allocate the buffer of saturation counters.
  * @param max_size Maximum capacity of each *feature* field (= maximum number of elements in the arrays).
  * @return Pointer of allocated RoIs.
  */
-RoIs_t* features_alloc_RoIs(const size_t max_size);
+RoIs_t* features_alloc_RoIs(const uint8_t enable_magnitude, const uint8_t enable_sat_count,
+                            const uint8_t enable_ellipse, const size_t max_size);
 
 /**
  * Initialization of the features. Set all zeros.
@@ -300,6 +306,8 @@ void features_shrink_misc(const RoIs_misc_t* RoIs_misc_src, RoIs_misc_t* RoIs_mi
  * \f$ M = \displaystyle\sum_{p=0} ^{P} i_p - \big((\displaystyle\sum_{n=0} ^{N} i_n) / N\big) \times P\f$,
  * where \f$P\f$ is the the number of pixels in the current CC, \f$i_x\f$ is the brightness of the pixel \f$x\f$
  * and \f$N\f$ is the number of noisy pixels considered.
+ * In addition, this function can also compute the saturation counter for each RoI (e. g. the number of pixels that have
+ * an intensity \f$i_x = 255\f$).
  * @param img Image in grayscale (\f$[\texttt{img\_height}][\texttt{img\_width}]\f$, the values of the pixel
  *            range are \f$ [ 0;255 ] \f$).
  * @param img_width Image width.
@@ -311,6 +319,7 @@ void features_shrink_misc(const RoIs_misc_t* RoIs_misc_src, RoIs_misc_t* RoIs_mi
  * @param RoIs_ymax Array of maximum \f$y\f$ coordinates of the bounding box.
  * @param RoIs_S Array of RoI surfaces.
  * @param RoIs_magnitude Array of RoI magnitudes.
+ * @param RoIs_sat_count Array of RoI saturation counters (if NULL, the saturation counter is not computed).
  * @param n_RoIs Number of connected-components (= number of RoIs).
  * @see RoIs_basic_t for more explanations about the basic features.
  * @see RoIs_misc_t for more explanations about the miscellaneous features.
@@ -318,7 +327,7 @@ void features_shrink_misc(const RoIs_misc_t* RoIs_misc_src, RoIs_misc_t* RoIs_mi
 void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
                                  const uint32_t** labels, const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax,
                                  const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax, const uint32_t* RoIs_S,
-                                 uint32_t* RoIs_magnitude, const size_t n_RoIs);
+                                 uint32_t* RoIs_magnitude, uint32_t* RoIs_sat_count, const size_t n_RoIs);
 
 /**
  * @param img Image in grayscale (\f$[\texttt{img\_height}][\texttt{img\_width}]\f$, the values of the pixel

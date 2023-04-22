@@ -46,6 +46,57 @@ set(inc_dir include)
 set(exe_dir bin)
 set(lib_dir lib)
 
+set(CMAKE_MODULE_PATH ${CMAKE_MODULE_PATH} "${CMAKE_CURRENT_SOURCE_DIR}/cmake/Modules/")
+
+# Get version from Git --------------------------------------------------------
+# -----------------------------------------------------------------------------
+include(GetGitRevisionDescription)
+get_git_head_revision(GIT_REFSPEC GIT_SHA1)
+git_describe(GIT_VERSION "--tags" "--abbrev=8")
+
+if(GIT_VERSION MATCHES "NOTFOUND")
+	set(GIT_VERSION "")
+	set(GIT_SHA1 "")
+	set(FMDT_VERSION_FULL "")
+	set(FMDT_VERSION "")
+	set(FMDT_BUILD "0")
+	set(FMDT_HASH "")
+	set(FMDT_VERSION_MAJOR "0")
+	set(FMDT_VERSION_MINOR "0")
+	set(FMDT_VERSION_PATCH "0")
+else()
+	string(REGEX REPLACE "^v"              ""    FMDT_VERSION_FULL  ${GIT_VERSION})
+	string(REGEX REPLACE "-.*"             ""    FMDT_VERSION       ${FMDT_VERSION_FULL})
+	string(REGEX REPLACE "^.*-"            ""    FMDT_HASH          ${FMDT_VERSION_FULL})
+	string(      REPLACE "-"               ""    FMDT_BUILD         ${FMDT_VERSION_FULL})
+	string(      REPLACE "${FMDT_VERSION}" ""    FMDT_BUILD         ${FMDT_BUILD})
+	string(REGEX REPLACE "(.*)\\..*\\..*"  "\\1" FMDT_VERSION_MAJOR ${FMDT_VERSION})
+	string(REGEX REPLACE ".*\\.(.*)\\..*"  "\\1" FMDT_VERSION_MINOR ${FMDT_VERSION})
+	string(REGEX REPLACE ".*\\..*\\.(.*)"  "\\1" FMDT_VERSION_PATCH ${FMDT_VERSION})
+
+	if(NOT "${FMDT_BUILD}" STREQUAL "")
+	    string(REPLACE "${FMDT_HASH}" "" FMDT_BUILD ${FMDT_BUILD})
+	else()
+		set(FMDT_BUILD "0")
+	endif()
+
+	message(STATUS "  * FMDT_VERSION: ${FMDT_VERSION}")
+	if(NOT "${FMDT_BUILD}" STREQUAL "")
+	    message(STATUS "  * FMDT_BUILD: ${FMDT_BUILD}")
+	endif()
+
+	string(SUBSTRING ${GIT_SHA1} 0 8 FMDT_HASH)
+	if(NOT "${FMDT_HASH}" STREQUAL "")
+	    message(STATUS "  * FMDT_HASH: ${FMDT_HASH}")
+	endif()
+
+	if(("${FMDT_BUILD}" STREQUAL "") OR ("${FMDT_HASH}" STREQUAL ""))
+	    set(FMDT_VERSION_EXTRA "")
+	else()
+	    set(FMDT_VERSION_EXTRA "-${FMDT_BUILD}-${FMDT_HASH}")
+	endif()
+endif()
+
 # Compiler generic options ----------------------------------------------------
 # -----------------------------------------------------------------------------
 # enable C11
@@ -94,6 +145,14 @@ set(src_common_files
     ${lib_dir}/c-vector/vec.c)
 list(APPEND fmdt_src_list ${src_common_files})
 
+# Generate version file -------------------------------------------------------
+# -----------------------------------------------------------------------------
+# Auto generate a header containing the last Git SHA1
+configure_file("${CMAKE_CURRENT_SOURCE_DIR}/src/common/version.c.in"
+               "${CMAKE_CURRENT_SOURCE_DIR}/src/common/version.c" @ONLY)
+list(APPEND src_common_files "${CMAKE_CURRENT_SOURCE_DIR}/src/common/version.c")
+list(APPEND fmdt_src_list "${CMAKE_CURRENT_SOURCE_DIR}/src/common/version.c")
+
 # Create binaries -------------------------------------------------------------
 # -----------------------------------------------------------------------------
 # objects
@@ -110,8 +169,8 @@ if(FMDT_DETECT_EXE)
 	set_target_properties(fmdt-detect-exe PROPERTIES OUTPUT_NAME fmdt-detect)
 	if (FMDT_AFF3CT_RUNTIME)
 		set(src_detectrt_common_files
-			${src_dir}/common/aff3ct_wrapper/Video/Video.cpp
-			${src_dir}/common/aff3ct_wrapper/Video/Video2.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Video/Video.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Video/Video2.cpp
 		    ${src_dir}/common/aff3ct_wrapper/CCL_LSL/CCL_LSL.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Features/Features_extractor.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Features/Features_merger_CCL_HI.cpp
@@ -126,36 +185,44 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/common/aff3ct_wrapper/Threshold/Threshold.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Tracking/Tracking.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt_common_files})
-        add_library(fmdt-detect-rt-common-obj OBJECT ${src_detectrt_common_files})
-        list(APPEND fmdt_targets_list fmdt-detect-rt-common-obj)
+		add_library(fmdt-detect-rt-common-obj OBJECT ${src_detectrt_common_files})
+		list(APPEND fmdt_targets_list fmdt-detect-rt-common-obj)
 
-        set(src_detectrt1_files
-            ${src_dir}/mains/detect_rt.cpp)
+		set(src_detectrt1_files
+		    ${src_dir}/mains/detect_rt.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt1_files})
-        add_executable(fmdt-detect-rt-seq-exe
-            $<TARGET_OBJECTS:fmdt-common-obj>
-            $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
-            ${src_detectrt1_files})
-        list(APPEND fmdt_targets_list fmdt-detect-rt-seq-exe)
-        set_target_properties(fmdt-detect-rt-seq-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-seq)
+		add_executable(fmdt-detect-rt-seq-exe
+		    $<TARGET_OBJECTS:fmdt-common-obj>
+		    $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
+		    ${src_detectrt1_files})
+		list(APPEND fmdt_targets_list fmdt-detect-rt-seq-exe)
+		set_target_properties(fmdt-detect-rt-seq-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-seq)
 
-        add_executable(fmdt-detect-rt-pip-exe
-            $<TARGET_OBJECTS:fmdt-common-obj> 
-            $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
-            ${src_detectrt1_files})
-        list(APPEND fmdt_targets_list fmdt-detect-rt-pip-exe)
-        set_target_properties(fmdt-detect-rt-pip-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-pip)
-        target_compile_definitions(fmdt-detect-rt-pip-exe PUBLIC FMDT_ENABLE_PIPELINE)
-        
-        set(src_detectrt2_files
-            ${src_dir}/mains/detect_rt2.cpp)
+		add_executable(fmdt-detect-rt-pip-exe
+		    $<TARGET_OBJECTS:fmdt-common-obj>
+		    $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
+		    ${src_detectrt1_files})
+		list(APPEND fmdt_targets_list fmdt-detect-rt-pip-exe)
+		set_target_properties(fmdt-detect-rt-pip-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-pip)
+		target_compile_definitions(fmdt-detect-rt-pip-exe PUBLIC FMDT_ENABLE_PIPELINE)
+
+		set(src_detectrt2_files
+		    ${src_dir}/mains/detect_rt2.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt2_files})
-        add_executable(fmdt-detect-rt2-exe 
-            $<TARGET_OBJECTS:fmdt-common-obj> 
-            $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
-            ${src_detectrt2_files})
-		list(APPEND fmdt_targets_list fmdt-detect-rt2-exe)
-		set_target_properties(fmdt-detect-rt2-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2)
+		add_executable(fmdt-detect-rt2-seq-exe
+		    $<TARGET_OBJECTS:fmdt-common-obj>
+		    $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
+		    ${src_detectrt2_files})
+		list(APPEND fmdt_targets_list fmdt-detect-rt2-seq-exe)
+		set_target_properties(fmdt-detect-rt2-seq-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2-seq)
+
+		add_executable(fmdt-detect-rt2-pip-exe
+		    $<TARGET_OBJECTS:fmdt-common-obj>
+		    $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
+		    ${src_detectrt2_files})
+		list(APPEND fmdt_targets_list fmdt-detect-rt2-pip-exe)
+		set_target_properties(fmdt-detect-rt2-pip-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2-pip)
+		target_compile_definitions(fmdt-detect-rt2-pip-exe PUBLIC FMDT_ENABLE_PIPELINE)
 	endif()
 endif()
 if(FMDT_ELLIPSE_EXE)
