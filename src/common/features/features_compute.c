@@ -414,9 +414,12 @@ size_t _features_shrink_misc(const uint32_t* RoIs_src_id, const uint32_t* RoIs_s
         if (RoIs_src_id[i]) {
             assert(cpt < MAX_ROI_SIZE);
             RoIs_dest_id[cpt] = cpt + 1;
-            RoIs_dest_magnitude[cpt] = RoIs_src_magnitude[i];
-            RoIs_dest_a[cpt] = RoIs_src_a[i];
-            RoIs_dest_b[cpt] = RoIs_src_b[i];
+            if (RoIs_dest_magnitude && RoIs_src_magnitude)
+                RoIs_dest_magnitude[cpt] = RoIs_src_magnitude[i];
+            if (RoIs_dest_a && RoIs_src_a)
+                RoIs_dest_a[cpt] = RoIs_src_a[i];
+            if (RoIs_dest_b && RoIs_src_b)
+                RoIs_dest_b[cpt] = RoIs_src_b[i];
             cpt++;
         }
     }

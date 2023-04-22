@@ -81,7 +81,7 @@ int main(int argc, char** argv) {
                 "  --mrp-s-max         Maxumum surface of the CCs in pixels                                   [%d]\n",
                 def_p_mrp_s_max);
         fprintf(stderr,
-                "  --eli-r             Minimum value of the ratio for the ellipse filter                       [%f]\n",
+                "  --eli-r             Minimum value of the ratio for the ellipse filter                      [%f]\n",
                 def_p_ellipse);
         fprintf(stderr,
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
