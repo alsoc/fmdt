@@ -67,6 +67,9 @@ int main(int argc, char** argv) {
     vector_add(&def_p_pip_threads, 1);
     vector_add(&def_p_pip_threads, 1);
     vector_add(&def_p_pip_threads, 1);
+    vec_int def_p_pip_sync = (vec_int)vector_create();
+    vector_add(&def_p_pip_sync, 1);
+    vector_add(&def_p_pip_sync, 1);
 #endif
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -107,7 +110,7 @@ int main(int argc, char** argv) {
                 "  --mrp-s-min         Minimum surface of the CCs in pixels                                   [%d]\n",
                 def_p_mrp_s_min);
         fprintf(stderr,
-                "  --mrp-s-max         Maxumum surface of the CCs in pixels                                   [%d]\n",
+                "  --mrp-s-max         Maximum surface of the CCs in pixels                                   [%d]\n",
                 def_p_mrp_s_max);
         fprintf(stderr,
                 "  --knn-k             Maximum number of neighbors considered in k-NN algorithm               [%d]\n",
@@ -161,6 +164,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --pip-threads       Number of threads for each stage of the pipeline                       "); 
                 tools_cvector_print(stderr, def_p_pip_threads); fprintf(stderr,"\n");
+        fprintf(stderr,
+                "  --pip-sync          Buffer size for each stage of the pipeline                       "); 
+                tools_cvector_print(stderr, def_p_pip_sync); fprintf(stderr,"\n");
 #endif
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
@@ -215,8 +221,11 @@ int main(int argc, char** argv) {
     const char* p_out_probes = args_find_char(argc, argv, "--rt-prb-path,--out-probes", def_p_out_probes);
 #ifdef FMDT_ENABLE_PIPELINE
     vec_int tmp_pip_threads = (vec_int)vector_create();
+    vec_int tmp_pip_sync = (vec_int)vector_create();
     tmp_pip_threads = args_find_vector_int(argc, argv, "--pip-threads", def_p_pip_threads, tmp_pip_threads);
+    tmp_pip_sync = args_find_vector_int(argc, argv, "--pip-sync", def_p_pip_sync, tmp_pip_sync);
     const std::vector<std::size_t> p_pip_threads = tools_convert_int_cvector_stdvector(tmp_pip_threads);
+    const std::vector<std::size_t> p_pip_sync = tools_convert_int_cvector_stdvector(tmp_pip_sync);
 
     
 #endif
@@ -262,6 +271,7 @@ int main(int argc, char** argv) {
     printf("#  * rt-prb-path    = %s\n", p_out_probes);
 #ifdef FMDT_ENABLE_PIPELINE
     printf("#  * pip-threads    = "); tools_stdvector_print(stdout, p_pip_threads); printf("\n");
+    printf("#  * pip-sync       = "); tools_stdvector_print(stdout, p_pip_sync); printf("\n");
 #endif
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
@@ -741,10 +751,8 @@ int main(int argc, char** argv) {
 
     aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
                                                    sep_stages,
-                                                   p_pip_threads, {
-                                                    1,
-                                                    1,
-                                                   }, {
+                                                   p_pip_threads, 
+                                                   p_pip_sync, {
                                                      false, // type of waiting between stages 1 and 2 (true = active, false = passive)
                                                      false, // type of waiting between stages 2 and 3 (true = active, false = passive)
                                                    });
@@ -876,10 +884,10 @@ int main(int argc, char** argv) {
     // -- FREE --
     // ----------
 
-    if (def_p_pip_threads) 
-        vector_free(def_p_pip_threads);
-    if (tmp_pip_threads) 
-        vector_free(tmp_pip_threads);
+    if (def_p_pip_threads) vector_free(def_p_pip_threads);
+    if (def_p_pip_sync) vector_free(def_p_pip_sync);
+    if (tmp_pip_threads) vector_free(tmp_pip_threads);
+    if (tmp_pip_sync) vector_free(tmp_pip_sync);
     
 #endif
 
