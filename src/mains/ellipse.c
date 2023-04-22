@@ -17,6 +17,7 @@
 #include "fmdt/tracking.h"
 #include "fmdt/video.h"
 #include "fmdt/image.h"
+#include "fmdt/version.h"
 
 int main(int argc, char** argv) {
     // default values
@@ -64,7 +65,7 @@ int main(int argc, char** argv) {
                 "  --ccl-hyst-hi       Maximum light intensity for hysteresis threshold (grayscale [0;255])   [%d]\n",
                 def_p_ccl_hyst_hi);
         fprintf(stderr,
-                "  --mxr_r             Radius for the max reduction                                           [%d]\n",
+                "  --mxr-r             Radius for the max reduction                                           [%d]\n",
                 def_p_maxred_r);
         fprintf(stderr,
                 "  --ccl-fra-path      Path of the files for CC debug frames                                  [%s]\n",
@@ -87,7 +88,15 @@ int main(int argc, char** argv) {
                 def_p_log_path ? def_p_log_path : "NULL");
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
+        fprintf(stderr,
+                "  --version, -v       Print the version                                                          \n");
         exit(1);
+    }
+
+    // version
+    if (args_find(argc, argv, "--version,-v")) {
+        version_print("ellipse");
+        exit(0);
     }
 
     // parse arguments
@@ -114,11 +123,11 @@ int main(int argc, char** argv) {
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
 
     // heading display
-    printf("#  ---------------------\n");
-    printf("# |          ----*      |\n");
-    printf("# | --* FMDT-DETECT --* |\n");
-    printf("# |   -------*          |\n");
-    printf("#  ---------------------\n");
+    printf("#  ----------------------\n");
+    printf("# |           ----*      |\n");
+    printf("# | --* FMDT-ELLIPSE --* |\n");
+    printf("# |   -------*           |\n");
+    printf("#  ----------------------\n");
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
@@ -180,7 +189,6 @@ int main(int argc, char** argv) {
         video_writer = video_writer_alloc_init(p_ccl_fra_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
                                                PIXFMT_GRAY);
     }
-
 
     // --------------------- //
     // -- DATA ALLOCATION -- //
