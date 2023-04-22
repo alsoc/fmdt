@@ -6,11 +6,13 @@
 #include <algorithm>
 #include <memory>
 #include <nrc2.h>
+#include <vec.h>
 #include <aff3ct-core.hpp>
 
 #include "fmdt/args.h"
-#include "fmdt/tools.h"
 #include "fmdt/macros.h"
+#include "fmdt/tools.h"
+#include "fmdt/tools.hpp"
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/tracking/tracking_io.h"
 #include "fmdt/version.h"
@@ -60,7 +62,12 @@ int main(int argc, char** argv) {
     char* def_p_trk_mag_path = NULL;
     char* def_p_log_path = NULL;
     char* def_p_out_probes = NULL;
-
+#ifdef FMDT_ENABLE_PIPELINE
+    vec_int def_p_pip_threads = (vec_int)vector_create();
+    vector_add(&def_p_pip_threads, 1);
+    vector_add(&def_p_pip_threads, 1);
+    vector_add(&def_p_pip_threads, 1);
+#endif
     // help
     if (args_find(argc, argv, "--help,-h")) {
         fprintf(stderr,
@@ -150,6 +157,11 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --rt-prb-path       Path of the output probe vales, only required for benchmarking purpose [%s]\n",
                 def_p_out_probes ? def_p_out_probes : "NULL");
+#ifdef FMDT_ENABLE_PIPELINE
+        fprintf(stderr,
+                "  --pip-threads       Number of threads for each stage of the pipeline                       "); 
+                tools_cvector_print(stderr, def_p_pip_threads); fprintf(stderr,"\n");
+#endif
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
         fprintf(stderr,
@@ -201,7 +213,13 @@ int main(int argc, char** argv) {
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
     const int p_task_stats = args_find(argc, argv, "--rt-stats,--task-stats");
     const char* p_out_probes = args_find_char(argc, argv, "--rt-prb-path,--out-probes", def_p_out_probes);
+#ifdef FMDT_ENABLE_PIPELINE
+    vec_int tmp_pip_threads = (vec_int)vector_create();
+    tmp_pip_threads = args_find_vector_int(argc, argv, "--pip-threads", def_p_pip_threads, tmp_pip_threads);
+    const std::vector<std::size_t> p_pip_threads = tools_convert_int_cvector_stdvector(tmp_pip_threads);
 
+    
+#endif
     // heading display
     printf("#  ---------------------\n");
     printf("# |          ----*      |\n");
@@ -242,6 +260,9 @@ int main(int argc, char** argv) {
     printf("#  * log-path       = %s\n", p_log_path);
     printf("#  * rt-stats       = %d\n", p_task_stats);
     printf("#  * rt-prb-path    = %s\n", p_out_probes);
+#ifdef FMDT_ENABLE_PIPELINE
+    printf("#  * pip-threads    = "); tools_stdvector_print(stdout, p_pip_threads); printf("\n");
+#endif
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
     printf("#  * Runtime mode   = Pipeline\n");
@@ -720,13 +741,9 @@ int main(int argc, char** argv) {
 
     aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
                                                    sep_stages,
-                                                   {
-                                                     1, // number of threads in the stage 1
-                                                     4, // number of threads in the stage 2
-                                                     1, // number of threads in the stage 3
-                                                   }, {
-                                                     1, // synchronization buffer size between stages 1 and 2
-                                                     1, // synchronization buffer size between stages 2 and 3
+                                                   p_pip_threads, {
+                                                    1,
+                                                    1,
                                                    }, {
                                                      false, // type of waiting between stages 1 and 2 (true = active, false = passive)
                                                      false, // type of waiting between stages 2 and 3 (true = active, false = passive)
@@ -853,6 +870,18 @@ int main(int argc, char** argv) {
         aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
 #endif
     }
+
+#ifdef FMDT_ENABLE_PIPELINE
+    // ----------
+    // -- FREE --
+    // ----------
+
+    if (def_p_pip_threads) 
+        vector_free(def_p_pip_threads);
+    if (tmp_pip_threads) 
+        vector_free(tmp_pip_threads);
+    
+#endif
 
     printf("# End of the program, exiting.\n");
 

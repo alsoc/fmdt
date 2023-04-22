@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include "vec.h"
+
 void args_del(int argc, char** argv, int index);
 
 /**
@@ -142,3 +144,16 @@ float args_find_float_max(int argc, char** argv, const char* arg, float def, flo
  *         pointer otherwise.
  */
 char* args_find_char(int argc, char** argv, const char* arg, char* def);
+
+/**
+ * Find an argument and return its corresponding value as a vector of int.
+ * @param argc Number of arguments in \p argv array of arguments.
+ * @param argv Array of arguments.
+ * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
+ *            comma (',') character.
+ * @param def Default value if the argument is not found.
+ * @param res Pointer where the value  will be saved if the argument is found.
+ * @return Pointer on \p res corresponding to the argument value if it exists in the command line, \p def
+ *         value otherwise.
+ */
+vec_int args_find_vector_int(int argc, char** argv, const char* arg, vec_int def, vec_int res);

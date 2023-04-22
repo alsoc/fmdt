@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <nrc2.h>
+#include <vec.h>
 
 #include "fmdt/features/features_struct.h"
 #include "fmdt/macros.h"
@@ -109,3 +110,25 @@ void tools_save_max(const char* filename, uint8_t** I, int i0, int i1, int j0, i
 //         for (int j = j0; j <= j1; j++)
 //             out[i][j] = stats[in[i][j]].S ? 0xFF : 0;
 // }
+
+void tools_convert_char_vector_int(const char* arg, vec_int *res){
+    char *saveptr1;
+    char arg_cpy[2048];
+    strncpy(arg_cpy, arg, sizeof(arg_cpy));
+    arg_cpy[sizeof(arg_cpy) - 1] = 0;
+    char *cur_arg = arg_cpy;
+    cur_arg = strtok_r(cur_arg, "[,]", &saveptr1);
+    
+    do {
+        vector_add(res, atoi(cur_arg));
+    } while((cur_arg = strtok_r(NULL, "[,]", &saveptr1)) != NULL);
+}
+
+void tools_cvector_print(FILE* stream, vec_int tab) {
+    int size = vector_size(tab);
+    fprintf(stream, "[");
+    for (int i = 0; i < size - 1; i++) {
+        fprintf(stream, "%d, ", tab[i]);
+    }
+    fprintf(stream, "%d]", tab[size - 1]);
+}

@@ -167,6 +167,7 @@ if(FMDT_DETECT_EXE)
 	set_target_properties(fmdt-detect-exe PROPERTIES OUTPUT_NAME fmdt-detect)
 	if (FMDT_AFF3CT_RUNTIME)
 		set(src_detectrt_common_files
+		    ${src_dir}/common/tools.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Video/Video.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Video/Video2.cpp
 		    ${src_dir}/common/aff3ct_wrapper/CCL_LSL/CCL_LSL.cpp
