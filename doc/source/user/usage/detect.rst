@@ -32,6 +32,8 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--ccl-fra-id``     | BOOLEAN | See :numref:`detect_ccl-fra-id`.                   |
 +----------------------+---------+----------------------------------------------------+
+| ``--cca-mag``        | BOOLEAN | See :numref:`detect_cca-mag`.                      |
++----------------------+---------+----------------------------------------------------+
 | ``--mrp-s-min``      | INTEGER | See :numref:`detect_mrp-s-min`.                    |
 +----------------------+---------+----------------------------------------------------+
 | ``--mrp-s-max``      | INTEGER | See :numref:`detect_mrp-s-max`.                    |
@@ -59,8 +61,6 @@ The following table summarizes the available parameters:
 | ``--trk-all``        | BOOLEAN | See :numref:`detect_trk-all`.                      |
 +----------------------+---------+----------------------------------------------------+
 | ``--trk-bb-path``    | STRING  | See :numref:`detect_trk-bb-path`.                  |
-+----------------------+---------+----------------------------------------------------+
-| ``--trk-mag-path``   | STRING  | See :numref:`detect_trk-mag-path`.                 |
 +----------------------+---------+----------------------------------------------------+
 | ``--log-path``       | STRING  | See :numref:`detect_log-path`.                     |
 +----------------------+---------+----------------------------------------------------+
@@ -232,6 +232,19 @@ Path of the files for |CC| debug (``path/cc_%05d.png``).
 Show the |RoI|/|CC| ids on the output frames (to combine with ``--ccl-fra-path``
 parameter). Requires to link with OpenCV library (``-DFMDT_OPENCV_LINK`` CMake
 option, see :numref:`user_installation_cmake`).
+
+.. _detect_cca-mag:
+
+``--cca-mag``
+-------------
+
+   :Type: BOOLEAN
+   :Default: [empty]
+   :Example: ``--cca-mag``
+
+Enable the computation of two news features in the |CCA|: the magnitude and the
+counter of saturated pixels (to be combined with the :ref:`detect_log-path`
+option).
 
 .. _detect_mrp-s-min:
 
@@ -415,29 +428,6 @@ Here is the corresponding line format:
 Each line corresponds to a frame and to an object, each value is separated by a
 space character.
 
-.. _detect_trk-mag-path:
-
-``--trk-mag-path``
-------------------
-
-   :Deprecated: ``--out-mag``
-   :Type: STRING
-   :Default: [empty]
-   :Example: ``--trk-mag-path mag.txt``
-
-Path to the output file containing magnitudes of the tracked objects. Each line
-corresponds to a track/object and here is the corresponding line format:
-
-.. code-block:: bash
-
-	{tid} {otype} {mag1} {mag2} {...} {magn}
-
-``{mag1}`` is the first magnitude value of the track/object of ``{tid}`` id.
-``{mag2}`` is the second magnitude value (in the second frame where the object
-has been tracked). And so on, until the last magnitude value ``{magn}``. Note
-that sometime  the magnitude value can be ``0``, it means that the object has
-been extrapolated on this frame, thus the magnitude cannot be computed.
-
 .. _detect_log-path:
 
 ``--log-path``
@@ -519,7 +509,7 @@ Each line corresponds to one |RoI|:
 
 ``{mag}`` and ``{sat}`` features are not enabled by default (and the ``-``
 character is printed in the corresponding columns). To enable theses features
-you need to use the :ref:`detect_trk-mag-path` command line parameter. For more
+you need to use the :ref:`detect_cca-mag` command line parameter. For more
 information about those features you can refer to the
 :func:`_features_compute_magnitude` function.
 

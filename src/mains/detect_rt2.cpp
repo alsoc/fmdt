@@ -55,7 +55,6 @@ int main(int argc, char** argv) {
     int def_p_trk_meteor_max = 100;
     float def_p_trk_ddev = 4.f;
     char* def_p_trk_bb_path = NULL;
-    char* def_p_trk_mag_path = NULL;
     char* def_p_log_path = NULL;
     char* def_p_out_probes = NULL;
 
@@ -94,6 +93,8 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --ccl-fra-id        Show the RoI/CC ids on the ouptut CC frames                                \n");
 #endif
+        fprintf(stderr,
+                "  --cca-mag           Enable magnitude and saturation counter computations                       \n");
         fprintf(stderr,
                 "  --mrp-s-min         Minimum surface of the CCs in pixels                                   [%d]\n",
                 def_p_mrp_s_min);
@@ -138,9 +139,6 @@ int main(int argc, char** argv) {
                 "  --trk-bb-path       Path to the file containing the bounding boxes (frame by frame)        [%s]\n",
                 def_p_trk_bb_path ? def_p_trk_bb_path : "NULL");
         fprintf(stderr,
-                "  --trk-mag-path      Path to the file containing magnitudes of the tracked objects          [%s]\n",
-                def_p_trk_mag_path ? def_p_trk_mag_path : "NULL");
-        fprintf(stderr,
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
         fprintf(stderr,
@@ -181,6 +179,7 @@ int main(int argc, char** argv) {
 #else
     const int p_ccl_fra_id = 0;
 #endif
+    const int p_cca_mag = args_find(argc, argv, "--cca-mag");
     const int p_mrp_s_min = args_find_int_min(argc, argv, "--mrp-s-min,--surface-min", def_p_mrp_s_min, 0);
     const int p_mrp_s_max = args_find_int_min(argc, argv, "--mrp-s-max,--surface-max", def_p_mrp_s_max, 0);
     const int p_knn_k = args_find_int_min(argc, argv, "--knn-k,-k", def_p_knn_k, 0);
@@ -195,7 +194,6 @@ int main(int argc, char** argv) {
     const float p_trk_ddev = args_find_float_min(argc, argv, "--trk-ddev,--diff-dev", def_p_trk_ddev, 0.f);
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
     const char* p_trk_bb_path = args_find_char(argc, argv, "--trk-bb-path,--out-bb", def_p_trk_bb_path);
-    const char* p_trk_mag_path = args_find_char(argc, argv, "--trk-mag-path,--out-mag", def_p_trk_mag_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
     const int p_task_stats = args_find(argc, argv, "--rt-stats,--task-stats");
     const char* p_out_probes = args_find_char(argc, argv, "--rt-prb-path,--out-probes", def_p_out_probes);
@@ -222,6 +220,7 @@ int main(int argc, char** argv) {
 #ifdef FMDT_OPENCV_LINK
     printf("#  * ccl-fra-id     = %d\n", p_ccl_fra_id);
 #endif
+    printf("#  * cca-mag        = %d\n", p_cca_mag);
     printf("#  * mrp-s-min      = %d\n", p_mrp_s_min);
     printf("#  * mrp-s-max      = %d\n", p_mrp_s_max);
     printf("#  * knn-k          = %d\n", p_knn_k);
@@ -236,7 +235,6 @@ int main(int argc, char** argv) {
     printf("#  * trk-ddev       = %4.2f\n", p_trk_ddev);
     printf("#  * trk-all        = %d\n", p_trk_all);
     printf("#  * trk-bb-path    = %s\n", p_trk_bb_path);
-    printf("#  * trk-mag-path   = %s\n", p_trk_mag_path);
     printf("#  * log-path       = %s\n", p_log_path);
     printf("#  * rt-stats       = %d\n", p_task_stats);
     printf("#  * rt-prb-path    = %s\n", p_out_probes);
@@ -323,9 +321,9 @@ int main(int argc, char** argv) {
     Motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
-                      p_trk_meteor_max, p_trk_bb_path, p_trk_mag_path, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
+                      p_trk_meteor_max, p_trk_bb_path, p_cca_mag, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
     Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data(),
-                         p_trk_mag_path != NULL, p_trk_mag_path != NULL);
+                         p_cca_mag, p_cca_mag);
     Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_ROI_SIZE);
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");
@@ -765,15 +763,6 @@ int main(int argc, char** argv) {
         fclose(f);
     }
 
-    if (p_trk_mag_path) {
-        FILE* f = fopen(p_trk_mag_path, "w");
-        if (f == NULL) {
-            fprintf(stderr, "(EE) error while opening '%s'\n", p_trk_bb_path);
-            exit(1);
-        }
-        tracking_tracks_magnitudes_write(f, tracking.get_data()->tracks);
-        fclose(f);
-    }
     tracking_tracks_write(stdout, tracking.get_data()->tracks);
 
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;

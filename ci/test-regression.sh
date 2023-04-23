@@ -27,7 +27,7 @@ rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 ./compare.py --build-path ${WD}/${build_root}/bin/ \
              --list-exe "${list_exe_detect}" \
-             --exe-args "--vid-in-path ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --trk-all --trk-mag-path mag.txt --trk-bb-path ${out_root_dir}/bb.txt --ccl-fra-path ${out_root_dir}/%05d.pgm --log-path ${out_root_dir}" \
+             --exe-args "--vid-in-path ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --trk-all --cca-mag --trk-bb-path ${out_root_dir}/bb.txt --ccl-fra-path ${out_root_dir}/%05d.pgm --log-path ${out_root_dir}" \
              --out-path "${out_root_dir}" \
              --refs-path ${WD}/scripts/regression/refs
 
