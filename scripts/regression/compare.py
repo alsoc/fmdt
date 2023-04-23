@@ -5,16 +5,15 @@ import sys
 import hashlib
 import argparse
 import re
-
-PATH_HEAD = "../.."
-PATH_BUILD = PATH_HEAD+"/build"
-PATH_EXE = PATH_BUILD+"/bin"
+import shutil
 
 parser = argparse.ArgumentParser(prog='compare.py', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--exe-args',    action='store', dest='exeArgs',     type=str,   default="", required=True,    help='String of exe-argurments')
-parser.add_argument('--list-exe',    action='store', dest='strListExe',  type=str,   default="", required=True,    help='List of executables to compare (format: "exe0, exe1, ... , exeN"')
-parser.add_argument('--refs-path',   action='store', dest='refsPath',    type=str,   default=PATH_BUILD + "/refs", help='Path to the references to compare.')
-parser.add_argument('--new-ref-exe', action='store', dest='newRefExe',   type=str,   default="",                   help='Executable considered for ref.')
+parser.add_argument('--exe-args',    action='store', dest='exeArgs',    type=str, default="", required=True, help='String of exe-argurments.')
+parser.add_argument('--list-exe',    action='store', dest='strListExe', type=str, default="", required=True, help='List of executables to compare (format: "exe0, exe1, ... , exeN").')
+parser.add_argument('--refs-path',   action='store', dest='refsPath',   type=str, default="refs",            help='Path of the references to compare.')
+parser.add_argument('--new-ref-exe', action='store', dest='newRefExe',  type=str, default="",                help='Executable considered for ref.')
+parser.add_argument('--out-path',    action='store', dest='outPath',    type=str, default="output",          help='Output folder of the tested binaries.')
+parser.add_argument('--build-path',  action='store', dest='buildPath',  type=str, default="",                help='Path to the directory containing the binaries.')
 
 def strListExe_to_listExe():
     return args.strListExe.replace(' ', '').split(',')
@@ -22,18 +21,19 @@ def strListExe_to_listExe():
 def main_exec(L_EXE):
     print("#")
     print("# EXE:")
-    
-    for i in L_EXE: 
-        os.mkdir(PATH_BUILD + "/" + i)
-        out_bb     = " --trk-bb-path "  + PATH_BUILD + "/" + i + "/" + "bb.txt"
-        out_frames = " --ccl-fra-path " + PATH_BUILD + "/" + i + "/" + "%05d.pgm"
-        out_stats  = " --log-path "     + PATH_BUILD + "/" + i
-        bin        = PATH_EXE + "/" + i + " "
-
-        exec = bin + args.exeArgs + out_bb + out_frames + out_stats
+    if os.path.exists(args.outPath):
+        print("# (WW) Deleting '" + args.outPath + "' folder!")
+    shutil.rmtree(args.outPath, ignore_errors=True)
+    os.mkdir(args.outPath);
+    for exe in L_EXE:
+        full_exe = args.buildPath + exe
+        exec = full_exe + " " + args.exeArgs
         print("# "+ exec)
         os.system(exec)
-    
+        if os.path.exists(args.outPath + "_" + exe):
+            print("# (WW) Deleting '" + args.outPath + "_" + exe + "' folder!")
+        shutil.rmtree(args.outPath + "_" + exe, ignore_errors=True)
+        shutil.move(args.outPath, args.outPath + "_" + exe);
     return 0
 
 def diff_pgm(filename, p_v1, p_v2):
@@ -202,7 +202,7 @@ def display_res(res, exe_name):
         print("# ---- {:>25s} checked ----".format(exe_name))
         print("# -------------------------------------------")
         print("#")
-        return 0    
+        return 0
 
     print("# ----------------|---------------------------||-----------|--------------------------------------------------------|--------------------------------------------------------")
     print("#            FILE |                       EXE ||      LINE |                                                  refs  |                          diff for txt/checksum for pgm ")
@@ -214,6 +214,8 @@ def display_res(res, exe_name):
         print("{:>18s}|{:>27s}||{:>11s}|{:>56s}|{:>56s}".format(file, exe_name, str(line), txt0, txt1))
     print("#")
     return 1
+
+file_exceptions = ["bb.txt", "mag.txt", "tracks.txt"]
 
 def main_diff(path_ref, exe_name):
     res = []
@@ -228,25 +230,23 @@ def main_diff(path_ref, exe_name):
         if not os.path.isfile(f_ref):
             continue
 
-        dir_tocmp = PATH_BUILD + "/" + exe_name
+        dir_tocmp = args.outPath + "_" + exe_name
         f_tocmp = os.path.join(dir_tocmp, filename)
         
-
         if ".pgm" in filename: # image
             r = diff_pgm(filename, f_ref, f_tocmp)
             if r != []:
-                res += r 
-        
-        elif "bb.txt" in filename: # bounding box 
-            # r = diff_bb(filename, f_ref, f_tocmp)
-            # if r != []:
-            #     res += r
-            continue 
-
-        elif ".txt" in filename: # stats
-            r = diff_stats(filename, f_ref, f_tocmp)
-            if r != []:
                 res += r
+        else:
+            skip = False
+            for excep in file_exceptions:
+                if excep in filename:
+                    skip = True
+                    continue
+            if not skip and ".txt" in filename: # stats
+                r = diff_stats(filename, f_ref, f_tocmp)
+                if r != []:
+                    res += r
 
     return display_res(res, exe_name)
 
@@ -268,7 +268,7 @@ def main():
     if args.newRefExe == "" :
         ref = args.refsPath
     else :
-        ref = PATH_BUILD + "/" + args.newRefExe
+        ref = args.buildPath + args.newRefExe
 
     print("#")
     print("# The references directory : " + ref )
