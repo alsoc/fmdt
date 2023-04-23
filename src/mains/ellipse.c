@@ -59,14 +59,14 @@ int main(int argc, char** argv) {
                 "  --vid-in-threads    Select the number of threads to use to decode video input (in ffmpeg)  [%d]\n",
                 def_p_vid_in_threads);
         fprintf(stderr,
+                "  --mxr-r             Radius for the max reduction                                           [%d]\n",
+                def_p_maxred_r);
+        fprintf(stderr,
                 "  --ccl-hyst-lo       Minimum light intensity for hysteresis threshold (grayscale [0;255])   [%d]\n",
                 def_p_ccl_hyst_lo);
         fprintf(stderr,
                 "  --ccl-hyst-hi       Maximum light intensity for hysteresis threshold (grayscale [0;255])   [%d]\n",
                 def_p_ccl_hyst_hi);
-        fprintf(stderr,
-                "  --mxr-r             Radius for the max reduction                                           [%d]\n",
-                def_p_maxred_r);
         fprintf(stderr,
                 "  --ccl-fra-path      Path of the files for CC debug frames                                  [%s]\n",
                 def_p_ccl_fra_path ? def_p_ccl_fra_path : "NULL");
@@ -138,16 +138,16 @@ int main(int argc, char** argv) {
     printf("#  * vid-in-buff    = %d\n", p_vid_in_buff);
     printf("#  * vid-in-loop    = %d\n", p_vid_in_loop);
     printf("#  * vid-in-threads = %d\n", p_vid_in_threads);
+    printf("#  * mxr-r          = %d\n", p_maxred_r);
     printf("#  * ccl-hyst-lo    = %d\n", p_ccl_hyst_lo);
     printf("#  * ccl-hyst-hi    = %d\n", p_ccl_hyst_hi);
-    printf("#  * mxr-r          = %d\n", p_maxred_r);
-    printf("#  * eli-r          = %.2f\n", p_ellipse);
     printf("#  * ccl-fra-path   = %s\n", p_ccl_fra_path);
 #ifdef FMDT_OPENCV_LINK
     printf("#  * ccl-fra-id     = %d\n", p_ccl_fra_id);
 #endif
     printf("#  * mrp-s-min      = %d\n", p_mrp_s_min);
     printf("#  * mrp-s-max      = %d\n", p_mrp_s_max);
+    printf("#  * eli-r          = %.2f\n", p_ellipse);
     printf("#  * log-path       = %s\n", p_log_path);
 
     printf("#\n");
@@ -232,10 +232,10 @@ int main(int argc, char** argv) {
     // ----------------//
 
     printf("# The program is running...\n");
-    unsigned n_frames = 0;
     int cur_fra;
     while ((cur_fra = video_reader_get_frame(video, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
+
         // step 1: max-reduction
         tools_copy_ui8matrix_ui8matrix((const uint8_t**)I, i0 - b, i1 + b, j0 - b, j1 + b, T[cur_fra % maxred_diam]);
         zero_ui8matrix(Max, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -260,7 +260,7 @@ int main(int argc, char** argv) {
         // step 5: ellipse feature computation
         features_compute_ellipse(RoIs->basic, RoIs->misc);
 
-        // save stats
+        // save stats (first part)
         FILE* f = NULL;
         if (p_log_path) {
             tools_create_folder(p_log_path);
@@ -286,14 +286,13 @@ int main(int argc, char** argv) {
             video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
 
-        // save stats
+        // save stats (second part)
         if (p_log_path) {
             fprintf(f, "# Frame n°%05d (AFTER ellipse ratio threshold) -- ", cur_fra);
             features_RoIs_write(f, cur_fra, RoIs->basic, RoIs->misc, NULL, 0);
             fclose(f);
         }
 
-        n_frames++;
         ellipse_nb += RoIs->_size;
         fprintf(stderr, " -- Ellipses =  %3d\r", ellipse_nb);
         fflush(stderr);
