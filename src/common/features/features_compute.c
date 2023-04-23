@@ -181,9 +181,9 @@ void features_free_RoIs_misc(RoIs_misc_t* RoIs_misc, const uint8_t free_id) {
     if (RoIs_misc->sat_count != NULL)
         free(RoIs_misc->sat_count);
     if (RoIs_misc->a != NULL)
-        memset(RoIs_misc->a, 0, *RoIs_misc->_max_size * sizeof(float));
+        free(RoIs_misc->a);
     if (RoIs_misc->b != NULL)
-        memset(RoIs_misc->b, 0, *RoIs_misc->_max_size * sizeof(float));
+        free(RoIs_misc->b);
     free(RoIs_misc);
 }
 
