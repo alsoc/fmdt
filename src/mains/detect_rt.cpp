@@ -30,9 +30,6 @@
 #include "fmdt/aff3ct_wrapper/Logger/Logger_tracks.hpp"
 #include "fmdt/aff3ct_wrapper/Logger/Logger_frame.hpp"
 
-// Do not use this define anymore!! NOW it is set in the CMakeFile :-)
-// #define FMDT_ENABLE_PIPELINE
-
 int main(int argc, char** argv) {
     // default values
     char* def_p_vid_in_path = NULL;
@@ -58,6 +55,7 @@ int main(int argc, char** argv) {
     float def_p_trk_ddev = 4.f;
     char* def_p_trk_bb_path = NULL;
     char* def_p_log_path = NULL;
+    char* def_p_trk_roi_path = NULL;
     char* def_p_out_probes = NULL;
 
     // help
@@ -141,6 +139,9 @@ int main(int argc, char** argv) {
                 "  --trk-bb-path       Path to the file containing the bounding boxes (frame by frame)        [%s]\n",
                 def_p_trk_bb_path ? def_p_trk_bb_path : "NULL");
         fprintf(stderr,
+                "  --trk-roi-path      Path to the file containing the RoI ids for each track                 [%s]\n",
+                def_p_trk_roi_path ? def_p_trk_roi_path : "NULL");
+        fprintf(stderr,
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
         fprintf(stderr,
@@ -196,6 +197,7 @@ int main(int argc, char** argv) {
     const float p_trk_ddev = args_find_float_min(argc, argv, "--trk-ddev,--diff-dev", def_p_trk_ddev, 0.f);
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
     const char* p_trk_bb_path = args_find_char(argc, argv, "--trk-bb-path,--out-bb", def_p_trk_bb_path);
+    const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
     const int p_task_stats = args_find(argc, argv, "--rt-stats,--task-stats");
     const char* p_out_probes = args_find_char(argc, argv, "--rt-prb-path,--out-probes", def_p_out_probes);
@@ -237,6 +239,7 @@ int main(int argc, char** argv) {
     printf("#  * trk-ddev       = %4.2f\n", p_trk_ddev);
     printf("#  * trk-all        = %d\n", p_trk_all);
     printf("#  * trk-bb-path    = %s\n", p_trk_bb_path);
+    printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * log-path       = %s\n", p_log_path);
     printf("#  * rt-stats       = %d\n", p_task_stats);
     printf("#  * rt-prb-path    = %s\n", p_out_probes);
@@ -310,7 +313,7 @@ int main(int argc, char** argv) {
     Motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
-                      p_trk_meteor_max, p_trk_bb_path, p_cca_mag, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
+                      p_trk_meteor_max, p_trk_bb_path, p_trk_roi_path, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_id(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_xmin(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_xmax(MAX_ROI_SIZE, 0);
@@ -509,7 +512,6 @@ int main(int argc, char** argv) {
     tracking[trk::sck::perform::in_RoIs_y] = merger[ftr_mrg::sck::merge::out_RoIs_y];
     tracking[trk::sck::perform::in_RoIs_error] = motion[mtn::sck::compute::out_RoIs1_error];
     tracking[trk::sck::perform::in_RoIs_prev_id] = matcher[knn::sck::match::out_RoIs1_prev_id];
-    tracking[trk::sck::perform::in_RoIs_magnitude] = magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
     tracking[trk::sck::perform::in_n_RoIs] = merger[ftr_mrg::sck::merge::out_n_RoIs];
     tracking[trk::sck::perform::in_motion_est] = motion[mtn::sck::compute::out_motion_est2];
 
@@ -848,6 +850,15 @@ int main(int argc, char** argv) {
         fclose(f);
     }
 
+    if (p_trk_roi_path) {
+        FILE* f = fopen(p_trk_roi_path, "w");
+        if (f == NULL) {
+            fprintf(stderr, "(EE) error while opening '%s'\n", p_trk_roi_path);
+            exit(1);
+        }
+        tracking_tracks_RoIs_id_write(f, tracking.get_data()->tracks);
+        fclose(f);
+    }
     tracking_tracks_write(stdout, tracking.get_data()->tracks);
 
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;

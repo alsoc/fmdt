@@ -83,7 +83,6 @@ typedef struct {
     float dx; /**< \f$x\f$ components of the distance between centroids at \f$t - 1\f$ and \f$t\f$. */
     float dy; /**< \f$y\f$ components of the distance between centroids at \f$t - 1\f$ and \f$t\f$. */
     float error; /**< Velocity norm / error. \f$ e = \sqrt{dx^2 + dy^2} \f$. */
-    uint32_t magnitude; /**< Magnitudes or brightness of the RoIs. Sums of the pixels intensities. */
     uint32_t time; /*!< Number of times the RoI and its predecessors have been associated (non-moving RoI). */
     uint32_t time_motion; /*!< Number of times the RoI and its predecessors have been associated (moving RoI). */
     uint8_t is_extrapolated; /*!< Boolean that defines if this RoI has been extrapolated. It prevents to associate it to
@@ -109,7 +108,7 @@ typedef struct {
     enum state_e state; /**< State of the track. */
     enum obj_e obj_type; /**< Object type (classification). */
     enum change_state_reason_e change_state_reason; /**< Reason of the noise type classification. */
-    vec_uint32_t magnitude; /**< Vector of the magnitudes history of this track. */
+    vec_uint32_t RoIs_id; /**< Vector of the RoI ids history of this track. */
 } track_t;
 
 /**

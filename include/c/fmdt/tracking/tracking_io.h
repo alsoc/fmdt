@@ -28,7 +28,7 @@ void tracking_tracks_write_full(FILE* f, const vec_track_t tracks);
  * @param f File descriptor (in write mode).
  * @param tracks A vector of tracks.
  */
-void tracking_tracks_magnitudes_write(FILE* f, const vec_track_t tracks);
+void tracking_tracks_RoIs_id_write(FILE* f, const vec_track_t tracks);
 
 /**
  * From a given path, parse the corresponding file and fill a vector of tracks.

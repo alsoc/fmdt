@@ -41,7 +41,6 @@ void tracking_free_data(tracking_data_t* tracking_data);
  * @param RoIs_y Array of centroids ordinate (at \f$t\f$).
  * @param RoIs_error Array of velocity norms / errors (at \f$t\f$).
  * @param RoIs_prev_id Array of RoI identifiers at \f$t - 1\f$ (at \f$t\f$).
- * @param RoIs_magnitude Array of RoI magnitudes (at \f$t\f$).
  * @param n_RoIs Number of connected-components (= number of RoIs) (at \f$t\f$).
  * @param BBs 2D vector of bounding boxes to be filled. The first dimension represents the frames while the second
  *            dimension represents the bounding boxes. \p BBs can be NULL, if so, the bounding boxes are not saved.
@@ -59,7 +58,7 @@ void tracking_free_data(tracking_data_t* tracking_data);
  * @param fra_meteor_min Minimum number of CC/RoI associations before creating a meteor track.
  * @param fra_meteor_max Maximum number of CC/RoI associations after which a meteor track is transformed in a noise
  *                       track.
- * @param magnitude Boolean that defines if the tracking store the magnitude in its inner data or not.
+ * @param save_RoIs_id Boolean to save the list of the RoI ids for each tracks.
  * @param extrapol_order_max Maximum number of frames where a lost track is extrapolated (0 means no extrapolation).
  * @param min_extrapol_ratio_S Minimum ratio between two RoIs. \f$ r_S = RoI_{S}^j / RoI_{S}^i\f$, if
  *                             \f$r_S < r_S^{min}\f$ then the association for the extrapolation is not made.
@@ -67,11 +66,11 @@ void tracking_free_data(tracking_data_t* tracking_data);
 void _tracking_perform(tracking_data_t* tracking_data, const uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
                        const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
                        const uint32_t* RoIs_S, const float* RoIs_x, const float* RoIs_y, const float* RoIs_error,
-                       const uint32_t* RoIs_prev_id, const uint32_t* RoIs_magnitude, const size_t n_RoIs,
-                       vec_BB_t** BBs, const size_t frame, const motion_t* motion_est, const size_t r_extrapol,
-                       const float angle_max, const float diff_dev, const int track_all, const size_t fra_star_min,
-                       const size_t fra_meteor_min, const size_t fra_meteor_max, const int magnitude,
-                       const uint8_t extrapol_order_max, const float min_extrapol_ratio_S);
+                       const uint32_t* RoIs_prev_id, const size_t n_RoIs, vec_BB_t** BBs, const size_t frame,
+                       const motion_t* motion_est, const size_t r_extrapol, const float angle_max, const float diff_dev,
+                       const int track_all, const size_t fra_star_min, const size_t fra_meteor_min,
+                       const size_t fra_meteor_max, const uint8_t save_RoIs_id, const uint8_t extrapol_order_max,
+                       const float min_extrapol_ratio_S);
 
 /**
  * @param tracking_data Inner data.
@@ -92,7 +91,7 @@ void _tracking_perform(tracking_data_t* tracking_data, const uint32_t* RoIs_id, 
  * @param fra_meteor_min Minimum number of CC/RoI associations before creating a meteor track.
  * @param fra_meteor_max Maximum number of CC/RoI associations after which a meteor track is transformed in a noise
  *                       track.
- * @param magnitude Boolean that defines if the tracking store the magnitude in its inner data or not.
+ * @param save_RoIs_id Boolean to save the list of the RoI ids for each tracks.
  * @param extrapol_order_max Maximum number of frames where a lost track is extrapolated (0 means no extrapolation).
  * @param min_extrapol_ratio_S Minimum ratio between two RoIs. \f$ r_S = RoI_{S}^j / RoI_{S}^i\f$, if
  *                             \f$r_S < r_S^{min}\f$ then the association for the extrapolation is not made.
@@ -101,5 +100,5 @@ void _tracking_perform(tracking_data_t* tracking_data, const uint32_t* RoIs_id, 
 void tracking_perform(tracking_data_t* tracking_data, const RoIs_t* RoIs, vec_BB_t** BBs, size_t frame,
                       const motion_t* motion_est, const size_t r_extrapol, const float angle_max, const float diff_dev,
                       const int track_all, const size_t fra_star_min, const size_t fra_meteor_min,
-                      const size_t fra_meteor_max, const int magnitude, const uint8_t extrapol_order_max,
+                      const size_t fra_meteor_max, const uint8_t save_RoIs_id, const uint8_t extrapol_order_max,
                       const float min_extrapol_ratio_S);

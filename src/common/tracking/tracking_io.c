@@ -75,15 +75,15 @@ void tracking_BBs_write(FILE* file, const vec_BB_t* BBs, const vec_track_t track
     }
 }
 
-void tracking_tracks_magnitudes_write(FILE* f, const vec_track_t tracks) {
+void tracking_tracks_RoIs_id_write(FILE* f, const vec_track_t tracks) {
     size_t n_tracks = vector_size(tracks);
     for (size_t i = 0; i < n_tracks; i++)
         if (tracks[i].id) {
             fprintf(f, " %5d %s ", tracks[i].id, g_obj_to_string_with_spaces[tracks[i].obj_type]);
-            if (tracks[i].magnitude != NULL) {
-                size_t vs = vector_size(tracks[i].magnitude);
+            if (tracks[i].RoIs_id != NULL) {
+                size_t vs = vector_size(tracks[i].RoIs_id);
                 for (size_t j = 0; j < vs; j++)
-                    fprintf(f, " %5u ", tracks[i].magnitude[j]);
+                    fprintf(f, " %5u ", tracks[i].RoIs_id[j]);
                 fprintf(f, "\n");
             }
         }
@@ -121,7 +121,7 @@ void tracking_parse_tracks(const char* filename, vec_track_t* tracks) {
             tmp_track->end.x = x1;
             tmp_track->end.y = y1;
             tmp_track->obj_type = tracking_string_to_obj_type((const char*)obj_type_str);
-            tmp_track->magnitude = NULL;
+            tmp_track->RoIs_id = NULL;
             tmp_track = NULL; // stop using temp now that the element is initialized
         }
     }

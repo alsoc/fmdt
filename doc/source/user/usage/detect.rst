@@ -62,6 +62,8 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--trk-bb-path``    | STRING  | See :numref:`detect_trk-bb-path`.                  |
 +----------------------+---------+----------------------------------------------------+
+| ``--trk-roi-path``   | STRING  | See :numref:`detect_trk-roi-path`.                 |
++----------------------+---------+----------------------------------------------------+
 | ``--log-path``       | STRING  | See :numref:`detect_log-path`.                     |
 +----------------------+---------+----------------------------------------------------+
 
@@ -427,6 +429,29 @@ Here is the corresponding line format:
 
 Each line corresponds to a frame and to an object, each value is separated by a
 space character.
+
+.. _detect_trk-roi-path:
+
+``--trk-roi-path``
+------------------
+
+   :Type: STRING
+   :Default: [empty]
+   :Example: ``--trk-roi-path trk2roi.txt``
+
+Path to the output file containing lists of the |RoI| ids of the tracked
+objects. Each line corresponds to a track/object and here is the corresponding
+line format:
+
+.. code-block:: bash
+
+   {tid} {otype} {rid1} {rid2} {...} {ridn}
+
+``{rid1}`` is the first |RoI| id of the track/object of ``{tid}`` id.
+``{rid2}`` is the second |RoI| id (in the second frame where the object
+has been tracked). And so on, until the last |RoI| id ``{ridn}``. Note
+that sometime the |RoI| id can be ``0``, it means that the object has been
+extrapolated on this frame, thus there is no |RoI| id for this frame.
 
 .. _detect_log-path:
 

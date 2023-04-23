@@ -43,6 +43,7 @@ int main(int argc, char** argv) {
     int def_p_trk_meteor_max = 100;
     float def_p_trk_ddev = 4.f;
     char* def_p_trk_bb_path = NULL;
+    char* def_p_trk_roi_path = NULL;
     char* def_p_log_path = NULL;
 
     // help
@@ -126,6 +127,9 @@ int main(int argc, char** argv) {
                 "  --trk-bb-path       Path to the file containing the bounding boxes (frame by frame)        [%s]\n",
                 def_p_trk_bb_path ? def_p_trk_bb_path : "NULL");
         fprintf(stderr,
+                "  --trk-roi-path      Path to the file containing the RoI ids for each track                 [%s]\n",
+                def_p_trk_roi_path ? def_p_trk_roi_path : "NULL");
+        fprintf(stderr,
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
         fprintf(stderr,
@@ -172,6 +176,7 @@ int main(int argc, char** argv) {
     const float p_trk_ddev = args_find_float_min(argc, argv, "--trk-ddev,--diff-dev", def_p_trk_ddev, 0.f);
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
     const char* p_trk_bb_path = args_find_char(argc, argv, "--trk-bb-path,--out-bb", def_p_trk_bb_path);
+    const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
 
     // heading display
@@ -211,6 +216,7 @@ int main(int argc, char** argv) {
     printf("#  * trk-ddev       = %4.2f\n", p_trk_ddev);
     printf("#  * trk-all        = %d\n", p_trk_all);
     printf("#  * trk-bb-path    = %s\n", p_trk_bb_path);
+    printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * log-path       = %s\n", p_log_path);
 
     printf("#\n");
@@ -329,7 +335,7 @@ int main(int argc, char** argv) {
         // step 6: tracking
         tracking_perform(tracking_data, RoIs1, &BBs, cur_fra, &motion_est2, p_trk_ext_d, p_trk_angle,
                          p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min, p_trk_meteor_max,
-                         p_cca_mag, p_trk_ext_o, p_knn_s);
+                         p_trk_roi_path != NULL, p_trk_ext_o, p_knn_s);
 
         // save frames (CCs)
         if (img_data) {
@@ -383,6 +389,15 @@ int main(int argc, char** argv) {
         fclose(f);
     }
 
+    if (p_trk_roi_path) {
+        FILE* f = fopen(p_trk_roi_path, "w");
+        if (f == NULL) {
+            fprintf(stderr, "(EE) error while opening '%s'\n", p_trk_roi_path);
+            exit(1);
+        }
+        tracking_tracks_RoIs_id_write(f, tracking_data->tracks);
+        fclose(f);
+    }
     tracking_tracks_write(stdout, tracking_data->tracks);
 
     printf("# Tracks statistics:\n");
