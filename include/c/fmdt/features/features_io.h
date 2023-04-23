@@ -27,8 +27,14 @@
  * @param RoIs_Sxy Array of sums of \f$x \times y\f$ properties.
  * @param RoIs_x Array of centroids abscissa.
  * @param RoIs_y Array of centroids ordinate.
- * @param RoIs_magnitude Array of RoI magnitudes (if NULL, the magnitudes are not shown).
- * @param RoIs_sat_count Array of RoI saturation counters (if NULL, the saturation counters are not shown).
+ * @param RoIs_magnitude Array of RoI magnitudes (if NULL, the values of the magnitudes are replaced by the dash ("-")
+ *                       character).
+ * @param RoIs_sat_count Array of RoI saturation counters (if NULL, the values of the saturation counters are replaced
+ *                       by the dash ("-") character).
+ * @param RoIs_a Array of RoI semi-major axis (if NULL, the values of semi-major axis are replaced by the dash ("-")
+ *               character).
+ * @param RoIs_b Array of RoI semi-minor axis (if NULL, the values of semi-minor axis are replaced by the dash ("-")
+ *               character).
  * @param n_RoIs Number of connected-components (= number of RoIs) in the 2D array of `labels`.
  * @param tracks Vector of tracks. It enables to match RoIs with corresponding track in the table of RoIs. Can be NULL,
  *               then the corresponding tracks are not shown.
@@ -79,9 +85,14 @@ void features_RoIs_write(FILE* f, const int frame, const RoIs_basic_t* RoIs_basi
  * @param RoIs0_Sxy Array of sums of \f$x \times y\f$ properties (at \f$t -1\f$).
  * @param RoIs0_x Array of centroids abscissa (at \f$t -1\f$).
  * @param RoIs0_y Array of centroids ordinate (at \f$t -1\f$).
- * @param RoIs0_magnitude Array of RoI magnitudes (at \f$t -1\f$) (if NULL, the magnitudes are not shown).
- * @param RoIs0_sat_count Array of RoI saturation counters (at \f$t -1\f$) (if NULL, the saturation counters are not
- *                        shown).
+ * @param RoIs0_magnitude Array of RoI magnitudes (at \f$t -1\f$) (if NULL, the values of the magnitudes are replaced by
+ *                        the dash ("-") character).
+ * @param RoIs0_sat_count Array of RoI saturation counters (at \f$t -1\f$) (if NULL, the values of the saturation
+ *                        counters are replaced by the dash ("-") character).
+ * @param RoIs0_a Array of RoI semi-major axis (at \f$t -1\f$) (if NULL, the values of semi-major axis are replaced by
+ *                the dash ("-") character).
+ * @param RoIs0_b Array of RoI semi-minor axis (at \f$t -1\f$) (if NULL, the values of semi-minor axis are replaced by
+ *                the dash ("-") character).
  * @param n_RoIs0 Number of connected-components (= number of RoIs) in the 2D array of `labels` (at \f$t -1\f$).
  * @param RoIs1_id Array of RoI unique identifiers (at \f$t\f$).
  * @param RoIs1_xmin Array of minimum \f$x\f$ coordinates of the bounding box (at \f$t\f$).
@@ -99,6 +110,8 @@ void features_RoIs_write(FILE* f, const int frame, const RoIs_basic_t* RoIs_basi
  * @param RoIs1_magnitude Array of RoI magnitudes (at \f$t\f$) (if NULL, the magnitudes are not shown).
  * @param RoIs1_sat_count Array of RoI saturation counters (at \f$t\f$) (if NULL, the saturation counters are not
  *                        shown).
+ * @param RoIs1_a Array of RoI semi-major axis (at \f$t\f$) (if NULL, the semi-major axis are not shown).
+ * @param RoIs1_b Array of RoI semi-minor axis (at \f$t\f$) (if NULL, the semi-minor axis are not shown).
  * @param n_RoIs1 Number of connected-components (= number of RoIs) in the 2D array of `labels` (at \f$t\f$).
  * @param tracks Vector of tracks. It enables to match RoIs with corresponding track in the table of RoIs. Can be NULL,
  *               then the corresponding tracks are not shown.

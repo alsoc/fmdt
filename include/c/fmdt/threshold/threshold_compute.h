@@ -32,7 +32,7 @@ void threshold(const uint8_t** img_in, uint8_t** img_out, const int i0, const in
  * @param RoIs_b Semi-minor ellipse axis.
  * @param n_RoIs Number of connected-components (= number of RoIs).
  * @param RoIs_id Array of RoI unique identifiers.
- * @param min_ratio Value that define if the RoIs is kept or not.
+ * @param min_ratio Value that define if the RoI is kept or not.
  */
 void _threshold_ellipse_ratio(const float* RoIs_a, const float* RoIs_b, const size_t n_RoIs, uint32_t* RoIs_id,
                               const float min_ratio);
@@ -40,7 +40,7 @@ void _threshold_ellipse_ratio(const float* RoIs_a, const float* RoIs_b, const si
 /**
  * Filter (= select / keep) the RoIs ellipses that have a ratio (a/b) superior to \f$min_ratio\f$.
  *
- * @param RoIs_basic Basic features.
  * @param RoIs_misc Miscellaneous features (including the `a` and `b` features).
+ * @param min_ratio Value that define if the RoI is kept or not.
  */
 void threshold_ellipse_ratio(RoIs_misc_t* RoIs_misc, const float min_ratio);

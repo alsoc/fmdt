@@ -104,8 +104,8 @@ typedef struct {
     uint32_t* magnitude; /**< Magnitudes or brightness of the RoIs. Sums of the pixels intensities. */
     uint32_t* sat_count; /**< Number of pixels that are saturated in the CC. A pixel is saturated if its intensity
                               \f$I_p\f$ is equal to the maximum value (here it is 255). */
-    float* a; /**< Semi-major axis of the RoIs.*/
-    float* b; /**< Semi-minor axis of the RoIs.*/
+    float* a; /**< Semi-major axis (ellipse) of the RoIs.*/
+    float* b; /**< Semi-minor axis (ellipse) of the RoIs.*/
 
     size_t* _size; /**< Current size/utilization of the fields.
                         Note: it is allocated on the heap but it represents only one value. */

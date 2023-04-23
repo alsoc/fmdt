@@ -75,9 +75,10 @@ void features_free_RoIs_motion(RoIs_motion_t* RoIs_motion, const uint8_t free_id
 
 /**
  * Allocation of the miscellaneous features.
- * @param max_size Maximum capacity of each *feature* field (= maximum number of elements in the arrays).
  * @param enable_magnitude Boolean to allocate the buffer of magnitudes.
  * @param enable_sat_count Boolean to allocate the buffer of saturation counters.
+ * @param enable_ellipse Boolean to allocate the buffers of ellipse features.
+ * @param max_size Maximum capacity of each *feature* field (= maximum number of elements in the arrays).
  * @param RoIs_id Pointer of `max_size` elements to use for the `id` field. If set to NULL, the `id` field is allocated.
  * @return Pointer of allocated RoIs.
  */
@@ -102,6 +103,7 @@ void features_free_RoIs_misc(RoIs_misc_t* RoIs_misc, const uint8_t free_id);
  * Allocation of all the features.
  * @param enable_magnitude Boolean to allocate the buffer of magnitudes.
  * @param enable_sat_count Boolean to allocate the buffer of saturation counters.
+ * @param enable_ellipse Boolean to allocate the buffers of ellipse features.
  * @param max_size Maximum capacity of each *feature* field (= maximum number of elements in the arrays).
  * @return Pointer of allocated RoIs.
  */
