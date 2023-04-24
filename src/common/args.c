@@ -163,7 +163,8 @@ char* args_find_char(int argc, char** argv, const char* arg, char* def) {
     return def;
 }
 
-vec_int args_find_vector_int(int argc, char** argv, const char* arg, vec_int def, vec_int res){
+vec_int_t args_find_vector_int(int argc, char** argv, const char* arg, const char* def){
+    vec_int_t res = (vec_int_t)vector_create();
     char arg_cpy[2048];
     strncpy(arg_cpy, arg, sizeof(arg_cpy));
     arg_cpy[sizeof(arg_cpy) - 1] = 0;
@@ -176,16 +177,14 @@ vec_int args_find_vector_int(int argc, char** argv, const char* arg, vec_int def
             if (!argv[i])
                 continue;
             if (strcmp(argv[i], cur_arg) == 0) {
-                tools_convert_char_int_cvector(argv[i + 1], &res);
+                tools_convert_string_to_int_cvector(argv[i + 1], &res);
                 break;
             }
         }
     } while((cur_arg = strtok_r(NULL, ",", &saveptr1)) != NULL);
 
     if (vector_size(res) == 0){
-        int size = vector_size(def);
-        for (int i = 0; i < size; i++)
-            vector_add(&res, def[i]);
+        tools_convert_string_to_int_cvector(def, &res);
     }
    
     return res;

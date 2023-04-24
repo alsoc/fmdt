@@ -111,7 +111,7 @@ void tools_save_max(const char* filename, uint8_t** I, int i0, int i1, int j0, i
 //             out[i][j] = stats[in[i][j]].S ? 0xFF : 0;
 // }
 
-void tools_convert_char_int_cvector(const char* arg, vec_int *res) {
+void tools_convert_string_to_int_cvector(const char* arg, vec_int_t *res) {
     char *saveptr1;
     char arg_cpy[2048];
     strncpy(arg_cpy, arg, sizeof(arg_cpy));
@@ -124,11 +124,27 @@ void tools_convert_char_int_cvector(const char* arg, vec_int *res) {
     } while((cur_arg = strtok_r(NULL, "[,]", &saveptr1)) != NULL);
 }
 
-void tools_int_cvector_print(FILE* stream, vec_int tab) {
+void tools_int_cvector_print(FILE* stream, vec_int_t tab) {
     int size = vector_size(tab);
     fprintf(stream, "[");
     for (int i = 0; i < size - 1; i++) {
         fprintf(stream, "%d, ", tab[i]);
     }
     fprintf(stream, "%d]", tab[size - 1]);
+}
+
+void tools_convert_int_vector_to_string(vec_int_t tab, char *res) {
+    char tmp[5]; 
+    res[0] = '\0'; 
+    int size = vector_size(tab);
+    
+    if (!size) return;
+
+    sprintf(res, "[");
+    for (int i = 0; i < size - 1; i++) {
+        sprintf(tmp, "%d, ", tab[i]);
+        strcat(res, tmp);
+    }
+    sprintf(tmp, "%d]", tab[size - 1]);
+    strcat(res, tmp);
 }

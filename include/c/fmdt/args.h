@@ -11,7 +11,7 @@
 
 #pragma once
 
-#include "vec.h"
+#include "fmdt/tools.h"
 
 void args_del(int argc, char** argv, int index);
 
@@ -156,4 +156,4 @@ char* args_find_char(int argc, char** argv, const char* arg, char* def);
  * @return Pointer on \p res corresponding to the argument value if it exists in the command line, \p def
  *         value otherwise.
  */
-vec_int args_find_vector_int(int argc, char** argv, const char* arg, vec_int def, vec_int res);
+vec_int_t args_find_vector_int(int argc, char** argv, const char* arg, const char* def);
