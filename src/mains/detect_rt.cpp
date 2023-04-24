@@ -70,6 +70,9 @@ int main(int argc, char** argv) {
     vec_int def_p_pip_sync = (vec_int)vector_create();
     vector_add(&def_p_pip_sync, 1);
     vector_add(&def_p_pip_sync, 1);
+    vec_int def_p_pip_wait = (vec_int)vector_create();
+    vector_add(&def_p_pip_wait, 0);
+    vector_add(&def_p_pip_wait, 0);
 #endif
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -162,11 +165,14 @@ int main(int argc, char** argv) {
                 def_p_out_probes ? def_p_out_probes : "NULL");
 #ifdef FMDT_ENABLE_PIPELINE
         fprintf(stderr,
-                "  --pip-threads       Number of threads for each stage of the pipeline                       "); 
-                tools_int_cvector_print(stderr, def_p_pip_threads); fprintf(stderr,"\n");
+                "  --pip-threads       Number of threads for each stage of the pipeline                       ["); 
+                tools_int_cvector_print(stderr, def_p_pip_threads); fprintf(stderr,"]\n");
         fprintf(stderr,
-                "  --pip-sync          Buffer size for each stage of the pipeline                             "); 
-                tools_int_cvector_print(stderr, def_p_pip_sync); fprintf(stderr,"\n");
+                "  --pip-sync          Buffer size for each stage of the pipeline                             ["); 
+                tools_int_cvector_print(stderr, def_p_pip_sync); fprintf(stderr,"]\n");
+        fprintf(stderr,
+                "  --pip-wait          Type of waiting between stages (1 = active, 0 = passive)               ["); 
+                tools_int_cvector_print(stderr, def_p_pip_wait); fprintf(stderr,"]\n");
 #endif
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
@@ -222,12 +228,15 @@ int main(int argc, char** argv) {
 #ifdef FMDT_ENABLE_PIPELINE
     vec_int tmp_pip_threads = (vec_int)vector_create();
     vec_int tmp_pip_sync = (vec_int)vector_create();
+    vec_int tmp_pip_wait = (vec_int)vector_create();
     tmp_pip_threads = args_find_vector_int(argc, argv, "--pip-threads", def_p_pip_threads, tmp_pip_threads);
     tmp_pip_sync = args_find_vector_int(argc, argv, "--pip-sync", def_p_pip_sync, tmp_pip_sync);
+    tmp_pip_wait = args_find_vector_int(argc, argv, "--pip-wait", def_p_pip_wait, tmp_pip_wait);
     const std::vector<std::size_t> p_pip_threads = tools_convert_int_cvector_int_stdvector(tmp_pip_threads);
     const std::vector<std::size_t> p_pip_sync = tools_convert_int_cvector_int_stdvector(tmp_pip_sync);
-    
+    const std::vector<bool> p_pip_wait = tools_convert_int_cvector_bool_stdvector(tmp_pip_wait);
 #endif
+
     // heading display
     printf("#  ---------------------\n");
     printf("# |          ----*      |\n");
@@ -271,6 +280,7 @@ int main(int argc, char** argv) {
 #ifdef FMDT_ENABLE_PIPELINE
     printf("#  * pip-threads    = "); tools_int_stdvector_print(stdout, p_pip_threads); printf("\n");
     printf("#  * pip-sync       = "); tools_int_stdvector_print(stdout, p_pip_sync); printf("\n");
+    printf("#  * pip-wait       = "); tools_bool_stdvector_print(stdout, p_pip_wait); printf("\n");
 #endif
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
@@ -751,10 +761,8 @@ int main(int argc, char** argv) {
     aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
                                                    sep_stages,
                                                    p_pip_threads, 
-                                                   p_pip_sync, {
-                                                     false, // type of waiting between stages 1 and 2 (true = active, false = passive)
-                                                     false, // type of waiting between stages 2 and 3 (true = active, false = passive)
-                                                   });
+                                                   p_pip_sync, 
+                                                   p_pip_wait);
 #else
     aff3ct::runtime::Sequence sequence_or_pipeline(*first_task, 1);
 #endif
@@ -885,8 +893,10 @@ int main(int argc, char** argv) {
 
     if (def_p_pip_threads) vector_free(def_p_pip_threads);
     if (def_p_pip_sync) vector_free(def_p_pip_sync);
+    if (def_p_pip_wait) vector_free(def_p_pip_wait);
     if (tmp_pip_threads) vector_free(tmp_pip_threads);
     if (tmp_pip_sync) vector_free(tmp_pip_sync);
+    if (tmp_pip_wait) vector_free(tmp_pip_wait);
     
 #endif
 
