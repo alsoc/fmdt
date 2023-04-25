@@ -66,6 +66,8 @@ int main(int argc, char** argv) {
     char def_p_pip_threads[50] = {"[1,1,1]"};
     char def_p_pip_sync[50] = {"[1,1]"};
     char def_p_pip_wait[50] = {"[0,0]"};
+    char def_p_pip_pin_enable[50] = {"[0,0,0]"};
+    char def_p_pip_pin[50] = {"[[0],[0],[0]]"};
 #endif
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -166,6 +168,12 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --pip-wait          Type of waiting between stages (1 = active, 0 = passive)               [%s]\n", 
                 def_p_pip_wait);
+        fprintf(stderr,
+                "  --pip-pin-enable    Enable pinning of threads for each stage of the pipeline               [%s]\n", 
+                def_p_pip_pin_enable); 
+        fprintf(stderr,
+                "  --pip-pin           Explicit pinning of threads                                            [%s]\n", 
+                def_p_pip_pin);
 #endif
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
@@ -222,6 +230,8 @@ int main(int argc, char** argv) {
     vec_int_t p_pip_threads = args_find_vector_int(argc, argv, "--pip-threads", def_p_pip_threads);  
     vec_int_t p_pip_sync = args_find_vector_int(argc, argv, "--pip-sync", def_p_pip_sync); 
     vec_int_t p_pip_wait = args_find_vector_int(argc, argv, "--pip-wait", def_p_pip_wait); 
+    vec_int_t p_pip_pin_enable = args_find_vector_int(argc, argv, "--pip-pin-enable", def_p_pip_pin_enable); 
+    max_int_t p_pip_pin = args_find_matrix_int(argc, argv, "--pip-pin", def_p_pip_pin); 
 
 #endif
 
@@ -266,13 +276,17 @@ int main(int argc, char** argv) {
     printf("#  * rt-stats       = %d\n", p_task_stats);
     printf("#  * rt-prb-path    = %s\n", p_out_probes);
 #ifdef FMDT_ENABLE_PIPELINE
-    char str_pip_threads[50], str_pip_sync[50], str_pip_wait[50];
+    char str_pip_threads[50], str_pip_sync[50], str_pip_wait[50], str_pip_pin_enable[50], str_pip_pin[50];
     tools_convert_int_vector_to_string(p_pip_threads, str_pip_threads);
     tools_convert_int_vector_to_string(p_pip_sync, str_pip_sync);
     tools_convert_int_vector_to_string(p_pip_wait, str_pip_wait);
+    tools_convert_int_vector_to_string(p_pip_pin_enable, str_pip_pin_enable);
+    tools_convert_int_matrix_to_string(p_pip_pin, str_pip_pin);
     printf("#  * pip-threads    = %s\n", str_pip_threads); 
     printf("#  * pip-sync       = %s\n", str_pip_sync); 
     printf("#  * pip-wait       = %s\n", str_pip_wait); 
+    printf("#  * pip-pin-enable = %s\n", str_pip_pin_enable); 
+    printf("#  * pip-pin        = %s\n", str_pip_pin); 
 #endif
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
@@ -299,7 +313,12 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--ccl-hyst-hi' has to be higher than '--ccl-hyst-lo'\n");
         exit(1);
     }
-#ifndef FMDT_ENABLE_PIPELINE
+#ifdef FMDT_ENABLE_PIPELINE
+    if (args_find(argc, argv, "--pip-pin-enable") && !(args_find(argc, argv, "--pip-pin"))) {
+        fprintf(stderr, "(EE) '--pip-pin-enable' has to be combined with the '--pip-pin' parameter'\n");
+        exit(1);
+    }
+#else
     if (p_out_probes)
         fprintf(stderr, "(WW) Using '--rt-prb-path' without pipeline is not very useful...\n");
 #endif
@@ -751,10 +770,14 @@ int main(int argc, char** argv) {
     }
 
     aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
-                                                   sep_stages,
-                                                   tools_convert_int_cvector_int_stdvector(p_pip_threads), 
-                                                   tools_convert_int_cvector_int_stdvector(p_pip_sync), 
-                                                   tools_convert_int_cvector_bool_stdvector(p_pip_wait));
+                                                sep_stages,
+                                                tools_convert_int_cvector_int_stdvector(p_pip_threads), 
+                                                tools_convert_int_cvector_int_stdvector(p_pip_sync), 
+                                                tools_convert_int_cvector_bool_stdvector(p_pip_wait),
+                                                tools_convert_int_cvector_bool_stdvector(p_pip_pin_enable),
+                                                tools_convert_int_cmatrix_int_stdvectorvector(p_pip_pin));
+
+    
 #else
     aff3ct::runtime::Sequence sequence_or_pipeline(*first_task, 1);
 #endif
@@ -886,6 +909,11 @@ int main(int argc, char** argv) {
     vector_free(p_pip_threads);
     vector_free(p_pip_sync);
     vector_free(p_pip_wait);
+    vector_free(p_pip_pin_enable);
+    int size = vector_size(p_pip_pin);
+    for(int i = 0; i < size; i++)
+        vector_free(p_pip_pin[i]);
+    vector_free(p_pip_pin);
     
 #endif
 

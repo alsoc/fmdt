@@ -177,14 +177,41 @@ vec_int_t args_find_vector_int(int argc, char** argv, const char* arg, const cha
             if (!argv[i])
                 continue;
             if (strcmp(argv[i], cur_arg) == 0) {
-                tools_convert_string_to_int_cvector(argv[i + 1], &res);
+                tools_convert_string_to_int_vector(argv[i + 1], &res);
                 break;
             }
         }
     } while((cur_arg = strtok_r(NULL, ",", &saveptr1)) != NULL);
 
     if (vector_size(res) == 0){
-        tools_convert_string_to_int_cvector(def, &res);
+        tools_convert_string_to_int_vector(def, &res);
+    }
+   
+    return res;
+}
+
+max_int_t args_find_matrix_int(int argc, char** argv, const char* arg, const char* def){
+    max_int_t res = (max_int_t)vector_create();
+    char arg_cpy[2048];
+    strncpy(arg_cpy, arg, sizeof(arg_cpy));
+    arg_cpy[sizeof(arg_cpy) - 1] = 0;
+    char *cur_arg = arg_cpy;
+    char *saveptr1;
+    cur_arg = strtok_r(cur_arg, ",", &saveptr1);
+
+    do {
+        for (int i = 0; i < argc - 1; i++) {
+            if (!argv[i])
+                continue;
+            if (strcmp(argv[i], cur_arg) == 0) {
+                tools_convert_string_to_int_matrix(argv[i + 1], &res);
+                break;
+            }
+        }
+    } while((cur_arg = strtok_r(NULL, ",", &saveptr1)) != NULL);
+
+    if (vector_size(res) == 0){
+        tools_convert_string_to_int_matrix(def, &res);
     }
    
     return res;

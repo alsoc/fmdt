@@ -24,3 +24,22 @@ std::vector<bool> tools_convert_int_cvector_bool_stdvector(const vec_int_t arg) 
 
     return v;
 }
+
+std::vector<std::vector<std::size_t>> tools_convert_int_cmatrix_int_stdvectorvector(const max_int_t arg) {
+    std::vector<std::vector<std::size_t>> res;
+    std::vector<std::size_t> vec;
+    int size = vector_size(arg);
+    
+    for (int i = 0; i < size; i++) {
+        vec.clear();
+
+        int sub_size = vector_size(arg[i]);
+        for (int j = 0; j < sub_size; j++) {
+            vec.push_back(arg[i][j]);
+        }
+
+        res.push_back(vec);
+    }
+    
+    return res;
+}

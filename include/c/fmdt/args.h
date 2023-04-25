@@ -152,8 +152,19 @@ char* args_find_char(int argc, char** argv, const char* arg, char* def);
  * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
  *            comma (',') character.
  * @param def Default value if the argument is not found.
- * @param res Pointer where the value  will be saved if the argument is found.
- * @return Pointer on \p res corresponding to the argument value if it exists in the command line, \p def
- *         value otherwise.
+ * @return Allocate a vector corresponding to the convertion of the argument value if it exists in the command line, 
+ *         \p def value otherwise. Don't forget to free the vector.
  */
 vec_int_t args_find_vector_int(int argc, char** argv, const char* arg, const char* def);
+
+/**
+ * Find an argument and return its corresponding value as a matrix of int.
+ * @param argc Number of arguments in \p argv array of arguments.
+ * @param argv Array of arguments.
+ * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
+ *            comma (',') character.
+ * @param def Default value if the argument is not found.
+ * @return Allocate a matrix corresponding to the convertion of the argument value if it exists in the command line, 
+ *         \p def value otherwise. Don't forget to free the matrix.
+ */
+max_int_t args_find_matrix_int(int argc, char** argv, const char* arg, const char* def);
