@@ -19,7 +19,8 @@ Video2::Video2(const std::string filename, const size_t frame_start, const size_
     this->size_image = ((i1 - i0) + 1 + 2 * b) * ((j1 - j0) + 1 + 2 * b);
     auto socket_size = this->size_image;
 
-    this->img_buf = (uint8_t**)malloc((size_t)(socket_size * sizeof(uint8_t*)));
+    this->img_buf = (uint8_t*)malloc((size_t)(socket_size * sizeof(uint8_t)));
+    std::fill(this->img_buf, this->img_buf+socket_size, 0);
 
     auto &p = this->create_task("generate");
     auto ps_out_img0 = this->template create_socket_out<uint8_t>(p, "out_img0", socket_size);

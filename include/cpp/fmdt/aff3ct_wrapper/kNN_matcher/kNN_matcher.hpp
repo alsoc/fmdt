@@ -29,8 +29,14 @@ protected:
 public:
     kNN_matcher(const size_t k, const uint32_t max_dist, const float min_ratio_S, const size_t max_size);
     virtual ~kNN_matcher();
+    virtual kNN_matcher* clone() const;
     inline aff3ct::runtime::Task& operator[](const knn::tsk t);
     inline aff3ct::runtime::Socket& operator[](const knn::sck::match s);
+
+protected:
+    void init_data();
+    using Module::deep_copy;
+    void deep_copy(const kNN_matcher &m);
 };
 
 #include "fmdt/aff3ct_wrapper/kNN_matcher/kNN_matcher.hxx"

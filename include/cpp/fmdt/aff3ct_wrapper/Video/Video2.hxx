@@ -6,7 +6,7 @@ uint8_t** Video2::get_out_img0() {
     return this->out_img0;
 }
 
-uint8_t** Video2::get_img_buf() {
+uint8_t* Video2::get_img_buf() {
     return this->img_buf;
 }
 
@@ -28,6 +28,10 @@ int Video2::get_j1() {
 
 int Video2::get_b() {
     return this->b;
+}
+
+void Video2::set_loop_size(size_t loop_size) {
+    this->video->loop_size = loop_size;
 }
 
 aff3ct::runtime::Task& Video2::operator[](const vid2::tsk t) {

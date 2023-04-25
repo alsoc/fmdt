@@ -9,7 +9,8 @@ This project generates the following **command line** executables:
   - ``fmdt-detect``,
   - ``fmdt-visu``,
   - ``fmdt-check``,
-  - ``fmdt-maxred``.
+  - ``fmdt-maxred``,
+  - ``fmdt-ellipse``.
 
 ``fmdt-detect`` is an optimized and efficient C/C++ code for meteors detection.
 It produces only text outputs. The main results are the detected tracks and they
@@ -37,6 +38,11 @@ truth. The results are shown on the standard output.
 
 ``fmdt-maxred`` performs a max-reduction from a video sequence into an image.
 The produced image is in grayscale mode.
+
+``fmdt-ellipse`` is a new executable designed to detect meteors (like
+``fmdt-detect``). Its design is based on a max-reduction + a classification
+of the meteors with ellipsoid features. At this time this tool is not fully
+documented, it is still at the research level.
 
 The next sections describe the command line parameters of these tools.
 

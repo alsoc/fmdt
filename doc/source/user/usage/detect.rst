@@ -482,13 +482,13 @@ Table 1 and table 2: |RoIs|
 
 .. code-block:: bash
 
-	# ------||----------------||---------------------------||---------------------------||-------------------||-----------||------------
-	#   RoI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       || Magnitude || Saturation
-	# ------||----------------||---------------------------||---------------------------||-------------------||-----------||------------
-	# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------||------------
-	#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y ||        -- ||    Counter
-	# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------||------------
-	  {rid} || {tid}| {otype} ||{xmin}|{xmax}|{ymin}|{ymax}|| {S} |     {Sx} |     {Sy} ||    {cx} |    {cy} ||     {mag} ||      {sat}
+	# ------||----------------||---------------------------||------------------------------------------------------------------||-------------------||-----------||------------||--------------------------
+	#   RoI ||      Track     ||        Bounding Box       ||                      Surface (S in pixels)                       ||      Center       || Magnitude || Saturation ||         Ellipse
+	# ------||----------------||---------------------------||------------------------------------------------------------------||-------------------||-----------||------------||--------------------------
+	# ------||------|---------||------|------|------|------||-----|----------|----------|------------|------------|------------||---------|---------||-----------||------------||--------|--------|--------
+	#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy |        Sx2 |        Sy2 |        Sxy ||       x |       y ||        -- ||    Counter ||      a |      b |  ratio
+	# ------||------|---------||------|------|------|------||-----|----------|----------|------------|------------|------------||---------|---------||-----------||------------||--------|--------|--------
+	  {rid} || {tid}| {otype} ||{xmin}|{xmax}|{ymin}|{ymax}|| {S} |     {Sx} |     {Sy} |      {Sx2} |      {Sy2} |      {Sxy} ||    {cx} |    {cy} ||     {mag} ||      {sat} ||    {a} |    {b} |    {r}
 
 Each line corresponds to one |RoI|:
 
@@ -504,12 +504,27 @@ Each line corresponds to one |RoI|:
 - ``{S}``: surface (area) of the |RoI| in pixels,
 - ``{Sx}``: sum of :math:`x` properties,
 - ``{Sy}``: sum of :math:`y` properties,
+- ``{Sx2}``: sum of :math:`x^2` properties,
+- ``{Sy2}``: sum of :math:`y^2` properties,
+- ``{Sxy}``: sum of :math:`x \times y` properties,
 - ``{cx}``: :math:`x` center of mass,
 - ``{cy}``: :math:`y` center of mass,
 - ``{mag}``: magnitude of the current |RoI| (accumulated brightness of the
-  |RoI|, see the :func:`_features_compute_magnitude` function),
-- ``{sat}``: number of pixels that are saturated in the current |RoI| (a pixel :math:`x` is saturated when its intensity
-  :math:`i_x = 255`, see the :func:`_features_compute_magnitude` function).
+  |RoI|),
+- ``{sat}``: number of pixels that are saturated in the current |RoI| (a pixel
+  :math:`x` is saturated when its intensity :math:`i_x = 255`),
+- ``{a}``: semi-major axis (ellipse),
+- ``{b}``: semi-minor axis (ellipse),
+- ``{r}``: ratio :math:`a / b`.
+
+``{mag}`` and ``{sat}`` features are not enabled by default (and the ``-``
+character is printed in the corresponding columns). To enable theses features
+you need to use the :ref:`detect_trk-mag-path` command line parameter. For more
+information about those features you can refer to the
+:func:`_features_compute_magnitude` function.
+
+``{a}``, ``{b}`` and ``{r}`` features are not implemented yet and the ``-``
+character is printed in the corresponding columns.
 
 Table 3: List of associations between |RoIs|
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

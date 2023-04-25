@@ -372,6 +372,9 @@ int main(int argc, char** argv) {
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_S(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_Sx(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_Sy(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint64_t> delayer_RoIs_Sx2(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint64_t> delayer_RoIs_Sy2(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint64_t> delayer_RoIs_Sxy(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<float> delayer_RoIs_x(MAX_ROI_SIZE, 0.f);
     aff3ct::module::Delayer<float> delayer_RoIs_y(MAX_ROI_SIZE, 0.f);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_magnitude(MAX_ROI_SIZE, 0);
@@ -385,6 +388,9 @@ int main(int argc, char** argv) {
     delayer_RoIs_S.set_custom_name("D<RoIs_S>");
     delayer_RoIs_Sx.set_custom_name("D<RoIs_Sx>");
     delayer_RoIs_Sy.set_custom_name("D<RoIs_Sy>");
+    delayer_RoIs_Sx2.set_custom_name("D<RoIs_Sx2>");
+    delayer_RoIs_Sy2.set_custom_name("D<RoIs_Sy2>");
+    delayer_RoIs_Sxy.set_custom_name("D<RoIs_Sxy>");
     delayer_RoIs_x.set_custom_name("D<RoIs_x>");
     delayer_RoIs_y.set_custom_name("D<RoIs_y>");
     delayer_RoIs_magnitude.set_custom_name("D<RoIs_mag>");
@@ -483,6 +489,9 @@ int main(int argc, char** argv) {
     merger[ftr_mrg::sck::merge::in_RoIs_S] = extractor[ftr_ext::sck::extract::out_RoIs_S];
     merger[ftr_mrg::sck::merge::in_RoIs_Sx] = extractor[ftr_ext::sck::extract::out_RoIs_Sx];
     merger[ftr_mrg::sck::merge::in_RoIs_Sy] = extractor[ftr_ext::sck::extract::out_RoIs_Sy];
+    merger[ftr_mrg::sck::merge::in_RoIs_Sx2] = extractor[ftr_ext::sck::extract::out_RoIs_Sx2];
+    merger[ftr_mrg::sck::merge::in_RoIs_Sy2] = extractor[ftr_ext::sck::extract::out_RoIs_Sy2];
+    merger[ftr_mrg::sck::merge::in_RoIs_Sxy] = extractor[ftr_ext::sck::extract::out_RoIs_Sxy];
     merger[ftr_mrg::sck::merge::in_RoIs_x] = extractor[ftr_ext::sck::extract::out_RoIs_x];
     merger[ftr_mrg::sck::merge::in_RoIs_y] = extractor[ftr_ext::sck::extract::out_RoIs_y];
     merger[ftr_mrg::sck::merge::in_n_RoIs] = lsl[ccl::sck::apply::out_n_RoIs];
@@ -512,6 +521,9 @@ int main(int argc, char** argv) {
     delayer_RoIs_S[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_RoIs_id];
     delayer_RoIs_Sx[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_RoIs_id];
     delayer_RoIs_Sy[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_RoIs_id];
+    delayer_RoIs_Sx2[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_RoIs_id];
+    delayer_RoIs_Sy2[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_RoIs_id];
+    delayer_RoIs_Sxy[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_RoIs_id];
     delayer_RoIs_x[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_RoIs_id];
     delayer_RoIs_y[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg::sck::merge::out_RoIs_id];
     delayer_RoIs_magnitude[aff3ct::module::dly::tsk::produce] = magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
@@ -562,6 +574,9 @@ int main(int argc, char** argv) {
     delayer_RoIs_S[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_RoIs_S];
     delayer_RoIs_Sx[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_RoIs_Sx];
     delayer_RoIs_Sy[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_RoIs_Sy];
+    delayer_RoIs_Sx2[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_RoIs_Sx2];
+    delayer_RoIs_Sy2[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_RoIs_Sy2];
+    delayer_RoIs_Sxy[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_RoIs_Sxy];
     delayer_RoIs_x[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_RoIs_x];
     delayer_RoIs_y[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg::sck::merge::out_RoIs_y];
     delayer_RoIs_magnitude[aff3ct::module::dly::sck::memorize::in] = magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
@@ -577,6 +592,9 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs0_S] = delayer_RoIs_S[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_Sx] = delayer_RoIs_Sx[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_Sy] = delayer_RoIs_Sy[aff3ct::module::dly::sck::produce::out];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sx2] = delayer_RoIs_Sx2[aff3ct::module::dly::sck::produce::out];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sy2] = delayer_RoIs_Sy2[aff3ct::module::dly::sck::produce::out];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sxy] = delayer_RoIs_Sxy[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_x] = delayer_RoIs_x[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_y] = delayer_RoIs_y[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_magnitude] = delayer_RoIs_magnitude[aff3ct::module::dly::sck::produce::out];
@@ -590,6 +608,9 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs1_S] = merger[ftr_mrg::sck::merge::out_RoIs_S];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_Sx] = merger[ftr_mrg::sck::merge::out_RoIs_Sx];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_Sy] = merger[ftr_mrg::sck::merge::out_RoIs_Sy];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sx2] = merger[ftr_mrg::sck::merge::out_RoIs_Sx2];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sy2] = merger[ftr_mrg::sck::merge::out_RoIs_Sy2];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sxy] = merger[ftr_mrg::sck::merge::out_RoIs_Sxy];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_x] = merger[ftr_mrg::sck::merge::out_RoIs_x];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_y] = merger[ftr_mrg::sck::merge::out_RoIs_y];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_magnitude] = magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
@@ -681,6 +702,9 @@ int main(int argc, char** argv) {
               &delayer_RoIs_S[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_Sx[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_Sy[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_Sx2[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_Sy2[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_Sxy[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_x[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::produce],
@@ -697,6 +721,9 @@ int main(int argc, char** argv) {
               &delayer_RoIs_S[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_Sx[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_Sy[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_Sx2[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_Sy2[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_Sxy[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_x[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::memorize],
@@ -733,6 +760,9 @@ int main(int argc, char** argv) {
               &delayer_RoIs_S[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_Sx[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_Sy[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_Sx2[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_Sy2[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_Sxy[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_x[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::produce],
@@ -748,6 +778,9 @@ int main(int argc, char** argv) {
               &delayer_RoIs_S[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_Sx[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_Sy[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_Sx2[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_Sy2[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_Sxy[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_x[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::memorize],

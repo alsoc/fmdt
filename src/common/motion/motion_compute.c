@@ -31,12 +31,13 @@ void _motion_rigid_registration_corrected(const float* RoIs0_x, const float* RoI
 
     // parcours tab assos
     for (size_t i = 0; i < n_RoIs1; i++) {
-        if (RoIs1_error != NULL && fabs(RoIs1_error[i] - mean_error) > std_deviation) {
-            RoIs1_is_moving[i] = 1;
-            continue;
-        }
         asso = RoIs1_prev_id[i];
         if (asso) {
+            if (RoIs1_error != NULL && fabs(RoIs1_error[i] - mean_error) > std_deviation) {
+                RoIs1_is_moving[i] = 1;
+                continue;
+            }
+
             Sx += RoIs0_x[asso - 1];
             Sy += RoIs0_y[asso - 1];
             Sxp += RoIs1_x[i];

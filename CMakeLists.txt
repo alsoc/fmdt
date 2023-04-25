@@ -6,6 +6,7 @@ project(fmdt)
 # CMake options ---------------------------------------------------------------
 # -----------------------------------------------------------------------------
 option(FMDT_DETECT_EXE "compile the detection chain executable." ON)
+option(FMDT_ELLIPSE_EXE "compile the ellipse chain executable." ON)
 option(FMDT_VISU_EXE "compile the visualization executable." ON)
 option(FMDT_CHECK_EXE "compile the checking executable." ON)
 option(FMDT_MAXRED_EXE "compile the max reduction executable." ON)
@@ -23,6 +24,7 @@ endif()
 # -----------------------------------------------------------------------------
 message(STATUS "FMDT options: ")
 message(STATUS "  * FMDT_DETECT_EXE: '${FMDT_DETECT_EXE}'")
+message(STATUS "  * FMDT_ELLIPSE_EXE: '${FMDT_ELLIPSE_EXE}'")
 message(STATUS "  * FMDT_VISU_EXE: '${FMDT_VISU_EXE}'")
 message(STATUS "  * FMDT_CHECK_EXE: '${FMDT_CHECK_EXE}'")
 message(STATUS "  * FMDT_MAXRED_EXE: '${FMDT_MAXRED_EXE}'")
@@ -208,13 +210,29 @@ if(FMDT_DETECT_EXE)
 		set(src_detectrt2_files
 		    ${src_dir}/mains/detect_rt2.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt2_files})
-		add_executable(fmdt-detect-rt2-exe
+		add_executable(fmdt-detect-rt2-seq-exe
 		    $<TARGET_OBJECTS:fmdt-common-obj>
 		    $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
 		    ${src_detectrt2_files})
-		list(APPEND fmdt_targets_list fmdt-detect-rt2-exe)
-		set_target_properties(fmdt-detect-rt2-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2)
+		list(APPEND fmdt_targets_list fmdt-detect-rt2-seq-exe)
+		set_target_properties(fmdt-detect-rt2-seq-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2-seq)
+
+		add_executable(fmdt-detect-rt2-pip-exe
+		    $<TARGET_OBJECTS:fmdt-common-obj>
+		    $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
+		    ${src_detectrt2_files})
+		list(APPEND fmdt_targets_list fmdt-detect-rt2-pip-exe)
+		set_target_properties(fmdt-detect-rt2-pip-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2-pip)
+		target_compile_definitions(fmdt-detect-rt2-pip-exe PUBLIC FMDT_ENABLE_PIPELINE)
 	endif()
+endif()
+if(FMDT_ELLIPSE_EXE)
+	set(src_ellipse_files
+	    ${src_dir}/mains/ellipse.c)
+	list(APPEND fmdt_src_list ${src_ellipse_files})
+	add_executable(fmdt-ellipse-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_ellipse_files})
+	list(APPEND fmdt_targets_list fmdt-ellipse-exe)
+	set_target_properties(fmdt-ellipse-exe PROPERTIES OUTPUT_NAME fmdt-ellipse)
 endif()
 if(FMDT_VISU_EXE)
 	set(src_visu_files
