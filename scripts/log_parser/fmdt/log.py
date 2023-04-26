@@ -562,7 +562,7 @@ class LogParser:
                 sys.exit(1)
             for rid in tracks2RoIs[tid]:
                 entry = {}
-                if rid == 0:
+                if rid == 0: # TODO: compute extrapolation
                     xcenter = None
                     ycenter = None
                     xradius = None

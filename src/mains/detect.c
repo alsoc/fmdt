@@ -42,7 +42,6 @@ int main(int argc, char** argv) {
     int def_p_trk_meteor_min = 3;
     int def_p_trk_meteor_max = 100;
     float def_p_trk_ddev = 4.f;
-    char* def_p_trk_bb_path = NULL;
     char* def_p_trk_roi_path = NULL;
     char* def_p_log_path = NULL;
 
@@ -124,9 +123,6 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --trk-all           Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
-                "  --trk-bb-path       Path to the file containing the bounding boxes (frame by frame)        [%s]\n",
-                def_p_trk_bb_path ? def_p_trk_bb_path : "NULL");
-        fprintf(stderr,
                 "  --trk-roi-path      Path to the file containing the RoI ids for each track                 [%s]\n",
                 def_p_trk_roi_path ? def_p_trk_roi_path : "NULL");
         fprintf(stderr,
@@ -175,7 +171,6 @@ int main(int argc, char** argv) {
     const int p_trk_meteor_max = args_find_int_min(argc, argv, "--trk-meteor-max,--fra-meteor-max", def_p_trk_meteor_max, 2);
     const float p_trk_ddev = args_find_float_min(argc, argv, "--trk-ddev,--diff-dev", def_p_trk_ddev, 0.f);
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
-    const char* p_trk_bb_path = args_find_char(argc, argv, "--trk-bb-path,--out-bb", def_p_trk_bb_path);
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
 
@@ -215,7 +210,6 @@ int main(int argc, char** argv) {
     printf("#  * trk-meteor-max = %d\n", p_trk_meteor_max);
     printf("#  * trk-ddev       = %4.2f\n", p_trk_ddev);
     printf("#  * trk-all        = %d\n", p_trk_all);
-    printf("#  * trk-bb-path    = %s\n", p_trk_bb_path);
     printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * log-path       = %s\n", p_log_path);
 
@@ -271,9 +265,6 @@ int main(int argc, char** argv) {
     RoIs_t* RoIs1 = features_alloc_RoIs(p_cca_mag, p_cca_mag, false, MAX_ROI_SIZE);
     CCL_data_t* ccl_data = CCL_LSL_alloc_data(i0, i1, j0, j1);
     kNN_data_t* knn_data = kNN_alloc_data(MAX_ROI_SIZE);
-    vec_BB_t* BBs = NULL;
-    if (p_trk_bb_path)
-        BBs = (vec_BB_t*)vector_create();
     tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_star_min, p_trk_meteor_min), MAX_ROI_SIZE);
     int b = 1; // image border
     uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // grayscale input image
@@ -333,9 +324,9 @@ int main(int argc, char** argv) {
         motion_compute(RoIs0->basic, RoIs1->basic, RoIs1->asso, RoIs1->motion, &motion_est1, &motion_est2);
 
         // step 6: tracking
-        tracking_perform(tracking_data, RoIs1, &BBs, cur_fra, &motion_est2, p_trk_ext_d, p_trk_angle,
-                         p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min, p_trk_meteor_max,
-                         p_trk_roi_path != NULL, p_trk_ext_o, p_knn_s);
+        tracking_perform(tracking_data, RoIs1, cur_fra, &motion_est2, p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all,
+                         p_trk_star_min, p_trk_meteor_min, p_trk_meteor_max, p_trk_roi_path != NULL, p_trk_ext_o,
+                         p_knn_s);
 
         // save frames (CCs)
         if (img_data) {
@@ -379,16 +370,6 @@ int main(int argc, char** argv) {
     }
     fprintf(stderr, "\n");
 
-    if (BBs) {
-        FILE* f = fopen(p_trk_bb_path, "w");
-        if (f == NULL) {
-            fprintf(stderr, "(EE) error while opening '%s'\n", p_trk_bb_path);
-            exit(1);
-        }
-        tracking_BBs_write(f, BBs, tracking_data->tracks);
-        fclose(f);
-    }
-
     if (p_trk_roi_path) {
         FILE* f = fopen(p_trk_roi_path, "w");
         if (f == NULL) {
@@ -424,12 +405,6 @@ int main(int argc, char** argv) {
     }
     CCL_LSL_free_data(ccl_data);
     kNN_free_data(knn_data);
-    if (BBs) {
-        size_t vs = vector_size(BBs);
-        for (size_t i = 0; i < vs; i++)
-            vector_free(BBs[i]);
-        vector_free(BBs);
-    }
     tracking_free_data(tracking_data);
 
     printf("# End of the program, exiting.\n");

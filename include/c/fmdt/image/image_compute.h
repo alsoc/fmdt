@@ -6,7 +6,6 @@
 #pragma once
 
 #include "fmdt/features/features_struct.h"
-#include "fmdt/tracking/tracking_struct.h"
 #include "fmdt/image/image_struct.h"
 
 /**

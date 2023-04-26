@@ -46,25 +46,6 @@ enum change_state_reason_e { REASON_UNKNOWN = 0, /*!< Unknown (= uninitialized).
 typedef uint32_t* vec_uint32_t;
 
 /**
- *  Bounding box structure. Used to represent the bounding box around a RoI.
- */
-typedef struct {
-    uint32_t frame_id; /*!< Frame id corresponding to the bounding box. */
-    uint32_t track_id; /*!< Track id corresponding to the bounding box. */
-    uint32_t bb_x; /*!< Center \f$x\f$ of the bounding box. */
-    uint32_t bb_y; /*!< Center \f$y\f$ of the bounding box. */
-    uint32_t rx; /*!< Radius \f$x\f$ of the bounding box. */
-    uint32_t ry; /*!< Radius \f$y\f$ of the bounding box. */
-    int is_extrapolated; /*!< Boolean that defines if the bounding box is a real bounding box (from a
-                              connected-component) or if it has been extrapolated in the tracking. */
-} BB_t;
-
-/**
- *  Vector of `BB_t`, to use with C vector lib.
- */
-typedef BB_t* vec_BB_t;
-
-/**
  *  Features required in the tracking.
  */
 typedef struct {

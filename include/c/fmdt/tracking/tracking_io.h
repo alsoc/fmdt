@@ -36,11 +36,3 @@ void tracking_tracks_RoIs_id_write(FILE* f, const vec_track_t tracks);
  * @param tracks A vector of tracks.
  */
 void tracking_parse_tracks(const char* filename, vec_track_t* tracks);
-
-/**
- * Print list of bounding boxes. Each line corresponds to a bounding boxes.
- * @param f File descriptor (in write mode).
- * @param BBs A 2D vector of bounding boxes (first dimension is the frames, second dimensions is the bounding boxes).
- * @param tracks A vector of tracks.
- */
-void tracking_BBs_write(FILE* f, const vec_BB_t* BBs, const vec_track_t tracks);

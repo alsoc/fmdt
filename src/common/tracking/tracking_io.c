@@ -59,22 +59,6 @@ void tracking_tracks_write_full(FILE* f, const vec_track_t tracks) {
         }
 }
 
-void tracking_BBs_write(FILE* file, const vec_BB_t* BBs, const vec_track_t tracks) {
-    assert(BBs != NULL);
-
-    vec_BB_t* BBs_hack = (vec_BB_t*)BBs;
-    size_t vs1 = vector_size(BBs_hack);
-    for (size_t f = 0; f < vs1; f++) {
-        size_t vs2 = vector_size(BBs[f]);
-        for (size_t t = 0; t < vs2; t++) {
-            if (tracks[BBs[f][t].track_id - 1].id) {
-                fprintf(file, "%d %d %d %d %d %d %d \n", BBs[f][t].frame_id, BBs[f][t].rx, BBs[f][t].ry, BBs[f][t].bb_x,
-                        BBs[f][t].bb_y, BBs[f][t].track_id, BBs[f][t].is_extrapolated);
-            }
-        }
-    }
-}
-
 void tracking_tracks_RoIs_id_write(FILE* f, const vec_track_t tracks) {
     size_t n_tracks = vector_size(tracks);
     for (size_t i = 0; i < n_tracks; i++)

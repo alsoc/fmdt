@@ -5,20 +5,17 @@
 
 Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float diff_dev, const int track_all,
                    const size_t fra_star_min, const size_t fra_meteor_min, const size_t fra_meteor_max,
-                   const bool out_bb, const bool save_RoIs_id, const uint8_t extrapol_order_max,
-                   const float min_extrapol_ratio_S, const size_t max_RoIs_size)
+                   const bool save_RoIs_id, const uint8_t extrapol_order_max, const float min_extrapol_ratio_S,
+                   const size_t max_RoIs_size)
 : Module(), r_extrapol(r_extrapol), angle_max(angle_max), diff_dev(diff_dev), track_all(track_all),
   save_RoIs_id(save_RoIs_id), fra_star_min(fra_star_min), fra_meteor_min(fra_meteor_min),
   fra_meteor_max(fra_meteor_max), extrapol_order_max(extrapol_order_max), min_extrapol_ratio_S(min_extrapol_ratio_S),
-  max_RoIs_size(max_RoIs_size), tracking_data(nullptr), BBs(nullptr) {
+  max_RoIs_size(max_RoIs_size), tracking_data(nullptr) {
     const std::string name = "Tracking";
     this->set_name(name);
     this->set_short_name(name);
 
     this->tracking_data = tracking_alloc_data(std::max(fra_star_min, fra_meteor_min), max_RoIs_size);
-
-    if (out_bb)
-        this->BBs = (vec_BB_t*)vector_create();
 
     auto &p = this->create_task("perform");
 
@@ -59,7 +56,6 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                           static_cast<const float*>(t[ps_in_RoIs_error].get_dataptr()),
                           static_cast<const uint32_t*>(t[ps_in_RoIs_prev_id].get_dataptr()),
                           n_RoIs,
-                          &trk.BBs,
                           frame,
                           static_cast<const motion_t*>(t[ps_in_motion_est].get_dataptr()),
                           trk.r_extrapol, trk.angle_max, trk.diff_dev, trk.track_all, trk.fra_star_min,
@@ -72,10 +68,4 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
 
 Tracking::~Tracking() {
     tracking_free_data(this->tracking_data);
-    if (this->BBs) {
-        size_t vs = vector_size(this->BBs);
-        for (size_t i = 0; i < vs; i++)
-            vector_free(this->BBs[i]);
-        vector_free(this->BBs);
-    }
 }
