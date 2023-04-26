@@ -2,6 +2,7 @@ import os
 import sys
 import re
 import shutil
+import math
 
 class LogParser:
     # list of tables to parse in the FMDT log files
@@ -37,7 +38,7 @@ class LogParser:
         "Assocs": {
             "name": "Assocs",
             "regex": ["^# Associations.*[0-9]*:$"],
-            # "id": "rid_t",
+            # "id": "rid_t", # uncomment this line to index associations with `rid_t`
             "cols_rename": {
                 "roi id_t-1": "rid_t-1",
                 "roi id_t": "rid_t",
@@ -90,8 +91,8 @@ class LogParser:
 
         Parameters
         ----------
-        `lines` (list[str]): A list of strings. Each string corresponds to a line in
-            the FMDT log file.
+        `lines` (list[str]): A list of strings. Each string corresponds to a
+            line in the FMDT log file.
         `startLineId` (int): The start id in the list of `lines`.
         `tableInfo` (dict): A dictionary that describes how to parse the current
             table. The dictionary has the following form
@@ -110,8 +111,8 @@ class LogParser:
         -------
         (`entries`, `curLineId`) (dict, int): `entries` is a dictionary of the
             parsed item in the table. Each entry key corresponds to the `id`
-            specified in the `tableInfo` input parameter. If the `id` field is not
-            specified in `tableInfo` then the returned `entries` are not a
+            specified in the `tableInfo` input parameter. If the `id` field is
+            not specified in `tableInfo` then the returned `entries` are not a
             dictionary but a list. `curLineId` is the current id in the list of
             `lines` (after parsing the table).
         """
@@ -207,8 +208,9 @@ class LogParser:
 
         Parameters
         ----------
-        `filePath` (str): A path to a file (without the file name). For instance,
-            '/home/toto/dir/' is valid and '/home/toto/dir/00012.txt' is NOT.
+        `filePath` (str): A path to a file (without the file name). For
+            instance, '/home/toto/dir/' is valid and '/home/toto/dir/00012.txt'
+            is NOT.
         `fileBasename` (str): File name without the full path. For instance,
             '00012.txt' is valid and '/home/toto/dir/00012.txt' is NOT.
 
@@ -218,10 +220,10 @@ class LogParser:
             parsed table in the file. `frameId` is the identifier of the frame
             corresponding of the file parsed. `curFrame` has the following form:
             {
-                "RoIs": {},
-                "Assocs": {},
-                "Motion": {}
-                "Tracks": {},},
+                "RoIs": {...},
+                "Assocs": {...},
+                "Motion": {...},
+                "Tracks": {...},},
             }
         """
 
@@ -271,32 +273,32 @@ class LogParser:
         return (curFrame, frameId)
 
     @staticmethod
-    def parseFiles(path:str, fileNameFilter:str):
+    def parseFiles(path:str, fileNameFilter:str=".*"):
         """Parse information from one or multiple FMDT log files.
 
         Parameters
         ----------
         `path` (str): A path to a file or the a directory of FMDT log files.
-        `fileNameFilter` (str): Regex for the file name. If the regex is not matched
-            then the file is not parsed.
+        `fileNameFilter` (str): Regex for the file name. If the regex is not
+            matched then the file is not parsed.
 
         Returns
         -------
-        `frames` (dict): dictionary of the parsed files. `frames` is indexed by the
-            frame id:
+        `frames` (dict): dictionary of the parsed files. `frames` is indexed by
+            the frame id:
             {
                 firstId: {
                     "frame_id": firstId,
-                    "RoIs": {},
-                    "Assocs": {},
-                    "Motion": {}
-                    "Tracks": {},},
+                    "RoIs": {...},
+                    "Assocs": {...},
+                    "Motion": {...},
+                    "Tracks": {...},},
                 secondId: {
                     "frame_id": secondId,
-                    "RoIs": {},
-                    "Assocs": {},
-                    "Motion": {}
-                    "Tracks": {},},
+                    "RoIs": {...},
+                    "Assocs": {...},
+                    "Motion": {...},
+                    "Tracks": {...},},
             }
         """
 
@@ -327,3 +329,313 @@ class LogParser:
             print("Done.", end="\r")
         print("", end="\n")
         return frames
+
+    @staticmethod
+    def parseTracks2RoIsFile(path:str, fileNameFilter:str=".*"):
+        """Parse tracks to RoIs files.
+
+        Parameters
+        ----------
+        `path` (str): A path to a file containing the RoI ids per track id.
+        `fileNameFilter` (str): Regex for the file name. If the regex is not
+            matched then the file is not parsed.
+
+        Returns
+        -------
+        `tracks2RoIs` (dict): dictionary of the entries. `tracks2RoIs` is
+            indexed by track id (`tid`):
+            {
+                tid1: [rid1_1, rid1_2, ...],
+                tid2: [rid2_1, rid2_1, rid2_3, ...],
+                tid3: [rid3_1, ...],
+                ...
+            }
+            Note that if `ridx_y` == 0, it means that the track has been
+            extrapolated for this frame and thus, there is no corresponding RoI.
+        """
+
+        if not os.path.isfile(path):
+            print("(EE) The given path is not a file")
+            sys.exit(1)
+
+        f = open(path, "r")
+        lines = f.readlines()
+        f.close()
+
+        tracks2RoIs = {}
+        for line in lines:
+            regex = re.compile(r"\s+")
+            line2 = regex.sub(" ", line).strip()
+            cols = line2.split(" ")
+
+            tid = int(cols[0].strip())
+            RoIIds = []
+            for col in cols[2:]:
+                RoIIds.append(int(col))
+            tracks2RoIs[tid] = RoIIds
+
+        return tracks2RoIs
+
+    @staticmethod
+    def getLastTracks(frames:dict):
+        """Return the tracks from the last frame.
+
+        Parameters
+        ----------
+        `frames` (dict): a dictionnary of frames.
+
+        Returns
+        -------
+        Return the tracks from the last frame.
+            {
+                tid1: {
+                    "tid": tid1,
+                    "fbeg": fbeg1,
+                    "xbeg": xbeg1,
+                    "ybeg": ybeg1,
+                    "fend": fend1,
+                    "xend": xend1,
+                    "yend": yend1,
+                    "otype": otype1,
+                    "reason": reason1},
+                tid2: {
+                    "tid": tid2,
+                    "fbeg": fbeg2,
+                    "xbeg": xbeg2,
+                    "ybeg": ybeg2,
+                    "fend": fend2,
+                    "xend": xend2,
+                    "yend": yend2,
+                    "otype": otype2,
+                    "reason": reason2},
+                ...
+            }
+        """
+        lastFrame = sorted(frames.keys())[-1]
+        return frames[lastFrame]["Tracks"]
+
+    @staticmethod
+    def insertRoIsInTracks(tracks:dict, frames:dict, tracks2RoIs:dict):
+        """Insert the RoIs into a `tracks` dictionnary.
+
+        Parameters
+        ----------
+        `tracks` (dict): a dictionnary of tracks.
+        `frames` (dict): a dictionnary of frames.
+        `tracks2RoIs` (dict): a dictionnary that containd RoIs corresponding to
+            each track.
+
+        Returns
+        -------
+        `tracks` (dict): the tracks with a new field containing the list of
+            associated RoIs:
+            {
+                tid1: {
+                    "tid": tid1,
+                    "fbeg": fbeg1,
+                    "xbeg": xbeg1,
+                    "ybeg": ybeg1,
+                    "fend": fend1,
+                    "xend": xend1,
+                    "yend": yend1,
+                    "otype": otype1,
+                    "reason": reason1,
+                    "RoIs": [{RoI1_1}, {RoI1_2}, ...]}, <==
+                tid2: {
+                    "tid": tid2,
+                    "fbeg": fbeg2,
+                    "xbeg": xbeg2,
+                    "ybeg": ybeg2,
+                    "fend": fend2,
+                    "xend": xend2,
+                    "yend": yend2,
+                    "otype": otype2,
+                    "reason": reason2,
+                    "RoIs": [{RoI2_1}, ...]}, <==
+                ...
+            }
+        """
+
+        for tid in tracks2RoIs:
+            fbeg = tracks[tid]["fbeg"]
+            fend = tracks[tid]["fend"]
+            flen = fend - fbeg + 1
+            if flen != len(tracks2RoIs[tid]):
+                print("(EE) len(tracks2RoIs[tid]) != flen, tid = " + str(tid) + ", flen = " + str(flen) + ", len(tracks2RoIs[tid]) = " + str(len(tracks2RoIs[tid])))
+                sys.exit(-1)
+            RoIs = []
+            f = 0
+            for rid in tracks2RoIs[tid]:
+                if "RoIs" not in frames[fbeg + f]:
+                    print("(EE) \"RoIs\" not in frames[fbeg + f], fbeg = " + str(fbeg) + ", f = " + str(f))
+                    sys.exit(-1)
+                if rid != 0:
+                    RoIs.append(frames[fbeg + f]["RoIs"][rid])
+                else:
+                    RoIs.append(None)
+                f += 1
+            tracks[tid]["RoIs"] = RoIs
+        return tracks
+
+    @staticmethod
+    def extractFeature(tracks:dict, feature:str, path:str):
+        """Extract a given RoI feature per track.
+
+        Write this feature into a file in the following form:
+
+        ```
+        {tid} {otype} {f1} {f2} {...} {fn}
+        ```
+
+        Each line corresponds to a track/object. `{f1}` is the first feature
+        value of the track/object of `{tid}` id. `{f2}` is the second feature
+        value (in the second frame where the object has been tracked). And so
+        on, until the last feature value `{fn}`. Note that sometime the feature
+        value can be `0`, it means that the object has been extrapolated on this
+        frame, thus the feature cannot be computed.
+
+        Parameters
+        ----------
+        `tracks` (dict): a dictionnary of tracks.
+        `feature` (str): name of the feature field in the RoIs.
+        `path` (srt): path to the file to write the features.
+        """
+
+        f = open(path, "w")
+        for tid in tracks:
+            f.write(str(tid) + " " + tracks[tid]["otype"] + " ")
+            if "RoIs" not in tracks[tid]:
+                print("(EE) \"RoIs\" not in tracks[tid], tid = " + str(tid))
+                sys.exit(-1)
+
+            for roi in tracks[tid]["RoIs"]:
+                if roi == None:
+                    f.write(str(0) + " ")
+                else:
+                    if feature not in roi:
+                        print("(EE) feature not in roi, feature = " + feature)
+                        sys.exit(-1)
+                    f.write(str(roi[feature]) + " ")
+            f.write("\n")
+        f.close()
+
+    @staticmethod
+    def getBoundingBoxes(tracks:dict, frames:dict, tracks2RoIs:dict):
+        """Extract the list of bounding boxes sorted by frame order.
+
+        Parameters
+        ----------
+        `tracks` (dict): a dictionnary of tracks.
+        `frames` (dict): a dictionnary of frames.
+        `tracks2RoIs` (dict): a dictionnary that containd RoIs corresponding to
+            each track.
+
+        Returns
+        -------
+        `bbs` (list): a list of bounding boxes in the following form:
+            [{
+                "fid": fid1,
+                "x_radius": xrad1,
+                "y_radius": yrad1,
+                "x_center": xcen1,
+                "y_center": ycen1,
+                "tid": tid1,
+                "extrapolated": True of False,
+            }, {
+                "fid": fid2,
+                "x_radius": xrad2,
+                "y_radius": yrad2,
+                "x_center": xcen2,
+                "y_center": ycen2,
+                "tid": tid2,
+                "extrapolated": True of False,
+            }, ...
+            ]
+        """
+
+        for tid in tracks2RoIs:
+            fbeg = tracks[tid]["fbeg"]
+            fend = tracks[tid]["fend"]
+            fcur = fbeg
+            if len(tracks2RoIs[tid]) != (fend - fbeg + 1):
+                print("(EE) len(tracks2RoIs[tid]) != (fend - fbeg + 1)")
+                sys.exit(1)
+            for rid in tracks2RoIs[tid]:
+                entry = {}
+                if rid == 0:
+                    xcenter = None
+                    ycenter = None
+                    xradius = None
+                    yradius = None
+                else:
+                    xmin = frames[fcur]["RoIs"][rid]["xmin"]
+                    xmax = frames[fcur]["RoIs"][rid]["xmax"]
+                    ymin = frames[fcur]["RoIs"][rid]["ymin"]
+                    ymax = frames[fcur]["RoIs"][rid]["ymax"]
+                    xcenter = math.ceil((xmin + xmax) / 2)
+                    ycenter = math.ceil((ymin + ymax) / 2)
+                    xradius = xcenter - xmin
+                    yradius = ycenter - ymin
+
+                entry["x_radius"] = xradius
+                entry["y_radius"] = yradius
+                entry["x_center"] = xcenter
+                entry["y_center"] = ycenter
+                entry["tid"] = tid
+                entry["extrapolated"] = rid == 0
+
+                if "BBs" not in frames[fcur]:
+                    frames[fcur]["BBs"] = []
+                frames[fcur]["BBs"].append(entry)
+
+                fcur += 1
+
+        bbs = []
+        for fid in frames:
+            if "BBs" in frames[fid]:
+                for b in frames[fid]["BBs"]:
+                    bb = {}
+                    bb["fid"] = fid
+                    bb["x_radius"] = b["x_radius"]
+                    bb["y_radius"] = b["y_radius"]
+                    bb["x_center"] = b["x_center"]
+                    bb["y_center"] = b["y_center"]
+                    bb["tid"] = b["tid"]
+                    bb["extrapolated"] = b["extrapolated"]
+                    bbs.append(bb)
+
+        return bbs
+
+    @staticmethod
+    def writeBoundingBoxes(bbs:list, path:str):
+        """Write the bounding boxes in a file.
+
+        Parameters
+        ----------
+        `bbs` (list): a list of bounding boxes ordered by frame id
+        `path` (str): a path to a file to write the bounding boxes
+        """
+
+        f = open(path, "w")
+
+        for bb in bbs:
+
+            fid = bb["fid"]
+            xradius = bb["x_radius"]
+            yradius = bb["y_radius"]
+            xcenter = bb["x_center"]
+            ycenter = bb["y_center"]
+            tid = bb["tid"]
+            if bb["extrapolated"]:
+                extrapolated = 1
+            else:
+                extrapolated = 0
+
+            if xradius == None: xradius = 0
+            if yradius == None: yradius = 0
+            if xcenter == None: xcenter = 0
+            if ycenter == None: ycenter = 0
+
+            f.write(str(fid) + " " + str(xradius) + " " + str(yradius) + " " + str(xcenter) + " " + str(ycenter) + " " + str(tid) + " " + str(extrapolated) + "\n")
+
+        f.close()
