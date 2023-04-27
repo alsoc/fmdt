@@ -419,6 +419,40 @@ class LogParser:
         return frames[lastFrame]["Tracks"]
 
     @staticmethod
+    def writeTracks(tracks:dict, path:str):
+        """Write the tracks.
+
+        Parameters
+        ----------
+        `tracks` (dict): a dictionnary of tracks
+        `path` (str): a path to a file to write the tracks
+        """
+
+        f = open(path, "w")
+
+        f.write("# Tracks [" + str(len(tracks)) + "]:\n")
+        f.write("# -------||---------------------------||---------------------------||---------\n")
+        f.write("#  Track ||           Begin           ||            End            ||  Object \n")
+        f.write("# -------||---------------------------||---------------------------||---------\n")
+        f.write("# -------||---------|--------|--------||---------|--------|--------||---------\n")
+        f.write("#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type \n")
+        f.write("# -------||---------|--------|--------||---------|--------|--------||---------\n")
+
+        for tid in tracks:
+            fbeg = tracks[tid]["fbeg"]
+            xbeg = tracks[tid]["xbeg"]
+            ybeg = tracks[tid]["ybeg"]
+            fend = tracks[tid]["fend"]
+            xend = tracks[tid]["xend"]
+            yend = tracks[tid]["yend"]
+            otype = tracks[tid]["otype"]
+
+            line = '   {:5d} || {:7d} | {:6.1f} | {:6.1f} || {:7d} | {:6.1f} | {:6.1f} || {:>7} \n'.format(tid, fbeg, xbeg, ybeg, fend, xend, yend, otype)
+            f.write(line)
+
+        f.close()
+
+    @staticmethod
     def insertRoIsInTracks(tracks:dict, frames:dict, tracks2RoIs:dict):
         """Insert the RoIs into a `tracks` dictionnary.
 

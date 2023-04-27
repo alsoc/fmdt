@@ -26,9 +26,8 @@ parser.add_argument('-f', '--log-flt',
                     help='regular expression filter for log filenames')
 parser.add_argument('-o', '--fra-path',
                     action='store',
-                    dest='outFramesPath',
+                    dest='framesJsonPath',
                     type=str,
-                    default="frames.json",
                     help='path to store the frames in a JSON format (output)')
 parser.add_argument('-x', '--ftr-name',
                     action='store',
@@ -42,14 +41,18 @@ parser.add_argument('-s', '--ftr-path',
                     help='Path to store the RoI feature extraction (output)')
 parser.add_argument('-b', '--trk-bb-path',
                     action='store',
-                    dest='BoundingBoxesPath',
+                    dest='boundingBoxesPath',
                     type=str,
                     help='Path to store the bounding boxes (output)')
 parser.add_argument('-t', '--trk-path',
                     action='store',
-                    dest='outTracksPath',
+                    dest='tracksPath',
                     type=str,
-                    default="tracks.json",
+                    help='path to store the tracks in a text format for \'fmdt-visu\' and \'fmdt-check\' (output)')
+parser.add_argument('-j', '--trk-json-path',
+                    action='store',
+                    dest='tracksJsonPath',
+                    type=str,
                     help='path to store the last tracks in a JSON format (output)')
 
 args = parser.parse_args()
@@ -63,14 +66,15 @@ print("#  -------------------------");
 print("#");
 print("# Parameters:")
 print("# -----------")
-print("#  * log-path     = \"" + args.logPath + "\"")
-print("#  * trk-roi-path = \"" + args.tracks2RoIsPath + "\"")
-print("#  * log-flt      = \"" + args.logFilter + "\"")
-print("#  * fra-path     = \"" + args.outFramesPath + "\"")
-print("#  * ftr-name     = \"" + args.featureName + "\"")
-print("#  * ftr-path     = \"" + args.featurePath + "\"")
-print("#  * trk-bb-path  = \"" + args.BoundingBoxesPath + "\"")
-print("#  * trk-path     = \"" + args.outTracksPath + "\"")
+print("#  * log-path      = \"" + str(args.logPath) + "\"")
+print("#  * trk-roi-path  = \"" + str(args.tracks2RoIsPath) + "\"")
+print("#  * log-flt       = \"" + str(args.logFilter) + "\"")
+print("#  * fra-path      = \"" + str(args.framesJsonPath) + "\"")
+print("#  * ftr-name      = \"" + str(args.featureName) + "\"")
+print("#  * ftr-path      = \"" + str(args.featurePath) + "\"")
+print("#  * trk-bb-path   = \"" + str(args.boundingBoxesPath) + "\"")
+print("#  * trk-path      = \"" + str(args.tracksPath) + "\"")
+print("#  * trk-json-path = \"" + str(args.tracksJsonPath) + "\"")
 print("#");
 
 if args.featurePath:
@@ -81,7 +85,7 @@ if args.featureName:
     if not args.featurePath:
         print("(EE) \"-s, --feature-path\" has to be specified")
         sys.exit(-1)
-if args.featureName or args.featurePath or args.BoundingBoxesPath:
+if args.featureName or args.featurePath or args.boundingBoxesPath:
     if not args.tracks2RoIsPath:
         print("(EE) \"-r, --trk-roi-path\" has to be specified")
         sys.exit(-1)
@@ -101,27 +105,34 @@ if args.tracks2RoIsPath:
     tracks = fmdt.LogParser.insertRoIsInTracks(tracks, frames, tracks2RoIs)
     print("Done.")
 
-    if args.BoundingBoxesPath:
+    if args.boundingBoxesPath:
         print("# LogParser.getBoundingBoxes()...", end=" ")
         bbs = fmdt.LogParser.getBoundingBoxes(tracks, frames, tracks2RoIs)
         print("Done.")
-        print("# Writing '" + args.BoundingBoxesPath + "' file...", end=' ')
-        fmdt.LogParser.writeBoundingBoxes(bbs, args.BoundingBoxesPath)
+        print("# Writing '" + args.boundingBoxesPath + "' file...", end=' ')
+        fmdt.LogParser.writeBoundingBoxes(bbs, args.boundingBoxesPath)
         print("Done.")
 
-print("# Writing '" + args.outFramesPath + "' file...", end=' ')
-import json
-with open(args.outFramesPath, 'w') as fp:
-    json.dump(frames, fp)
-print("Done.")
-
-if args.outTracksPath:
-    print("# Writing '" + args.outTracksPath + "' file...", end=' ')
+if args.framesJsonPath:
+    print("# Writing '" + args.framesJsonPath + "' file...", end=' ')
     import json
-    with open(args.outTracksPath, 'w') as fp:
+    with open(args.framesJsonPath, 'w') as fp:
+        json.dump(frames, fp)
+    print("Done.")
+
+if args.tracksPath:
+    print("# Writing '" + args.tracksPath + "' file...", end=' ')
+    fmdt.LogParser.writeTracks(tracks, args.tracksPath)
+    print("Done.")
+
+if args.tracksJsonPath:
+    print("# Writing '" + args.tracksJsonPath + "' file...", end=' ')
+    import json
+    with open(args.tracksJsonPath, 'w') as fp:
         json.dump(tracks, fp)
     print("Done.")
 
-print("# Writing '" + args.featurePath + "' file...", end=' ')
-fmdt.LogParser.extractFeature(tracks, args.featureName, args.featurePath)
-print("Done.")
+if args.featurePath:
+    print("# Writing '" + args.featurePath + "' file...", end=' ')
+    fmdt.LogParser.extractFeature(tracks, args.featureName, args.featurePath)
+    print("Done.")
