@@ -60,8 +60,6 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--trk-all``        | BOOLEAN | See :numref:`detect_trk-all`.                      |
 +----------------------+---------+----------------------------------------------------+
-| ``--trk-bb-path``    | STRING  | See :numref:`detect_trk-bb-path`.                  |
-+----------------------+---------+----------------------------------------------------+
 | ``--trk-roi-path``   | STRING  | See :numref:`detect_trk-roi-path`.                 |
 +----------------------+---------+----------------------------------------------------+
 | ``--log-path``       | STRING  | See :numref:`detect_log-path`.                     |
@@ -407,28 +405,6 @@ By default the program only tracks ``meteor`` object type. If ``--trk-all`` is
 set, all object types are tracked (``meteor``, ``star`` or ``noise``).
 
 This parameter is used in the :func:`_tracking_perform` function.
-
-.. _detect_trk-bb-path:
-
-``--trk-bb-path``
------------------
-
-   :Deprecated: ``--out-bb``
-   :Type: STRING
-   :Default: [empty]
-   :Example: ``--trk-bb-path bb.txt``
-
-Path to the bounding boxes file required by ``fmdt-visu`` to draw detection
-rectangles. Each bounding box defines the area of an object, frame by frame.
-
-Here is the corresponding line format:
-
-.. code-block:: bash
-
-	{frame_id} {x_radius} {y_radius} {center_x} {center_y} {track_id} {is_extrapolated}
-
-Each line corresponds to a frame and to an object, each value is separated by a
-space character.
 
 .. _detect_trk-roi-path:
 
