@@ -133,6 +133,18 @@ void image_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xma
     }
 }
 
+void image_max_reduce(uint8_t** I, int i0, int i1, int j0, int j1, uint8_t** M) {
+    for (int i = i0; i <= i1; i++) {
+        for (int j = j0; j <= j1; j++) {
+            uint8_t x = I[i][j];
+            uint8_t m = M[i][j];
+            if (x > m) {
+                M[i][j] = x;
+            }
+        }
+    }
+}
+
 #ifdef FMDT_OPENCV_LINK // this is C++ code (because OpenCV API is C++ now)
 void image_draw_legend_squares(rgb8_t** img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
     //                     ymin      ymax      xmin      xmax      color

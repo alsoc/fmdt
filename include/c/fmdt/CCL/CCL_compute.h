@@ -129,6 +129,9 @@ uint32_t CCL_LSL_threshold_apply(CCL_data_t *CCL_data, const uint8_t** img, uint
  * @param RoIs_S Array of RoI surfaces.
  * @param RoIs_Sx Array of sums of \f$x\f$ properties.
  * @param RoIs_Sy Array of sums of \f$y\f$ properties.
+ * @param RoIs_Sx2 Array of squared sums of \f$x\f$ properties.
+ * @param RoIs_Sy2 Array of squared sums of \f$y\f$ properties.
+ * @param RoIs_Sxy Array of sums of \f$x * y\f$ properties.
  * @param RoIs_x Array of centroids abscissa.
  * @param RoIs_y Array of centroids ordinate.
  * @return Number of labels.
@@ -138,8 +141,8 @@ uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CC
                                            uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
                                            const uint8_t threshold, uint32_t* RoIs_id, uint32_t* RoIs_xmin,
                                            uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
-                                           uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, float* RoIs_x,
-                                           float* RoIs_y);
+                                           uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, uint64_t* RoIs_Sx2,
+                                           uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x, float* RoIs_y);
 
 /**
  * First select pixels according to a threshold, then compute the Light Speed Labeling (LSL) algorithm and
@@ -233,6 +236,9 @@ uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint
  * @param RoIs_S Array of RoI surfaces.
  * @param RoIs_Sx Array of sums of \f$x\f$ properties.
  * @param RoIs_Sy Array of sums of \f$y\f$ properties.
+ * @param RoIs_Sx2 Array of squared sums of \f$x\f$ properties.
+ * @param RoIs_Sy2 Array of squared sums of \f$y\f$ properties.
+ * @param RoIs_Sxy Array of sums of \f$x * y\f$ properties.
  * @param RoIs_x Array of centroids abscissa.
  * @param RoIs_y Array of centroids ordinate.
  * @return Number of labels.
@@ -240,8 +246,8 @@ uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint
 uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
                                        const uint8_t threshold, uint32_t* RoIs_id, uint32_t* RoIs_xmin,
                                        uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
-                                       uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, float* RoIs_x,
-                                       float* RoIs_y);
+                                       uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, uint64_t* RoIs_Sx2,
+                                       uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x, float* RoIs_y);
 
 /**
  * First select pixels according to a threshold, then compute a Connected-Components Labeling algorithm and

@@ -170,7 +170,8 @@ void _LSL_compute_final_image_labeling_features(const uint32_t** CCL_data_er, co
                                                 const int i1, const int j0, const int j1, uint32_t* RoIs_id,
                                                 uint32_t* RoIs_xmin, uint32_t* RoIs_xmax, uint32_t* RoIs_ymin,
                                                 uint32_t* RoIs_ymax, uint32_t* RoIs_S, uint32_t* RoIs_Sx,
-                                                uint32_t* RoIs_Sy, float* RoIs_x, float* RoIs_y, const size_t n_RoIs) {
+                                                uint32_t* RoIs_Sy, uint64_t* RoIs_Sx2, uint64_t* RoIs_Sy2,
+                                                uint64_t* RoIs_Sxy, float* RoIs_x, float* RoIs_y, const size_t n_RoIs) {
     for (size_t i = 0; i < n_RoIs; i++) {
         RoIs_xmin[i] = j1;
         RoIs_xmax[i] = j0;
@@ -202,6 +203,9 @@ void _LSL_compute_final_image_labeling_features(const uint32_t** CCL_data_er, co
                     RoIs_id[r] = val;
                     RoIs_Sx[r] += j;
                     RoIs_Sy[r] += i;
+                    RoIs_Sx2[r] += j * j;
+                    RoIs_Sy2[r] += i * i;
+                    RoIs_Sxy[r] += j * i;
                     if (j < (int)RoIs_xmin[r])
                         RoIs_xmin[r] = j;
                     if (j > (int)RoIs_xmax[r])
@@ -306,8 +310,8 @@ uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CC
                                            uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
                                            const uint8_t threshold, uint32_t* RoIs_id, uint32_t* RoIs_xmin,
                                            uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
-                                           uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, float* RoIs_x,
-                                           float* RoIs_y) {
+                                           uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, uint64_t* RoIs_Sx2,
+                                           uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x, float* RoIs_y) {
     for (int i = i0; i <= i1; i++)
         memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
 
@@ -322,7 +326,7 @@ uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CC
                                                (const uint32_t**)CCL_data_rlc, (const uint32_t*)CCL_data_eq,
                                                (const uint32_t*)CCL_data_ner, labels, i0, i1, j0, j1, RoIs_id,
                                                RoIs_xmin, RoIs_xmax, RoIs_ymin, RoIs_ymax, RoIs_S, RoIs_Sx, RoIs_Sy,
-                                               RoIs_x, RoIs_y, trueN);
+                                               RoIs_Sx2, RoIs_Sy2, RoIs_Sxy, RoIs_x, RoIs_y, trueN);
     return trueN;
 }
 
@@ -333,7 +337,8 @@ void CCL_LSL_threshold_features_apply(CCL_data_t *CCL_data, const uint8_t** img,
                                                            CCL_data->j0, CCL_data->j1, threshold, RoIs_basic->id,
                                                            RoIs_basic->xmin, RoIs_basic->xmax, RoIs_basic->ymin,
                                                            RoIs_basic->ymax, RoIs_basic->S, RoIs_basic->Sx,
-                                                           RoIs_basic->Sy, RoIs_basic->x, RoIs_basic->y);
+                                                           RoIs_basic->Sy, RoIs_basic->Sx2, RoIs_basic->Sy2,
+                                                           RoIs_basic->Sxy, RoIs_basic->x, RoIs_basic->y);
 }
 
 // ----------------------------------------------------------------------------
@@ -461,8 +466,8 @@ void CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img,
 uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
                                        const uint8_t _threshold, uint32_t* RoIs_id, uint32_t* RoIs_xmin,
                                        uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
-                                       uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, float* RoIs_x,
-                                       float* RoIs_y) {
+                                       uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, uint64_t* RoIs_Sx2,
+                                       uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x, float* RoIs_y) {
     switch (CCL_data->impl) {
         case LSLH: {
             CCL_data_t* metadata = (CCL_data_t*)CCL_data->metadata;
@@ -470,7 +475,7 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
                                                      metadata->ner, img, labels, metadata->i0, metadata->i1,
                                                      metadata->j0, metadata->j1, _threshold, RoIs_id, RoIs_xmin,
                                                      RoIs_xmax,  RoIs_ymin,  RoIs_ymax, RoIs_S, RoIs_Sx, RoIs_Sy,
-                                                     RoIs_x, RoIs_y);
+                                                     RoIs_Sx2, RoIs_Sy2, RoIs_Sxy, RoIs_x, RoIs_y);
             break;
         }
         case LSLM: {
@@ -481,8 +486,8 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
             // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
             uint32_t n_RoIs = (uint32_t)FLSL_FSM_start((uint8_t**)metadata->tmp_img, (int32_t**)labels, metadata->FLSL);
             _features_extract((const uint32_t**)labels, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
-                              metadata->FLSL->nch, RoIs_id, RoIs_xmin, RoIs_xmax,  RoIs_ymin,  RoIs_ymax,
-                              RoIs_S, RoIs_Sx, RoIs_Sy, RoIs_x, RoIs_y, n_RoIs);
+                              metadata->FLSL->nch, RoIs_id, RoIs_xmin, RoIs_xmax, RoIs_ymin, RoIs_ymax, RoIs_S, RoIs_Sx,
+                              RoIs_Sy, RoIs_Sx2, RoIs_Sy2, RoIs_Sxy, RoIs_x, RoIs_y, n_RoIs);
             return n_RoIs;
             break;
         }

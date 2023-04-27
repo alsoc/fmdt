@@ -3,10 +3,13 @@
 #include <stdlib.h>
 #include <stdint.h>
 #include <string.h>
-#include <nrc2.h>
 #include <algorithm>
+#include <memory>
+#include <nrc2.h>
+#include <aff3ct-core.hpp>
 
 #include "fmdt/args.h"
+#include "fmdt/tools.h"
 #include "fmdt/macros.h"
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/tracking/tracking_io.h"
@@ -27,14 +30,13 @@
 #include "fmdt/aff3ct_wrapper/Logger/Logger_tracks.hpp"
 #include "fmdt/aff3ct_wrapper/Logger/Logger_frame.hpp"
 
-#define ENABLE_PIPELINE
-
 int main(int argc, char** argv) {
     // default values
     char* def_p_vid_in_path = NULL;
     int def_p_vid_in_start = 0;
     int def_p_vid_in_stop = 0;
     int def_p_vid_in_skip = 0;
+    int def_p_vid_in_loop = 1;
     int def_p_vid_in_threads = 0;
     char def_p_ccl_impl[16] = "LSLH";
     int def_p_ccl_hyst_lo = 55;
@@ -52,9 +54,9 @@ int main(int argc, char** argv) {
     int def_p_trk_meteor_min = 3;
     int def_p_trk_meteor_max = 100;
     float def_p_trk_ddev = 4.f;
-    char* def_p_trk_bb_path = NULL;
-    char* def_p_trk_mag_path = NULL;
     char* def_p_log_path = NULL;
+    char* def_p_trk_roi_path = NULL;
+    char* def_p_out_probes = NULL;
 
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -70,6 +72,11 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --vid-in-skip       Number of frames to skip                                               [%d]\n",
                 def_p_vid_in_skip);
+        fprintf(stderr,
+                "  --vid-in-buff       Bufferize all the video in global memory before executing the chain        \n");
+        fprintf(stderr,
+                "  --vid-in-loop       Number of times the video is read in loop                              [%d]\n",
+                def_p_vid_in_loop);
         fprintf(stderr,
                 "  --vid-in-threads    Select the number of threads to use to decode video input (in ffmpeg)  [%d]\n",
                 def_p_vid_in_threads);
@@ -89,6 +96,8 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --ccl-fra-id        Show the RoI/CC ids on the ouptut CC frames                                \n");
 #endif
+        fprintf(stderr,
+                "  --cca-mag           Enable magnitude and saturation counter computations                       \n");
         fprintf(stderr,
                 "  --mrp-s-min         Minimum surface of the CCs in pixels                                   [%d]\n",
                 def_p_mrp_s_min);
@@ -130,16 +139,16 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --trk-all           Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
-                "  --trk-bb-path       Path to the file containing the bounding boxes (frame by frame)        [%s]\n",
-                def_p_trk_bb_path ? def_p_trk_bb_path : "NULL");
-        fprintf(stderr,
-                "  --trk-mag-path      Path to the file containing magnitudes of the tracked objects          [%s]\n",
-                def_p_trk_mag_path ? def_p_trk_mag_path : "NULL");
+                "  --trk-roi-path      Path to the file containing the RoI ids for each track                 [%s]\n",
+                def_p_trk_roi_path ? def_p_trk_roi_path : "NULL");
         fprintf(stderr,
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
         fprintf(stderr,
                 "  --rt-stats          Display runtime statistics (executed tasks report)                         \n");
+        fprintf(stderr,
+                "  --rt-prb-path       Path of the output probe vales, only required for benchmarking purpose [%s]\n",
+                def_p_out_probes ? def_p_out_probes : "NULL");
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
         fprintf(stderr,
@@ -162,6 +171,8 @@ int main(int argc, char** argv) {
     const int p_vid_in_start = args_find_int_min(argc, argv, "--vid-in-start,--fra-start", def_p_vid_in_start, 0);
     const int p_vid_in_stop = args_find_int_min(argc, argv, "--vid-in-stop,--fra-end", def_p_vid_in_stop, 0);
     const int p_vid_in_skip = args_find_int_min(argc, argv, "--vid-in-skip,--fra-skip", def_p_vid_in_skip, 0);
+    const int p_vid_in_buff = args_find(argc, argv, "--vid-in-buff,--video-buff");
+    const int p_vid_in_loop = args_find_int_min(argc, argv, "--vid-in-loop,--video-loop", def_p_vid_in_loop, 1);
     const int p_vid_in_threads = args_find_int_min(argc, argv, "--vid-in-threads,--ffmpeg-threads", def_p_vid_in_threads, 0);
     const char* p_ccl_impl = args_find_char(argc, argv, "--ccl-impl", def_p_ccl_impl);
     const int p_ccl_hyst_lo = args_find_int_min_max(argc, argv, "--ccl-hyst-lo,--light-min", def_p_ccl_hyst_lo, 0, 255);
@@ -172,6 +183,7 @@ int main(int argc, char** argv) {
 #else
     const int p_ccl_fra_id = 0;
 #endif
+    const int p_cca_mag = args_find(argc, argv, "--cca-mag");
     const int p_mrp_s_min = args_find_int_min(argc, argv, "--mrp-s-min,--surface-min", def_p_mrp_s_min, 0);
     const int p_mrp_s_max = args_find_int_min(argc, argv, "--mrp-s-max,--surface-max", def_p_mrp_s_max, 0);
     const int p_knn_k = args_find_int_min(argc, argv, "--knn-k,-k", def_p_knn_k, 0);
@@ -185,10 +197,10 @@ int main(int argc, char** argv) {
     const int p_trk_meteor_max = args_find_int_min(argc, argv, "--trk-meteor-max,--fra-meteor-max", def_p_trk_meteor_max, 2);
     const float p_trk_ddev = args_find_float_min(argc, argv, "--trk-ddev,--diff-dev", def_p_trk_ddev, 0.f);
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
-    const char* p_trk_bb_path = args_find_char(argc, argv, "--trk-bb-path,--out-bb", def_p_trk_bb_path);
-    const char* p_trk_mag_path = args_find_char(argc, argv, "--trk-mag-path,--out-mag", def_p_trk_mag_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
+    const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const int p_task_stats = args_find(argc, argv, "--rt-stats,--task-stats");
+    const char* p_out_probes = args_find_char(argc, argv, "--rt-prb-path,--out-probes", def_p_out_probes);
 
     // heading display
     printf("#  ---------------------\n");
@@ -203,6 +215,8 @@ int main(int argc, char** argv) {
     printf("#  * vid-in-start   = %d\n", p_vid_in_start);
     printf("#  * vid-in-stop    = %d\n", p_vid_in_stop);
     printf("#  * vid-in-skip    = %d\n", p_vid_in_skip);
+    printf("#  * vid-in-buff    = %d\n", p_vid_in_buff);
+    printf("#  * vid-in-loop    = %d\n", p_vid_in_loop);
     printf("#  * vid-in-threads = %d\n", p_vid_in_threads);
     printf("#  * ccl-impl       = %s\n", p_ccl_impl);
     printf("#  * ccl-hyst-lo    = %d\n", p_ccl_hyst_lo);
@@ -211,6 +225,7 @@ int main(int argc, char** argv) {
 #ifdef FMDT_OPENCV_LINK
     printf("#  * ccl-fra-id     = %d\n", p_ccl_fra_id);
 #endif
+    printf("#  * cca-mag        = %d\n", p_cca_mag);
     printf("#  * mrp-s-min      = %d\n", p_mrp_s_min);
     printf("#  * mrp-s-max      = %d\n", p_mrp_s_max);
     printf("#  * knn-k          = %d\n", p_knn_k);
@@ -224,10 +239,10 @@ int main(int argc, char** argv) {
     printf("#  * trk-meteor-max = %d\n", p_trk_meteor_max);
     printf("#  * trk-ddev       = %4.2f\n", p_trk_ddev);
     printf("#  * trk-all        = %d\n", p_trk_all);
-    printf("#  * trk-bb-path    = %s\n", p_trk_bb_path);
-    printf("#  * trk-mag-path   = %s\n", p_trk_mag_path);
+    printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * log-path       = %s\n", p_log_path);
     printf("#  * rt-stats       = %d\n", p_task_stats);
+    printf("#  * rt-prb-path    = %s\n", p_out_probes);
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
     printf("#  * Runtime mode   = Pipeline\n");
@@ -253,6 +268,10 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--ccl-hyst-hi' has to be higher than '--ccl-hyst-lo'\n");
         exit(1);
     }
+#ifndef FMDT_ENABLE_PIPELINE
+    if (p_out_probes)
+        fprintf(stderr, "(WW) Using '--rt-prb-path' without pipeline is not very useful...\n");
+#endif
 #ifdef FMDT_OPENCV_LINK
     if (p_ccl_fra_id && !p_ccl_fra_path)
         fprintf(stderr, "(WW) '--ccl-fra-id' has to be combined with the '--ccl-fra-path' parameter\n");
@@ -270,11 +289,12 @@ int main(int argc, char** argv) {
 
     // objects allocation
     const size_t b = 1; // image border
-    Video2 video(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip, 0, p_vid_in_threads, b);
+    Video2 video(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip, p_vid_in_buff, p_vid_in_threads, b);
     const size_t i0 = video.get_i0();
     const size_t i1 = video.get_i1();
     const size_t j0 = video.get_j0();
     const size_t j1 = video.get_j1();
+    video.set_loop_size(p_vid_in_loop);
     
     Threshold threshold_min0(i0, i1, j0, j1, b, p_ccl_hyst_lo);
     threshold_min0.set_custom_name("Thr0<min>");
@@ -308,9 +328,9 @@ int main(int argc, char** argv) {
     Motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
-                      p_trk_meteor_max, p_trk_bb_path, p_trk_mag_path, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
+                      p_trk_meteor_max, p_trk_roi_path, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
     Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data(),
-                         p_trk_mag_path != NULL, p_trk_mag_path != NULL);
+                         p_cca_mag, p_cca_mag);
     Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_ROI_SIZE);
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");
@@ -320,9 +340,67 @@ int main(int argc, char** argv) {
     if (p_ccl_fra_path)
         log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
 
+    // create reporters and probes for the real-time probes file
+    size_t inter_frame_lvl = 1;
+    aff3ct::tools::Reporter_probe rep_fra_stats("Frame Counter", inter_frame_lvl);
+    std::unique_ptr<aff3ct::module::Probe<>> prb_fra_id(rep_fra_stats.create_probe_occurrence("ID"));
+
+    aff3ct::tools::Reporter_probe rep_thr_stats("Throughput, latency", "and time", inter_frame_lvl);
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_thr  (rep_thr_stats.create_probe_throughput("FPS"));
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_lat  (rep_thr_stats.create_probe_latency   ("LAT")); // only valid for sequence, invalid for pipeline
+    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_time (rep_thr_stats.create_probe_time      ("TIME"));
+
+    aff3ct::tools::Reporter_probe rep_timestamp_stats("Timestamps", "(in microseconds) [SX = stage X, B = begin, E = end]", inter_frame_lvl);
+    const uint64_t mod = 1000000ul * 60ul * 10; // limit to 10 minutes timestamp
+    const size_t probe_buff = 200; // size of the buffer used by the probes to record values
+    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s1b(rep_timestamp_stats.create_probe_timestamp      ("S1_B", mod,    probe_buff   )); // timestamp stage 1 begin
+    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s1e(rep_timestamp_stats.create_probe_timestamp      ("S1_E", mod,    probe_buff   )); // timestamp stage 1 end
+    std::unique_ptr<aff3ct::module::Probe<uint64_t>> prb_ts_s2b(rep_timestamp_stats.create_probe_value<uint64_t>("S2_B", "(us)", probe_buff, 1)); // timestamp stage 2 begin
+    std::unique_ptr<aff3ct::module::Probe<uint64_t>> prb_ts_s2e(rep_timestamp_stats.create_probe_value<uint64_t>("S2_E", "(us)", probe_buff, 1)); // timestamp stage 2 end
+    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s3b(rep_timestamp_stats.create_probe_timestamp      ("S3_B", mod,    probe_buff   )); // timestamp stage 3 begin
+    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s3e(rep_timestamp_stats.create_probe_timestamp      ("S3_E", mod,    probe_buff   )); // timestamp stage 3 end
+
+    const std::vector<aff3ct::tools::Reporter*>& reporters = { &rep_fra_stats, &rep_thr_stats, &rep_timestamp_stats };
+    aff3ct::tools::Terminal_dump terminal_probes(reporters);
+
+    std::ofstream rt_probes_file;
+    if (p_out_probes) {
+        rt_probes_file.open(p_out_probes);
+        rt_probes_file << "####################" << std::endl;
+        rt_probes_file << "# Real-time probes #" << std::endl;
+        rt_probes_file << "####################" << std::endl;
+        terminal_probes.legend(rt_probes_file);
+    }
+
+    // create on-the-fly stateless modules to collect timestamps in the stage 2 (parallel) of the pipeline
+    std::unique_ptr<aff3ct::module::Stateless> ts_s2b(new aff3ct::module::Stateless());
+    ts_s2b->set_name("Timestamper");
+    ts_s2b->set_short_name("Timestamper");
+    auto &tsk = ts_s2b->create_task("exec");
+    auto ts_out_val = ts_s2b->create_socket_out<uint64_t>(tsk, "out", 1);
+    ts_s2b->create_codelet(tsk, [ts_out_val](aff3ct::module::Module &m, aff3ct::runtime::Task &t,
+        const size_t frame_id) -> int {
+        std::chrono::microseconds us = std::chrono::duration_cast<std::chrono::microseconds>(
+            std::chrono::steady_clock::now().time_since_epoch()
+        );
+        static_cast<uint64_t*>(t[ts_out_val].get_dataptr())[frame_id] =
+            mod ? (uint64_t)us.count() % mod : (uint64_t)us.count();
+        return aff3ct::runtime::status_t::SUCCESS;
+    });
+    std::unique_ptr<aff3ct::module::Stateless> ts_s2e(ts_s2b->clone());
+    ts_s2b->set_custom_name("Tsta<S2_B>");
+    ts_s2e->set_custom_name("Tsta<S2_E>");
+
     // ------------------- //
     // -- TASKS BINDING -- //
     // ------------------- //
+
+    if (p_out_probes) {
+        video[vid2::tsk::generate] = (*prb_ts_s1b)[aff3ct::module::prb::sck::probe_noin::status];
+        (*prb_ts_s1e)[aff3ct::module::prb::tsk::probe] = video[vid2::sck::generate::out_img1];
+        (*ts_s2b)("exec") = video[vid2::sck::generate::out_img1];
+        (*prb_ts_s2b)[aff3ct::module::prb::sck::probe::in] = (*ts_s2b)["exec::out"];
+    }
 
     // Step 1 : seuillage low/high
     threshold_min0[thr::sck::apply::in_img] = video[vid2::sck::generate::out_img0];
@@ -350,6 +428,9 @@ int main(int argc, char** argv) {
     merger0[ftr_mrg2::sck::merge::in_RoIs_S] = extractor0[ftr_ext::sck::extract::out_RoIs_S];
     merger0[ftr_mrg2::sck::merge::in_RoIs_Sx] = extractor0[ftr_ext::sck::extract::out_RoIs_Sx];
     merger0[ftr_mrg2::sck::merge::in_RoIs_Sy] = extractor0[ftr_ext::sck::extract::out_RoIs_Sy];
+    merger0[ftr_mrg2::sck::merge::in_RoIs_Sx2] = extractor0[ftr_ext::sck::extract::out_RoIs_Sx2];
+    merger0[ftr_mrg2::sck::merge::in_RoIs_Sy2] = extractor0[ftr_ext::sck::extract::out_RoIs_Sy2];
+    merger0[ftr_mrg2::sck::merge::in_RoIs_Sxy] = extractor0[ftr_ext::sck::extract::out_RoIs_Sxy];
     merger0[ftr_mrg2::sck::merge::in_RoIs_x] = extractor0[ftr_ext::sck::extract::out_RoIs_x];
     merger0[ftr_mrg2::sck::merge::in_RoIs_y] = extractor0[ftr_ext::sck::extract::out_RoIs_y];
     merger0[ftr_mrg2::sck::merge::in_n_RoIs] = ccl0[ccl::sck::apply::out_n_RoIs];
@@ -364,28 +445,33 @@ int main(int argc, char** argv) {
     merger1[ftr_mrg2::sck::merge::in_RoIs_S] = extractor1[ftr_ext::sck::extract::out_RoIs_S];
     merger1[ftr_mrg2::sck::merge::in_RoIs_Sx] = extractor1[ftr_ext::sck::extract::out_RoIs_Sx];
     merger1[ftr_mrg2::sck::merge::in_RoIs_Sy] = extractor1[ftr_ext::sck::extract::out_RoIs_Sy];
+    merger1[ftr_mrg2::sck::merge::in_RoIs_Sx2] = extractor1[ftr_ext::sck::extract::out_RoIs_Sx2];
+    merger1[ftr_mrg2::sck::merge::in_RoIs_Sy2] = extractor1[ftr_ext::sck::extract::out_RoIs_Sy2];
+    merger1[ftr_mrg2::sck::merge::in_RoIs_Sxy] = extractor1[ftr_ext::sck::extract::out_RoIs_Sxy];
     merger1[ftr_mrg2::sck::merge::in_RoIs_x] = extractor1[ftr_ext::sck::extract::out_RoIs_x];
     merger1[ftr_mrg2::sck::merge::in_RoIs_y] = extractor1[ftr_ext::sck::extract::out_RoIs_y];
     merger1[ftr_mrg2::sck::merge::in_n_RoIs] = ccl1[ccl::sck::apply::out_n_RoIs];
 
     // Step 3.5 : calcul de la magnitude pour chaque RoI
-    magnitude0[ftr_mgn::sck::compute::in_img] = video[vid2::sck::generate::out_img0];
-    magnitude0[ftr_mgn::sck::compute::in_labels] = merger0[ftr_mrg2::sck::merge::out_labels];
-    magnitude0[ftr_mgn::sck::compute::in_RoIs_xmin] = merger0[ftr_mrg2::sck::merge::out_RoIs_xmin];
-    magnitude0[ftr_mgn::sck::compute::in_RoIs_xmax] = merger0[ftr_mrg2::sck::merge::out_RoIs_xmax];
-    magnitude0[ftr_mgn::sck::compute::in_RoIs_ymin] = merger0[ftr_mrg2::sck::merge::out_RoIs_ymin];
-    magnitude0[ftr_mgn::sck::compute::in_RoIs_ymax] = merger0[ftr_mrg2::sck::merge::out_RoIs_ymax];
-    magnitude0[ftr_mgn::sck::compute::in_RoIs_S] = merger0[ftr_mrg2::sck::merge::out_RoIs_S];
-    magnitude0[ftr_mgn::sck::compute::in_n_RoIs] = merger0[ftr_mrg2::sck::merge::out_n_RoIs];
+    if (p_cca_mag) {
+        magnitude0[ftr_mgn::sck::compute::in_img] = video[vid2::sck::generate::out_img0];
+        magnitude0[ftr_mgn::sck::compute::in_labels] = merger0[ftr_mrg2::sck::merge::out_labels];
+        magnitude0[ftr_mgn::sck::compute::in_RoIs_xmin] = merger0[ftr_mrg2::sck::merge::out_RoIs_xmin];
+        magnitude0[ftr_mgn::sck::compute::in_RoIs_xmax] = merger0[ftr_mrg2::sck::merge::out_RoIs_xmax];
+        magnitude0[ftr_mgn::sck::compute::in_RoIs_ymin] = merger0[ftr_mrg2::sck::merge::out_RoIs_ymin];
+        magnitude0[ftr_mgn::sck::compute::in_RoIs_ymax] = merger0[ftr_mrg2::sck::merge::out_RoIs_ymax];
+        magnitude0[ftr_mgn::sck::compute::in_RoIs_S] = merger0[ftr_mrg2::sck::merge::out_RoIs_S];
+        magnitude0[ftr_mgn::sck::compute::in_n_RoIs] = merger0[ftr_mrg2::sck::merge::out_n_RoIs];
 
-    magnitude1[ftr_mgn::sck::compute::in_img] = video[vid2::sck::generate::out_img1];
-    magnitude1[ftr_mgn::sck::compute::in_labels] = merger1[ftr_mrg2::sck::merge::out_labels];
-    magnitude1[ftr_mgn::sck::compute::in_RoIs_xmin] = merger1[ftr_mrg2::sck::merge::out_RoIs_xmin];
-    magnitude1[ftr_mgn::sck::compute::in_RoIs_xmax] = merger1[ftr_mrg2::sck::merge::out_RoIs_xmax];
-    magnitude1[ftr_mgn::sck::compute::in_RoIs_ymin] = merger1[ftr_mrg2::sck::merge::out_RoIs_ymin];
-    magnitude1[ftr_mgn::sck::compute::in_RoIs_ymax] = merger1[ftr_mrg2::sck::merge::out_RoIs_ymax];
-    magnitude1[ftr_mgn::sck::compute::in_RoIs_S] = merger1[ftr_mrg2::sck::merge::out_RoIs_S];
-    magnitude1[ftr_mgn::sck::compute::in_n_RoIs] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
+        magnitude1[ftr_mgn::sck::compute::in_img] = video[vid2::sck::generate::out_img1];
+        magnitude1[ftr_mgn::sck::compute::in_labels] = merger1[ftr_mrg2::sck::merge::out_labels];
+        magnitude1[ftr_mgn::sck::compute::in_RoIs_xmin] = merger1[ftr_mrg2::sck::merge::out_RoIs_xmin];
+        magnitude1[ftr_mgn::sck::compute::in_RoIs_xmax] = merger1[ftr_mrg2::sck::merge::out_RoIs_xmax];
+        magnitude1[ftr_mgn::sck::compute::in_RoIs_ymin] = merger1[ftr_mrg2::sck::merge::out_RoIs_ymin];
+        magnitude1[ftr_mgn::sck::compute::in_RoIs_ymax] = merger1[ftr_mrg2::sck::merge::out_RoIs_ymax];
+        magnitude1[ftr_mgn::sck::compute::in_RoIs_S] = merger1[ftr_mrg2::sck::merge::out_RoIs_S];
+        magnitude1[ftr_mgn::sck::compute::in_n_RoIs] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
+    }
 
     // Step 4 : mise en correspondance
     matcher[knn::sck::match::in_RoIs0_id] = merger0[ftr_mrg2::sck::merge::out_RoIs_id];
@@ -407,6 +493,13 @@ int main(int argc, char** argv) {
     motion[mtn::sck::compute::in_RoIs1_prev_id] = matcher[knn::sck::match::out_RoIs1_prev_id];
     motion[mtn::sck::compute::in_n_RoIs1] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
 
+
+    if (p_out_probes) {
+        (*ts_s2e)("exec") = motion[mtn::sck::compute::out_motion_est2];
+        (*prb_ts_s2e)[aff3ct::module::prb::sck::probe::in] = (*ts_s2e)["exec::out"];
+        (*prb_ts_s3b)[aff3ct::module::prb::tsk::probe] = (*prb_ts_s2e)[aff3ct::module::prb::sck::probe::status];
+    }
+
     // Step 6 : tracking
     tracking[trk::sck::perform::in_frame] = video[vid2::sck::generate::out_frame];
     tracking[trk::sck::perform::in_RoIs_id] = merger1[ftr_mrg2::sck::merge::out_RoIs_id];
@@ -419,7 +512,6 @@ int main(int argc, char** argv) {
     tracking[trk::sck::perform::in_RoIs_y] = merger1[ftr_mrg2::sck::merge::out_RoIs_y];
     tracking[trk::sck::perform::in_RoIs_error] = motion[mtn::sck::compute::out_RoIs1_error];
     tracking[trk::sck::perform::in_RoIs_prev_id] = matcher[knn::sck::match::out_RoIs1_prev_id];
-    tracking[trk::sck::perform::in_RoIs_magnitude] = magnitude1[ftr_mgn::sck::compute::out_RoIs_magnitude];
     tracking[trk::sck::perform::in_n_RoIs] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
     tracking[trk::sck::perform::in_motion_est] = motion[mtn::sck::compute::out_motion_est2];
 
@@ -442,9 +534,20 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs0_S] = merger0[ftr_mrg2::sck::merge::out_RoIs_S];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_Sx] = merger0[ftr_mrg2::sck::merge::out_RoIs_Sx];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_Sy] = merger0[ftr_mrg2::sck::merge::out_RoIs_Sy];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sx2] = merger0[ftr_mrg2::sck::merge::out_RoIs_Sx2];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sy2] = merger0[ftr_mrg2::sck::merge::out_RoIs_Sy2];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sxy] = merger0[ftr_mrg2::sck::merge::out_RoIs_Sxy];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_x] = merger0[ftr_mrg2::sck::merge::out_RoIs_x];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_y] = merger0[ftr_mrg2::sck::merge::out_RoIs_y];
-        log_RoIs[lgr_roi::sck::write::in_RoIs0_magnitude] = magnitude0[ftr_mgn::sck::compute::out_RoIs_magnitude];
+        if (p_cca_mag) {
+            log_RoIs[lgr_roi::sck::write::in_RoIs0_magnitude] = magnitude0[ftr_mgn::sck::compute::out_RoIs_magnitude];
+            log_RoIs[lgr_roi::sck::write::in_RoIs0_sat_count] = magnitude0[ftr_mgn::sck::compute::out_RoIs_sat_count];
+        } else {
+            log_RoIs[lgr_roi::sck::write::in_RoIs0_magnitude] =
+                magnitude0[ftr_mgn::sck::compute::out_RoIs_magnitude].get_dataptr();
+            log_RoIs[lgr_roi::sck::write::in_RoIs0_sat_count] =
+                magnitude0[ftr_mgn::sck::compute::out_RoIs_sat_count].get_dataptr();
+        }
         log_RoIs[lgr_roi::sck::write::in_n_RoIs0] = merger0[ftr_mrg2::sck::merge::out_n_RoIs];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_id] = merger1[ftr_mrg2::sck::merge::out_RoIs_id];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_xmin] = merger1[ftr_mrg2::sck::merge::out_RoIs_xmin];
@@ -454,15 +557,26 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs1_S] = merger1[ftr_mrg2::sck::merge::out_RoIs_S];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_Sx] = merger1[ftr_mrg2::sck::merge::out_RoIs_Sx];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_Sy] = merger1[ftr_mrg2::sck::merge::out_RoIs_Sy];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sx2] = merger1[ftr_mrg2::sck::merge::out_RoIs_Sx2];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sy2] = merger1[ftr_mrg2::sck::merge::out_RoIs_Sy2];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sxy] = merger1[ftr_mrg2::sck::merge::out_RoIs_Sxy];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_x] = merger1[ftr_mrg2::sck::merge::out_RoIs_x];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_y] = merger1[ftr_mrg2::sck::merge::out_RoIs_y];
-        log_RoIs[lgr_roi::sck::write::in_RoIs1_magnitude] = magnitude1[ftr_mgn::sck::compute::out_RoIs_magnitude];
-        log_RoIs[lgr_roi::sck::write::in_RoIs1_sat_count] = magnitude1[ftr_mgn::sck::compute::out_RoIs_sat_count];
+        if (p_cca_mag) {
+                log_RoIs[lgr_roi::sck::write::in_RoIs1_magnitude] = magnitude1[ftr_mgn::sck::compute::out_RoIs_magnitude];
+                log_RoIs[lgr_roi::sck::write::in_RoIs1_sat_count] = magnitude1[ftr_mgn::sck::compute::out_RoIs_sat_count];
+        } else {
+            log_RoIs[lgr_roi::sck::write::in_RoIs1_magnitude] =
+                magnitude1[ftr_mgn::sck::compute::out_RoIs_magnitude].get_dataptr();
+            log_RoIs[lgr_roi::sck::write::in_RoIs1_sat_count] =
+                magnitude1[ftr_mgn::sck::compute::out_RoIs_sat_count].get_dataptr();
+        }
         log_RoIs[lgr_roi::sck::write::in_n_RoIs1] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
         log_RoIs[lgr_roi::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
 
         log_kNN[lgr_knn::sck::write::in_data_nearest] = matcher[knn::sck::match::out_data_nearest];
         log_kNN[lgr_knn::sck::write::in_data_distances] = matcher[knn::sck::match::out_data_distances];
+        log_kNN[lgr_knn::sck::write::in_data_conflicts] = matcher[knn::sck::match::out_data_conflicts];
         log_kNN[lgr_knn::sck::write::in_RoIs0_id] = merger0[ftr_mrg2::sck::merge::out_RoIs_id];
         log_kNN[lgr_knn::sck::write::in_RoIs0_next_id] = matcher[knn::sck::match::out_RoIs0_next_id];
         log_kNN[lgr_knn::sck::write::in_n_RoIs0] = merger0[ftr_mrg2::sck::merge::out_n_RoIs];
@@ -480,40 +594,99 @@ int main(int argc, char** argv) {
         log_track[lgr_trk::sck::write::in_frame] = video[vid2::sck::generate::out_frame];
     }
 
-    // --------------------- //
-    // -- CREATE SEQUENCE -- //
-    // --------------------- //
+    if (p_out_probes) {
+        (*prb_fra_id  )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_thr_thr )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_thr_lat )[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        (*prb_thr_time)[aff3ct::module::prb::tsk::probe] = tracking[trk::sck::perform::status];
+        if (p_ccl_fra_path)
+            (*prb_ts_s3e)[aff3ct::module::prb::tsk::probe] = (*log_frame)[lgr_fra::sck::write::status];
+        else if (p_log_path)
+            (*prb_ts_s3e)[aff3ct::module::prb::tsk::probe] = log_track[lgr_trk::sck::write::status];
+        else
+            (*prb_ts_s3e)[aff3ct::module::prb::tsk::probe] = (*prb_thr_time)[aff3ct::module::prb::sck::probe_noin::status];
+    }
 
-#ifdef ENABLE_PIPELINE
+    // --------------------------------- //
+    // -- CREATE SEQUENCE OR PIPELINE -- //
+    // --------------------------------- //
+
+    // determine the first task in the tasks graph
+    aff3ct::runtime::Task* first_task = nullptr;
+    if (p_out_probes)
+        first_task = &(*prb_ts_s1b)[aff3ct::module::prb::tsk::probe];
+    else
+        first_task = &video[vid2::tsk::generate];
+
+#ifdef FMDT_ENABLE_PIPELINE
     // pipeline definition with separation stages
     std::vector<std::tuple<std::vector<aff3ct::runtime::Task*>,
                            std::vector<aff3ct::runtime::Task*>,
-                           std::vector<aff3ct::runtime::Task*>>> sep_stages =
-    { // pipeline stage 0
-      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                      std::vector<aff3ct::runtime::Task*>>(
-        { &video[vid2::tsk::generate],},
-        { &video[vid2::tsk::generate],},
-        { /* no exclusions in this stage */ } ),
-      // pipeline stage 1
-      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                      std::vector<aff3ct::runtime::Task*>>(
-        { &threshold_min0[thr::tsk::apply], &threshold_max0[thr::tsk::apply], &threshold_min1[thr::tsk::apply],
-          &threshold_max1[thr::tsk::apply], &magnitude0[ftr_mgn::tsk::compute],
-          &magnitude1[ftr_mgn::tsk::compute] },
-        { &merger0[ftr_mrg2::tsk::merge], &merger1[ftr_mrg2::tsk::merge], },
-        { } ),
-      // pipeline stage 2
-      std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                      std::vector<aff3ct::runtime::Task*>>(
-        { 
-          &matcher[knn::tsk::match],
-          &motion[mtn::tsk::compute],
-          &tracking[trk::tsk::perform],
-          },
-        { },
-        { /* no exclusions in this stage */ } ),
-    };
+                           std::vector<aff3ct::runtime::Task*>>> sep_stages;
+
+    if (!p_out_probes) {
+        sep_stages =
+        { // pipeline stage 1
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &video[vid2::tsk::generate],},
+            { &video[vid2::tsk::generate],},
+            { /* no exclusions in this stage */ } ),
+          // pipeline stage 2
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &threshold_min0[thr::tsk::apply], &threshold_max0[thr::tsk::apply],
+              &magnitude0[ftr_mgn::tsk::compute], &threshold_min1[thr::tsk::apply],
+              &threshold_max1[thr::tsk::apply], &magnitude1[ftr_mgn::tsk::compute],},
+            { &motion[mtn::tsk::compute],},
+            { /* no exclusions in this stage */ } ),
+          // pipeline stage 3
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &tracking[trk::tsk::perform],},
+            { &tracking[trk::tsk::perform],},
+            { /* no exclusions in this stage */ } ),
+        };
+
+        // remove magnitude task when not needed
+        if (!p_cca_mag) {
+            std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 2);
+            std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 4);
+        }
+
+    } else {
+        sep_stages =
+        { // pipeline stage 1
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &(*prb_ts_s1b)[aff3ct::module::prb::tsk::probe], &(*prb_ts_s1e)[aff3ct::module::prb::tsk::probe] },
+            { &video[vid2::tsk::generate],},
+            { /* no exclusions in this stage */ } ),
+          // pipeline stage 2
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &(*ts_s2b)("exec"), &threshold_min0[thr::tsk::apply], &threshold_max0[thr::tsk::apply],
+              &magnitude0[ftr_mgn::tsk::compute], &threshold_min1[thr::tsk::apply], &threshold_max1[thr::tsk::apply],
+              &magnitude1[ftr_mgn::tsk::compute], &(*ts_s2e)("exec")},
+            { &motion[mtn::tsk::compute], },
+            { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe], &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe], } ),
+          // pipeline stage 3
+          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
+                          std::vector<aff3ct::runtime::Task*>>(
+            { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe],
+              &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe],
+              &tracking[trk::tsk::perform],
+              },
+            { },
+            { /* no exclusions in this stage */ } ),
+        };
+
+        // remove magnitude task when not needed
+        if (!p_cca_mag) {
+            std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 3);
+            std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 5);
+        }
+    }
 
     if (p_log_path) {
         std::get<0>(sep_stages[2]).push_back(&log_RoIs[lgr_roi::tsk::write]);
@@ -524,23 +697,24 @@ int main(int argc, char** argv) {
 
     if (p_ccl_fra_path) {
         std::get<0>(sep_stages[2]).push_back(&(*log_frame)[lgr_fra::tsk::write]);
+        std::get<2>(sep_stages[1]).push_back(&(*log_frame)[lgr_fra::tsk::write]);
     }
 
-    aff3ct::runtime::Pipeline sequence_or_pipeline({ &video[vid2::tsk::generate] }, // first task of the sequence
+    aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
                                                    sep_stages,
                                                    {
                                                      1, // number of threads in the stage 0
                                                      4, // number of threads in the stage 1
                                                      1, // number of threads in the stage 2
                                                    }, {
-                                                     16, // synchronization buffer size between stages 0 and 1
-                                                     16, // synchronization buffer size between stages 1 and 2
+                                                     1, // synchronization buffer size between stages 0 and 1
+                                                     1, // synchronization buffer size between stages 1 and 2
                                                    }, {
                                                      false, // type of waiting between stages 0 and 1 (true = active, false = passive)
                                                      false, // type of waiting between stages 1 and 2 (true = active, false = passive)
                                                    });
 #else
-    aff3ct::runtime::Sequence sequence_or_pipeline(video[vid2::tsk::generate], 1);
+    aff3ct::runtime::Sequence sequence_or_pipeline(*first_task, 1);
 #endif
 
     // configuration of the sequence tasks
@@ -557,56 +731,72 @@ int main(int argc, char** argv) {
     std::ofstream fs("runtime_dag.dot");
     sequence_or_pipeline.export_dot(fs);
 
-    // ---------------------- //
-    // -- EXECUTE SEQUENCE -- //
-    // ---------------------- //
+    // ---------------------------------- //
+    // -- EXECUTE SEQUENCE OR PIPELINE -- //
+    // ---------------------------------- //
 
+    std::chrono::time_point<std::chrono::steady_clock> t_start;
     unsigned n_frames = 0;
     std::function<bool(const std::vector<const int*>&)> stop_condition =
-        [&tracking, &n_frames] (const std::vector<const int*>& statuses) {
-            fprintf(stderr, "(II) Frame n°%4u", n_frames);
-            unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
-            size_t n_tracks = tracking_count_objects(tracking.get_data()->tracks, &n_stars, &n_meteors, &n_noise);
-            fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
-                    n_stars, n_noise, (unsigned long)n_tracks);
-            fflush(stderr);
-            n_frames++;
-            return false;
+        [&tracking, &n_frames, &terminal_probes, &rt_probes_file, &t_start] (const std::vector<const int*>& statuses) {
+            if (statuses.back() != nullptr) {
+                fprintf(stderr, "(II) Frame n°%4u", n_frames);
+                unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
+                size_t n_tracks = tracking_count_objects(tracking.get_data()->tracks, &n_stars, &n_meteors, &n_noise);
+
+                auto t_stop = std::chrono::steady_clock::now();
+                auto time_duration =
+                    (int64_t)std::chrono::duration_cast<std::chrono::microseconds>(t_stop - t_start).count();
+                auto time_duration_sec = time_duration * 1e-6;
+
+                fprintf(stderr, " -- Time = %6.3f sec", time_duration_sec);
+                fprintf(stderr, " -- FPS = %4d", (int)(n_frames / time_duration_sec));
+                fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
+                        n_stars, n_noise, (unsigned long)n_tracks);
+                fflush(stderr);
+                n_frames++;
+                if (rt_probes_file.is_open())
+                    terminal_probes.temp_report(rt_probes_file);
+            }
+            return aff3ct::tools::Terminal::is_interrupt(); // catch "Ctrl+c" signal interruption
         };
 
     printf("# The program is running...\n");
 
-#ifdef ENABLE_PIPELINE
+    if (p_out_probes) {
+        // reset start time to NOW!
+        prb_thr_thr->reset();
+        prb_thr_lat->reset();
+        prb_thr_time->reset();
+    }
+
+    t_start = std::chrono::steady_clock::now();
+#ifdef FMDT_ENABLE_PIPELINE
     sequence_or_pipeline.exec({
-        stop_condition,                                                   // stop condition stage 0
-        [] (const std::vector<const int*>& statuses) { return false; },   // stop condition stage 1
-        [] (const std::vector<const int*>& statuses) { return false; }}); // stop condition stage 2
+        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 1
+        [] (const std::vector<const int*>& statuses) { return false; }, // stop condition stage 2
+        stop_condition});                                               // stop condition stage 3
 #else
     sequence_or_pipeline.exec(stop_condition);
 #endif
+    auto t_stop = std::chrono::steady_clock::now();
 
     // ------------------- //
     // -- PRINT RESULTS -- //
     // ------------------- //
 
-    fprintf(stderr, "\n");
-    if (p_trk_bb_path) {
-        FILE* f = fopen(p_trk_bb_path, "w");
-        if (f == NULL) {
-            fprintf(stderr, "(EE) error while opening '%s'\n", p_trk_bb_path);
-            exit(1);
-        }
-        tracking_BBs_write(f, tracking.get_BBs(), tracking.get_data()->tracks);
-        fclose(f);
-    }
+    if (rt_probes_file.is_open())
+        terminal_probes.final_report(rt_probes_file);
 
-    if (p_trk_mag_path) {
-        FILE* f = fopen(p_trk_mag_path, "w");
+    fprintf(stderr, "\n");
+
+    if (p_trk_roi_path) {
+        FILE* f = fopen(p_trk_roi_path, "w");
         if (f == NULL) {
-            fprintf(stderr, "(EE) error while opening '%s'\n", p_trk_bb_path);
+            fprintf(stderr, "(EE) error while opening '%s'\n", p_trk_roi_path);
             exit(1);
         }
-        tracking_tracks_magnitudes_write(f, tracking.get_data()->tracks);
+        tracking_tracks_RoIs_id_write(f, tracking.get_data()->tracks);
         fclose(f);
     }
     tracking_tracks_write(stdout, tracking.get_data()->tracks);
@@ -614,25 +804,34 @@ int main(int argc, char** argv) {
     unsigned n_stars = 0, n_meteors = 0, n_noise = 0;
     size_t real_n_tracks = tracking_count_objects(tracking.get_data()->tracks, &n_stars, &n_meteors, &n_noise);
     printf("# Tracks statistics:\n");
-    printf("# -> Processed frames = %4d\n", n_frames -1);
+    printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, (unsigned long)real_n_tracks);
+    auto time_duration = (int64_t)std::chrono::duration_cast<std::chrono::microseconds>(t_stop - t_start).count();
+    auto time_duration_sec = time_duration * 1e-6;
+    printf("# -> Took %6.3f seconds (avg %d FPS)\n", time_duration_sec, (int)(n_frames / time_duration_sec));
 
     // display the statistics of the tasks (if enabled)
-#ifdef ENABLE_PIPELINE
-    auto stages = sequence_or_pipeline.get_stages();
-    for (size_t s = 0; s < stages.size(); s++)
-    {
-        const int n_threads = stages[s]->get_n_threads();
-        std::cout << "#" << std::endl << "# Pipeline stage " << s << " (" << n_threads << " thread(s)): " << std::endl;
-        aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true, false);
-    }
+    if (p_task_stats) {
+#ifdef FMDT_ENABLE_PIPELINE
+        auto stages = sequence_or_pipeline.get_stages();
+        for (size_t s = 0; s < stages.size(); s++) {
+            const int n_threads = stages[s]->get_n_threads();
+            std::cout << "#" << std::endl << "# Pipeline stage " << (s + 1) << " (" << n_threads << " thread(s)): "
+                      << std::endl;
+            aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true, false);
+        }
 #else
-    std::cout << "#" << std::endl;
-    aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
+        std::cout << "#" << std::endl;
+        aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
 #endif
+    }
 
     printf("# End of the program, exiting.\n");
+
+#ifdef FMDT_ENABLE_PIPELINE
+    sequence_or_pipeline.unbind_adaptors();
+#endif
 
     return EXIT_SUCCESS;
 }

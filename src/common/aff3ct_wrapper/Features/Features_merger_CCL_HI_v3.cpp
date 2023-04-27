@@ -30,6 +30,9 @@ Features_merger_CCL_HI_v3::Features_merger_CCL_HI_v3(const int i0, const int i1,
     auto ps_in_RoIs_S = this->template create_socket_in<uint32_t>(p, "in_RoIs_S", max_in_RoIs_size);
     auto ps_in_RoIs_Sx = this->template create_socket_in<uint32_t>(p, "in_RoIs_Sx", max_in_RoIs_size);
     auto ps_in_RoIs_Sy = this->template create_socket_in<uint32_t>(p, "in_RoIs_Sy", max_in_RoIs_size);
+    auto ps_in_RoIs_Sx2 = this->template create_socket_in<uint64_t>(p, "in_RoIs_Sx2", max_in_RoIs_size);
+    auto ps_in_RoIs_Sy2 = this->template create_socket_in<uint64_t>(p, "in_RoIs_Sy2", max_in_RoIs_size);
+    auto ps_in_RoIs_Sxy = this->template create_socket_in<uint64_t>(p, "in_RoIs_Sxy", max_in_RoIs_size);
     auto ps_in_RoIs_x = this->template create_socket_in<float>(p, "in_RoIs_x", max_in_RoIs_size);
     auto ps_in_RoIs_y = this->template create_socket_in<float>(p, "in_RoIs_y", max_in_RoIs_size);
     auto ps_in_n_RoIs = this->template create_socket_in<uint32_t>(p, "in_n_RoIs", 1);
@@ -42,6 +45,9 @@ Features_merger_CCL_HI_v3::Features_merger_CCL_HI_v3(const int i0, const int i1,
     auto ps_out_RoIs_S = this->template create_socket_out<uint32_t>(p, "out_RoIs_S", max_out_RoIs_size);
     auto ps_out_RoIs_Sx = this->template create_socket_out<uint32_t>(p, "out_RoIs_Sx", max_out_RoIs_size);
     auto ps_out_RoIs_Sy = this->template create_socket_out<uint32_t>(p, "out_RoIs_Sy", max_out_RoIs_size);
+    auto ps_out_RoIs_Sx2 = this->template create_socket_out<uint64_t>(p, "out_RoIs_Sx2", max_out_RoIs_size);
+    auto ps_out_RoIs_Sy2 = this->template create_socket_out<uint64_t>(p, "out_RoIs_Sy2", max_out_RoIs_size);
+    auto ps_out_RoIs_Sxy = this->template create_socket_out<uint64_t>(p, "out_RoIs_Sxy", max_out_RoIs_size);
     auto ps_out_RoIs_x = this->template create_socket_out<float>(p, "out_RoIs_x", max_out_RoIs_size);
     auto ps_out_RoIs_y = this->template create_socket_out<float>(p, "out_RoIs_y", max_out_RoIs_size);
     auto ps_out_n_RoIs = this->template create_socket_out<uint32_t>(p, "out_n_RoIs", 1);
@@ -50,9 +56,10 @@ Features_merger_CCL_HI_v3::Features_merger_CCL_HI_v3(const int i0, const int i1,
 
     this->create_codelet(p, [ps_in_labels, ps_in_img, ps_in_RoIs_id, ps_in_RoIs_xmin, ps_in_RoIs_xmax,
                              ps_in_RoIs_ymin, ps_in_RoIs_ymax, ps_in_RoIs_S, ps_in_RoIs_Sx, ps_in_RoIs_Sy,
-                             ps_in_RoIs_x, ps_in_RoIs_y, ps_in_n_RoIs, ps_out_RoIs_id, ps_out_RoIs_xmin,
-                             ps_out_RoIs_xmax, ps_out_RoIs_ymin, ps_out_RoIs_ymax, ps_out_RoIs_S, ps_out_RoIs_Sx,
-                             ps_out_RoIs_Sy, ps_out_RoIs_x, ps_out_RoIs_y, ps_out_n_RoIs, ps_out_labels]
+                             ps_in_RoIs_Sx2, ps_in_RoIs_Sy2, ps_in_RoIs_Sxy, ps_in_RoIs_x, ps_in_RoIs_y, ps_in_n_RoIs,
+                             ps_out_RoIs_id, ps_out_RoIs_xmin, ps_out_RoIs_xmax, ps_out_RoIs_ymin, ps_out_RoIs_ymax,
+                             ps_out_RoIs_S, ps_out_RoIs_Sx, ps_out_RoIs_Sy, ps_out_RoIs_Sx2, ps_out_RoIs_Sy2,
+                             ps_out_RoIs_Sxy, ps_out_RoIs_x, ps_out_RoIs_y, ps_out_n_RoIs, ps_out_labels]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &mrg = static_cast<Features_merger_CCL_HI_v3&>(m);
         const uint32_t* m_in_labels = static_cast<const uint32_t*>(t[ps_in_labels].get_dataptr());
@@ -80,27 +87,33 @@ Features_merger_CCL_HI_v3::Features_merger_CCL_HI_v3(const int i0, const int i1,
                                   in_n_RoIs,
                                   mrg.S_min, mrg.S_max, mrg.threshold_high, mrg.no_labels_zeros_init);
 
-        size_t out_n_RoIs = _features_shrink(mrg.tmp_in_RoIs_id,
-                                             static_cast<const uint32_t*>(t[ps_in_RoIs_xmin].get_dataptr()),
-                                             static_cast<const uint32_t*>(t[ps_in_RoIs_xmax].get_dataptr()),
-                                             static_cast<const uint32_t*>(t[ps_in_RoIs_ymin].get_dataptr()),
-                                             static_cast<const uint32_t*>(t[ps_in_RoIs_ymax].get_dataptr()),
-                                             static_cast<const uint32_t*>(t[ps_in_RoIs_S].get_dataptr()),
-                                             static_cast<const uint32_t*>(t[ps_in_RoIs_Sx].get_dataptr()),
-                                             static_cast<const uint32_t*>(t[ps_in_RoIs_Sy].get_dataptr()),
-                                             static_cast<const float*>(t[ps_in_RoIs_x].get_dataptr()),
-                                             static_cast<const float*>(t[ps_in_RoIs_y].get_dataptr()),
-                                             in_n_RoIs,
-                                             static_cast<uint32_t*>(t[ps_out_RoIs_id].get_dataptr()),
-                                             static_cast<uint32_t*>(t[ps_out_RoIs_xmin].get_dataptr()),
-                                             static_cast<uint32_t*>(t[ps_out_RoIs_xmax].get_dataptr()),
-                                             static_cast<uint32_t*>(t[ps_out_RoIs_ymin].get_dataptr()),
-                                             static_cast<uint32_t*>(t[ps_out_RoIs_ymax].get_dataptr()),
-                                             static_cast<uint32_t*>(t[ps_out_RoIs_S].get_dataptr()),
-                                             static_cast<uint32_t*>(t[ps_out_RoIs_Sx].get_dataptr()),
-                                             static_cast<uint32_t*>(t[ps_out_RoIs_Sy].get_dataptr()),
-                                             static_cast<float*>(t[ps_out_RoIs_x].get_dataptr()),
-                                             static_cast<float*>(t[ps_out_RoIs_y].get_dataptr()));
+        size_t out_n_RoIs = _features_shrink_basic(mrg.tmp_in_RoIs_id,
+                                                   static_cast<const uint32_t*>(t[ps_in_RoIs_xmin].get_dataptr()),
+                                                   static_cast<const uint32_t*>(t[ps_in_RoIs_xmax].get_dataptr()),
+                                                   static_cast<const uint32_t*>(t[ps_in_RoIs_ymin].get_dataptr()),
+                                                   static_cast<const uint32_t*>(t[ps_in_RoIs_ymax].get_dataptr()),
+                                                   static_cast<const uint32_t*>(t[ps_in_RoIs_S].get_dataptr()),
+                                                   static_cast<const uint32_t*>(t[ps_in_RoIs_Sx].get_dataptr()),
+                                                   static_cast<const uint32_t*>(t[ps_in_RoIs_Sy].get_dataptr()),
+                                                   static_cast<const uint64_t*>(t[ps_in_RoIs_Sx2].get_dataptr()),
+                                                   static_cast<const uint64_t*>(t[ps_in_RoIs_Sy2].get_dataptr()),
+                                                   static_cast<const uint64_t*>(t[ps_in_RoIs_Sxy].get_dataptr()),
+                                                   static_cast<const float*>(t[ps_in_RoIs_x].get_dataptr()),
+                                                   static_cast<const float*>(t[ps_in_RoIs_y].get_dataptr()),
+                                                   in_n_RoIs,
+                                                   static_cast<uint32_t*>(t[ps_out_RoIs_id].get_dataptr()),
+                                                   static_cast<uint32_t*>(t[ps_out_RoIs_xmin].get_dataptr()),
+                                                   static_cast<uint32_t*>(t[ps_out_RoIs_xmax].get_dataptr()),
+                                                   static_cast<uint32_t*>(t[ps_out_RoIs_ymin].get_dataptr()),
+                                                   static_cast<uint32_t*>(t[ps_out_RoIs_ymax].get_dataptr()),
+                                                   static_cast<uint32_t*>(t[ps_out_RoIs_S].get_dataptr()),
+                                                   static_cast<uint32_t*>(t[ps_out_RoIs_Sx].get_dataptr()),
+                                                   static_cast<uint32_t*>(t[ps_out_RoIs_Sy].get_dataptr()),
+                                                   static_cast<uint64_t*>(t[ps_out_RoIs_Sx2].get_dataptr()),
+                                                   static_cast<uint64_t*>(t[ps_out_RoIs_Sy2].get_dataptr()),
+                                                   static_cast<uint64_t*>(t[ps_out_RoIs_Sxy].get_dataptr()),
+                                                   static_cast<float*>(t[ps_out_RoIs_x].get_dataptr()),
+                                                   static_cast<float*>(t[ps_out_RoIs_y].get_dataptr()));
 
         *static_cast<uint32_t*>(t[ps_out_n_RoIs].get_dataptr()) = (uint32_t)out_n_RoIs;
 

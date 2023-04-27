@@ -12,10 +12,11 @@ namespace ftr_mrg3 {
     enum class tsk : size_t { merge, SIZE };
     namespace sck {
         enum class merge : size_t { in_labels, in_img, in_RoIs_id, in_RoIs_xmin, in_RoIs_xmax, in_RoIs_ymin,
-                                    in_RoIs_ymax, in_RoIs_S, in_RoIs_Sx, in_RoIs_Sy, in_RoIs_x, in_RoIs_y, in_n_RoIs,
+                                    in_RoIs_ymax, in_RoIs_S, in_RoIs_Sx, in_RoIs_Sy, in_RoIs_Sx2, in_RoIs_Sy2,
+                                    in_RoIs_Sxy, in_RoIs_x, in_RoIs_y, in_n_RoIs,
                                     out_RoIs_id, out_RoIs_xmin, out_RoIs_xmax, out_RoIs_ymin, out_RoIs_ymax,
-                                    out_RoIs_S, out_RoIs_Sx, out_RoIs_Sy, out_RoIs_x, out_RoIs_y, out_n_RoIs,
-                                    out_labels, status };
+                                    out_RoIs_S, out_RoIs_Sx, out_RoIs_Sy, out_RoIs_Sx2, out_RoIs_Sy2, out_RoIs_Sxy,
+                                    out_RoIs_x, out_RoIs_y, out_n_RoIs, out_labels, status };
     }
 }
 

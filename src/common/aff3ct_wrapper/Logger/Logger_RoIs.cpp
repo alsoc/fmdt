@@ -23,6 +23,9 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
     auto ps_in_RoIs0_S = this->template create_socket_in<uint32_t>(p, "in_RoIs0_S", max_RoIs_size);
     auto ps_in_RoIs0_Sx = this->template create_socket_in<uint32_t>(p, "in_RoIs0_Sx", max_RoIs_size);
     auto ps_in_RoIs0_Sy = this->template create_socket_in<uint32_t>(p, "in_RoIs0_Sy", max_RoIs_size);
+    auto ps_in_RoIs0_Sx2 = this->template create_socket_in<uint64_t>(p, "in_RoIs0_Sx2", max_RoIs_size);
+    auto ps_in_RoIs0_Sy2 = this->template create_socket_in<uint64_t>(p, "in_RoIs0_Sy2", max_RoIs_size);
+    auto ps_in_RoIs0_Sxy = this->template create_socket_in<uint64_t>(p, "in_RoIs0_Sxy", max_RoIs_size);
     auto ps_in_RoIs0_x = this->template create_socket_in<float>(p, "in_RoIs0_x", max_RoIs_size);
     auto ps_in_RoIs0_y = this->template create_socket_in<float>(p, "in_RoIs0_y", max_RoIs_size);
     auto ps_in_RoIs0_magnitude = this->template create_socket_in<uint32_t>(p, "in_RoIs0_magnitude", max_RoIs_size);
@@ -37,6 +40,9 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
     auto ps_in_RoIs1_S = this->template create_socket_in<uint32_t>(p, "in_RoIs1_S", max_RoIs_size);
     auto ps_in_RoIs1_Sx = this->template create_socket_in<uint32_t>(p, "in_RoIs1_Sx", max_RoIs_size);
     auto ps_in_RoIs1_Sy = this->template create_socket_in<uint32_t>(p, "in_RoIs1_Sy", max_RoIs_size);
+    auto ps_in_RoIs1_Sx2 = this->template create_socket_in<uint64_t>(p, "in_RoIs1_Sx2", max_RoIs_size);
+    auto ps_in_RoIs1_Sy2 = this->template create_socket_in<uint64_t>(p, "in_RoIs1_Sy2", max_RoIs_size);
+    auto ps_in_RoIs1_Sxy = this->template create_socket_in<uint64_t>(p, "in_RoIs1_Sxy", max_RoIs_size);
     auto ps_in_RoIs1_x = this->template create_socket_in<float>(p, "in_RoIs1_x", max_RoIs_size);
     auto ps_in_RoIs1_y = this->template create_socket_in<float>(p, "in_RoIs1_y", max_RoIs_size);
     auto ps_in_RoIs1_magnitude = this->template create_socket_in<uint32_t>(p, "in_RoIs1_magnitude", max_RoIs_size);
@@ -48,11 +54,12 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
         tools_create_folder(RoIs_path.c_str());
 
     this->create_codelet(p, [ps_in_RoIs0_id, ps_in_RoIs0_xmin, ps_in_RoIs0_xmax, ps_in_RoIs0_ymin, ps_in_RoIs0_ymax,
-                             ps_in_RoIs0_S, ps_in_RoIs0_Sx, ps_in_RoIs0_Sy, ps_in_RoIs0_x, ps_in_RoIs0_y,
-                             ps_in_RoIs0_magnitude, ps_in_RoIs0_sat_count, ps_in_n_RoIs0, ps_in_RoIs1_id,
-                             ps_in_RoIs1_xmin, ps_in_RoIs1_xmax, ps_in_RoIs1_ymin, ps_in_RoIs1_ymax, ps_in_RoIs1_S,
-                             ps_in_RoIs1_Sx, ps_in_RoIs1_Sy, ps_in_RoIs1_x, ps_in_RoIs1_y, ps_in_RoIs1_magnitude,
-                             ps_in_RoIs1_sat_count, ps_in_n_RoIs1, ps_in_frame]
+                             ps_in_RoIs0_S, ps_in_RoIs0_Sx, ps_in_RoIs0_Sy, ps_in_RoIs0_Sx2, ps_in_RoIs0_Sy2,
+                             ps_in_RoIs0_Sxy, ps_in_RoIs0_x, ps_in_RoIs0_y, ps_in_RoIs0_magnitude,
+                             ps_in_RoIs0_sat_count, ps_in_n_RoIs0, ps_in_RoIs1_id, ps_in_RoIs1_xmin, ps_in_RoIs1_xmax,
+                             ps_in_RoIs1_ymin, ps_in_RoIs1_ymax, ps_in_RoIs1_S, ps_in_RoIs1_Sx, ps_in_RoIs1_Sy,
+                             ps_in_RoIs1_Sx2, ps_in_RoIs1_Sy2, ps_in_RoIs1_Sxy, ps_in_RoIs1_x, ps_in_RoIs1_y,
+                             ps_in_RoIs1_magnitude, ps_in_RoIs1_sat_count, ps_in_n_RoIs1, ps_in_frame]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_roi = static_cast<Logger_RoIs&>(m);
 
@@ -73,6 +80,9 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
                                         static_cast<const uint32_t*>(t[ps_in_RoIs0_S].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs0_Sx].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs0_Sy].get_dataptr()),
+                                        static_cast<const uint64_t*>(t[ps_in_RoIs0_Sx2].get_dataptr()),
+                                        static_cast<const uint64_t*>(t[ps_in_RoIs0_Sy2].get_dataptr()),
+                                        static_cast<const uint64_t*>(t[ps_in_RoIs0_Sxy].get_dataptr()),
                                         static_cast<const float*>(t[ps_in_RoIs0_x].get_dataptr()),
                                         static_cast<const float*>(t[ps_in_RoIs0_y].get_dataptr()),
                                         lgr_roi.enable_magnitude ?
@@ -81,6 +91,8 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
                                         lgr_roi.enable_sat_count ?
                                             static_cast<const uint32_t*>(t[ps_in_RoIs0_sat_count].get_dataptr()) :
                                             nullptr,
+                                        nullptr,
+                                        nullptr,
                                         *static_cast<const uint32_t*>(t[ps_in_n_RoIs0].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_id].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_xmin].get_dataptr()),
@@ -90,6 +102,9 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_S].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_Sx].get_dataptr()),
                                         static_cast<const uint32_t*>(t[ps_in_RoIs1_Sy].get_dataptr()),
+                                        static_cast<const uint64_t*>(t[ps_in_RoIs1_Sx2].get_dataptr()),
+                                        static_cast<const uint64_t*>(t[ps_in_RoIs1_Sy2].get_dataptr()),
+                                        static_cast<const uint64_t*>(t[ps_in_RoIs1_Sxy].get_dataptr()),
                                         static_cast<const float*>(t[ps_in_RoIs1_x].get_dataptr()),
                                         static_cast<const float*>(t[ps_in_RoIs1_y].get_dataptr()),
                                         lgr_roi.enable_magnitude ?
@@ -98,6 +113,8 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
                                         lgr_roi.enable_sat_count ?
                                             static_cast<const uint32_t*>(t[ps_in_RoIs1_sat_count].get_dataptr()) :
                                             nullptr,
+                                        nullptr,
+                                        nullptr,
                                         *static_cast<const uint32_t*>(t[ps_in_n_RoIs1].get_dataptr()),
                                         lgr_roi.tracking_data->tracks);
             fclose(file);

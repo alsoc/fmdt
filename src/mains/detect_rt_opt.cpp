@@ -56,8 +56,8 @@ int main(int argc, char** argv) {
     int def_p_trk_meteor_max = 100;
     float def_p_trk_ddev = 4.f;
     char* def_p_trk_bb_path = NULL;
-    char* def_p_trk_mag_path = NULL;
     char* def_p_log_path = NULL;
+    char* def_p_trk_roi_path = NULL;
     char* def_p_out_probes = NULL;
 
     // help
@@ -95,6 +95,8 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --ccl-fra-id        Show the RoI/CC ids on the ouptut CC frames                                \n");
 #endif
+        fprintf(stderr,
+                "  --cca-mag           Enable magnitude and saturation counter computations                       \n");
         fprintf(stderr,
                 "  --mrp-s-min         Minimum surface of the CCs in pixels                                   [%d]\n",
                 def_p_mrp_s_min);
@@ -136,11 +138,11 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --trk-all           Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
+                "  --trk-roi-path      Path to the file containing the RoI ids for each track                 [%s]\n",
+                def_p_trk_roi_path ? def_p_trk_roi_path : "NULL");
+        fprintf(stderr,
                 "  --trk-bb-path       Path to the file containing the bounding boxes (frame by frame)        [%s]\n",
                 def_p_trk_bb_path ? def_p_trk_bb_path : "NULL");
-        fprintf(stderr,
-                "  --trk-mag-path      Path to the file containing magnitudes of the tracked objects          [%s]\n",
-                def_p_trk_mag_path ? def_p_trk_mag_path : "NULL");
         fprintf(stderr,
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
@@ -183,6 +185,7 @@ int main(int argc, char** argv) {
 #else
     const int p_ccl_fra_id = 0;
 #endif
+    const int p_cca_mag = args_find(argc, argv, "--cca-mag");
     const int p_mrp_s_min = args_find_int_min(argc, argv, "--mrp-s-min,--surface-min", def_p_mrp_s_min, 0);
     const int p_mrp_s_max = args_find_int_min(argc, argv, "--mrp-s-max,--surface-max", def_p_mrp_s_max, 0);
     const int p_knn_k = args_find_int_min(argc, argv, "--knn-k,-k", def_p_knn_k, 0);
@@ -196,8 +199,8 @@ int main(int argc, char** argv) {
     const int p_trk_meteor_max = args_find_int_min(argc, argv, "--trk-meteor-max,--fra-meteor-max", def_p_trk_meteor_max, 2);
     const float p_trk_ddev = args_find_float_min(argc, argv, "--trk-ddev,--diff-dev", def_p_trk_ddev, 0.f);
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
+    const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_trk_bb_path = args_find_char(argc, argv, "--trk-bb-path,--out-bb", def_p_trk_bb_path);
-    const char* p_trk_mag_path = args_find_char(argc, argv, "--trk-mag-path,--out-mag", def_p_trk_mag_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
     const int p_task_stats = args_find(argc, argv, "--rt-stats,--task-stats");
     const char* p_out_probes = args_find_char(argc, argv, "--rt-prb-path,--out-probes", def_p_out_probes);
@@ -225,6 +228,7 @@ int main(int argc, char** argv) {
 #ifdef FMDT_OPENCV_LINK
     printf("#  * ccl-fra-id     = %d\n", p_ccl_fra_id);
 #endif
+    printf("#  * cca-mag        = %d\n", p_cca_mag);
     printf("#  * mrp-s-min      = %d\n", p_mrp_s_min);
     printf("#  * mrp-s-max      = %d\n", p_mrp_s_max);
     printf("#  * knn-k          = %d\n", p_knn_k);
@@ -238,8 +242,8 @@ int main(int argc, char** argv) {
     printf("#  * trk-meteor-max = %d\n", p_trk_meteor_max);
     printf("#  * trk-ddev       = %4.2f\n", p_trk_ddev);
     printf("#  * trk-all        = %d\n", p_trk_all);
+    printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * trk-bb-path    = %s\n", p_trk_bb_path);
-    printf("#  * trk-mag-path   = %s\n", p_trk_mag_path);
     printf("#  * log-path       = %s\n", p_log_path);
     printf("#  * rt-stats       = %d\n", p_task_stats);
     printf("#  * rt-prb-path    = %s\n", p_out_probes);
@@ -299,8 +303,8 @@ int main(int argc, char** argv) {
 
     CCL_threshold_features lsl(i0, i1, j0, j1, b, p_ccl_hyst_lo, MAX_ROI_SIZE_BEFORE_SHRINK,
                                CCL_str_to_enum(p_ccl_impl));
-    lsl.set_custom_name("CCL_tf");
-    const uint8_t no_labels_zeros_init = !p_ccl_fra_path && !p_trk_mag_path;
+    lsl.set_custom_name("CCL_thr_ftr");
+    const uint8_t no_labels_zeros_init = !p_ccl_fra_path && !p_cca_mag;
     Features_merger_CCL_HI_v3 merger(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, p_ccl_hyst_hi, no_labels_zeros_init,
                                      MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
     merger.set_custom_name("Merger");
@@ -310,7 +314,7 @@ int main(int argc, char** argv) {
     Motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
-                      p_trk_meteor_max, p_trk_bb_path, p_trk_mag_path, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
+                      p_trk_meteor_max, p_trk_roi_path, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_id(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_xmin(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_xmax(MAX_ROI_SIZE, 0);
@@ -319,6 +323,9 @@ int main(int argc, char** argv) {
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_S(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_Sx(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_Sy(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint64_t> delayer_RoIs_Sx2(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint64_t> delayer_RoIs_Sy2(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<uint64_t> delayer_RoIs_Sxy(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<float> delayer_RoIs_x(MAX_ROI_SIZE, 0.f);
     aff3ct::module::Delayer<float> delayer_RoIs_y(MAX_ROI_SIZE, 0.f);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_magnitude(MAX_ROI_SIZE, 0);
@@ -332,17 +339,21 @@ int main(int argc, char** argv) {
     delayer_RoIs_S.set_custom_name("D<RoIs_S>");
     delayer_RoIs_Sx.set_custom_name("D<RoIs_Sx>");
     delayer_RoIs_Sy.set_custom_name("D<RoIs_Sy>");
+    delayer_RoIs_Sx2.set_custom_name("D<RoIs_Sx2>");
+    delayer_RoIs_Sy2.set_custom_name("D<RoIs_Sy2>");
+    delayer_RoIs_Sxy.set_custom_name("D<RoIs_Sxy>");
     delayer_RoIs_x.set_custom_name("D<RoIs_x>");
     delayer_RoIs_y.set_custom_name("D<RoIs_y>");
     delayer_RoIs_magnitude.set_custom_name("D<RoIs_mag>");
     delayer_RoIs_sat_count.set_custom_name("D<RoIs_sat>");
     delayer_n_RoIs.set_custom_name("D<n_RoIs>");
     Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data(),
-                         p_trk_mag_path != NULL, p_trk_mag_path != NULL);
+                         p_cca_mag, p_cca_mag);
     Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_ROI_SIZE);
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");
     Logger_tracks log_track(p_log_path ? p_log_path : "", p_vid_in_start, tracking.get_data());
+    log_track.set_custom_name("Logger_trk");
     std::unique_ptr<Logger_frame> log_frame;
     if (p_ccl_fra_path)
         log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
@@ -423,12 +434,15 @@ int main(int argc, char** argv) {
     merger[ftr_mrg3::sck::merge::in_RoIs_S] = lsl[ccl_tf::sck::apply::out_RoIs_S];
     merger[ftr_mrg3::sck::merge::in_RoIs_Sx] = lsl[ccl_tf::sck::apply::out_RoIs_Sx];
     merger[ftr_mrg3::sck::merge::in_RoIs_Sy] = lsl[ccl_tf::sck::apply::out_RoIs_Sy];
+    merger[ftr_mrg3::sck::merge::in_RoIs_Sx2] = lsl[ccl_tf::sck::apply::out_RoIs_Sx2];
+    merger[ftr_mrg3::sck::merge::in_RoIs_Sy2] = lsl[ccl_tf::sck::apply::out_RoIs_Sy2];
+    merger[ftr_mrg3::sck::merge::in_RoIs_Sxy] = lsl[ccl_tf::sck::apply::out_RoIs_Sxy];
     merger[ftr_mrg3::sck::merge::in_RoIs_x] = lsl[ccl_tf::sck::apply::out_RoIs_x];
     merger[ftr_mrg3::sck::merge::in_RoIs_y] = lsl[ccl_tf::sck::apply::out_RoIs_y];
     merger[ftr_mrg3::sck::merge::in_n_RoIs] = lsl[ccl_tf::sck::apply::out_n_RoIs];
 
     // step 3.5 : compute magnitude for each RoI
-    if (p_trk_mag_path) {
+    if (p_cca_mag) {
         magnitude[ftr_mgn::sck::compute::in_img] = video[vid::sck::generate::out_img];
         magnitude[ftr_mgn::sck::compute::in_labels] = merger[ftr_mrg3::sck::merge::out_labels];
         magnitude[ftr_mgn::sck::compute::in_RoIs_xmin] = merger[ftr_mrg3::sck::merge::out_RoIs_xmin];
@@ -454,9 +468,12 @@ int main(int argc, char** argv) {
     delayer_RoIs_S[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg3::sck::merge::out_RoIs_id];
     delayer_RoIs_Sx[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg3::sck::merge::out_RoIs_id];
     delayer_RoIs_Sy[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg3::sck::merge::out_RoIs_id];
+    delayer_RoIs_Sx2[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg3::sck::merge::out_RoIs_id];
+    delayer_RoIs_Sy2[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg3::sck::merge::out_RoIs_id];
+    delayer_RoIs_Sxy[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg3::sck::merge::out_RoIs_id];
     delayer_RoIs_x[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg3::sck::merge::out_RoIs_id];
     delayer_RoIs_y[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg3::sck::merge::out_RoIs_id];
-    if (p_trk_mag_path) {
+    if (p_cca_mag) {
         delayer_RoIs_magnitude[aff3ct::module::dly::tsk::produce] =
             magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
         delayer_RoIs_sat_count[aff3ct::module::dly::tsk::produce] =
@@ -496,12 +513,6 @@ int main(int argc, char** argv) {
     tracking[trk::sck::perform::in_RoIs_y] = merger[ftr_mrg3::sck::merge::out_RoIs_y];
     tracking[trk::sck::perform::in_RoIs_error] = motion[mtn::sck::compute::out_RoIs1_error];
     tracking[trk::sck::perform::in_RoIs_prev_id] = matcher[knn::sck::match::out_RoIs1_prev_id];
-    if (p_trk_mag_path) {
-        tracking[trk::sck::perform::in_RoIs_magnitude] = magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
-    } else {
-        tracking[trk::sck::perform::in_RoIs_magnitude] =
-            magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude].get_dataptr();
-    }
     tracking[trk::sck::perform::in_n_RoIs] = merger[ftr_mrg3::sck::merge::out_n_RoIs];
     tracking[trk::sck::perform::in_motion_est] = motion[mtn::sck::compute::out_motion_est2];
 
@@ -513,9 +524,12 @@ int main(int argc, char** argv) {
     delayer_RoIs_S[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg3::sck::merge::out_RoIs_S];
     delayer_RoIs_Sx[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg3::sck::merge::out_RoIs_Sx];
     delayer_RoIs_Sy[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg3::sck::merge::out_RoIs_Sy];
+    delayer_RoIs_Sx2[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg3::sck::merge::out_RoIs_Sx2];
+    delayer_RoIs_Sy2[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg3::sck::merge::out_RoIs_Sy2];
+    delayer_RoIs_Sxy[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg3::sck::merge::out_RoIs_Sxy];
     delayer_RoIs_x[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg3::sck::merge::out_RoIs_x];
     delayer_RoIs_y[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg3::sck::merge::out_RoIs_y];
-    if (p_trk_mag_path) {
+    if (p_cca_mag) {
         delayer_RoIs_magnitude[aff3ct::module::dly::sck::memorize::in] =
             magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
         delayer_RoIs_sat_count[aff3ct::module::dly::sck::memorize::in] =
@@ -532,9 +546,12 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs0_S] = delayer_RoIs_S[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_Sx] = delayer_RoIs_Sx[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_Sy] = delayer_RoIs_Sy[aff3ct::module::dly::sck::produce::out];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sx2] = delayer_RoIs_Sx2[aff3ct::module::dly::sck::produce::out];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sy2] = delayer_RoIs_Sy2[aff3ct::module::dly::sck::produce::out];
+        log_RoIs[lgr_roi::sck::write::in_RoIs0_Sxy] = delayer_RoIs_Sxy[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_x] = delayer_RoIs_x[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs0_y] = delayer_RoIs_y[aff3ct::module::dly::sck::produce::out];
-        if (p_trk_mag_path) {
+        if (p_cca_mag) {
             log_RoIs[lgr_roi::sck::write::in_RoIs0_magnitude] =
                 delayer_RoIs_magnitude[aff3ct::module::dly::sck::produce::out];
             log_RoIs[lgr_roi::sck::write::in_RoIs0_sat_count] =
@@ -554,9 +571,12 @@ int main(int argc, char** argv) {
         log_RoIs[lgr_roi::sck::write::in_RoIs1_S] = merger[ftr_mrg3::sck::merge::out_RoIs_S];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_Sx] = merger[ftr_mrg3::sck::merge::out_RoIs_Sx];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_Sy] = merger[ftr_mrg3::sck::merge::out_RoIs_Sy];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sx2] = merger[ftr_mrg3::sck::merge::out_RoIs_Sx2];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sy2] = merger[ftr_mrg3::sck::merge::out_RoIs_Sy2];
+        log_RoIs[lgr_roi::sck::write::in_RoIs1_Sxy] = merger[ftr_mrg3::sck::merge::out_RoIs_Sxy];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_x] = merger[ftr_mrg3::sck::merge::out_RoIs_x];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_y] = merger[ftr_mrg3::sck::merge::out_RoIs_y];
-        if (p_trk_mag_path) {
+        if (p_cca_mag) {
             log_RoIs[lgr_roi::sck::write::in_RoIs1_magnitude] = magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
             log_RoIs[lgr_roi::sck::write::in_RoIs1_sat_count] = magnitude[ftr_mgn::sck::compute::out_RoIs_sat_count];
         } else {
@@ -654,6 +674,9 @@ int main(int argc, char** argv) {
               &delayer_RoIs_S[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_Sx[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_Sy[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_Sx2[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_Sy2[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_Sxy[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_x[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::produce],
@@ -670,6 +693,9 @@ int main(int argc, char** argv) {
               &delayer_RoIs_S[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_Sx[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_Sy[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_Sx2[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_Sy2[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_Sxy[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_x[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::memorize],
@@ -681,13 +707,13 @@ int main(int argc, char** argv) {
         };
 
         // remove magnitude task when not needed
-        if (!p_trk_mag_path) {
+        if (!p_cca_mag) {
             std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 2);
             std::get<1>(sep_stages[1]).erase(std::get<1>(sep_stages[1]).begin() + 1);
-            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 10);
-            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 10);
-            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 24);
-            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 24);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 13);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 13);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 30);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 30);
         }
 
     } else {
@@ -718,6 +744,9 @@ int main(int argc, char** argv) {
               &delayer_RoIs_S[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_Sx[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_Sy[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_Sx2[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_Sy2[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_Sxy[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_x[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::produce],
@@ -734,6 +763,9 @@ int main(int argc, char** argv) {
               &delayer_RoIs_S[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_Sx[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_Sy[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_Sx2[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_Sy2[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_Sxy[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_x[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_y[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::memorize],
@@ -745,13 +777,13 @@ int main(int argc, char** argv) {
         };
 
         // remove magnitude task when not needed
-        if (!p_trk_mag_path) {
+        if (!p_cca_mag) {
             std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 3);
             std::get<1>(sep_stages[1]).erase(std::get<1>(sep_stages[1]).begin() + 1);
-            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 12);
-            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 12);
-            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 26);
-            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 26);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 15);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 15);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 32);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 32);
         }
     }
 
@@ -855,23 +887,14 @@ int main(int argc, char** argv) {
         terminal_probes.final_report(rt_probes_file);
 
     fprintf(stderr, "\n");
-    if (p_trk_bb_path) {
-        FILE* f = fopen(p_trk_bb_path, "w");
-        if (f == NULL) {
-            fprintf(stderr, "(EE) error while opening '%s'\n", p_trk_bb_path);
-            exit(1);
-        }
-        tracking_BBs_write(f, tracking.get_BBs(), tracking.get_data()->tracks);
-        fclose(f);
-    }
 
-    if (p_trk_mag_path) {
-        FILE* f = fopen(p_trk_mag_path, "w");
+    if (p_trk_roi_path) {
+        FILE* f = fopen(p_trk_roi_path, "w");
         if (f == NULL) {
-            fprintf(stderr, "(EE) error while opening '%s'\n", p_trk_bb_path);
+            fprintf(stderr, "(EE) error while opening '%s'\n", p_trk_roi_path);
             exit(1);
         }
-        tracking_tracks_magnitudes_write(f, tracking.get_data()->tracks);
+        tracking_tracks_RoIs_id_write(f, tracking.get_data()->tracks);
         fclose(f);
     }
     tracking_tracks_write(stdout, tracking.get_data()->tracks);

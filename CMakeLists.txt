@@ -6,6 +6,7 @@ project(fmdt)
 # CMake options ---------------------------------------------------------------
 # -----------------------------------------------------------------------------
 option(FMDT_DETECT_EXE "compile the detection chain executable." ON)
+option(FMDT_ELLIPSE_EXE "compile the ellipse chain executable." ON)
 option(FMDT_VISU_EXE "compile the visualization executable." ON)
 option(FMDT_CHECK_EXE "compile the checking executable." ON)
 option(FMDT_MAXRED_EXE "compile the max reduction executable." ON)
@@ -23,6 +24,7 @@ endif()
 # -----------------------------------------------------------------------------
 message(STATUS "FMDT options: ")
 message(STATUS "  * FMDT_DETECT_EXE: '${FMDT_DETECT_EXE}'")
+message(STATUS "  * FMDT_ELLIPSE_EXE: '${FMDT_ELLIPSE_EXE}'")
 message(STATUS "  * FMDT_VISU_EXE: '${FMDT_VISU_EXE}'")
 message(STATUS "  * FMDT_CHECK_EXE: '${FMDT_CHECK_EXE}'")
 message(STATUS "  * FMDT_MAXRED_EXE: '${FMDT_MAXRED_EXE}'")
@@ -218,12 +220,20 @@ if(FMDT_DETECT_EXE)
 		set(src_detectrt2_files
 		    ${src_dir}/mains/detect_rt2.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt2_files})
-		add_executable(fmdt-detect-rt2-exe
-		               $<TARGET_OBJECTS:fmdt-common-obj>
-		               $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
-		               ${src_detectrt2_files})
-		list(APPEND fmdt_targets_list fmdt-detect-rt2-exe)
-		set_target_properties(fmdt-detect-rt2-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2)
+		add_executable(fmdt-detect-rt2-seq-exe
+		    $<TARGET_OBJECTS:fmdt-common-obj>
+		    $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
+		    ${src_detectrt2_files})
+		list(APPEND fmdt_targets_list fmdt-detect-rt2-seq-exe)
+		set_target_properties(fmdt-detect-rt2-seq-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2-seq)
+
+		add_executable(fmdt-detect-rt2-pip-exe
+		    $<TARGET_OBJECTS:fmdt-common-obj>
+		    $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
+		    ${src_detectrt2_files})
+		list(APPEND fmdt_targets_list fmdt-detect-rt2-pip-exe)
+		set_target_properties(fmdt-detect-rt2-pip-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2-pip)
+		target_compile_definitions(fmdt-detect-rt2-pip-exe PUBLIC FMDT_ENABLE_PIPELINE)
 
 		set(src_detectrt1opt_files
 		    ${src_dir}/mains/detect_rt_opt.cpp)
@@ -243,6 +253,14 @@ if(FMDT_DETECT_EXE)
 		set_target_properties(fmdt-detect-rt-opt-pip-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-opt-pip)
 		target_compile_definitions(fmdt-detect-rt-opt-pip-exe PUBLIC FMDT_ENABLE_PIPELINE)
 	endif()
+endif()
+if(FMDT_ELLIPSE_EXE)
+	set(src_ellipse_files
+	    ${src_dir}/mains/ellipse.c)
+	list(APPEND fmdt_src_list ${src_ellipse_files})
+	add_executable(fmdt-ellipse-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_ellipse_files})
+	list(APPEND fmdt_targets_list fmdt-ellipse-exe)
+	set_target_properties(fmdt-ellipse-exe PROPERTIES OUTPUT_NAME fmdt-ellipse)
 endif()
 if(FMDT_VISU_EXE)
 	set(src_visu_files
@@ -268,6 +286,12 @@ if(FMDT_MAXRED_EXE)
 	list(APPEND fmdt_targets_list fmdt-maxred-exe)
 	set_target_properties(fmdt-maxred-exe PROPERTIES OUTPUT_NAME fmdt-maxred)
 endif()
+
+# create symlink from Python script to bin/ folder
+set(FMDT_LOG_PARSER_TARGET ${CMAKE_CURRENT_SOURCE_DIR}/scripts/log_parser/log_parser.py)
+set(FMDT_LOG_PARSER_SYMLINK ${exe_dir}/fmdt-log-parser)
+add_custom_target(fmdt-log-parser ALL
+                  COMMAND ${CMAKE_COMMAND} -E create_symlink ${FMDT_LOG_PARSER_TARGET} ${FMDT_LOG_PARSER_SYMLINK})
 
 macro(fmdt_set_source_files_properties files key value)
 	foreach(_file IN ITEMS ${files})

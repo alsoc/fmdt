@@ -32,6 +32,8 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--ccl-fra-id``     | BOOLEAN | See :numref:`detect_ccl-fra-id`.                   |
 +----------------------+---------+----------------------------------------------------+
+| ``--cca-mag``        | BOOLEAN | See :numref:`detect_cca-mag`.                      |
++----------------------+---------+----------------------------------------------------+
 | ``--mrp-s-min``      | INTEGER | See :numref:`detect_mrp-s-min`.                    |
 +----------------------+---------+----------------------------------------------------+
 | ``--mrp-s-max``      | INTEGER | See :numref:`detect_mrp-s-max`.                    |
@@ -58,9 +60,7 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--trk-all``        | BOOLEAN | See :numref:`detect_trk-all`.                      |
 +----------------------+---------+----------------------------------------------------+
-| ``--trk-bb-path``    | STRING  | See :numref:`detect_trk-bb-path`.                  |
-+----------------------+---------+----------------------------------------------------+
-| ``--trk-mag-path``   | STRING  | See :numref:`detect_trk-mag-path`.                 |
+| ``--trk-roi-path``   | STRING  | See :numref:`detect_trk-roi-path`.                 |
 +----------------------+---------+----------------------------------------------------+
 | ``--log-path``       | STRING  | See :numref:`detect_log-path`.                     |
 +----------------------+---------+----------------------------------------------------+
@@ -233,6 +233,19 @@ Show the |RoI|/|CC| ids on the output frames (to combine with ``--ccl-fra-path``
 parameter). Requires to link with OpenCV library (``-DFMDT_OPENCV_LINK`` CMake
 option, see :numref:`user_installation_cmake`).
 
+.. _detect_cca-mag:
+
+``--cca-mag``
+-------------
+
+   :Type: BOOLEAN
+   :Default: [empty]
+   :Example: ``--cca-mag``
+
+Enable the computation of two news features in the |CCA|: the magnitude and the
+counter of saturated pixels (to be combined with the :ref:`detect_log-path`
+option).
+
 .. _detect_mrp-s-min:
 
 ``--mrp-s-min``
@@ -393,50 +406,28 @@ set, all object types are tracked (``meteor``, ``star`` or ``noise``).
 
 This parameter is used in the :func:`_tracking_perform` function.
 
-.. _detect_trk-bb-path:
+.. _detect_trk-roi-path:
 
-``--trk-bb-path``
------------------
-
-   :Deprecated: ``--out-bb``
-   :Type: STRING
-   :Default: [empty]
-   :Example: ``--trk-bb-path bb.txt``
-
-Path to the bounding boxes file required by ``fmdt-visu`` to draw detection
-rectangles. Each bounding box defines the area of an object, frame by frame.
-
-Here is the corresponding line format:
-
-.. code-block:: bash
-
-	{frame_id} {x_radius} {y_radius} {center_x} {center_y} {track_id} {is_extrapolated}
-
-Each line corresponds to a frame and to an object, each value is separated by a
-space character.
-
-.. _detect_trk-mag-path:
-
-``--trk-mag-path``
+``--trk-roi-path``
 ------------------
 
-   :Deprecated: ``--out-mag``
    :Type: STRING
    :Default: [empty]
-   :Example: ``--trk-mag-path mag.txt``
+   :Example: ``--trk-roi-path trk2roi.txt``
 
-Path to the output file containing magnitudes of the tracked objects. Each line
-corresponds to a track/object and here is the corresponding line format:
+Path to the output file containing lists of the |RoI| ids of the tracked
+objects. Each line corresponds to a track/object and here is the corresponding
+line format:
 
 .. code-block:: bash
 
-	{tid} {otype} {mag1} {mag2} {...} {magn}
+   {tid} {otype} {rid1} {rid2} {...} {ridn}
 
-``{mag1}`` is the first magnitude value of the track/object of ``{tid}`` id.
-``{mag2}`` is the second magnitude value (in the second frame where the object
-has been tracked). And so on, until the last magnitude value ``{magn}``. Note
-that sometime  the magnitude value can be ``0``, it means that the object has
-been extrapolated on this frame, thus the magnitude cannot be computed.
+``{rid1}`` is the first |RoI| id of the track/object of ``{tid}`` id.
+``{rid2}`` is the second |RoI| id (in the second frame where the object
+has been tracked). And so on, until the last |RoI| id ``{ridn}``. Note
+that sometime the |RoI| id can be ``0``, it means that the object has been
+extrapolated on this frame, thus there is no |RoI| id for this frame.
 
 .. _detect_log-path:
 
@@ -482,13 +473,13 @@ Table 1 and table 2: |RoIs|
 
 .. code-block:: bash
 
-	# ------||----------------||---------------------------||---------------------------||-------------------||-----------||------------
-	#   RoI ||      Track     ||        Bounding Box       ||   Surface (S in pixels)   ||      Center       || Magnitude || Saturation
-	# ------||----------------||---------------------------||---------------------------||-------------------||-----------||------------
-	# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------||------------
-	#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy ||       x |       y ||        -- ||    Counter
-	# ------||------|---------||------|------|------|------||-----|----------|----------||---------|---------||-----------||------------
-	  {rid} || {tid}| {otype} ||{xmin}|{xmax}|{ymin}|{ymax}|| {S} |     {Sx} |     {Sy} ||    {cx} |    {cy} ||     {mag} ||      {sat}
+	# ------||----------------||---------------------------||------------------------------------------------------------------||-------------------||-----------||------------||--------------------------
+	#   RoI ||      Track     ||        Bounding Box       ||                      Surface (S in pixels)                       ||      Center       || Magnitude || Saturation ||         Ellipse
+	# ------||----------------||---------------------------||------------------------------------------------------------------||-------------------||-----------||------------||--------------------------
+	# ------||------|---------||------|------|------|------||-----|----------|----------|------------|------------|------------||---------|---------||-----------||------------||--------|--------|--------
+	#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy |        Sx2 |        Sy2 |        Sxy ||       x |       y ||        -- ||    Counter ||      a |      b |  ratio
+	# ------||------|---------||------|------|------|------||-----|----------|----------|------------|------------|------------||---------|---------||-----------||------------||--------|--------|--------
+	  {rid} || {tid}| {otype} ||{xmin}|{xmax}|{ymin}|{ymax}|| {S} |     {Sx} |     {Sy} |      {Sx2} |      {Sy2} |      {Sxy} ||    {cx} |    {cy} ||     {mag} ||      {sat} ||    {a} |    {b} |    {r}
 
 Each line corresponds to one |RoI|:
 
@@ -504,12 +495,27 @@ Each line corresponds to one |RoI|:
 - ``{S}``: surface (area) of the |RoI| in pixels,
 - ``{Sx}``: sum of :math:`x` properties,
 - ``{Sy}``: sum of :math:`y` properties,
+- ``{Sx2}``: sum of :math:`x^2` properties,
+- ``{Sy2}``: sum of :math:`y^2` properties,
+- ``{Sxy}``: sum of :math:`x \times y` properties,
 - ``{cx}``: :math:`x` center of mass,
 - ``{cy}``: :math:`y` center of mass,
 - ``{mag}``: magnitude of the current |RoI| (accumulated brightness of the
-  |RoI|, see the :func:`_features_compute_magnitude` function),
-- ``{sat}``: number of pixels that are saturated in the current |RoI| (a pixel :math:`x` is saturated when its intensity
-  :math:`i_x = 255`, see the :func:`_features_compute_magnitude` function).
+  |RoI|),
+- ``{sat}``: number of pixels that are saturated in the current |RoI| (a pixel
+  :math:`x` is saturated when its intensity :math:`i_x = 255`),
+- ``{a}``: semi-major axis (ellipse),
+- ``{b}``: semi-minor axis (ellipse),
+- ``{r}``: ratio :math:`a / b`.
+
+``{mag}`` and ``{sat}`` features are not enabled by default (and the ``-``
+character is printed in the corresponding columns). To enable theses features
+you need to use the :ref:`detect_cca-mag` command line parameter. For more
+information about those features you can refer to the
+:func:`_features_compute_magnitude` function.
+
+``{a}``, ``{b}`` and ``{r}`` features are not implemented yet and the ``-``
+character is printed in the corresponding columns.
 
 Table 3: List of associations between |RoIs|
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^

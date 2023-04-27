@@ -63,3 +63,6 @@ ref*/
 
 # Generated fils
 src/common/version.c
+
+# Doc
+doc/build/*

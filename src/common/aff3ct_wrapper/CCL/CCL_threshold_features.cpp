@@ -28,12 +28,16 @@ CCL_threshold_features::CCL_threshold_features(const int i0, const int i1, const
     auto ps_out_RoIs_S = this->template create_socket_out<uint32_t>(p, "out_RoIs_S", max_RoIs_size);
     auto ps_out_RoIs_Sx = this->template create_socket_out<uint32_t>(p, "out_RoIs_Sx", max_RoIs_size);
     auto ps_out_RoIs_Sy = this->template create_socket_out<uint32_t>(p, "out_RoIs_Sy", max_RoIs_size);
+    auto ps_out_RoIs_Sx2 = this->template create_socket_out<uint64_t>(p, "out_RoIs_Sx2", max_RoIs_size);
+    auto ps_out_RoIs_Sy2 = this->template create_socket_out<uint64_t>(p, "out_RoIs_Sy2", max_RoIs_size);
+    auto ps_out_RoIs_Sxy = this->template create_socket_out<uint64_t>(p, "out_RoIs_Sxy", max_RoIs_size);
     auto ps_out_RoIs_x = this->template create_socket_out<float>(p, "out_RoIs_x", max_RoIs_size);
     auto ps_out_RoIs_y = this->template create_socket_out<float>(p, "out_RoIs_y", max_RoIs_size);
 
     this->create_codelet(p, [ps_in_img, ps_out_labels, ps_out_n_RoIs, ps_out_RoIs_id, ps_out_RoIs_xmin,
                              ps_out_RoIs_xmax, ps_out_RoIs_ymin, ps_out_RoIs_ymax, ps_out_RoIs_S, ps_out_RoIs_Sx,
-                             ps_out_RoIs_Sy, ps_out_RoIs_x, ps_out_RoIs_y]
+                             ps_out_RoIs_Sy, ps_out_RoIs_Sx2, ps_out_RoIs_Sy2, ps_out_RoIs_Sxy, ps_out_RoIs_x,
+                             ps_out_RoIs_y]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lsl = static_cast<CCL_threshold_features&>(m);
         const uint8_t* m_in_img = static_cast<const uint8_t*>(t[ps_in_img].get_dataptr());
@@ -54,6 +58,9 @@ CCL_threshold_features::CCL_threshold_features(const int i0, const int i1, const
                                                      static_cast<uint32_t*>(t[ps_out_RoIs_S].get_dataptr()),
                                                      static_cast<uint32_t*>(t[ps_out_RoIs_Sx].get_dataptr()),
                                                      static_cast<uint32_t*>(t[ps_out_RoIs_Sy].get_dataptr()),
+                                                     static_cast<uint64_t*>(t[ps_out_RoIs_Sx2].get_dataptr()),
+                                                     static_cast<uint64_t*>(t[ps_out_RoIs_Sy2].get_dataptr()),
+                                                     static_cast<uint64_t*>(t[ps_out_RoIs_Sxy].get_dataptr()),
                                                      static_cast<float*>(t[ps_out_RoIs_x].get_dataptr()),
                                                      static_cast<float*>(t[ps_out_RoIs_y].get_dataptr()));
 

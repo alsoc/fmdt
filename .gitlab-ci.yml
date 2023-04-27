@@ -220,12 +220,18 @@ test-regression-c:
     - sse4.2
     - linux
     - docker
+  artifacts:
+    name: build
+    when: always
+    paths:
+      - fmdt_outputs.tar.gz
   script:
     - tar -xvvf build_linux_gcc_c.tar.gz
     - mkdir build
     - mkdir build/bin
     - mv build_linux_gcc_c/* build/bin
     - ./ci/test-regression.sh
+    - tar -zcvf fmdt_outputs.tar.gz scripts/regression/output*
 
 test-regression:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_coverage
@@ -247,13 +253,14 @@ test-regression:
     when: always
     paths:
       - build.tar.gz
+      - fmdt_outputs.tar.gz
   script:
     - tar -xvvf build.tar.gz
     - ./ci/test-regression.sh
-    - rm -rf build/fmdt-detect*
     - rm -rf build/bin
     - rm -rf build/lib
     - tar -zcvf build.tar.gz build
+    - tar -zcvf fmdt_outputs.tar.gz scripts/regression/output*
 
 test-memory-c:
   image: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_valgrind

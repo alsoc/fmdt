@@ -14,10 +14,11 @@ namespace lgr_roi {
     enum class tsk : size_t { write, SIZE };
     namespace sck {
         enum class write : size_t { in_RoIs0_id, in_RoIs0_xmin, in_RoIs0_xmax, in_RoIs0_ymin, in_RoIs0_ymax,
-                                    in_RoIs0_S, in_RoIs0_Sx, in_RoIs0_Sy, in_RoIs0_x, in_RoIs0_y, in_RoIs0_magnitude,
-                                    in_RoIs0_sat_count, in_n_RoIs0, in_RoIs1_id, in_RoIs1_xmin, in_RoIs1_xmax,
-                                    in_RoIs1_ymin, in_RoIs1_ymax, in_RoIs1_S, in_RoIs1_Sx, in_RoIs1_Sy, in_RoIs1_x,
-                                    in_RoIs1_y, in_RoIs1_magnitude, in_RoIs1_sat_count, in_n_RoIs1, in_frame, status};
+                                    in_RoIs0_S, in_RoIs0_Sx, in_RoIs0_Sy, in_RoIs0_Sx2, in_RoIs0_Sy2, in_RoIs0_Sxy,
+                                    in_RoIs0_x, in_RoIs0_y, in_RoIs0_magnitude, in_RoIs0_sat_count, in_n_RoIs0,
+                                    in_RoIs1_id, in_RoIs1_xmin, in_RoIs1_xmax, in_RoIs1_ymin, in_RoIs1_ymax, in_RoIs1_S,
+                                    in_RoIs1_Sx, in_RoIs1_Sy, in_RoIs1_Sx2, in_RoIs1_Sy2, in_RoIs1_Sxy, in_RoIs1_x,
+                                    in_RoIs1_y, in_RoIs1_magnitude, in_RoIs1_sat_count, in_n_RoIs1, in_frame, status };
     }
 }
 

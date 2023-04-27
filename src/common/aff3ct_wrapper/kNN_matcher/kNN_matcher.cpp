@@ -10,8 +10,7 @@ kNN_matcher::kNN_matcher(const size_t k, const uint32_t max_dist, const float mi
     this->set_name(name);
     this->set_short_name(name);
 
-    this->out_data_nearest = (uint32_t**)malloc((size_t)(max_size * sizeof(const uint32_t*)));
-    this->out_data_distances = (float**)malloc((size_t)(max_size * sizeof(float*)));
+    this->init_data();
 
     auto &p = this->create_task("match");
 
@@ -69,7 +68,24 @@ kNN_matcher::kNN_matcher(const size_t k, const uint32_t max_dist, const float mi
     });
 }
 
+void kNN_matcher::init_data() {
+    this->out_data_nearest = (uint32_t**)malloc((size_t)(this->max_size * sizeof(const uint32_t*)));
+    this->out_data_distances = (float**)malloc((size_t)(this->max_size * sizeof(float*)));
+}
+
 kNN_matcher::~kNN_matcher() {
     free(this->out_data_nearest);
     free(this->out_data_distances);
+}
+
+kNN_matcher* kNN_matcher::clone() const {
+    auto m = new kNN_matcher(*this);
+    m->deep_copy(*this);
+    return m;
+}
+
+void kNN_matcher::deep_copy(const kNN_matcher &m)
+{
+    Module::deep_copy(m);
+    this->init_data();
 }
