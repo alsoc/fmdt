@@ -269,6 +269,11 @@ if (FMDT_CPP)
 	fmdt_set_source_files_properties("${fmdt_src_list}" LANGUAGE CXX)
 endif()
 
+set(FMDT_LOG_PARSER_TARGET ${CMAKE_CURRENT_SOURCE_DIR}/scripts/log_parser/log_parser.py)
+set(FMDT_LOG_PARSER_SYMLINK ${exe_dir}/fmdt-log-parser)
+add_custom_target(fmdt-log-parser ALL
+                  COMMAND ${CMAKE_COMMAND} -E create_symlink ${FMDT_LOG_PARSER_TARGET} ${FMDT_LOG_PARSER_SYMLINK})
+
 # Add and compile sub-projects ------------------------------------------------
 # -----------------------------------------------------------------------------
 # ffmpeg-io
