@@ -273,7 +273,7 @@ class LogParser:
         return (curFrame, frameId)
 
     @staticmethod
-    def parseFiles(path:str, fileNameFilter:str=".*"):
+    def parseFiles(path:str, fileNameFilter:str=".*", verbose:bool=False):
         """Parse information from one or multiple FMDT log files.
 
         Parameters
@@ -322,12 +322,16 @@ class LogParser:
 
         frames = dict()
         for file in filteredFiles:
-            print("Processing '" + path + "/" + file + "' file...", end=' ')
+            if verbose:
+                print("# Processing '" + path + "/" + file + "' file...", end=' ')
             (curFrame, frameId) = LogParser.parseFile(path, file)
-            print("(frameId = " + str(frameId) + ")", end=' ')
+            if verbose:
+                print("(frameId = " + str(frameId) + ")", end=' ')
             frames[frameId] = {**{"frame_id": frameId}, **curFrame}
-            print("Done.", end="\r")
-        print("", end="\n")
+            if verbose:
+                print("Done.", end="\r")
+        if verbose:
+            print("", end="\n")
         return frames
 
     @staticmethod
