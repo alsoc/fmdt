@@ -13,11 +13,10 @@ command**:
 
 .. code-block:: bash
 
-	git submodule update --init --recursive
-
-.. danger:: When running the previous command, the clone of the ``lsl`` library
-            may fail as it is not a public Git repository yet! You should not
-            pay attention on it and you can continue the installation procedure.
+	git submodule update --init --recursive -- lib/ffmpeg-io
+	git submodule update --init --recursive -- lib/nrc2
+	git submodule update --init --recursive -- lib/c-vector
+	git submodule update --init --recursive -- lib/aff3ct-core
 
 .. note:: ``ffmpeg-io`` requires the ``ffmpeg`` executable: **you need to
           install ffmpeg on your system** if you want to be able to read video
