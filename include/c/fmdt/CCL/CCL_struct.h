@@ -27,7 +27,7 @@ typedef struct {
  *  Enumeration to select CCL implementation.
  */
 enum ccl_impl_e { LSLH = 0, /*!< LSL implementation from Arthur HENNEQUIN. */
-                  LSLM /*!< LSL implementation from Nathan MAURICE. */
+                  LSLM /*!< LSL implementation from Florian LEMAITRE and Nathan MAURICE. */
 };
 
 /**
@@ -40,7 +40,7 @@ typedef struct {
 
 /**
  * Convert a string into an `ccl_impl_e` enum value.
- * @param str String that can be "LSLH" or "LSLM".
+ * @param str String that can be "LSLH" or "LSLM" (if the code has been linked with the LSL library).
  * @return Corresponding enum value.
  */
 enum ccl_impl_e CCL_str_to_enum(const char* str);

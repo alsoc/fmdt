@@ -24,6 +24,8 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--vid-in-threads`` | INTEGER | See :numref:`detect_vid-in-threads`.               |
 +----------------------+---------+----------------------------------------------------+
+| ``--ccl-impl``       | STRING  | See :numref:`detect_ccl-impl`.                     |
++----------------------+---------+----------------------------------------------------+
 | ``--ccl-hyst-lo``    | INTEGER | See :numref:`detect_ccl-hyst-lo`.                  |
 +----------------------+---------+----------------------------------------------------+
 | ``--ccl-hyst-hi``    | INTEGER | See :numref:`detect_ccl-hyst-hi`.                  |
@@ -183,6 +185,20 @@ Number of times the video is read in loop.
 
 Select the number of threads to use to decode video input (in ``ffmpeg``). If
 set to ``0``, ``ffmpeg`` chooses the number of threads automatically.
+
+.. _detect_ccl-impl:
+
+``--ccl-impl``
+--------------
+
+   :Type: STRING
+   :Default: ``LSLH``
+   :Example: ``--ccl-impl LSLH``
+
+Choose the LSL implementation. Can be ``LSLH`` or ``LSLM``. ``LSLM`` is only
+available if |FMDT| has been compiled with the CMake ``-DFMDT_LSL_LINK`` option
+(see :numref:`user_installation_cmake`).
+
 
 .. _detect_ccl-hyst-lo:
 

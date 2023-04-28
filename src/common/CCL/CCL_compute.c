@@ -344,14 +344,18 @@ void CCL_LSL_threshold_features_apply(CCL_data_t *CCL_data, const uint8_t** img,
 // ----------------------------------------------------------------------------
 // ----------------------------------------------------------------------------
 
+#ifdef FMDT_LSL_LINK
 #include <flsl-lib.h>
+#endif
 #include "fmdt/threshold/threshold_compute.h"
 #include "fmdt/features/features_compute.h"
 
+#ifdef FMDT_LSL_LINK
 typedef struct {
     FLSL_Data* FLSL;
     uint8_t** tmp_img;
 } LSLM_metadata_t;
+#endif
 
 CCL_gen_data_t* CCL_alloc_data(const enum ccl_impl_e impl, const int i0, const int i1, const int j0, const int j1) {
     CCL_gen_data_t* CCL_data = (CCL_gen_data_t*)malloc(sizeof(CCL_gen_data_t));
@@ -362,12 +366,17 @@ CCL_gen_data_t* CCL_alloc_data(const enum ccl_impl_e impl, const int i0, const i
             break;
         }
         case LSLM: {
+#ifdef FMDT_LSL_LINK
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)malloc(sizeof(LSLM_metadata_t));
             // FLSL_Data* FLSL_FSM(long i0, long i1, long j0, long j1);
             metadata->FLSL = FLSL_FSM((long)i0, (long)i1, (long)j0, (long)j1);
             metadata->tmp_img = ui8matrix(i0, i1, j0, j1);
             CCL_data->metadata = (void*)metadata;
             break;
+#else
+            fprintf(stderr, "(EE) 'LSLM' implementation requires to link with the LSL library.\n");
+            exit(-1);
+#endif
         }
         default: {
             fprintf(stderr, "(EE) This should never happen.\n");
@@ -384,10 +393,15 @@ void CCL_init_data(CCL_gen_data_t* CCL_data) {
             break;
         }
         case LSLM: {
+#ifdef FMDT_LSL_LINK
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             zero_ui8matrix(metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
                            metadata->FLSL->nch);
             break;
+#else
+            fprintf(stderr, "(EE) 'LSLM' implementation requires to link with the LSL library.\n");
+            exit(-1);
+#endif
         }
         default: {
             fprintf(stderr, "(EE) This should never happen.\n");
@@ -402,11 +416,17 @@ uint32_t CCL_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** lab
             return CCL_LSL_apply((CCL_data_t*)CCL_data->metadata, img, labels);
             break;
         }
-        case LSLM: { // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
+        case LSLM: {
+#ifdef FMDT_LSL_LINK
+            // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
             return (uint32_t)FLSL_FSM_start((uint8_t**)img, (int32_t**)labels, metadata->FLSL);
             break;
+#else
+            fprintf(stderr, "(EE) 'LSLM' implementation requires to link with the LSL library.\n");
+            exit(-1);
+#endif
         }
         default: {
             fprintf(stderr, "(EE) This should never happen.\n");
@@ -422,13 +442,19 @@ uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint
             return CCL_LSL_threshold_apply((CCL_data_t*)CCL_data->metadata, img, labels, _threshold);
             break;
         }
-        case LSLM: { // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
+        case LSLM: {
+#ifdef FMDT_LSL_LINK
+            // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             threshold(img, metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
                       metadata->FLSL->nch, _threshold);
             // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
             return (uint32_t)FLSL_FSM_start((uint8_t**)metadata->tmp_img, (int32_t**)labels, metadata->FLSL);
             break;
+#else
+            fprintf(stderr, "(EE) 'LSLM' implementation requires to link with the LSL library.\n");
+            exit(-1);
+#endif
         }
         default: {
             fprintf(stderr, "(EE) This should never happen.\n");
@@ -446,6 +472,7 @@ void CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img,
             break;
         }
         case LSLM: {
+#ifdef FMDT_LSL_LINK
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             threshold(img, metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
                       metadata->FLSL->nch, _threshold);
@@ -455,6 +482,10 @@ void CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img,
             features_extract((const uint32_t**)labels, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
                              metadata->FLSL->nch, n_RoIs, RoIs_basic);
             break;
+#else
+            fprintf(stderr, "(EE) 'LSLM' implementation requires to link with the LSL library.\n");
+            exit(-1);
+#endif
         }
         default: {
             fprintf(stderr, "(EE) This should never happen.\n");
@@ -479,6 +510,7 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
             break;
         }
         case LSLM: {
+#ifdef FMDT_LSL_LINK
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             threshold(img, metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
                       metadata->FLSL->nch, _threshold);
@@ -490,6 +522,10 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
                               RoIs_Sy, RoIs_Sx2, RoIs_Sy2, RoIs_Sxy, RoIs_x, RoIs_y, n_RoIs);
             return n_RoIs;
             break;
+#else
+            fprintf(stderr, "(EE) 'LSLM' implementation requires to link with the LSL library.\n");
+            exit(-1);
+#endif
         }
         default: {
             fprintf(stderr, "(EE) This should never happen.\n");
@@ -505,12 +541,17 @@ void CCL_free_data(CCL_gen_data_t* CCL_data) {
             break;
         }
         case LSLM: {
+#ifdef FMDT_LSL_LINK
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             free_ui8matrix(metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
                            metadata->FLSL->nch);
             FLSL_FSM_free(metadata->FLSL);
             free(metadata);
             break;
+#else
+            fprintf(stderr, "(EE) 'LSLM' implementation requires to link with the LSL library.\n");
+            exit(-1);
+#endif
         }
         default: {
             fprintf(stderr, "(EE) This should never happen.\n");
