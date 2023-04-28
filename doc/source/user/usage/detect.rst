@@ -195,10 +195,13 @@ set to ``0``, ``ffmpeg`` chooses the number of threads automatically.
    :Default: ``LSLH``
    :Example: ``--ccl-impl LSLH``
 
-Choose the LSL implementation. Can be ``LSLH`` or ``LSLM``. ``LSLM`` is only
-available if |FMDT| has been compiled with the CMake ``-DFMDT_LSL_LINK`` option
-(see :numref:`user_installation_cmake`).
+Choose the LSL implementation. Can be ``LSLH`` or ``LSLM``.
 
+``LSLH`` is the implementation discribed in :cite:`Lacassagne2009` and ``LSLM``
+is the implementation discribed in :cite:`Lemaitre2020`.
+
+.. note:: ``LSLM`` is only available if |FMDT| has been compiled with the CMake
+          ``-DFMDT_LSL_LINK=ON`` option (see :numref:`user_installation_cmake`).
 
 .. _detect_ccl-hyst-lo:
 
