@@ -242,9 +242,9 @@ void _features_extract(const uint32_t** labels, const int i0, const int i1, cons
     memset(RoIs_S, 0, n_RoIs * sizeof(uint32_t));
     memset(RoIs_Sx, 0, n_RoIs * sizeof(uint32_t));
     memset(RoIs_Sy, 0, n_RoIs * sizeof(uint32_t));
-    memset(RoIs_Sx2, 0, n_RoIs * sizeof(uint32_t));
-    memset(RoIs_Sy2, 0, n_RoIs * sizeof(uint32_t));
-    memset(RoIs_Sxy, 0, n_RoIs * sizeof(uint32_t));
+    memset(RoIs_Sx2, 0, n_RoIs * sizeof(uint64_t));
+    memset(RoIs_Sy2, 0, n_RoIs * sizeof(uint64_t));
+    memset(RoIs_Sxy, 0, n_RoIs * sizeof(uint64_t));
 
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
@@ -460,19 +460,19 @@ size_t _features_shrink_basic(const uint32_t* RoIs_src_id, const uint32_t* RoIs_
 
 void features_shrink_basic(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoIs_basic_dst) {
     *RoIs_basic_dst->_size = _features_shrink_basic(RoIs_basic_src->id, RoIs_basic_src->xmin,
-                                                     RoIs_basic_src->xmax, RoIs_basic_src->ymin,
-                                                     RoIs_basic_src->ymax, RoIs_basic_src->S,
-                                                     RoIs_basic_src->Sx, RoIs_basic_src->Sy,
-                                                     RoIs_basic_src->Sx2, RoIs_basic_src->Sy2,
-                                                     RoIs_basic_src->Sxy, RoIs_basic_src->x,
-                                                     RoIs_basic_src->y, *RoIs_basic_src->_size,
-                                                     RoIs_basic_dst->id,
-                                                     RoIs_basic_dst->xmin, RoIs_basic_dst->xmax,
-                                                     RoIs_basic_dst->ymin, RoIs_basic_dst->ymax,
-                                                     RoIs_basic_dst->S, RoIs_basic_dst->Sx,
-                                                     RoIs_basic_dst->Sy, RoIs_basic_dst->Sx2,
-                                                     RoIs_basic_dst->Sy2, RoIs_basic_dst->Sxy,
-                                                     RoIs_basic_dst->x, RoIs_basic_dst->y);
+                                                    RoIs_basic_src->xmax, RoIs_basic_src->ymin,
+                                                    RoIs_basic_src->ymax, RoIs_basic_src->S,
+                                                    RoIs_basic_src->Sx, RoIs_basic_src->Sy,
+                                                    RoIs_basic_src->Sx2, RoIs_basic_src->Sy2,
+                                                    RoIs_basic_src->Sxy, RoIs_basic_src->x,
+                                                    RoIs_basic_src->y, *RoIs_basic_src->_size,
+                                                    RoIs_basic_dst->id,
+                                                    RoIs_basic_dst->xmin, RoIs_basic_dst->xmax,
+                                                    RoIs_basic_dst->ymin, RoIs_basic_dst->ymax,
+                                                    RoIs_basic_dst->S, RoIs_basic_dst->Sx,
+                                                    RoIs_basic_dst->Sy, RoIs_basic_dst->Sx2,
+                                                    RoIs_basic_dst->Sy2, RoIs_basic_dst->Sxy,
+                                                    RoIs_basic_dst->x, RoIs_basic_dst->y);
 }
 
 size_t _features_shrink_basic_misc(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xmin,
@@ -628,8 +628,8 @@ void _features_compute_ellipse(const uint32_t *RoIs_S, const uint32_t *RoIs_Sx, 
         double m02 = S * Syy - Sy * Sy;
 
         // par construction a > b
-        double a2 = (m20 + m02 + sqrtf((m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
-        double b2 = (m20 + m02 - sqrtf((m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
+        double a2 = (m20 + m02 + sqrt((m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
+        double b2 = (m20 + m02 - sqrt((m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
 
         float a = sqrt(a2);
         float b = sqrt(b2);

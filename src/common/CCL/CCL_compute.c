@@ -182,6 +182,9 @@ void _LSL_compute_final_image_labeling_features(const uint32_t** CCL_data_er, co
     memset(RoIs_S, 0, n_RoIs * sizeof(uint32_t));
     memset(RoIs_Sx, 0, n_RoIs * sizeof(uint32_t));
     memset(RoIs_Sy, 0, n_RoIs * sizeof(uint32_t));
+    memset(RoIs_Sx2, 0, n_RoIs * sizeof(uint64_t));
+    memset(RoIs_Sy2, 0, n_RoIs * sizeof(uint64_t));
+    memset(RoIs_Sxy, 0, n_RoIs * sizeof(uint64_t));
 
     // Step #5 - Final image labeling
     for (int i = i0; i <= i1; i++) {

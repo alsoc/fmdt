@@ -86,6 +86,8 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --cca-mag           Enable magnitude and saturation counter computations                       \n");
         fprintf(stderr,
+                "  --cca-ell           Enable ellipse features computation                                        \n");
+        fprintf(stderr,
                 "  --mrp-s-min         Minimum surface of the CCs in pixels                                   [%d]\n",
                 def_p_mrp_s_min);
         fprintf(stderr,
@@ -162,6 +164,7 @@ int main(int argc, char** argv) {
     const int p_ccl_fra_id = 0;
 #endif
     const int p_cca_mag = args_find(argc, argv, "--cca-mag");
+    const int p_cca_ell = args_find(argc, argv, "--cca-ell");
     const int p_mrp_s_min = args_find_int_min(argc, argv, "--mrp-s-min,--surface-min", def_p_mrp_s_min, 0);
     const int p_mrp_s_max = args_find_int_min(argc, argv, "--mrp-s-max,--surface-max", def_p_mrp_s_max, 0);
     const int p_knn_k = args_find_int_min(argc, argv, "--knn-k,-k", def_p_knn_k, 0);
@@ -202,6 +205,7 @@ int main(int argc, char** argv) {
     printf("#  * ccl-fra-id     = %d\n", p_ccl_fra_id);
 #endif
     printf("#  * cca-mag        = %d\n", p_cca_mag);
+    printf("#  * cca-ell        = %d\n", p_cca_ell);
     printf("#  * mrp-s-min      = %d\n", p_mrp_s_min);
     printf("#  * mrp-s-max      = %d\n", p_mrp_s_max);
     printf("#  * knn-k          = %d\n", p_knn_k);
@@ -243,6 +247,8 @@ int main(int argc, char** argv) {
 #endif
     if (p_cca_mag && !p_log_path)
         fprintf(stderr, "(WW) '--cca-mag' has to be combined with the '--log-path' parameter\n");
+    if (p_cca_ell && !p_log_path)
+        fprintf(stderr, "(WW) '--cca-ell' has to be combined with the '--log-path' parameter\n");
 
     // --------------------------------------- //
     // -- VIDEO ALLOCATION & INITIALISATION -- //
@@ -265,9 +271,9 @@ int main(int argc, char** argv) {
     // -- DATA ALLOCATION -- //
     // --------------------- //
 
-    RoIs_t* RoIs_tmp = features_alloc_RoIs(p_cca_mag, p_cca_mag, 0, MAX_ROI_SIZE_BEFORE_SHRINK);
-    RoIs_t* RoIs0 = features_alloc_RoIs(p_cca_mag, p_cca_mag, 0, MAX_ROI_SIZE);
-    RoIs_t* RoIs1 = features_alloc_RoIs(p_cca_mag, p_cca_mag, 0, MAX_ROI_SIZE);
+    RoIs_t* RoIs_tmp = features_alloc_RoIs(p_cca_mag, p_cca_mag, p_cca_ell, MAX_ROI_SIZE_BEFORE_SHRINK);
+    RoIs_t* RoIs0 = features_alloc_RoIs(p_cca_mag, p_cca_mag, p_cca_ell, MAX_ROI_SIZE);
+    RoIs_t* RoIs1 = features_alloc_RoIs(p_cca_mag, p_cca_mag, p_cca_ell, MAX_ROI_SIZE);
     CCL_gen_data_t* ccl_data = CCL_alloc_data(CCL_str_to_enum(p_ccl_impl), i0, i1, j0, j1);
     kNN_data_t* knn_data = kNN_alloc_data(MAX_ROI_SIZE);
     tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_star_min, p_trk_meteor_min), MAX_ROI_SIZE);
@@ -323,6 +329,8 @@ int main(int argc, char** argv) {
         features_shrink_basic(RoIs_tmp->basic, RoIs1->basic);
         if (p_cca_mag)
             features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L2, RoIs1->basic, RoIs1->misc);
+        if (p_cca_ell)
+            features_compute_ellipse(RoIs1->basic, RoIs1->misc);
 
         // step 4: k-NN matching
         kNN_match(knn_data, RoIs0->basic, RoIs1->basic, RoIs0->asso, RoIs1->asso, p_knn_k, p_knn_d, p_knn_s);

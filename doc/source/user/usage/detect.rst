@@ -36,6 +36,8 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--cca-mag``        | BOOLEAN | See :numref:`detect_cca-mag`.                      |
 +----------------------+---------+----------------------------------------------------+
+| ``--cca-ell``        | BOOLEAN | See :numref:`detect_cca-ell`.                      |
++----------------------+---------+----------------------------------------------------+
 | ``--mrp-s-min``      | INTEGER | See :numref:`detect_mrp-s-min`.                    |
 +----------------------+---------+----------------------------------------------------+
 | ``--mrp-s-max``      | INTEGER | See :numref:`detect_mrp-s-max`.                    |
@@ -264,6 +266,19 @@ option, see :numref:`user_installation_cmake`).
 Enable the computation of two news features in the |CCA|: the magnitude and the
 counter of saturated pixels (to be combined with the :ref:`detect_log-path`
 option).
+
+.. _detect_cca-ell:
+
+``--cca-ell``
+-------------
+
+   :Type: BOOLEAN
+   :Default: [empty]
+   :Example: ``--cca-ell``
+
+Enable the computation of two news features in the |CCA|: ``a`` the semi-major
+axis of an ellipse and ``b`` the semi-minor axis of an ellipse. This option
+has to be combined with the :ref:`detect_log-path` option.
 
 .. _detect_mrp-s-min:
 

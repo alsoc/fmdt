@@ -20,6 +20,7 @@
 #include "fmdt/aff3ct_wrapper/Features/Features_merger_CCL_HI_v2.hpp"
 #include "fmdt/aff3ct_wrapper/Motion/Motion.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_magnitude.hpp"
+#include "fmdt/aff3ct_wrapper/Features/Features_ellipse.hpp"
 #include "fmdt/aff3ct_wrapper/kNN_matcher/kNN_matcher.hpp"
 #include "fmdt/aff3ct_wrapper/Threshold/Threshold.hpp"
 #include "fmdt/aff3ct_wrapper/Tracking/Tracking.hpp"
@@ -95,6 +96,8 @@ int main(int argc, char** argv) {
 #endif
         fprintf(stderr,
                 "  --cca-mag           Enable magnitude and saturation counter computations                       \n");
+        fprintf(stderr,
+                "  --cca-ell           Enable ellipse features computation                                        \n");
         fprintf(stderr,
                 "  --mrp-s-min         Minimum surface of the CCs in pixels                                   [%d]\n",
                 def_p_mrp_s_min);
@@ -181,6 +184,7 @@ int main(int argc, char** argv) {
     const int p_ccl_fra_id = 0;
 #endif
     const int p_cca_mag = args_find(argc, argv, "--cca-mag");
+    const int p_cca_ell = args_find(argc, argv, "--cca-ell");
     const int p_mrp_s_min = args_find_int_min(argc, argv, "--mrp-s-min,--surface-min", def_p_mrp_s_min, 0);
     const int p_mrp_s_max = args_find_int_min(argc, argv, "--mrp-s-max,--surface-max", def_p_mrp_s_max, 0);
     const int p_knn_k = args_find_int_min(argc, argv, "--knn-k,-k", def_p_knn_k, 0);
@@ -223,6 +227,7 @@ int main(int argc, char** argv) {
     printf("#  * ccl-fra-id     = %d\n", p_ccl_fra_id);
 #endif
     printf("#  * cca-mag        = %d\n", p_cca_mag);
+    printf("#  * cca-ell        = %d\n", p_cca_ell);
     printf("#  * mrp-s-min      = %d\n", p_mrp_s_min);
     printf("#  * mrp-s-max      = %d\n", p_mrp_s_max);
     printf("#  * knn-k          = %d\n", p_knn_k);
@@ -273,6 +278,10 @@ int main(int argc, char** argv) {
     if (p_ccl_fra_id && !p_ccl_fra_path)
         fprintf(stderr, "(WW) '--ccl-fra-id' has to be combined with the '--ccl-fra-path' parameter\n");
 #endif
+    if (p_cca_mag && !p_log_path)
+        fprintf(stderr, "(WW) '--cca-mag' has to be combined with the '--log-path' parameter\n");
+    if (p_cca_ell && !p_log_path)
+        fprintf(stderr, "(WW) '--cca-ell' has to be combined with the '--log-path' parameter\n");
 
     // -------------------------------- //
     // -- GLOBAL DATA INITIALISATION -- //
@@ -306,6 +315,8 @@ int main(int argc, char** argv) {
     merger.set_custom_name("Merger");
     Features_magnitude magnitude(i0, i1, j0, j1, b, MAX_ROI_SIZE);
     magnitude.set_custom_name("Magnitude");
+    Features_ellipse ellipse(MAX_ROI_SIZE);
+    ellipse.set_custom_name("Ellipse");
     kNN_matcher matcher(p_knn_k, p_knn_d, p_knn_s, MAX_ROI_SIZE);
     Motion motion(MAX_ROI_SIZE);
     motion.set_custom_name("Motion");
@@ -326,6 +337,8 @@ int main(int argc, char** argv) {
     aff3ct::module::Delayer<float> delayer_RoIs_y(MAX_ROI_SIZE, 0.f);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_magnitude(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_sat_count(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<float> delayer_RoIs_a(MAX_ROI_SIZE, 0);
+    aff3ct::module::Delayer<float> delayer_RoIs_b(MAX_ROI_SIZE, 0);
     aff3ct::module::Delayer<uint32_t> delayer_n_RoIs(1, 0);
     delayer_RoIs_id.set_custom_name("D<RoIs_id>");
     delayer_RoIs_xmin.set_custom_name("D<RoIs_xmin>");
@@ -342,9 +355,11 @@ int main(int argc, char** argv) {
     delayer_RoIs_y.set_custom_name("D<RoIs_y>");
     delayer_RoIs_magnitude.set_custom_name("D<RoIs_mag>");
     delayer_RoIs_sat_count.set_custom_name("D<RoIs_sat>");
+    delayer_RoIs_a.set_custom_name("D<RoIs_a>");
+    delayer_RoIs_b.set_custom_name("D<RoIs_b>");
     delayer_n_RoIs.set_custom_name("D<n_RoIs>");
     Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data(),
-                         p_cca_mag, p_cca_mag);
+                         p_cca_mag, p_cca_mag, p_cca_ell);
     Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_ROI_SIZE);
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");
@@ -443,7 +458,7 @@ int main(int argc, char** argv) {
     merger[ftr_mrg2::sck::merge::in_RoIs_y] = extractor[ftr_ext::sck::extract::out_RoIs_y];
     merger[ftr_mrg2::sck::merge::in_n_RoIs] = ccl[ccl::sck::apply::out_n_RoIs];
 
-    // step 3.5 : compute magnitude for each RoI
+    // step 3.5 : compute magnitude / ellipse for each RoI
     if (p_cca_mag) {
         magnitude[ftr_mgn::sck::compute::in_img] = video[vid::sck::generate::out_img];
         magnitude[ftr_mgn::sck::compute::in_labels] = merger[ftr_mrg2::sck::merge::out_labels];
@@ -453,6 +468,15 @@ int main(int argc, char** argv) {
         magnitude[ftr_mgn::sck::compute::in_RoIs_ymax] = merger[ftr_mrg2::sck::merge::out_RoIs_ymax];
         magnitude[ftr_mgn::sck::compute::in_RoIs_S] = merger[ftr_mrg2::sck::merge::out_RoIs_S];
         magnitude[ftr_mgn::sck::compute::in_n_RoIs] = merger[ftr_mrg2::sck::merge::out_n_RoIs];
+    }
+    if (p_cca_ell) {
+        ellipse[ftr_ell::sck::compute::in_RoIs_S] = merger[ftr_mrg2::sck::merge::out_RoIs_S];
+        ellipse[ftr_ell::sck::compute::in_RoIs_Sx] = merger[ftr_mrg2::sck::merge::out_RoIs_Sx];
+        ellipse[ftr_ell::sck::compute::in_RoIs_Sy] = merger[ftr_mrg2::sck::merge::out_RoIs_Sy];
+        ellipse[ftr_ell::sck::compute::in_RoIs_Sx2] = merger[ftr_mrg2::sck::merge::out_RoIs_Sx2];
+        ellipse[ftr_ell::sck::compute::in_RoIs_Sy2] = merger[ftr_mrg2::sck::merge::out_RoIs_Sy2];
+        ellipse[ftr_ell::sck::compute::in_RoIs_Sxy] = merger[ftr_mrg2::sck::merge::out_RoIs_Sxy];
+        ellipse[ftr_ell::sck::compute::in_n_RoIs] = merger[ftr_mrg2::sck::merge::out_n_RoIs];
     }
 
     if (p_out_probes) {
@@ -480,6 +504,10 @@ int main(int argc, char** argv) {
             magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude];
         delayer_RoIs_sat_count[aff3ct::module::dly::tsk::produce] =
             magnitude[ftr_mgn::sck::compute::out_RoIs_sat_count];
+    }
+    if (p_cca_ell) {
+        delayer_RoIs_a[aff3ct::module::dly::tsk::produce] = ellipse[ftr_ell::sck::compute::out_RoIs_a];
+        delayer_RoIs_b[aff3ct::module::dly::tsk::produce] = ellipse[ftr_ell::sck::compute::out_RoIs_b];
     }
     delayer_n_RoIs[aff3ct::module::dly::tsk::produce] = merger[ftr_mrg2::sck::merge::out_RoIs_id];
 
@@ -537,6 +565,10 @@ int main(int argc, char** argv) {
         delayer_RoIs_sat_count[aff3ct::module::dly::sck::memorize::in] =
             magnitude[ftr_mgn::sck::compute::out_RoIs_sat_count];
     }
+    if (p_cca_ell) {
+        delayer_RoIs_a[aff3ct::module::dly::sck::memorize::in] = ellipse[ftr_ell::sck::compute::out_RoIs_a];
+        delayer_RoIs_b[aff3ct::module::dly::sck::memorize::in] = ellipse[ftr_ell::sck::compute::out_RoIs_b];
+    }
     delayer_n_RoIs[aff3ct::module::dly::sck::memorize::in] = merger[ftr_mrg2::sck::merge::out_n_RoIs];
 
     if (p_log_path) {
@@ -564,6 +596,13 @@ int main(int argc, char** argv) {
             log_RoIs[lgr_roi::sck::write::in_RoIs0_sat_count] =
                 magnitude[ftr_mgn::sck::compute::out_RoIs_sat_count].get_dataptr();
         }
+        if (p_cca_ell) {
+            log_RoIs[lgr_roi::sck::write::in_RoIs0_a] = delayer_RoIs_a[aff3ct::module::dly::sck::produce::out];
+            log_RoIs[lgr_roi::sck::write::in_RoIs0_b] = delayer_RoIs_b[aff3ct::module::dly::sck::produce::out];
+        } else {
+            log_RoIs[lgr_roi::sck::write::in_RoIs0_a] = ellipse[ftr_ell::sck::compute::out_RoIs_a].get_dataptr();
+            log_RoIs[lgr_roi::sck::write::in_RoIs0_b] = ellipse[ftr_ell::sck::compute::out_RoIs_b].get_dataptr();
+        }
         log_RoIs[lgr_roi::sck::write::in_n_RoIs0] = delayer_n_RoIs[aff3ct::module::dly::sck::produce::out];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_id] = merger[ftr_mrg2::sck::merge::out_RoIs_id];
         log_RoIs[lgr_roi::sck::write::in_RoIs1_xmin] = merger[ftr_mrg2::sck::merge::out_RoIs_xmin];
@@ -586,6 +625,13 @@ int main(int argc, char** argv) {
                 magnitude[ftr_mgn::sck::compute::out_RoIs_magnitude].get_dataptr();
             log_RoIs[lgr_roi::sck::write::in_RoIs1_sat_count] =
                 magnitude[ftr_mgn::sck::compute::out_RoIs_sat_count].get_dataptr();
+        }
+        if (p_cca_ell) {
+            log_RoIs[lgr_roi::sck::write::in_RoIs1_a] = ellipse[ftr_ell::sck::compute::out_RoIs_a];
+            log_RoIs[lgr_roi::sck::write::in_RoIs1_b] = ellipse[ftr_ell::sck::compute::out_RoIs_b];
+        } else {
+            log_RoIs[lgr_roi::sck::write::in_RoIs1_a] = ellipse[ftr_ell::sck::compute::out_RoIs_a].get_dataptr();
+            log_RoIs[lgr_roi::sck::write::in_RoIs1_b] = ellipse[ftr_ell::sck::compute::out_RoIs_b].get_dataptr();
         }
         log_RoIs[lgr_roi::sck::write::in_n_RoIs1] = merger[ftr_mrg2::sck::merge::out_n_RoIs];
         log_RoIs[lgr_roi::sck::write::in_frame] = video[vid::sck::generate::out_frame];
@@ -661,8 +707,9 @@ int main(int argc, char** argv) {
           // pipeline stage 2
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                           std::vector<aff3ct::runtime::Task*>>(
-            { &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply], &magnitude[ftr_mgn::tsk::compute] },
-            { &merger[ftr_mrg2::tsk::merge], &magnitude[ftr_mgn::tsk::compute]},
+            { &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply], &magnitude[ftr_mgn::tsk::compute],
+              &ellipse[ftr_ell::tsk::compute] },
+            { &merger[ftr_mrg2::tsk::merge], &magnitude[ftr_mgn::tsk::compute], &ellipse[ftr_ell::tsk::compute]},
             { /* no exclusions in this stage */ } ),
           // pipeline stage 3
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
@@ -682,6 +729,8 @@ int main(int argc, char** argv) {
               &delayer_RoIs_y[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_sat_count[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_a[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_b[aff3ct::module::dly::tsk::produce],
               &delayer_n_RoIs[aff3ct::module::dly::tsk::produce],
               &matcher[knn::tsk::match],
               &motion[mtn::tsk::compute],
@@ -701,20 +750,38 @@ int main(int argc, char** argv) {
               &delayer_RoIs_y[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_sat_count[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_a[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_b[aff3ct::module::dly::tsk::memorize],
               &delayer_n_RoIs[aff3ct::module::dly::tsk::memorize],
               },
             { },
             { /* no exclusions in this stage */ } ),
         };
 
-        // remove magnitude task when not needed
+        // remove magnitude / ellipse tasks when not needed
+        size_t rm_s2_firsts = 0;
+        size_t rm_s2_lasts = 0;
+        size_t rm_s3_firsts_1 = 0;
+        size_t rm_s3_firsts_2 = 0;
         if (!p_cca_mag) {
             std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 2);
+            rm_s2_firsts += 1;
             std::get<1>(sep_stages[1]).erase(std::get<1>(sep_stages[1]).begin() + 1);
+            rm_s2_lasts += 1;
             std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 13);
             std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 13);
-            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 30);
-            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 30);
+            rm_s3_firsts_1 += 2;
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 32);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 32);
+            rm_s3_firsts_2 += 4;
+        }
+        if (!p_cca_ell) {
+            std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 3 - rm_s2_firsts);
+            std::get<1>(sep_stages[1]).erase(std::get<1>(sep_stages[1]).begin() + 2 - rm_s2_lasts);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 15 - rm_s3_firsts_1);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 15 - rm_s3_firsts_1);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 34 - rm_s3_firsts_2);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 34 - rm_s3_firsts_2);
         }
 
     } else {
@@ -729,8 +796,8 @@ int main(int argc, char** argv) {
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                           std::vector<aff3ct::runtime::Task*>>(
             { &(*ts_s2b)("exec"), &threshold_min[thr::tsk::apply], &threshold_max[thr::tsk::apply],
-              &magnitude[ftr_mgn::tsk::compute], &(*ts_s2e)("exec") },
-            { &merger[ftr_mrg2::tsk::merge], &magnitude[ftr_mgn::tsk::compute] },
+              &magnitude[ftr_mgn::tsk::compute], &ellipse[ftr_ell::tsk::compute], &(*ts_s2e)("exec") },
+            { &merger[ftr_mrg2::tsk::merge], &magnitude[ftr_mgn::tsk::compute], &ellipse[ftr_ell::tsk::compute] },
             { &(*prb_ts_s2b)[aff3ct::module::prb::tsk::probe], &(*prb_ts_s2e)[aff3ct::module::prb::tsk::probe], } ),
           // pipeline stage 3
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
@@ -752,6 +819,8 @@ int main(int argc, char** argv) {
               &delayer_RoIs_y[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::produce],
               &delayer_RoIs_sat_count[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_a[aff3ct::module::dly::tsk::produce],
+              &delayer_RoIs_b[aff3ct::module::dly::tsk::produce],
               &delayer_n_RoIs[aff3ct::module::dly::tsk::produce],
               &matcher[knn::tsk::match],
               &motion[mtn::tsk::compute],
@@ -771,20 +840,38 @@ int main(int argc, char** argv) {
               &delayer_RoIs_y[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_magnitude[aff3ct::module::dly::tsk::memorize],
               &delayer_RoIs_sat_count[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_a[aff3ct::module::dly::tsk::memorize],
+              &delayer_RoIs_b[aff3ct::module::dly::tsk::memorize],
               &delayer_n_RoIs[aff3ct::module::dly::tsk::memorize],
               },
             { },
             { /* no exclusions in this stage */ } ),
         };
 
-        // remove magnitude task when not needed
+        // remove magnitude / ellipse tasks when not needed
+        size_t rm_s2_firsts = 0;
+        size_t rm_s2_lasts = 0;
+        size_t rm_s3_firsts_1 = 0;
+        size_t rm_s3_firsts_2 = 0;
         if (!p_cca_mag) {
             std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 3);
+            rm_s2_firsts += 1;
             std::get<1>(sep_stages[1]).erase(std::get<1>(sep_stages[1]).begin() + 1);
+            rm_s2_lasts += 1;
             std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 15);
             std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 15);
-            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 32);
-            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 32);
+            rm_s3_firsts_1 += 2;
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 34);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 34);
+            rm_s3_firsts_2 += 4;
+        }
+        if (!p_cca_ell) {
+            std::get<0>(sep_stages[1]).erase(std::get<0>(sep_stages[1]).begin() + 4 - rm_s2_firsts);
+            std::get<1>(sep_stages[1]).erase(std::get<1>(sep_stages[1]).begin() + 2 - rm_s2_lasts);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 17 - rm_s3_firsts_1);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 17 - rm_s3_firsts_1);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 36 - rm_s3_firsts_2);
+            std::get<0>(sep_stages[2]).erase(std::get<0>(sep_stages[2]).begin() + 36 - rm_s3_firsts_2);
         }
     }
 
