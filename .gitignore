@@ -67,3 +67,6 @@ src/common/version.c
 # Doc
 doc/build/*
 doc/source/api/*
+
+# Python
+*__pycache__*
