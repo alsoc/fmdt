@@ -448,11 +448,15 @@ uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint
         case LSLM: {
 #ifdef FMDT_LSL_LINK
             // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
+#ifdef FMDT_LSL_NEW_INTERFACE
+            LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
+            return (uint32_t)FLSL_FSM_threshold_start((uint8_t**)img, (int32_t**)labels, metadata->FLSL, _threshold);
+#else
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             threshold(img, metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
                       metadata->FLSL->nch, _threshold);
-            // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
             return (uint32_t)FLSL_FSM_start((uint8_t**)metadata->tmp_img, (int32_t**)labels, metadata->FLSL);
+#endif
             break;
 #else
             fprintf(stderr, "(EE) 'LSLM' implementation requires to link with the LSL library.\n");
@@ -476,14 +480,40 @@ void CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img,
         }
         case LSLM: {
 #ifdef FMDT_LSL_LINK
+            // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
+#ifdef FMDT_LSL_NEW_INTERFACE
+            LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
+            FLSL_features features;
+            features.id = RoIs_basic->id;
+            features.xmin = RoIs_basic->xmin;
+            features.xmax = RoIs_basic->xmax;
+            features.ymin = RoIs_basic->ymin;
+            features.ymax = RoIs_basic->ymax;
+            features.S = RoIs_basic->S;
+            features.Sx = RoIs_basic->Sx;
+            features.Sy = RoIs_basic->Sy;
+            features.Sx2 = RoIs_basic->Sx2;
+            features.Sy2 = RoIs_basic->Sy2;
+            features.Sxy = RoIs_basic->Sxy;
+            features.x = RoIs_basic->x;
+            features.y = RoIs_basic->y;
+            features._capacity = MAX_ROI_SIZE_BEFORE_SHRINK;
+
+            uint32_t n_RoIs = (uint32_t)FLSL_FSM_threshold_features_start((uint8_t**)img,
+                                                                          (int32_t**)labels,
+                                                                          metadata->FLSL,
+                                                                          _threshold,
+                                                                          features);
+            *RoIs_basic->_size = n_RoIs;
+#else
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             threshold(img, metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
                       metadata->FLSL->nch, _threshold);
-            // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
             // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
             uint32_t n_RoIs = (uint32_t)FLSL_FSM_start((uint8_t**)metadata->tmp_img, (int32_t**)labels, metadata->FLSL);
             features_extract((const uint32_t**)labels, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
                              metadata->FLSL->nch, n_RoIs, RoIs_basic);
+#endif
             break;
 #else
             fprintf(stderr, "(EE) 'LSLM' implementation requires to link with the LSL library.\n");
@@ -514,16 +544,42 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
         }
         case LSLM: {
 #ifdef FMDT_LSL_LINK
+            // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
+#ifdef FMDT_LSL_NEW_INTERFACE
+            LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
+            FLSL_features features;
+            features.id = RoIs_id;
+            features.xmin = RoIs_xmin;
+            features.xmax = RoIs_xmax;
+            features.ymin = RoIs_ymin;
+            features.ymax = RoIs_ymax;
+            features.S = RoIs_S;
+            features.Sx = RoIs_Sx;
+            features.Sy = RoIs_Sy;
+            features.Sx2 = RoIs_Sx2;
+            features.Sy2 = RoIs_Sy2;
+            features.Sxy = RoIs_Sxy;
+            features.x = RoIs_x;
+            features.y = RoIs_y;
+            features._capacity = MAX_ROI_SIZE_BEFORE_SHRINK;
+
+            uint32_t n_RoIs = (uint32_t)FLSL_FSM_threshold_features_start((uint8_t**)img,
+                                                                          (int32_t**)labels,
+                                                                          metadata->FLSL,
+                                                                          _threshold,
+                                                                          features);
+            return n_RoIs;
+#else
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             threshold(img, metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
-                      metadata->FLSL->nch, _threshold);
-            // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
-            // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
+                   metadata->FLSL->nch, _threshold);
+
             uint32_t n_RoIs = (uint32_t)FLSL_FSM_start((uint8_t**)metadata->tmp_img, (int32_t**)labels, metadata->FLSL);
             _features_extract((const uint32_t**)labels, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
                               metadata->FLSL->nch, RoIs_id, RoIs_xmin, RoIs_xmax, RoIs_ymin, RoIs_ymax, RoIs_S, RoIs_Sx,
                               RoIs_Sy, RoIs_Sx2, RoIs_Sy2, RoIs_Sxy, RoIs_x, RoIs_y, n_RoIs);
             return n_RoIs;
+#endif
             break;
 #else
             fprintf(stderr, "(EE) 'LSLM' implementation requires to link with the LSL library.\n");
