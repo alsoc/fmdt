@@ -484,19 +484,19 @@ void CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img,
 #ifdef FMDT_LSL_NEW_INTERFACE
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             FLSL_features features;
-            features.id = RoIs_basic->id;
-            features.xmin = RoIs_basic->xmin;
-            features.xmax = RoIs_basic->xmax;
-            features.ymin = RoIs_basic->ymin;
-            features.ymax = RoIs_basic->ymax;
-            features.S = RoIs_basic->S;
-            features.Sx = RoIs_basic->Sx;
-            features.Sy = RoIs_basic->Sy;
-            features.Sx2 = RoIs_basic->Sx2;
-            features.Sy2 = RoIs_basic->Sy2;
-            features.Sxy = RoIs_basic->Sxy;
-            features.x = RoIs_basic->x;
-            features.y = RoIs_basic->y;
+            features.id = (uint32*)RoIs_basic->id;
+            features.xmin = (uint32*)RoIs_basic->xmin;
+            features.xmax = (uint32*)RoIs_basic->xmax;
+            features.ymin = (uint32*)RoIs_basic->ymin;
+            features.ymax = (uint32*)RoIs_basic->ymax;
+            features.S = (uint32*)RoIs_basic->S;
+            features.Sx = (uint32*)RoIs_basic->Sx;
+            features.Sy = (uint32*)RoIs_basic->Sy;
+            features.Sx2 = (uint64*)RoIs_basic->Sx2;
+            features.Sy2 = (uint64*)RoIs_basic->Sy2;
+            features.Sxy = (uint64*)RoIs_basic->Sxy;
+            features.x = (float32*)RoIs_basic->x;
+            features.y = (float32*)RoIs_basic->y;
             features._capacity = MAX_ROI_SIZE_BEFORE_SHRINK;
 
             uint32_t n_RoIs = (uint32_t)FLSL_FSM_threshold_features_start((uint8_t**)img,
@@ -548,19 +548,19 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
 #ifdef FMDT_LSL_NEW_INTERFACE
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             FLSL_features features;
-            features.id = RoIs_id;
-            features.xmin = RoIs_xmin;
-            features.xmax = RoIs_xmax;
-            features.ymin = RoIs_ymin;
-            features.ymax = RoIs_ymax;
-            features.S = RoIs_S;
-            features.Sx = RoIs_Sx;
-            features.Sy = RoIs_Sy;
-            features.Sx2 = RoIs_Sx2;
-            features.Sy2 = RoIs_Sy2;
-            features.Sxy = RoIs_Sxy;
-            features.x = RoIs_x;
-            features.y = RoIs_y;
+            features.id = (uint32*)RoIs_id;
+            features.xmin = (uint32*)RoIs_xmin;
+            features.xmax = (uint32*)RoIs_xmax;
+            features.ymin = (uint32*)RoIs_ymin;
+            features.ymax = (uint32*)RoIs_ymax;
+            features.S = (uint32*)RoIs_S;
+            features.Sx = (uint32*)RoIs_Sx;
+            features.Sy = (uint32*)RoIs_Sy;
+            features.Sx2 = (uint64*)RoIs_Sx2;
+            features.Sy2 = (uint64*)RoIs_Sy2;
+            features.Sxy = (uint64*)RoIs_Sxy;
+            features.x = (float32*)RoIs_x;
+            features.y = (float32*)RoIs_y;
             features._capacity = MAX_ROI_SIZE_BEFORE_SHRINK;
 
             uint32_t n_RoIs = (uint32_t)FLSL_FSM_threshold_features_start((uint8_t**)img,
