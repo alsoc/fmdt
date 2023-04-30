@@ -325,7 +325,8 @@ int main(int argc, char** argv) {
                                  p_mrp_s_min, p_mrp_s_max, p_ccl_hyst_hi, fast_out_labels);
         features_shrink_basic(RoIs_tmp->basic, RoIs1->basic);
         if (p_cca_mag)
-            features_compute_magnitude((const uint8_t**)I, j1, i1, (const uint32_t**)L2, RoIs1->basic, RoIs1->misc);
+            features_compute_magnitude((const uint8_t**)I, i0, i1, j0, j1, (const uint32_t**)L2, RoIs1->basic,
+                                       RoIs1->misc);
         if (p_cca_ell)
             features_compute_ellipse(RoIs1->basic, RoIs1->misc);
 

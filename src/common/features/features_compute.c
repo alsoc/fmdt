@@ -540,7 +540,7 @@ void features_shrink_basic_misc(const RoIs_basic_t* RoIs_basic_src, const RoIs_m
                                                          RoIs_misc_dst->sat_count, RoIs_misc_dst->a, RoIs_misc_dst->b);
 }
 
-void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
+void _features_compute_magnitude(const uint8_t** img, const int i0, const int i1, const int j0, const int j1,
                                  const uint32_t** labels, const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax,
                                  const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax, const uint32_t* RoIs_S,
                                  uint32_t* RoIs_magnitude, uint32_t* RoIs_sat_count, const size_t n_RoIs) {
@@ -552,24 +552,24 @@ void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, 
     // for each RoI (= Region of Interest = object)
     for (uint32_t r = 0; r < n_RoIs; r++) {
         // width and height of the current RoI
-        uint32_t w = (RoIs_xmax[r] - RoIs_xmin[r]) + 1;
-        uint32_t h = (RoIs_ymax[r] - RoIs_ymin[r]) + 1;
+        int32_t w = (int32_t)(RoIs_xmax[r] - RoIs_xmin[r]) + 1;
+        int32_t h = (int32_t)(RoIs_ymax[r] - RoIs_ymin[r]) + 1;
 
         // bounding box around the RoI + extra space to consider local noise level
         // here this is important to cast 'RoIs_ymin' and 'RoIs_xmin' into signed integers because the subtraction with
         // 'h' or 'w' can result in a negative number
-        uint32_t ymin = (int64_t)RoIs_ymin[r] - h >          0 ? RoIs_ymin[r] - h :          0;
-        uint32_t ymax =          RoIs_ymax[r] + h < img_height ? RoIs_ymax[r] + h : img_height;
-        uint32_t xmin = (int64_t)RoIs_xmin[r] - w >          0 ? RoIs_xmin[r] - w :          0;
-        uint32_t xmax =          RoIs_xmax[r] + w <  img_width ? RoIs_xmax[r] + w :  img_width;
+        int32_t ymin = (int32_t)RoIs_ymin[r] - h > i0 ? (int32_t)RoIs_ymin[r] - h : i0;
+        int32_t ymax = (int32_t)RoIs_ymax[r] + h < i1 ? (int32_t)RoIs_ymax[r] + h : i1;
+        int32_t xmin = (int32_t)RoIs_xmin[r] - w > j0 ? (int32_t)RoIs_xmin[r] - w : j0;
+        int32_t xmax = (int32_t)RoIs_xmax[r] + w < j1 ? (int32_t)RoIs_xmax[r] + w : j1;
 
         uint32_t acc_noise = 0; // accumulate noisy pixels (= dark pixels)
         uint32_t count_noise = 0; // count the number of noisy pixels
         uint32_t count_px = 0; // count the number of pixels for the current RoI (= bright pixels)
 
         // moving in a square (bigger that the real bounding box) around the current RoI
-        for (uint32_t i = ymin; i <= ymax; i++) {
-            for (uint32_t j = xmin; j <= xmax; j++) {
+        for (int32_t i = ymin; i <= ymax; i++) {
+            for (int32_t j = xmin; j <= xmax; j++) {
                 // get the label from the current pixel position
                 // if l != 0 then it is a RoI, else it is a dark / noisy pixel
                 uint32_t l = labels[i][j];
@@ -594,9 +594,9 @@ void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, 
     }
 }
 
-void features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
+void features_compute_magnitude(const uint8_t** img, const int i0, const int i1, const int j0, const int j1,
                                 const uint32_t** labels, const RoIs_basic_t* RoIs_basic, RoIs_misc_t* RoIs_misc) {
-    _features_compute_magnitude(img, img_width, img_height, labels, RoIs_basic->xmin, RoIs_basic->xmax,
+    _features_compute_magnitude(img, i0, i1, j0, j1, labels, RoIs_basic->xmin, RoIs_basic->xmax,
                                 RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S, RoIs_misc->magnitude,
                                 RoIs_misc->sat_count, *RoIs_misc->_size);
 }
@@ -628,8 +628,8 @@ void _features_compute_ellipse(const uint32_t *RoIs_S, const uint32_t *RoIs_Sx, 
         double m02 = S * Syy - Sy * Sy;
 
         // par construction a > b
-        double a2 = (m20 + m02 + sqrt((m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
-        double b2 = (m20 + m02 - sqrt((m20 - m02) * (m20 - m02) + 4 * m11 * m11)) / (2 * S);
+        double a2 = (m20 + m02 + sqrt((m20 - m02) * (m20 - m02) + 4.0 * m11 * m11)) / (2.0 * S);
+        double b2 = (m20 + m02 - sqrt((m20 - m02) * (m20 - m02) + 4.0 * m11 * m11)) / (2.0 * S);
 
         float a = sqrt(a2);
         float b = sqrt(b2);

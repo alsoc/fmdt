@@ -418,11 +418,13 @@ void features_shrink_basic_misc(const RoIs_basic_t* RoIs_basic_src, const RoIs_m
  * and \f$N\f$ is the number of noisy pixels considered.
  * In addition, this function can also compute the saturation counter for each RoI (e. g. the number of pixels that have
  * an intensity \f$i_x = 255\f$).
- * @param img Image in grayscale (\f$[\texttt{img\_height}][\texttt{img\_width}]\f$, the values of the pixel
+ * @param img Image in grayscale (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$, the values of the pixel
  *            range are \f$ [ 0;255 ] \f$).
- * @param img_width Image width.
- * @param img_height Image height.
- * @param labels 2D array of labels (\f$[\texttt{img\_height}][\texttt{img\_width}]\f$).
+ * @param i0 First \f$y\f$ index in the image (included).
+ * @param i1 Last \f$y\f$ index in the image (included).
+ * @param j0 First \f$x\f$ index in the image (included).
+ * @param j1 Last \f$x\f$ index in the image (included).
+ * @param labels 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
  * @param RoIs_xmin Array of minimum \f$x\f$ coordinates of the bounding box.
  * @param RoIs_xmax Array of maximum \f$x\f$ coordinates of the bounding box.
  * @param RoIs_ymin Array of minimum \f$y\f$ coordinates of the bounding box.
@@ -434,24 +436,26 @@ void features_shrink_basic_misc(const RoIs_basic_t* RoIs_basic_src, const RoIs_m
  * @see RoIs_basic_t for more explanations about the basic features.
  * @see RoIs_misc_t for more explanations about the miscellaneous features.
  */
-void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
+void _features_compute_magnitude(const uint8_t** img, const int i0, const int i1, const int j0, const int j1,
                                  const uint32_t** labels, const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax,
                                  const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax, const uint32_t* RoIs_S,
                                  uint32_t* RoIs_magnitude, uint32_t* RoIs_sat_count, const size_t n_RoIs);
 
 /**
- * @param img Image in grayscale (\f$[\texttt{img\_height}][\texttt{img\_width}]\f$, the values of the pixel
+ * @param img Image in grayscale (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$, the values of the pixel
  *            range are \f$ [ 0;255 ] \f$).
- * @param img_width Image width.
- * @param img_height Image height.
- * @param labels 2D array of labels (\f$[\texttt{img\_height}][\texttt{img\_width}]\f$).
+ * @param i0 First \f$y\f$ index in the image (included).
+ * @param i1 Last \f$y\f$ index in the image (included).
+ * @param j0 First \f$x\f$ index in the image (included).
+ * @param j1 Last \f$x\f$ index in the image (included).
+ * @param labels 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
  * @param RoIs_basic Basic features.
  * @param RoIs_misc Miscellaneous features (including the magnitudes).
  * @see _features_compute_magnitude for the explanations about the nature of the processing.
  * @see RoIs_basic_t for more explanations about the basic features.
  * @see RoIs_misc_t for more explanations about the miscellaneous features.
  */
-void features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
+void features_compute_magnitude(const uint8_t** img, const int i0, const int i1, const int j0, const int j1,
                                 const uint32_t** labels, const RoIs_basic_t* RoIs_basic, RoIs_misc_t* RoIs_misc);
 
 /**
