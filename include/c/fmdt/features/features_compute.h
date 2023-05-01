@@ -481,14 +481,14 @@ void features_labels_zero_init(const RoIs_basic_t* RoIs_basic, uint32_t** labels
 /**
  * Compute the semi-major and the semi-minor axes of RoIs.
  *
- * @param RoIs_S
- * @param RoIs_Sx Sums of \f$x\f$ properties.
- * @param RoIs_Sy Sums of \f$y\f$ properties.
- * @param RoIs_Sx2 Sums of squared \f$x\f$ properties.
- * @param RoIs_Sy2 Sums of squared \f$x\f$ properties.
- * @param RoIs_Sxy Sums of \f$xy\f$ properties.
- * @param RoIs_a Semi-major axis.
- * @param RoIs_b Semi-minor axis.
+ * @param RoIs_S Array of RoI surfaces.
+ * @param RoIs_Sx Array of sums of \f$x\f$ properties.
+ * @param RoIs_Sy Array of sums of \f$y\f$ properties.
+ * @param RoIs_Sx2 Array of sums of squared \f$x\f$ properties.
+ * @param RoIs_Sy2 Array of sums of squared \f$x\f$ properties.
+ * @param RoIs_Sxy Array of sums of \f$xy\f$ properties.
+ * @param RoIs_a Array of semi-major axis.
+ * @param RoIs_b Array of semi-minor axis.
  * @param n_RoIs Number of connected-components (= number of RoIs).
  */
 void _features_compute_ellipse(const uint32_t *RoIs_S, const uint32_t *RoIs_Sx, const uint32_t *RoIs_Sy,

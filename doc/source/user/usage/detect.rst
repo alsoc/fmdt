@@ -548,8 +548,11 @@ you need to use the :ref:`detect_cca-mag` command line parameter. For more
 information about those features you can refer to the
 :func:`_features_compute_magnitude` function.
 
-``{a}``, ``{b}`` and ``{r}`` features are not implemented yet and the ``-``
-character is printed in the corresponding columns.
+``{a}``, ``{b}`` and ``{r}`` features are are not enabled by default (and the
+``-`` character is printed in the corresponding columns). To enable theses
+features you need to use the :ref:`detect_cca-ell` command line parameter. For
+more information about those features you can refer to the
+:func:`_features_compute_ellipse` function.
 
 Table 3: List of associations between |RoIs|
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
