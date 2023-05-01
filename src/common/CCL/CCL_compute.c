@@ -450,7 +450,7 @@ uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint
             // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
 #ifdef FMDT_LSL_NEW_INTERFACE
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
-            return (uint32_t)FLSL_FSM_threshold_start((uint8_t**)img, (int32_t**)labels, metadata->FLSL, _threshold);
+            return (uint32_t)FLSL_FSM_new_start((uint8_t**)img, (int32_t**)labels, metadata->FLSL, _threshold, NULL);
 #else
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             threshold(img, metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
@@ -498,12 +498,8 @@ void CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img,
             features.x = (float32*)RoIs_basic->x;
             features.y = (float32*)RoIs_basic->y;
             features._capacity = MAX_ROI_SIZE_BEFORE_SHRINK;
-
-            uint32_t n_RoIs = (uint32_t)FLSL_FSM_threshold_features_start((uint8_t**)img,
-                                                                          (int32_t**)labels,
-                                                                          metadata->FLSL,
-                                                                          _threshold,
-                                                                          features);
+            uint32_t n_RoIs = (uint32_t)FLSL_FSM_new_start((uint8_t**)img, (int32_t**)labels, metadata->FLSL,
+                                                           _threshold, &features);
             *RoIs_basic->_size = n_RoIs;
 #else
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
@@ -562,12 +558,8 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
             features.x = (float32*)RoIs_x;
             features.y = (float32*)RoIs_y;
             features._capacity = MAX_ROI_SIZE_BEFORE_SHRINK;
-
-            uint32_t n_RoIs = (uint32_t)FLSL_FSM_threshold_features_start((uint8_t**)img,
-                                                                          (int32_t**)labels,
-                                                                          metadata->FLSL,
-                                                                          _threshold,
-                                                                          features);
+            uint32_t n_RoIs = (uint32_t)FLSL_FSM_new_start((uint8_t**)img, (int32_t**)labels, metadata->FLSL,
+                                                           _threshold, &features);
             return n_RoIs;
 #else
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
