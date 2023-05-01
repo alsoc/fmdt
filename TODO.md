@@ -1,4 +1,6 @@
 TODO list:
+- [ ] Compute extrapolated bounding boxes of tracks in `fmdt-log-parser` when 
+      generating the bounding boxes (with the `--trk-bb-path` option)
 - [ ] Add CI tests with `fmdt-check` 
 - [ ] Rewrite `fmdt-check` in Python
 - [ ] Regroup CCs together if they are close and if their velocity vectors are 
