@@ -23,8 +23,8 @@ std::vector<std::size_t> tools_convert_int_cvector_int_stdvector(const vec_int_t
 std::vector<bool> tools_convert_int_cvector_bool_stdvector(const vec_int_t arg);
 
 /**
- * Convert int matrix into std::vector<std::vector<int>>.
+ * Convert int vector2D into std::vector<std::vector<int>>.
  * @param arg Input int matrix.
  * @return Data converted in std::vector<std::vector<int>>.
  */
-std::vector<std::vector<std::size_t>> tools_convert_int_cmatrix_int_stdvectorvector(const max_int_t arg);
+std::vector<std::vector<std::size_t>> tools_convert_int_cvector2D_int_stdvector2D(const vec2D_int_t arg);

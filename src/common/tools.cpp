@@ -25,7 +25,7 @@ std::vector<bool> tools_convert_int_cvector_bool_stdvector(const vec_int_t arg) 
     return v;
 }
 
-std::vector<std::vector<std::size_t>> tools_convert_int_cmatrix_int_stdvectorvector(const max_int_t arg) {
+std::vector<std::vector<std::size_t>> tools_convert_int_cvector2D_int_stdvector2D(const vec2D_int_t arg) {
     std::vector<std::vector<std::size_t>> res;
     std::vector<std::size_t> vec;
     int size = vector_size(arg);

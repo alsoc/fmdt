@@ -10,8 +10,15 @@
 
 #include "fmdt/image/image_struct.h"
 
+/**
+ *  Vector of int, to use with C vector lib.
+ */
 typedef int* vec_int_t;
-typedef vec_int_t* max_int_t;
+
+/**
+ *  Vector of vector of int, to use with C vector lib.
+ */
+typedef vec_int_t* vec2D_int_t;
 
 /**
  * Copy a 2D array.
@@ -97,31 +104,3 @@ void tools_create_folder(const char* folder_path);
  * @return `1` if the given path is a folder, `0` otherwise.
  */
 int tools_is_dir(const char *path);
-
-/**
- * Convert a string of int into 1D (linear) array.
- * @param arg Input string (ex: \f$[1, 5, 1]\f$).
- * @param res Output 1D (linear) array.
- */
-void tools_convert_string_to_int_vector(const char* arg, vec_int_t *res);
-
-/**
- * Convert a string of int into 2D (linear) array.
- * @param arg Input string (ex: \f$[1, 5, 1]\f$).
- * @param res Output 2D (linear) array.
- */
-void tools_convert_string_to_int_matrix(const char* arg, max_int_t *res);
-
-/**
- * Convert a int 1D (linear) array to string.
- * @param arg Input 1D (linear) array.
- * @param res Output string (ex: \f$[1, 5, 1]\f$).
- */
-void tools_convert_int_vector_to_string(vec_int_t tab, char *res);
-
-/**
- * Convert a int 2D (linear) array to string.
- * @param arg Input 2D (linear) array.
- * @param res Output string (ex: \f$[1, 5, 1]\f$).
- */
-void tools_convert_int_matrix_to_string(max_int_t tab, char *res);

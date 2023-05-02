@@ -63,11 +63,11 @@ int main(int argc, char** argv) {
     char* def_p_log_path = NULL;
     char* def_p_out_probes = NULL;
 #ifdef FMDT_ENABLE_PIPELINE
-    char def_p_pip_threads[50] = {"[1,1,1]"};
+    char def_p_pip_threads[50] = {"[1,4,1]"};
     char def_p_pip_sync[50] = {"[1,1]"};
     char def_p_pip_wait[50] = {"[0,0]"};
-    char def_p_pip_pin_enable[50] = {"[0,0,0]"};
-    char def_p_pip_pin[50] = {"[[0],[0],[0]]"};
+    char def_p_pip_pin[50] = {"[0,0,0]"};
+    char def_p_pip_pin_vals[50] = {"[[0],[0],[0]]"};
 #endif
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -163,17 +163,17 @@ int main(int argc, char** argv) {
                 "  --pip-threads       Number of threads for each stage of the pipeline                       [%s]\n",
                 def_p_pip_threads); 
         fprintf(stderr,
-                "  --pip-sync          Buffer size for each stage of the pipeline                             [%s]\n", 
+                "  --pip-sync          Synchronization buffer size between two consecutive pipeline stages    [%s]\n",
                 def_p_pip_sync); 
         fprintf(stderr,
-                "  --pip-wait          Type of waiting between stages (1 = active, 0 = passive)               [%s]\n", 
+                "  --pip-wait          Type of waiting between stages (1 = active, 0 = passive)               [%s]\n",
                 def_p_pip_wait);
         fprintf(stderr,
-                "  --pip-pin-enable    Enable pinning of threads for each stage of the pipeline               [%s]\n", 
-                def_p_pip_pin_enable); 
+                "  --pip-pin           Enable pinning of threads for each stage of the pipeline               [%s]\n",
+                def_p_pip_pin); 
         fprintf(stderr,
-                "  --pip-pin           Explicit pinning of threads                                            [%s]\n", 
-                def_p_pip_pin);
+                "  --pip-pin-vals      Explicit pinning of threads (has no effect if --pip-pin == 0)          [%s]\n",
+                def_p_pip_pin_vals);
 #endif
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
@@ -230,8 +230,8 @@ int main(int argc, char** argv) {
     vec_int_t p_pip_threads = args_find_vector_int(argc, argv, "--pip-threads", def_p_pip_threads);  
     vec_int_t p_pip_sync = args_find_vector_int(argc, argv, "--pip-sync", def_p_pip_sync); 
     vec_int_t p_pip_wait = args_find_vector_int(argc, argv, "--pip-wait", def_p_pip_wait); 
-    vec_int_t p_pip_pin_enable = args_find_vector_int(argc, argv, "--pip-pin-enable", def_p_pip_pin_enable); 
-    max_int_t p_pip_pin = args_find_matrix_int(argc, argv, "--pip-pin", def_p_pip_pin); 
+    vec_int_t p_pip_pin = args_find_vector_int(argc, argv, "--pip-pin", def_p_pip_pin);
+    vec2D_int_t p_pip_pin_vals = args_find_vector2D_int(argc, argv, "--pip-pin-vals", def_p_pip_pin_vals);
 
 #endif
 
@@ -276,17 +276,17 @@ int main(int argc, char** argv) {
     printf("#  * rt-stats       = %d\n", p_task_stats);
     printf("#  * rt-prb-path    = %s\n", p_out_probes);
 #ifdef FMDT_ENABLE_PIPELINE
-    char str_pip_threads[50], str_pip_sync[50], str_pip_wait[50], str_pip_pin_enable[50], str_pip_pin[50];
-    tools_convert_int_vector_to_string(p_pip_threads, str_pip_threads);
-    tools_convert_int_vector_to_string(p_pip_sync, str_pip_sync);
-    tools_convert_int_vector_to_string(p_pip_wait, str_pip_wait);
-    tools_convert_int_vector_to_string(p_pip_pin_enable, str_pip_pin_enable);
-    tools_convert_int_matrix_to_string(p_pip_pin, str_pip_pin);
+    char str_pip_threads[50], str_pip_sync[50], str_pip_wait[50], str_pip_pin[50], str_pip_pin_vals[50];
+    args_convert_int_vector_to_string(p_pip_threads, str_pip_threads);
+    args_convert_int_vector_to_string(p_pip_sync, str_pip_sync);
+    args_convert_int_vector_to_string(p_pip_wait, str_pip_wait);
+    args_convert_int_vector_to_string(p_pip_pin, str_pip_pin);
+    args_convert_int_vector2D_to_string(p_pip_pin_vals, str_pip_pin_vals);
     printf("#  * pip-threads    = %s\n", str_pip_threads); 
     printf("#  * pip-sync       = %s\n", str_pip_sync); 
     printf("#  * pip-wait       = %s\n", str_pip_wait); 
-    printf("#  * pip-pin-enable = %s\n", str_pip_pin_enable); 
-    printf("#  * pip-pin        = %s\n", str_pip_pin); 
+    printf("#  * pip-pin-enable = %s\n", str_pip_pin);
+    printf("#  * pip-pin        = %s\n", str_pip_pin_vals);
 #endif
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
@@ -314,9 +314,8 @@ int main(int argc, char** argv) {
         exit(1);
     }
 #ifdef FMDT_ENABLE_PIPELINE
-    if (args_find(argc, argv, "--pip-pin-enable") && !(args_find(argc, argv, "--pip-pin"))) {
-        fprintf(stderr, "(EE) '--pip-pin-enable' has to be combined with the '--pip-pin' parameter'\n");
-        exit(1);
+    if (args_find(argc, argv, "--pip-pin") && !(args_find(argc, argv, "--pip-pin-vals"))) {
+        fprintf(stderr, "(WW) '--pip-pin-enable' has to be combined with the '--pip-pin' parameter'\n");
     }
 #else
     if (p_out_probes)
@@ -807,8 +806,8 @@ int main(int argc, char** argv) {
                                                 tools_convert_int_cvector_int_stdvector(p_pip_threads), 
                                                 tools_convert_int_cvector_int_stdvector(p_pip_sync), 
                                                 tools_convert_int_cvector_bool_stdvector(p_pip_wait),
-                                                tools_convert_int_cvector_bool_stdvector(p_pip_pin_enable),
-                                                tools_convert_int_cmatrix_int_stdvectorvector(p_pip_pin));
+                                                tools_convert_int_cvector_bool_stdvector(p_pip_pin),
+                                                tools_convert_int_cvector2D_int_stdvector2D(p_pip_pin_vals));
 
     
 #else
@@ -942,11 +941,11 @@ int main(int argc, char** argv) {
     vector_free(p_pip_threads);
     vector_free(p_pip_sync);
     vector_free(p_pip_wait);
-    vector_free(p_pip_pin_enable);
-    int size = vector_size(p_pip_pin);
-    for(int i = 0; i < size; i++)
-        vector_free(p_pip_pin[i]);
     vector_free(p_pip_pin);
+    int size = vector_size(p_pip_pin_vals);
+    for(int i = 0; i < size; i++)
+        vector_free(p_pip_pin_vals[i]);
+    vector_free(p_pip_pin_vals);
     
 #endif
 
