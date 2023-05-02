@@ -115,6 +115,8 @@ is used in the ``video`` module (to read/write videos/images).
           work. The library mainly exchanges data with ``ffmpeg`` through system
           pipes.
 
+.. _developer_deps_nrc:
+
 |NRC|
 -----
 

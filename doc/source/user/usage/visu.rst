@@ -109,7 +109,7 @@ expected text input format.
    :Example: ``--trk-bb-path bb.txt``
 
 The bounding boxes file corresponding to the input video (generated from
-``fmdt-detect``). See :numref:`detect_trk-bb-path` for the description of the
+``fmdt-detect``). See :numref:`log_trk-bb-path` for the description of the
 expected text output format.
 
 .. _visu_trk-id:

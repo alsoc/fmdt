@@ -276,15 +276,15 @@ int main(int argc, char** argv) {
             fprintf(f, "#\n");
         }
 
-        // step 6: filter on ellipse ratio
-        threshold_ellipse_ratio(RoIs->misc, p_ellipse);
-        features_shrink_basic_misc(RoIs->basic, RoIs->misc, RoIs->basic, RoIs->misc);
-
         // save frames (CCs)
         if (img_data) {
             image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs->basic, p_ccl_fra_id);
             video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
+
+        // step 6: filter on ellipse ratio
+        threshold_ellipse_ratio(RoIs->misc, p_ellipse);
+        features_shrink_basic_misc(RoIs->basic, RoIs->misc, RoIs->basic, RoIs->misc);
 
         // save stats (second part)
         if (p_log_path) {

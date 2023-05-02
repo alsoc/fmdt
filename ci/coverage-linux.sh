@@ -12,6 +12,8 @@ for Exe in 'fmdt-common-obj' \
            'fmdt-detect-rt-seq-exe' \
            'fmdt-detect-rt2-pip-exe' \
            'fmdt-detect-rt2-seq-exe' \
+           'fmdt-detect-rt-opt-seq-exe' \
+           'fmdt-detect-rt-opt-pip-exe' \
            'fmdt-ellipse-exe'; do
     lcov --capture --directory $build_root/CMakeFiles/${Exe}.dir/src --output-file code_coverage_files/${Exe}.info
     rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi

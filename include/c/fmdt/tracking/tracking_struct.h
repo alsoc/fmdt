@@ -46,25 +46,6 @@ enum change_state_reason_e { REASON_UNKNOWN = 0, /*!< Unknown (= uninitialized).
 typedef uint32_t* vec_uint32_t;
 
 /**
- *  Bounding box structure. Used to represent the bounding box around a RoI.
- */
-typedef struct {
-    uint32_t frame_id; /*!< Frame id corresponding to the bounding box. */
-    uint32_t track_id; /*!< Track id corresponding to the bounding box. */
-    uint32_t bb_x; /*!< Center \f$x\f$ of the bounding box. */
-    uint32_t bb_y; /*!< Center \f$y\f$ of the bounding box. */
-    uint32_t rx; /*!< Radius \f$x\f$ of the bounding box. */
-    uint32_t ry; /*!< Radius \f$y\f$ of the bounding box. */
-    int is_extrapolated; /*!< Boolean that defines if the bounding box is a real bounding box (from a
-                              connected-component) or if it has been extrapolated in the tracking. */
-} BB_t;
-
-/**
- *  Vector of `BB_t`, to use with C vector lib.
- */
-typedef BB_t* vec_BB_t;
-
-/**
  *  Features required in the tracking.
  */
 typedef struct {
@@ -83,7 +64,6 @@ typedef struct {
     float dx; /**< \f$x\f$ components of the distance between centroids at \f$t - 1\f$ and \f$t\f$. */
     float dy; /**< \f$y\f$ components of the distance between centroids at \f$t - 1\f$ and \f$t\f$. */
     float error; /**< Velocity norm / error. \f$ e = \sqrt{dx^2 + dy^2} \f$. */
-    uint32_t magnitude; /**< Magnitudes or brightness of the RoIs. Sums of the pixels intensities. */
     uint32_t time; /*!< Number of times the RoI and its predecessors have been associated (non-moving RoI). */
     uint32_t time_motion; /*!< Number of times the RoI and its predecessors have been associated (moving RoI). */
     uint8_t is_extrapolated; /*!< Boolean that defines if this RoI has been extrapolated. It prevents to associate it to
@@ -109,7 +89,7 @@ typedef struct {
     enum state_e state; /**< State of the track. */
     enum obj_e obj_type; /**< Object type (classification). */
     enum change_state_reason_e change_state_reason; /**< Reason of the noise type classification. */
-    vec_uint32_t magnitude; /**< Vector of the magnitudes history of this track. */
+    vec_uint32_t RoIs_id; /**< Vector of the RoI ids history of this track. */
 } track_t;
 
 /**

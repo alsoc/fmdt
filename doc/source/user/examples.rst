@@ -32,7 +32,13 @@ Write tracks and bounding boxes into text files for ``fmdt-visu`` and
 
 .. code-block:: bash
 
-	./bin/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-bb-path ./out_detect_bb.txt > ./out_detect_tracks.txt
+	./bin/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --log-path ./detect_log --trk-roi-path ./tracks_2_rois.txt
+	./bin/fmdt-log-parser --log-path ./detect_log --trk-roi-path ./tracks_2_rois.txt --trk-path ./out_detect_tracks.txt --trk-bb-path ./out_detect_bb.txt
+
+As you can see, first ``fmdt-detect`` is run with the :ref:`detect_log-path` and
+the :ref:`detect_trk-roi-path` parameters. Then ``fmdt-log-parser`` generates
+the tracks list (:ref:`log_trk-path` parameter) and the |BBs|
+(:ref:`log_trk-bb-path` parameter).
 
 Visualization
 """""""""""""
