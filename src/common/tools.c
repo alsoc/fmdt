@@ -5,6 +5,7 @@
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <nrc2.h>
+#include <vec.h>
 
 #include "fmdt/features/features_struct.h"
 #include "fmdt/macros.h"

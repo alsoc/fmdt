@@ -3,6 +3,8 @@
 #include <string.h>
 
 #include "fmdt/args.h"
+#include "fmdt/tools.h"
+#include "vec.h"
 
 void args_del(int argc, char** argv, int index) {
     int i;
@@ -159,4 +161,120 @@ char* args_find_char(int argc, char** argv, const char* arg, char* def) {
     } while((cur_arg = strtok(NULL, ",")) != NULL);
 
     return def;
+}
+
+vec_int_t args_find_vector_int(int argc, char** argv, const char* arg, const char* def){
+    vec_int_t res = (vec_int_t)vector_create();
+    char arg_cpy[2048];
+    strncpy(arg_cpy, arg, sizeof(arg_cpy));
+    arg_cpy[sizeof(arg_cpy) - 1] = 0;
+    char *cur_arg = arg_cpy;
+    char *saveptr1;
+    cur_arg = strtok_r(cur_arg, ",", &saveptr1);
+
+    do {
+        for (int i = 0; i < argc - 1; i++) {
+            if (!argv[i])
+                continue;
+            if (strcmp(argv[i], cur_arg) == 0) {
+                args_convert_string_to_int_vector(argv[i + 1], &res);
+                break;
+            }
+        }
+    } while((cur_arg = strtok_r(NULL, ",", &saveptr1)) != NULL);
+
+    if (vector_size(res) == 0){
+        args_convert_string_to_int_vector(def, &res);
+    }
+   
+    return res;
+}
+
+vec2D_int_t args_find_vector2D_int(int argc, char** argv, const char* arg, const char* def){
+    vec2D_int_t res = (vec2D_int_t)vector_create();
+    char arg_cpy[2048];
+    strncpy(arg_cpy, arg, sizeof(arg_cpy));
+    arg_cpy[sizeof(arg_cpy) - 1] = 0;
+    char *cur_arg = arg_cpy;
+    char *saveptr1;
+    cur_arg = strtok_r(cur_arg, ",", &saveptr1);
+
+    do {
+        for (int i = 0; i < argc - 1; i++) {
+            if (!argv[i])
+                continue;
+            if (strcmp(argv[i], cur_arg) == 0) {
+                args_convert_string_to_int_vector2D(argv[i + 1], &res);
+                break;
+            }
+        }
+    } while((cur_arg = strtok_r(NULL, ",", &saveptr1)) != NULL);
+
+    if (vector_size(res) == 0){
+        args_convert_string_to_int_vector2D(def, &res);
+    }
+   
+    return res;
+}
+
+void args_convert_string_to_int_vector(const char* arg, vec_int_t *res) {
+    char *saveptr1;
+    char arg_cpy[2048];
+    strncpy(arg_cpy, arg, sizeof(arg_cpy));
+    arg_cpy[sizeof(arg_cpy) - 1] = 0;
+    char *cur_arg = arg_cpy;
+    cur_arg = strtok_r(cur_arg, "[],", &saveptr1);
+    do {
+        vector_add(res, atoi(cur_arg));
+    } while((cur_arg = strtok_r(NULL, "[],", &saveptr1)) != NULL);
+}
+
+void args_convert_string_to_int_vector2D(const char* arg, vec2D_int_t *res) {
+    vec_int_t v;
+    char *saveptr1;
+    char arg_cpy[2048];
+    strncpy(arg_cpy, arg, sizeof(arg_cpy));
+    arg_cpy[sizeof(arg_cpy) - 1] = 0;
+    char *cur_arg = arg_cpy;
+    cur_arg = strtok_r(cur_arg, "[]", &saveptr1);
+    do {
+        if (strcmp(cur_arg, ",") == 0)
+            cur_arg = strtok_r(NULL, "[]", &saveptr1);
+        v = (vec_int_t)vector_create();
+        args_convert_string_to_int_vector(cur_arg, &v);
+        vector_add(res, v);
+    } while((cur_arg = strtok_r(NULL, "[]", &saveptr1)) != NULL);
+}
+
+void args_convert_int_vector_to_string(vec_int_t tab, char *res) {
+    char tmp[5];
+    res[0] = '\0';
+    int size = vector_size(tab);
+    
+    if (!size) return;
+
+    sprintf(res, "[");
+    for (int i = 0; i < size - 1; i++) {
+        sprintf(tmp, "%d,", tab[i]);
+        strcat(res, tmp);
+    }
+    sprintf(tmp, "%d]", tab[size - 1]);
+    strcat(res, tmp);
+}
+
+void args_convert_int_vector2D_to_string(vec2D_int_t tab, char *res) {
+    char tmp[20];
+    res[0] = '\0';
+    int size = vector_size(tab);
+
+    sprintf(res, "[");
+    for (int i = 0; i < size - 1; i++) {
+        vec_int_t v = tab[i];
+        args_convert_int_vector_to_string(v,tmp);
+        strcat(res, tmp);
+        strcat(res, ",");
+    }
+    args_convert_int_vector_to_string(tab[size-1],tmp);
+    strcat(res, tmp);
+    strcat(res, "]");
 }

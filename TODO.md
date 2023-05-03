@@ -1,4 +1,8 @@
 TODO list:
+- [ ] Compute extrapolated bounding boxes of tracks in `fmdt-log-parser` when 
+      generating the bounding boxes (with the `--trk-bb-path` option)
+- [ ] Add CI tests with `fmdt-check` 
+- [ ] Rewrite `fmdt-check` in Python
 - [ ] Regroup CCs together if they are close and if their velocity vectors are 
       close too
 - [ ] Limit the detection to only a particular angular range (say +/- 30 deg 
@@ -11,7 +15,6 @@ TODO list:
 - [x] Put a saturation flag for each detected object: meteor and star -> this 
       will help for photometry => in the connected-components analysis, compute 
       the number of saturated pixels per RoI (if I_p = 255)
-- [ ] Add CI tests with `fmdt-check` 
 - [x] Support more image input formats
 - [x] Add `--video-loop` and `--video-buff` support to the video module (based 
       on `ffmpeg-io`)

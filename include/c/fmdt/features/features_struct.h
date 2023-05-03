@@ -37,6 +37,9 @@ typedef struct {
     uint32_t* S; /**< Numbers of points/pixels = surfaces of the RoIs. */
     uint32_t* Sx; /**< Sums of \f$x\f$ properties. */
     uint32_t* Sy; /**< Sums of \f$y\f$ properties. */
+    uint64_t* Sx2; /**< Sums of squared \f$x\f$ properties. */
+    uint64_t* Sy2; /**< Sums of squared \f$x\f$ properties. */
+    uint64_t* Sxy; /**< Sums of \f$x \times y\f$ properties. */
     float* x; /**< \f$x\f$ coordinates of the centroid (\f$ x = S_x / S \f$). */
     float* y; /**< \f$y\f$ coordinates of the centroid (\f$ y = S_y / S \f$). */
 
@@ -101,6 +104,8 @@ typedef struct {
     uint32_t* magnitude; /**< Magnitudes or brightness of the RoIs. Sums of the pixels intensities. */
     uint32_t* sat_count; /**< Number of pixels that are saturated in the CC. A pixel is saturated if its intensity
                               \f$I_p\f$ is equal to the maximum value (here it is 255). */
+    float* a; /**< Semi-major axis (ellipse) of the RoIs.*/
+    float* b; /**< Semi-minor axis (ellipse) of the RoIs.*/
 
     size_t* _size; /**< Current size/utilization of the fields.
                         Note: it is allocated on the heap but it represents only one value. */

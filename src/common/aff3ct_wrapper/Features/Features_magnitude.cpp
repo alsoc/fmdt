@@ -43,8 +43,10 @@ Features_magnitude::Features_magnitude(const int i0, const int i1, const int j0,
         const uint32_t in_n_RoIs = *static_cast<const uint32_t*>(t[ps_in_n_RoIs].get_dataptr());
 
         _features_compute_magnitude(mgn.in_img,
-                                    mgn.j1,
+                                    mgn.i0,
                                     mgn.i1,
+                                    mgn.j0,
+                                    mgn.j1,
                                     mgn.in_labels,
                                     static_cast<const uint32_t*>(t[ps_in_RoIs_xmin].get_dataptr()),
                                     static_cast<const uint32_t*>(t[ps_in_RoIs_xmax].get_dataptr()),

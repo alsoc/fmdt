@@ -4,15 +4,17 @@
 
 ## Purpose
 
-*Fast Meteor Detection Toolbox* or **FMDT** is derived from a software which was 
-**designed to detect meteors** on board ISS or a CubeSat. FMDT is foreseen to be 
-applied to airborne camera systems, e.g. in atmospheric balloons or aircraft. 
-**It is robust to camera movements by a motion compensation algorithm.**
+*Fast Meteor Detection Toolbox* or **FMDT** is a toolbox **designed to detect 
+meteors**. FMDT is foreseen to be applied to airborne camera systems, e.g. in 
+atmospheric balloons or aircraft. **It is robust to camera movements by a motion 
+compensation algorithm.**
 
 **FMDT is ready for real-time processing on small boards like Raspberry Pi 4** 
 or Nvidia Jetson Nano for embedded systems. For instance, on the Raspberry Pi 4 
 (@ 1.5 GHz), FMDT is able to compute **30 frames per second** on a HD video 
 sequence while the instant power is only **around 4 Watts**.
+
+![Image showing an example of meteors detection with FMDT.](doc/pics/2022_tauh_00183.jpg "Example of meteors detection with FMDT.")
 
 ## Dependencies
 
@@ -20,7 +22,10 @@ This project uses `ffmpeg-io`, `nrc2`, `c-vector` and `aff3ct-core` projects as
 Git submodules, **you need to download them with the following command**:
 
 ```bash
-git submodule update --init --recursive
+git submodule update --init --recursive -- lib/ffmpeg-io
+git submodule update --init --recursive -- lib/nrc2
+git submodule update --init --recursive -- lib/c-vector
+git submodule update --init --recursive -- lib/aff3ct-core
 ```
 
 Note that `ffmpeg-io` requires the `ffmpeg` executable: **you need to install 
@@ -59,7 +64,8 @@ Run the meteors detection on the previous video sequence:
 Write tracks and bounding boxes into text files for visualization (`fmdt-visu`):
 
 ```shell
-./bin/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --trk-bb-path ./out_detect_bb.txt > ./out_detect_tracks.txt
+./bin/fmdt-detect --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --log-path ./detect_log --trk-roi-path ./tracks_2_rois.txt
+./bin/fmdt-log-parser --log-path ./detect_log --trk-roi-path ./tracks_2_rois.txt --trk-path ./out_detect_tracks.txt --trk-bb-path ./out_detect_bb.txt
 ```
 
 ### Visualization
@@ -91,7 +97,9 @@ are also developed by the [IMCCE](https://www.imcce.fr/) institute
  * Clara CIOCAN, *Master student*
  * Mathuran KANDEEPAN, *Master student*
  * Maxime MILLET, *PhD student*
+ * Nathan MAURICE, *PhD student*
  * [Adrien CASSAGNE](https://lip6.fr/adrien.cassagne/), *Associate professor*
+ * [Fabian ZANDER](https://staffprofile.usq.edu.au/profile/fabian-zander), *Associate professor*
  * [Jérémie VAUBAILLON](https://www.cnrs.fr/fr/personne/jeremie-vaubaillon), *Astronomer*
  * [Lionel LACASSAGNE](https://lip6.fr/Lionel.Lacassagne/), *Full professor*
 

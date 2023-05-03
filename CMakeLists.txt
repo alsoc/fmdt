@@ -6,12 +6,15 @@ project(fmdt)
 # CMake options ---------------------------------------------------------------
 # -----------------------------------------------------------------------------
 option(FMDT_DETECT_EXE "compile the detection chain executable." ON)
+option(FMDT_ELLIPSE_EXE "compile the ellipse chain executable." ON)
 option(FMDT_VISU_EXE "compile the visualization executable." ON)
 option(FMDT_CHECK_EXE "compile the checking executable." ON)
 option(FMDT_MAXRED_EXE "compile the max reduction executable." ON)
 option(FMDT_DEBUG "build the project using debugging code" OFF)
 option(FMDT_OPENCV_LINK "link with OpenCV library." OFF)
 option(FMDT_AFF3CT_RUNTIME "link with AFF3CT for execution runtime." OFF)
+option(FMDT_LSL_LINK "link with external LSL library." OFF)
+option(FMDT_LSL_NEW_INTERFACE "enable new LSL library interface." OFF)
 
 if (FMDT_OPENCV_LINK OR FMDT_AFF3CT_RUNTIME)
 	set(FMDT_CPP ON)
@@ -23,12 +26,15 @@ endif()
 # -----------------------------------------------------------------------------
 message(STATUS "FMDT options: ")
 message(STATUS "  * FMDT_DETECT_EXE: '${FMDT_DETECT_EXE}'")
+message(STATUS "  * FMDT_ELLIPSE_EXE: '${FMDT_ELLIPSE_EXE}'")
 message(STATUS "  * FMDT_VISU_EXE: '${FMDT_VISU_EXE}'")
 message(STATUS "  * FMDT_CHECK_EXE: '${FMDT_CHECK_EXE}'")
 message(STATUS "  * FMDT_MAXRED_EXE: '${FMDT_MAXRED_EXE}'")
 message(STATUS "  * FMDT_DEBUG: '${FMDT_DEBUG}'")
 message(STATUS "  * FMDT_OPENCV_LINK: '${FMDT_OPENCV_LINK}'")
 message(STATUS "  * FMDT_AFF3CT_RUNTIME: '${FMDT_AFF3CT_RUNTIME}'")
+message(STATUS "  * FMDT_LSL_LINK: '${FMDT_LSL_LINK}'")
+message(STATUS "  * FMDT_LSL_NEW_INTERFACE: '${FMDT_LSL_NEW_INTERFACE}'")
 message(STATUS "FMDT info: ")
 message(STATUS "  * FMDT_CPP: '${FMDT_CPP}'")
 message(STATUS "  * CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
@@ -123,6 +129,7 @@ set(src_common_files
     ${src_dir}/common/args.c
     ${src_dir}/common/tools.c
     ${src_dir}/common/CCL/CCL_compute.c
+    ${src_dir}/common/CCL/CCL_struct.c
     ${src_dir}/common/features/features_compute.c
     ${src_dir}/common/features/features_io.c
     ${src_dir}/common/image/image_compute.c
@@ -165,14 +172,26 @@ if(FMDT_DETECT_EXE)
 	add_executable(fmdt-detect-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_detect_files})
 	list(APPEND fmdt_targets_list fmdt-detect-exe)
 	set_target_properties(fmdt-detect-exe PROPERTIES OUTPUT_NAME fmdt-detect)
+
+	set(src_detectopt_files
+	    ${src_dir}/mains/detect_opt.c)
+	list(APPEND fmdt_src_list ${src_detectopt_files})
+	add_executable(fmdt-detect-opt-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_detectopt_files})
+	list(APPEND fmdt_targets_list fmdt-detect-opt-exe)
+	set_target_properties(fmdt-detect-opt-exe PROPERTIES OUTPUT_NAME fmdt-detect-opt)
+
 	if (FMDT_AFF3CT_RUNTIME)
 		set(src_detectrt_common_files
+		    ${src_dir}/common/tools.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Video/Video.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Video/Video2.cpp
-		    ${src_dir}/common/aff3ct_wrapper/CCL_LSL/CCL_LSL.cpp
+		    ${src_dir}/common/aff3ct_wrapper/CCL/CCL.cpp
+		    ${src_dir}/common/aff3ct_wrapper/CCL/CCL_threshold_features.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Features/Features_extractor.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Features/Features_merger_CCL_HI.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Features/Features_merger_CCL_HI_v2.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Features/Features_merger_CCL_HI_v3.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Features/Features_magnitude.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Features/Features_ellipse.cpp
 		    ${src_dir}/common/aff3ct_wrapper/kNN_matcher/kNN_matcher.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Motion/Motion.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_frame.cpp
@@ -190,16 +209,16 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/mains/detect_rt.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt1_files})
 		add_executable(fmdt-detect-rt-seq-exe
-		    $<TARGET_OBJECTS:fmdt-common-obj>
-		    $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
-		    ${src_detectrt1_files})
+		               $<TARGET_OBJECTS:fmdt-common-obj>
+		               $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
+		               ${src_detectrt1_files})
 		list(APPEND fmdt_targets_list fmdt-detect-rt-seq-exe)
 		set_target_properties(fmdt-detect-rt-seq-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-seq)
 
 		add_executable(fmdt-detect-rt-pip-exe
-		    $<TARGET_OBJECTS:fmdt-common-obj>
-		    $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
-		    ${src_detectrt1_files})
+		               $<TARGET_OBJECTS:fmdt-common-obj>
+		               $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
+		               ${src_detectrt1_files})
 		list(APPEND fmdt_targets_list fmdt-detect-rt-pip-exe)
 		set_target_properties(fmdt-detect-rt-pip-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-pip)
 		target_compile_definitions(fmdt-detect-rt-pip-exe PUBLIC FMDT_ENABLE_PIPELINE)
@@ -207,13 +226,47 @@ if(FMDT_DETECT_EXE)
 		set(src_detectrt2_files
 		    ${src_dir}/mains/detect_rt2.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt2_files})
-		add_executable(fmdt-detect-rt2-exe
+		add_executable(fmdt-detect-rt2-seq-exe
 		    $<TARGET_OBJECTS:fmdt-common-obj>
 		    $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
 		    ${src_detectrt2_files})
-		list(APPEND fmdt_targets_list fmdt-detect-rt2-exe)
-		set_target_properties(fmdt-detect-rt2-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2)
+		list(APPEND fmdt_targets_list fmdt-detect-rt2-seq-exe)
+		set_target_properties(fmdt-detect-rt2-seq-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2-seq)
+
+		add_executable(fmdt-detect-rt2-pip-exe
+		    $<TARGET_OBJECTS:fmdt-common-obj>
+		    $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
+		    ${src_detectrt2_files})
+		list(APPEND fmdt_targets_list fmdt-detect-rt2-pip-exe)
+		set_target_properties(fmdt-detect-rt2-pip-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt2-pip)
+		target_compile_definitions(fmdt-detect-rt2-pip-exe PUBLIC FMDT_ENABLE_PIPELINE)
+
+		set(src_detectrt1opt_files
+		    ${src_dir}/mains/detect_rt_opt.cpp)
+		list(APPEND fmdt_src_list ${src_detectrt1opt_files})
+		add_executable(fmdt-detect-rt-opt-seq-exe
+		               $<TARGET_OBJECTS:fmdt-common-obj>
+		               $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
+		               ${src_detectrt1opt_files})
+		list(APPEND fmdt_targets_list fmdt-detect-rt-opt-seq-exe)
+		set_target_properties(fmdt-detect-rt-opt-seq-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-opt-seq)
+
+		add_executable(fmdt-detect-rt-opt-pip-exe
+		               $<TARGET_OBJECTS:fmdt-common-obj>
+		               $<TARGET_OBJECTS:fmdt-detect-rt-common-obj>
+		               ${src_detectrt1opt_files})
+		list(APPEND fmdt_targets_list fmdt-detect-rt-opt-pip-exe)
+		set_target_properties(fmdt-detect-rt-opt-pip-exe PROPERTIES OUTPUT_NAME fmdt-detect-rt-opt-pip)
+		target_compile_definitions(fmdt-detect-rt-opt-pip-exe PUBLIC FMDT_ENABLE_PIPELINE)
 	endif()
+endif()
+if(FMDT_ELLIPSE_EXE)
+	set(src_ellipse_files
+	    ${src_dir}/mains/ellipse.c)
+	list(APPEND fmdt_src_list ${src_ellipse_files})
+	add_executable(fmdt-ellipse-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_ellipse_files})
+	list(APPEND fmdt_targets_list fmdt-ellipse-exe)
+	set_target_properties(fmdt-ellipse-exe PROPERTIES OUTPUT_NAME fmdt-ellipse)
 endif()
 if(FMDT_VISU_EXE)
 	set(src_visu_files
@@ -239,6 +292,12 @@ if(FMDT_MAXRED_EXE)
 	list(APPEND fmdt_targets_list fmdt-maxred-exe)
 	set_target_properties(fmdt-maxred-exe PROPERTIES OUTPUT_NAME fmdt-maxred)
 endif()
+
+# create symlink from Python script to bin/ folder
+set(FMDT_LOG_PARSER_TARGET ${CMAKE_CURRENT_SOURCE_DIR}/scripts/log_parser/log_parser.py)
+set(FMDT_LOG_PARSER_SYMLINK ${exe_dir}/fmdt-log-parser)
+add_custom_target(fmdt-log-parser ALL
+                  COMMAND ${CMAKE_COMMAND} -E create_symlink ${FMDT_LOG_PARSER_TARGET} ${FMDT_LOG_PARSER_SYMLINK})
 
 macro(fmdt_set_source_files_properties files key value)
 	foreach(_file IN ITEMS ${files})
@@ -291,6 +350,18 @@ if (FMDT_OPENCV_LINK)
 	find_package(OpenCV REQUIRED)
 endif()
 
+# LSL
+if (FMDT_LSL_LINK)
+	if (NOT TARGET lsl-slib)
+		if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/lsl/include/flsl.h")
+			add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/lsl/)
+		else()
+			message(FATAL_ERROR "'lsl' can't be found, try to init the submodule with the following cmd:\n"
+			                    "$ git submodule update --init -- ../lib/lsl/")
+		endif()
+	endif()
+endif()
+
 # Add definitions -------------------------------------------------------------
 # -----------------------------------------------------------------------------
 macro(fmdt_target_compile_definitions targets privacy dir)
@@ -307,6 +378,12 @@ if (FMDT_OPENCV_LINK)
 endif()
 if (FMDT_AFF3CT_RUNTIME)
 	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_AFF3CT_LINK)
+endif()
+if (FMDT_LSL_LINK)
+	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_LSL_LINK)
+endif()
+if (FMDT_LSL_NEW_INTERFACE)
+	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_LSL_NEW_INTERFACE)
 endif()
 
 # Set include directory -------------------------------------------------------
@@ -342,4 +419,11 @@ if (FMDT_OPENCV_LINK)
 endif()
 if (FMDT_AFF3CT_RUNTIME)
 	fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC aff3ct-core-static-lib)
+endif()
+if (FMDT_LSL_LINK)
+	if (TARGET lsl-simd-slib)
+		fmdt_target_link_libraries("${fmdt_targets_list}" PRIVATE lsl-simd-slib)
+	else()
+		fmdt_target_link_libraries("${fmdt_targets_list}" PRIVATE lsl-slib)
+	endif()
 endif()

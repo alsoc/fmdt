@@ -28,13 +28,14 @@ Logger_frame::Logger_frame(const std::string frames_path, const size_t fra_start
     auto ps_in_labels = this->template create_socket_in<uint32_t>(p, "in_labels", socket_img_size);
 
     auto ps_in_RoIs_id = this->template create_socket_in<uint32_t>(p, "in_RoIs_id", max_RoIs_size);
+    auto ps_in_RoIs_xmin = this->template create_socket_in<uint32_t>(p, "in_RoIs_xmin", max_RoIs_size);
     auto ps_in_RoIs_xmax = this->template create_socket_in<uint32_t>(p, "in_RoIs_xmax", max_RoIs_size);
     auto ps_in_RoIs_ymin = this->template create_socket_in<uint32_t>(p, "in_RoIs_ymin", max_RoIs_size);
     auto ps_in_RoIs_ymax = this->template create_socket_in<uint32_t>(p, "in_RoIs_ymax", max_RoIs_size);
     auto ps_in_n_RoIs = this->template create_socket_in<uint32_t>(p, "in_n_RoIs", 1);
 
-    this->create_codelet(p, [ps_in_labels, ps_in_RoIs_id, ps_in_RoIs_xmax, ps_in_RoIs_ymin, ps_in_RoIs_ymax,
-                             ps_in_n_RoIs]
+    this->create_codelet(p, [ps_in_labels, ps_in_RoIs_id, ps_in_RoIs_xmax, ps_in_RoIs_ymin, ps_in_RoIs_xmin,
+                             ps_in_RoIs_ymax, ps_in_n_RoIs]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_fra = static_cast<Logger_frame&>(m);
         const uint32_t* m_in_labels = static_cast<const uint32_t*>(t[ps_in_labels].get_dataptr());
@@ -45,6 +46,7 @@ Logger_frame::Logger_frame(const std::string frames_path, const size_t fra_start
         _image_gs_draw_labels(lgr_fra.img_data,
                               lgr_fra.in_labels,
                               static_cast<const uint32_t*>(t[ps_in_RoIs_id].get_dataptr()),
+                              static_cast<const uint32_t*>(t[ps_in_RoIs_xmin].get_dataptr()),
                               static_cast<const uint32_t*>(t[ps_in_RoIs_xmax].get_dataptr()),
                               static_cast<const uint32_t*>(t[ps_in_RoIs_ymin].get_dataptr()),
                               static_cast<const uint32_t*>(t[ps_in_RoIs_ymax].get_dataptr()),

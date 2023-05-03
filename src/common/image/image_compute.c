@@ -133,6 +133,18 @@ void image_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xma
     }
 }
 
+void image_max_reduce(uint8_t** I, int i0, int i1, int j0, int j1, uint8_t** M) {
+    for (int i = i0; i <= i1; i++) {
+        for (int j = j0; j <= j1; j++) {
+            uint8_t x = I[i][j];
+            uint8_t m = M[i][j];
+            if (x > m) {
+                M[i][j] = x;
+            }
+        }
+    }
+}
+
 #ifdef FMDT_OPENCV_LINK // this is C++ code (because OpenCV API is C++ now)
 void image_draw_legend_squares(rgb8_t** img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
     //                     ymin      ymax      xmin      xmax      color
@@ -345,29 +357,61 @@ img_data_t* image_gs_alloc(const size_t img_width, const size_t img_height) {
 }
 
 void _image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* RoIs_id,
-                           const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
-                           const size_t n_RoIs, const uint8_t show_id) {
+                           const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
+                           const uint32_t* RoIs_ymax, const size_t n_RoIs, const uint8_t show_id) {
 #ifdef FMDT_OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     // convert labels to black & white image: white if there is a CC, black otherwise
+    // for (size_t i = 0; i < (size_t)pixels->rows; i++)
+    //     for (size_t j = 0; j < (size_t)pixels->cols; j++)
+    //         pixels->at<uint8_t>(i, j) = (labels[i][j] == 0) ? 0 : 255;
+
     for (size_t i = 0; i < (size_t)pixels->rows; i++)
         for (size_t j = 0; j < (size_t)pixels->cols; j++)
-            pixels->at<uint8_t>(i, j) = (labels[i][j] == 0) ? 0 : 255;
+            pixels->at<uint8_t>(i, j) = 0;
+
+    for (size_t i = 0; i < n_RoIs; i++) {
+        uint32_t id = RoIs_id[i];
+        uint32_t x0 = RoIs_ymin[i];
+        uint32_t x1 = RoIs_ymax[i];
+        uint32_t y0 = RoIs_xmin[i];
+        uint32_t y1 = RoIs_xmax[i];
+        for (uint32_t k = x0; k <= x1; k++)
+            for (uint32_t l = y0; l <= y1; l++)
+                if (labels[k][l] == id)
+                    pixels->at<uint8_t>(k, l) = 255;
+    }
+
     if (show_id)
         _image_draw_RoIs_id(*pixels, RoIs_id, RoIs_xmax, RoIs_ymin, RoIs_ymax, n_RoIs);
 #else
     uint8_t** pixels = (uint8_t**)img_data->pixels;
     // convert labels to black & white image: white if there is a CC, black otherwise
+    // for (size_t i = 0; i < img_data->height; i++)
+    //     for (size_t j = 0; j < img_data->width; j++)
+    //         pixels[i][j] = (labels[i][j] == 0) ? 0 : 255;
+
     for (size_t i = 0; i < img_data->height; i++)
-        for (size_t j = 0; j < img_data->width; j++)
-            pixels[i][j] = (labels[i][j] == 0) ? 0 : 255;
+        memset(pixels[i], 0, img_data->width * sizeof(uint8_t));
+
+    for (size_t i = 0; i < n_RoIs; i++) {
+        uint32_t id = RoIs_id[i];
+        uint32_t x0 = RoIs_ymin[i];
+        uint32_t x1 = RoIs_ymax[i];
+        uint32_t y0 = RoIs_xmin[i];
+        uint32_t y1 = RoIs_xmax[i];
+        for (uint32_t k = x0; k <= x1; k++)
+            for (uint32_t l = y0; l <= y1; l++)
+                if (labels[k][l] == id)
+                    pixels[k][l] = 255;
+    }
 #endif
 }
 
 void image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const RoIs_basic_t* RoIs_basic,
                           const uint8_t show_id) {
-    _image_gs_draw_labels(img_data, labels, RoIs_basic->id, RoIs_basic->xmax, RoIs_basic->ymin, RoIs_basic->ymax,
-                          *RoIs_basic->_size, show_id);
+    _image_gs_draw_labels(img_data, labels, RoIs_basic->id, RoIs_basic->xmin, RoIs_basic->xmax, RoIs_basic->ymin,
+                          RoIs_basic->ymax, *RoIs_basic->_size, show_id);
 }
 
 uint8_t* image_gs_get_pixels(img_data_t* img_data) {

@@ -14,7 +14,8 @@
 namespace lgr_fra {
     enum class tsk : size_t { write, SIZE };
     namespace sck {
-        enum class write : size_t { in_labels, in_RoIs_id, in_RoIs_xmax, in_RoIs_ymin, in_RoIs_ymax, in_n_RoIs, status };
+        enum class write : size_t { in_labels, in_RoIs_id, in_RoIs_xmin, in_RoIs_xmax, in_RoIs_ymin, in_RoIs_ymax,
+                                    in_n_RoIs, status };
     }
 }
 
