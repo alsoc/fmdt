@@ -176,11 +176,15 @@ void _track_extrapolate(const RoI_t* track_end, float* track_extrapol_x, float* 
     *track_extrapol_y = y + (float)extrapol_order * *track_extrapol_v;
 }
 
-int search_motion(RoIs_history_t* RoIs_history){
+// Sometimes when the camera moves very fast, there are no associations being made, so the motion cannot be estimated and its value become a NaN...
+// To avoid this problem, the `search_motion` function will select an older motion (without NaN...)
+// Note that this is a "hot fix" and it could be improved later.
+int _search_motion(RoIs_history_t* RoIs_history) {
     for (int i = 0; i < (int)(RoIs_history->_max_size); i++) {
         if (!isnan(RoIs_history->motion[i].tx) && !isnan(RoIs_history->motion[i].ty))
             return i;
     }
+    // if we arrive here we have a problem...the assertions line 203-204 will fail
     return 0;
 }
 void _update_existing_tracks(RoIs_history_t* RoIs_history, vec_track_t track_array, vec_BB_t* BBs,
@@ -201,7 +205,7 @@ void _update_existing_tracks(RoIs_history_t* RoIs_history, vec_track_t track_arr
                         assert(cur_track->extrapol_x == cur_track->extrapol_x);
                         assert(cur_track->extrapol_y == cur_track->extrapol_y);
 
-                        hist_motion_id = search_motion(RoIs_history);
+                        hist_motion_id = _search_motion(RoIs_history);
                         
                         float theta = RoIs_history->motion[hist_motion_id].theta;
                         float tx = RoIs_history->motion[hist_motion_id].tx;
@@ -322,7 +326,7 @@ void _update_existing_tracks(RoIs_history_t* RoIs_history, vec_track_t track_arr
                     cur_track->state = STATE_FINISHED;
                 } else {
                     // on extrapole si pas finished
-                    hist_motion_id = search_motion(RoIs_history);
+                    hist_motion_id = _search_motion(RoIs_history);
                     _track_extrapolate(&cur_track->end, &cur_track->extrapol_x, &cur_track->extrapol_y,
                                        &cur_track->extrapol_u, &cur_track->extrapol_v, RoIs_history->motion[hist_motion_id].theta,
                                        RoIs_history->motion[hist_motion_id].tx, RoIs_history->motion[hist_motion_id].ty,
