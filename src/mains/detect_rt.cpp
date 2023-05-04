@@ -67,6 +67,7 @@ int main(int argc, char** argv) {
     char def_p_pip_pin[50] = {"[0,0,0]"};
     char def_p_pip_pin_vals[50] = {"[[0],[0],[0]]"};
 #endif
+
     // help
     if (args_find(argc, argv, "--help,-h")) {
         fprintf(stderr,
@@ -937,14 +938,12 @@ int main(int argc, char** argv) {
     }
 
     aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
-                                                sep_stages,
-                                                tools_convert_int_cvector_int_stdvector(p_pip_threads), 
-                                                tools_convert_int_cvector_int_stdvector(p_pip_sync), 
-                                                tools_convert_int_cvector_bool_stdvector(p_pip_wait),
-                                                tools_convert_int_cvector_bool_stdvector(p_pip_pin),
-                                                tools_convert_int_cvector2D_int_stdvector2D(p_pip_pin_vals));
-
-    
+                                                   sep_stages,
+                                                   tools_convert_int_cvector_int_stdvector(p_pip_threads),
+                                                   tools_convert_int_cvector_int_stdvector(p_pip_sync),
+                                                   tools_convert_int_cvector_bool_stdvector(p_pip_wait),
+                                                   tools_convert_int_cvector_bool_stdvector(p_pip_pin),
+                                                   tools_convert_int_cvector2D_int_stdvector2D(p_pip_pin_vals));
 #else
     aff3ct::runtime::Sequence sequence_or_pipeline(*first_task, 1);
 #endif
@@ -1072,7 +1071,6 @@ int main(int argc, char** argv) {
     for(int i = 0; i < size; i++)
         vector_free(p_pip_pin_vals[i]);
     vector_free(p_pip_pin_vals);
-    
 #endif
 
     printf("# End of the program, exiting.\n");

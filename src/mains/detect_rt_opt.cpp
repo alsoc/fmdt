@@ -6,10 +6,12 @@
 #include <algorithm>
 #include <memory>
 #include <nrc2.h>
+#include <vec.h>
 #include <aff3ct-core.hpp>
 
 #include "fmdt/args.h"
 #include "fmdt/tools.h"
+#include "fmdt/tools.hpp"
 #include "fmdt/macros.h"
 #include "fmdt/tracking/tracking_global.h"
 #include "fmdt/tracking/tracking_io.h"
@@ -57,6 +59,13 @@ int main(int argc, char** argv) {
     char* def_p_log_path = NULL;
     char* def_p_trk_roi_path = NULL;
     char* def_p_out_probes = NULL;
+#ifdef FMDT_ENABLE_PIPELINE
+    char def_p_pip_threads[50] = {"[1,4,1]"};
+    char def_p_pip_sync[50] = {"[1,1]"};
+    char def_p_pip_wait[50] = {"[0,0]"};
+    char def_p_pip_pin[50] = {"[0,0,0]"};
+    char def_p_pip_pin_vals[50] = {"[[0],[0],[0]]"};
+#endif
 
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -151,6 +160,23 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --rt-prb-path       Path of the output probe vales, only required for benchmarking purpose [%s]\n",
                 def_p_out_probes ? def_p_out_probes : "NULL");
+#ifdef FMDT_ENABLE_PIPELINE
+        fprintf(stderr,
+                "  --pip-threads       Number of threads for each stage of the pipeline                       [%s]\n",
+                def_p_pip_threads);
+        fprintf(stderr,
+                "  --pip-sync          Synchronization buffer size between two consecutive pipeline stages    [%s]\n",
+                def_p_pip_sync);
+        fprintf(stderr,
+                "  --pip-wait          Type of waiting between stages (1 = active, 0 = passive)               [%s]\n",
+                def_p_pip_wait);
+        fprintf(stderr,
+                "  --pip-pin           Enable pinning of threads for each stage of the pipeline               [%s]\n",
+                def_p_pip_pin);
+        fprintf(stderr,
+                "  --pip-pin-vals      Explicit pinning of threads (has no effect if --pip-pin == 0)          [%s]\n",
+                def_p_pip_pin_vals);
+#endif
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
         fprintf(stderr,
@@ -205,6 +231,14 @@ int main(int argc, char** argv) {
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
     const int p_task_stats = args_find(argc, argv, "--rt-stats,--task-stats");
     const char* p_out_probes = args_find_char(argc, argv, "--rt-prb-path,--out-probes", def_p_out_probes);
+#ifdef FMDT_ENABLE_PIPELINE
+    vec_int_t p_pip_threads = args_find_vector_int(argc, argv, "--pip-threads", def_p_pip_threads);
+    vec_int_t p_pip_sync = args_find_vector_int(argc, argv, "--pip-sync", def_p_pip_sync);
+    vec_int_t p_pip_wait = args_find_vector_int(argc, argv, "--pip-wait", def_p_pip_wait);
+    vec_int_t p_pip_pin = args_find_vector_int(argc, argv, "--pip-pin", def_p_pip_pin);
+    vec2D_int_t p_pip_pin_vals = args_find_vector2D_int(argc, argv, "--pip-pin-vals", def_p_pip_pin_vals);
+
+#endif
 
     // heading display
     printf("#  ---------------------\n");
@@ -249,6 +283,19 @@ int main(int argc, char** argv) {
     printf("#  * log-path       = %s\n", p_log_path);
     printf("#  * rt-stats       = %d\n", p_task_stats);
     printf("#  * rt-prb-path    = %s\n", p_out_probes);
+#ifdef FMDT_ENABLE_PIPELINE
+    char str_pip_threads[50], str_pip_sync[50], str_pip_wait[50], str_pip_pin[50], str_pip_pin_vals[50];
+    args_convert_int_vector_to_string(p_pip_threads, str_pip_threads, sizeof(str_pip_threads));
+    args_convert_int_vector_to_string(p_pip_sync, str_pip_sync, sizeof(str_pip_sync));
+    args_convert_int_vector_to_string(p_pip_wait, str_pip_wait, sizeof(str_pip_wait));
+    args_convert_int_vector_to_string(p_pip_pin, str_pip_pin, sizeof(str_pip_pin));
+    args_convert_int_vector2D_to_string(p_pip_pin_vals, str_pip_pin_vals, sizeof(str_pip_pin_vals));
+    printf("#  * pip-threads    = %s\n", str_pip_threads);
+    printf("#  * pip-sync       = %s\n", str_pip_sync);
+    printf("#  * pip-wait       = %s\n", str_pip_wait);
+    printf("#  * pip-pin        = %s\n", str_pip_pin);
+    printf("#  * pip-pin-vals   = %s\n", str_pip_pin_vals);
+#endif
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
     printf("#  * Runtime mode   = Pipeline\n");
@@ -883,17 +930,11 @@ int main(int argc, char** argv) {
 
     aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
                                                    sep_stages,
-                                                   {
-                                                     1, // number of threads in the stage 1
-                                                     4, // number of threads in the stage 2
-                                                     1, // number of threads in the stage 3
-                                                   }, {
-                                                     1, // synchronization buffer size between stages 1 and 2
-                                                     1, // synchronization buffer size between stages 2 and 3
-                                                   }, {
-                                                     false, // type of waiting between stages 1 and 2 (true = active, false = passive)
-                                                     false, // type of waiting between stages 2 and 3 (true = active, false = passive)
-                                                   });
+                                                   tools_convert_int_cvector_int_stdvector(p_pip_threads),
+                                                   tools_convert_int_cvector_int_stdvector(p_pip_sync),
+                                                   tools_convert_int_cvector_bool_stdvector(p_pip_wait),
+                                                   tools_convert_int_cvector_bool_stdvector(p_pip_pin),
+                                                   tools_convert_int_cvector2D_int_stdvector2D(p_pip_pin_vals));
 #else
     aff3ct::runtime::Sequence sequence_or_pipeline(*first_task, 1);
 #endif
@@ -1007,6 +1048,21 @@ int main(int argc, char** argv) {
         aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
 #endif
     }
+
+#ifdef FMDT_ENABLE_PIPELINE
+    // ----------
+    // -- FREE --
+    // ----------
+
+    vector_free(p_pip_threads);
+    vector_free(p_pip_sync);
+    vector_free(p_pip_wait);
+    vector_free(p_pip_pin);
+    int size = vector_size(p_pip_pin_vals);
+    for(int i = 0; i < size; i++)
+        vector_free(p_pip_pin_vals[i]);
+    vector_free(p_pip_pin_vals);
+#endif
 
     printf("# End of the program, exiting.\n");
 
