@@ -187,12 +187,14 @@ void args_convert_string_to_int_vector2D(const char* arg, vec2D_int_t *res);
  * Convert a int 1D (linear) array to string.
  * @param arg Input 1D (linear) array.
  * @param res Output string (ex: \f$[1, 5, 1]\f$).
+ * @param sizeof_res Number of bytes in \p res.
  */
-void args_convert_int_vector_to_string(vec_int_t tab, char *res);
+void args_convert_int_vector_to_string(vec_int_t tab, char *res, size_t sizeof_res);
 
 /**
  * Convert a int 2D (linear) array to string.
  * @param arg Input 2D (linear) array.
  * @param res Output string (ex: \f$[1, 5, 1]\f$).
+ * @param sizeof_res Number of bytes in \p res.
  */
-void args_convert_int_vector2D_to_string(vec2D_int_t tab, char *res);
+void args_convert_int_vector2D_to_string(vec2D_int_t tab, char *res, size_t sizeof_res);

@@ -246,35 +246,35 @@ void args_convert_string_to_int_vector2D(const char* arg, vec2D_int_t *res) {
     } while((cur_arg = strtok_r(NULL, "[]", &saveptr1)) != NULL);
 }
 
-void args_convert_int_vector_to_string(vec_int_t tab, char *res) {
+void args_convert_int_vector_to_string(vec_int_t tab, char *res, size_t sizeof_res) {
     char tmp[5];
     res[0] = '\0';
     int size = vector_size(tab);
     
     if (!size) return;
 
-    sprintf(res, "[");
+    snprintf(res, sizeof_res, "[");
     for (int i = 0; i < size - 1; i++) {
-        sprintf(tmp, "%d,", tab[i]);
+        snprintf(tmp, sizeof(tmp), "%d,", tab[i]);
         strcat(res, tmp);
     }
-    sprintf(tmp, "%d]", tab[size - 1]);
+    snprintf(tmp, sizeof(tmp), "%d]", tab[size - 1]);
     strcat(res, tmp);
 }
 
-void args_convert_int_vector2D_to_string(vec2D_int_t tab, char *res) {
+void args_convert_int_vector2D_to_string(vec2D_int_t tab, char *res, size_t sizeof_res) {
     char tmp[20];
     res[0] = '\0';
     int size = vector_size(tab);
 
-    sprintf(res, "[");
+    snprintf(res, sizeof_res, "[");
     for (int i = 0; i < size - 1; i++) {
         vec_int_t v = tab[i];
-        args_convert_int_vector_to_string(v,tmp);
+        args_convert_int_vector_to_string(v,tmp, sizeof(tmp));
         strcat(res, tmp);
         strcat(res, ",");
     }
-    args_convert_int_vector_to_string(tab[size-1],tmp);
+    args_convert_int_vector_to_string(tab[size-1], tmp, sizeof(tmp));
     strcat(res, tmp);
     strcat(res, "]");
 }

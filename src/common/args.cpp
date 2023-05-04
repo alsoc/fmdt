@@ -4,7 +4,7 @@
 
 #include "fmdt/args.hpp"
 
-std::vector<std::size_t> convert_char2vector(const char* arg){
+std::vector<std::size_t> convert_char2vector(const char* arg) {
     char arg_cpy[2048];
     std::vector<std::size_t> v;
     strncpy(arg_cpy, arg, sizeof(arg_cpy));
@@ -19,8 +19,7 @@ std::vector<std::size_t> convert_char2vector(const char* arg){
     return v;
 }
 
-
-std::vector<std::size_t> args_find_vector_int(int argc, char** argv, const char* arg, std::vector<std::size_t> def){
+std::vector<std::size_t> args_find_vector_int(int argc, char** argv, const char* arg, std::vector<std::size_t> def) {
     char arg_cpy[2048];
     strncpy(arg_cpy, arg, sizeof(arg_cpy));
     arg_cpy[sizeof(arg_cpy) - 1] = 0;

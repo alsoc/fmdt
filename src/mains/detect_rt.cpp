@@ -280,16 +280,16 @@ int main(int argc, char** argv) {
     printf("#  * rt-prb-path    = %s\n", p_out_probes);
 #ifdef FMDT_ENABLE_PIPELINE
     char str_pip_threads[50], str_pip_sync[50], str_pip_wait[50], str_pip_pin[50], str_pip_pin_vals[50];
-    args_convert_int_vector_to_string(p_pip_threads, str_pip_threads);
-    args_convert_int_vector_to_string(p_pip_sync, str_pip_sync);
-    args_convert_int_vector_to_string(p_pip_wait, str_pip_wait);
-    args_convert_int_vector_to_string(p_pip_pin, str_pip_pin);
-    args_convert_int_vector2D_to_string(p_pip_pin_vals, str_pip_pin_vals);
+    args_convert_int_vector_to_string(p_pip_threads, str_pip_threads, sizeof(str_pip_threads));
+    args_convert_int_vector_to_string(p_pip_sync, str_pip_sync, sizeof(str_pip_sync));
+    args_convert_int_vector_to_string(p_pip_wait, str_pip_wait, sizeof(str_pip_wait));
+    args_convert_int_vector_to_string(p_pip_pin, str_pip_pin, sizeof(str_pip_pin));
+    args_convert_int_vector2D_to_string(p_pip_pin_vals, str_pip_pin_vals, sizeof(str_pip_pin_vals));
     printf("#  * pip-threads    = %s\n", str_pip_threads); 
     printf("#  * pip-sync       = %s\n", str_pip_sync); 
     printf("#  * pip-wait       = %s\n", str_pip_wait); 
-    printf("#  * pip-pin-enable = %s\n", str_pip_pin);
-    printf("#  * pip-pin        = %s\n", str_pip_pin_vals);
+    printf("#  * pip-pin        = %s\n", str_pip_pin);
+    printf("#  * pip-pin-vals   = %s\n", str_pip_pin_vals);
 #endif
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
