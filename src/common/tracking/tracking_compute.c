@@ -3,6 +3,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+#include <stddef.h>
 
 #include "fmdt/tools.h"
 #include "fmdt/macros.h"
@@ -93,16 +94,35 @@ void tracking_free_data(tracking_data_t* tracking_data) {
 void _compute_angle_and_norms(const RoIs_history_t* RoIs_history, const track_t* cur_track, float *angle_degree,
                               float *norm_u, float *norm_v) {
     int next_id = RoIs_history->array[1][cur_track->end.id - 1].next_id;
-    int k = RoIs_history->array[1][cur_track->end.id - 1].prev_id - 1;
 
     float x0_0 = RoIs_history->array[0][next_id - 1].x;
     float y0_0 = RoIs_history->array[0][next_id - 1].y;
 
-    float x1_1 = RoIs_history->array[1][cur_track->end.id - 1].x;
-    float y1_1 = RoIs_history->array[1][cur_track->end.id - 1].y;
+    int k = RoIs_history->array[1][cur_track->end.id - 1].prev_id - 1;
 
-    float x2_2 = RoIs_history->array[2][k].x;
-    float y2_2 = RoIs_history->array[2][k].y;
+    float x1_1, y1_1;
+    if (k == -1) {
+        assert(cur_track->extrapol_x1 == cur_track->end.x);
+        assert(cur_track->extrapol_y1 == cur_track->end.y);
+
+        x1_1 = cur_track->extrapol_x1;
+        y1_1 = cur_track->extrapol_y1;
+    } else {
+        assert(RoIs_history->array[1][cur_track->end.id - 1].x == cur_track->end.x);
+        assert(RoIs_history->array[1][cur_track->end.id - 1].y == cur_track->end.y);
+
+        x1_1 = RoIs_history->array[1][cur_track->end.id - 1].x;
+        y1_1 = RoIs_history->array[1][cur_track->end.id - 1].y;
+    }
+
+    float x2_2, y2_2;
+    if (k == -1) {
+        x2_2 = cur_track->extrapol_x2;
+        y2_2 = cur_track->extrapol_y2;
+    } else {
+        x2_2 = RoIs_history->array[2][k].x;
+        y2_2 = RoIs_history->array[2][k].y;
+    }
 
     float theta0 = RoIs_history->motion[0].theta;
     float tx0 = RoIs_history->motion[0].tx;
@@ -135,33 +155,13 @@ void _compute_angle_and_norms(const RoIs_history_t* RoIs_history, const track_t*
     // *angle_degree = fmodf(angle_degree, 360.f);
 }
 
-void _track_extrapolate(const RoI_t* track_end, float* track_extrapol_x, float* track_extrapol_y,
-                        float* track_extrapol_u, float* track_extrapol_v, const float theta, const float tx,
-                        const float ty, uint8_t extrapol_order) {
-    assert(extrapol_order > 0);
-
-    if (extrapol_order == 1) {
-        // track_end->x/y @ t -1 --- track_extrapol_x/y @ t -2
-        // (u, v) is the motion vector between t - 2 and t - 1
-        *track_extrapol_u = track_end->x - track_end->dx - *track_extrapol_x;
-        *track_extrapol_v = track_end->y - track_end->dy - *track_extrapol_y;
-    }
-
-    // motion compensation from t - 1 to t
-    float x = tx + track_end->x * cosf(theta) - track_end->y * sinf(theta);
-    float y = ty + track_end->x * sinf(theta) + track_end->y * cosf(theta);
-
-    // extrapolate x and y @ t
-    *track_extrapol_x = x + (float)extrapol_order * *track_extrapol_u;
-    *track_extrapol_y = y + (float)extrapol_order * *track_extrapol_v;
-}
-
 // Sometimes when the camera moves very fast, there are no associations being made, so the motion cannot be estimated
 // and its value become a NaN...
 // To avoid this problem, the `search_motion` function will select an older motion (without NaN...)
 // Note that this is a "hot fix" and it could be improved later.
-int _search_motion(RoIs_history_t* RoIs_history) {
-    for (int i = 0; i < (int)(RoIs_history->_max_size); i++) {
+size_t _search_valid_motion_id(const RoIs_history_t* RoIs_history, const size_t start_index) {
+    assert(start_index < RoIs_history->_size);
+    for (size_t i = start_index; i < RoIs_history->_size; i++) {
         if (!isnan(RoIs_history->motion[i].tx) && !isnan(RoIs_history->motion[i].ty))
             return i;
     }
@@ -169,105 +169,152 @@ int _search_motion(RoIs_history_t* RoIs_history) {
     return 0;
 }
 
+// Returns 0 if no RoI matches or returns the RoI id found (RoI id >= 1)
+size_t _find_and_match_next_RoI(RoIs_history_t* RoIs_history, track_t* cur_track, const size_t r_extrapol,
+                                const float min_extrapol_ratio_S) {
+    for (size_t j = 0; j < RoIs_history->n_RoIs[0]; j++) {
+        if (!RoIs_history->array[0][j].prev_id && !RoIs_history->array[0][j].is_extrapolated) {
+            size_t motion_id = _search_valid_motion_id(RoIs_history, 0);
+
+            float theta = RoIs_history->motion[motion_id].theta;
+            float tx = RoIs_history->motion[motion_id].tx;
+            float ty = RoIs_history->motion[motion_id].ty;
+
+            float x0_0 = RoIs_history->array[0][j].x;
+            float y0_0 = RoIs_history->array[0][j].y;
+
+            // motion compensation from t - 1 to t
+            float x1_0 = tx + cur_track->extrapol_x1 * cosf(theta) - cur_track->extrapol_y1 * sinf(theta);
+            float y1_0 = ty + cur_track->extrapol_x1 * sinf(theta) + cur_track->extrapol_y1 * cosf(theta);
+
+            float x_diff = x0_0 - (x1_0 + cur_track->extrapol_dx);
+            float y_diff = y0_0 - (y1_0 + cur_track->extrapol_dy);
+            float dist = sqrtf(x_diff * x_diff + y_diff * y_diff);
+
+            float ratio_S_ij = cur_track->end.S < RoIs_history->array[0][j].S ?
+                               (float)cur_track->end.S / (float)RoIs_history->array[0][j].S :
+                               (float)RoIs_history->array[0][j].S / (float)cur_track->end.S;
+
+            if (dist < r_extrapol && ratio_S_ij >= min_extrapol_ratio_S) {
+                RoIs_history->array[0][j].is_extrapolated = 1;
+                memcpy(&cur_track->end, &RoIs_history->array[0][j], sizeof(RoI_t));
+
+                // in the current implementation, the first RoI that matches is used for extrapolation
+                // TODO: this behavior is dangerous, we should associate the closest RoI
+                return j + 1;
+            }
+        }
+    }
+    return 0;
+}
+
+void _track_extrapolate(const RoIs_history_t* RoIs_history, track_t* cur_track) {
+    size_t motion_id = _search_valid_motion_id(RoIs_history, 0);
+
+    float theta = RoIs_history->motion[motion_id].theta;
+    float tx = RoIs_history->motion[motion_id].tx;
+    float ty = RoIs_history->motion[motion_id].ty;
+
+    float x1_1 = cur_track->extrapol_x1;
+    float y1_1 = cur_track->extrapol_y1;
+
+    // motion compensation from t - 1 to t
+    float x1_0 = tx + x1_1 * cosf(theta) - y1_1 * sinf(theta);
+    float y1_0 = ty + x1_1 * sinf(theta) + y1_1 * cosf(theta);
+
+    cur_track->extrapol_x2 = x1_1;
+    cur_track->extrapol_y2 = y1_1;
+
+    // extrapolate x0 and y0 @ t
+    cur_track->extrapol_x1 = x1_0 + cur_track->extrapol_dx;
+    cur_track->extrapol_y1 = y1_0 + cur_track->extrapol_dy;
+}
+
+void _update_extrapol_vars(const RoIs_history_t* RoIs_history, track_t* cur_track) {
+    cur_track->extrapol_x2 = cur_track->extrapol_x1;
+    cur_track->extrapol_y2 = cur_track->extrapol_y1;
+    cur_track->extrapol_x1 = cur_track->end.x;
+    cur_track->extrapol_y1 = cur_track->end.y;
+
+    size_t motion_id = _search_valid_motion_id(RoIs_history, 0);
+
+    float theta = RoIs_history->motion[motion_id].theta;
+    float tx = RoIs_history->motion[motion_id].tx;
+    float ty = RoIs_history->motion[motion_id].ty;
+
+    float x2_2 = cur_track->extrapol_x2;
+    float y2_2 = cur_track->extrapol_y2;
+
+    // motion compensation from t - 2 to t - 1
+    float x2_1 = tx + x2_2 * cosf(theta) - y2_2 * sinf(theta);
+    float y2_1 = ty + x2_2 * sinf(theta) + y2_2 * cosf(theta);
+
+    float x1_1 = cur_track->extrapol_x1;
+    float y1_1 = cur_track->extrapol_y1;
+
+    cur_track->extrapol_dx = x1_1 - x2_1;
+    cur_track->extrapol_dy = y1_1 - y2_1;
+}
+
 void _update_existing_tracks(RoIs_history_t* RoIs_history, vec_track_t track_array, const size_t frame,
                              const size_t r_extrapol, const float angle_max, const int track_all,
                              const size_t fra_meteor_max, const uint8_t extrapol_order_max,
                              const float min_extrapol_ratio_S) {
-    int motion_id = 0;
     size_t n_tracks = vector_size(track_array);
     for (size_t i = 0; i < n_tracks; i++) {
         track_t* cur_track = &track_array[i];
         if (cur_track->id && cur_track->state != STATE_FINISHED) {
             if (cur_track->state == STATE_LOST) {
-                for (size_t j = 0; j < RoIs_history->n_RoIs[0]; j++) {
-                    if (!RoIs_history->array[0][j].prev_id) {
-                        // test NaN
-                        assert(RoIs_history->array[0][j].x == RoIs_history->array[0][j].x);
-                        assert(RoIs_history->array[0][j].y == RoIs_history->array[0][j].y);
-                        assert(cur_track->extrapol_x == cur_track->extrapol_x);
-                        assert(cur_track->extrapol_y == cur_track->extrapol_y);
-
-                        motion_id = _search_motion(RoIs_history);
-
-                        float theta = RoIs_history->motion[motion_id].theta;
-                        float tx = RoIs_history->motion[motion_id].tx;
-                        float ty = RoIs_history->motion[motion_id].ty;
-
-                        float x_0 = RoIs_history->array[0][j].x;
-                        float y_0 = RoIs_history->array[0][j].y;
-                        float x_1 = cosf(theta) * (x_0 - tx) + sinf(theta) * (y_0 - ty);
-                        float y_1 = cosf(theta) * (y_0 - ty) - sinf(theta) * (x_0 - tx);
-
-                        float x_diff = cur_track->extrapol_x - x_1;
-                        float y_diff = cur_track->extrapol_y - y_1;
-
-                        float dist = sqrtf(x_diff * x_diff + y_diff * y_diff);
-
-                        float ratio_S_ij = cur_track->end.S < RoIs_history->array[0][j].S ?
-                                           (float)cur_track->end.S / (float)RoIs_history->array[0][j].S :
-                                           (float)RoIs_history->array[0][j].S / (float)cur_track->end.S;
-
-                        if (dist < r_extrapol && ratio_S_ij >= min_extrapol_ratio_S) {
-                            cur_track->state = STATE_UPDATED;
-
-                            RoIs_history->array[0][j].is_extrapolated = 1;
-                            memcpy(&cur_track->end, &RoIs_history->array[0][j], sizeof(RoI_t));
-
-                            if (cur_track->RoIs_id != NULL) {
-                                // no RoI id when the RoI has been extrapolated
-                                for (uint8_t e = cur_track->extrapol_order; e >= 1; e--)
-                                    vector_add(&cur_track->RoIs_id, (uint32_t)0);
-                                vector_add(&cur_track->RoIs_id, RoIs_history->array[0][j].id);
-                            }
-
-                            cur_track->extrapol_order = 0;
-
-                            // in the current implementation, the first RoI that matches is used for extrapolation
-                            break;
-                        }
+                if (size_t j = _find_and_match_next_RoI(RoIs_history, cur_track, r_extrapol, min_extrapol_ratio_S)) {
+                    cur_track->state = STATE_UPDATED;
+                    if (cur_track->RoIs_id != NULL) {
+                        // no RoI id when the RoI has been extrapolated
+                        for (uint8_t e = cur_track->extrapol_order; e >= 1; e--)
+                            vector_add(&cur_track->RoIs_id, (uint32_t)0);
+                        vector_add(&cur_track->RoIs_id, RoIs_history->array[0][j - 1].id);
                     }
+                    cur_track->extrapol_order = 0;
+                    _update_extrapol_vars(RoIs_history, cur_track);
                 }
             }
             else if (cur_track->state == STATE_UPDATED) {
                 int next_id = RoIs_history->array[1][cur_track->end.id - 1].next_id;
                 if (next_id) {
                     if (cur_track->obj_type == OBJ_METEOR) {
-                        if (RoIs_history->array[1][cur_track->end.id - 1].prev_id) {
-                            float norm_u, norm_v, angle_degree;
-                            _compute_angle_and_norms(RoIs_history, cur_track, &angle_degree, &norm_u, &norm_v);
-                            if (angle_degree >= angle_max || norm_u > norm_v) {
-                                cur_track->change_state_reason = (angle_degree >= angle_max) ?
-                                    REASON_TOO_BIG_ANGLE : REASON_WRONG_DIRECTION;
-                                cur_track->obj_type = OBJ_NOISE;
-                                if (!track_all) {
-                                    cur_track->id = 0; // clear_index_track_array
-                                    continue;
-                                }
+                        float norm_u, norm_v, angle_degree;
+                        _compute_angle_and_norms(RoIs_history, cur_track, &angle_degree, &norm_u, &norm_v);
+                        if (angle_degree >= angle_max || norm_u > norm_v) {
+                            cur_track->change_state_reason = (angle_degree >= angle_max) ?
+                                REASON_TOO_BIG_ANGLE : REASON_WRONG_DIRECTION;
+                            cur_track->obj_type = OBJ_NOISE;
+                            if (!track_all) {
+                                cur_track->id = 0; // clear_index_track_array
+                                continue;
                             }
                         }
                     }
-                    cur_track->extrapol_x = cur_track->end.x;
-                    cur_track->extrapol_y = cur_track->end.y;
-
                     memcpy(&cur_track->end, &RoIs_history->array[0][next_id - 1], sizeof(RoI_t));
+                    _update_extrapol_vars(RoIs_history, cur_track);
 
                     if (cur_track->RoIs_id != NULL)
                         vector_add(&cur_track->RoIs_id, RoIs_history->array[0][next_id - 1].id);
                 } else {
-                    cur_track->state = STATE_LOST;
+                    if (size_t j = _find_and_match_next_RoI(RoIs_history, cur_track, r_extrapol, min_extrapol_ratio_S))
+                    {
+                        if (cur_track->RoIs_id != NULL)
+                            vector_add(&cur_track->RoIs_id, RoIs_history->array[0][j - 1].id);
+                        _update_extrapol_vars(RoIs_history, cur_track);
+                    } else {
+                        cur_track->state = STATE_LOST;
+                    }
                 }
             }
             if (cur_track->state == STATE_LOST) {
                 cur_track->extrapol_order++;
                 if (cur_track->extrapol_order > extrapol_order_max) {
                     cur_track->state = STATE_FINISHED;
-                } else {
-                    // on extrapole si pas finished
-                    motion_id = _search_motion(RoIs_history);
-                    _track_extrapolate(&cur_track->end, &cur_track->extrapol_x, &cur_track->extrapol_y,
-                                       &cur_track->extrapol_u, &cur_track->extrapol_v,
-                                       RoIs_history->motion[motion_id].theta, RoIs_history->motion[motion_id].tx,
-                                       RoIs_history->motion[motion_id].ty, cur_track->extrapol_order);
+                } else { // on extrapole si pas finished
+                    _track_extrapolate(RoIs_history, cur_track);
                 }
             }
             if (cur_track->obj_type == OBJ_METEOR &&
@@ -295,8 +342,12 @@ void _insert_new_track(const RoI_t* RoIs_list, const unsigned n_RoIs, vec_track_
     tmp_track->state = STATE_UPDATED;
     tmp_track->obj_type = type;
     tmp_track->RoIs_id = NULL;
-    tmp_track->extrapol_x = NAN;
-    tmp_track->extrapol_y = NAN;
+    tmp_track->extrapol_x2 = RoIs_list[1].x;
+    tmp_track->extrapol_y2 = RoIs_list[1].y;
+    tmp_track->extrapol_x1 = RoIs_list[0].x;
+    tmp_track->extrapol_y1 = RoIs_list[0].y;
+    tmp_track->extrapol_dx = NAN;
+    tmp_track->extrapol_dy = NAN;
     tmp_track->extrapol_order = 0;
     if (save_RoIs_id) {
         tmp_track->RoIs_id = (vec_uint32_t)vector_create();
@@ -345,6 +396,7 @@ void _create_new_tracks(RoIs_history_t* RoIs_history, RoI_t* RoIs_list, vec_trac
 
                     if (j == n_tracks || n_tracks == 0) {
                         memcpy(&RoIs_list[0], &RoIs_history->array[1][i], sizeof(RoI_t));
+
                         for (int ii = 1; ii < fra_min - 1; ii++)
                             memcpy(&RoIs_list[ii], &RoIs_history->array[ii + 1][RoIs_list[ii - 1].prev_id - 1],
                                    sizeof(RoI_t));

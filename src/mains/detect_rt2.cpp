@@ -51,7 +51,7 @@ int main(int argc, char** argv) {
     int def_p_knn_k = 3;
     int def_p_knn_d = 10;
     float def_p_knn_s = 0.125f;
-    int def_p_trk_ext_d = 10;
+    int def_p_trk_ext_d = 5;
     int def_p_trk_ext_o = 3;
     float def_p_trk_angle = 20;
     int def_p_trk_star_min = 15;

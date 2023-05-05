@@ -348,7 +348,7 @@ matches nothing). This parameter is also used for extrapolation in the tracking.
 
    :Deprecated: ``--r-extrapol``
    :Type: INTEGER
-   :Default: ``10``
+   :Default: ``5``
    :Example: ``--trk-ext-d 25``
 
 Search radius in pixels for |CC| extrapolation (piece-wise tracking).

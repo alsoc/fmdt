@@ -78,12 +78,14 @@ typedef struct {
                       uninitialized structure. */
     RoI_t begin; /**< First RoI corresponding to this track. */
     RoI_t end; /**< Last RoI corresponding to this track. */
-    float extrapol_x; /**< Last \f$x\f$ position of the extrapolated track (used only if `state` == `STATE_LOST`). */
-    float extrapol_y; /**< Last \f$y\f$ position of the extrapolated track (used only if `state` == `STATE_LOST`). */
-    float extrapol_u; /**< Velocity \f$x\f$ estimation of the track for extrapolation (used only if `state` ==
-                           `STATE_LOST`). */
-    float extrapol_v; /**< Velocity \f$y\f$ estimation of the track for extrapolation (used only if `state` ==
-                           `STATE_LOST`). */
+    float extrapol_x1; /**< Last \f$x\f$ position of the extrapolated track. */
+    float extrapol_y1; /**< Last \f$y\f$ position of the extrapolated track. */
+    float extrapol_x2; /**< Before last \f$x\f$ position of the extrapolated track. */
+    float extrapol_y2; /**< Before last \f$y\f$ position of the extrapolated track. */
+    float extrapol_dx; /**< Velocity \f$x\f$ estimation of the track for extrapolation between `extrapol_x1` and
+                            `extrapol_x2`. */
+    float extrapol_dy; /**< Velocity \f$y\f$ estimation of the track for extrapolation between `extrapol_y1` and
+                            `extrapol_y2`. */
     uint8_t extrapol_order; /**< Number of times this track has been extrapolated (used only if `state` ==
                                  `STATE_LOST`). */
     enum state_e state; /**< State of the track. */

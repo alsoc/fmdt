@@ -1,6 +1,4 @@
 TODO list:
-- [ ] Compute extrapolated bounding boxes of tracks in `fmdt-log-parser` when 
-      generating the bounding boxes (with the `--trk-bb-path` option)
 - [ ] Add CI tests with `fmdt-check` 
 - [ ] Rewrite `fmdt-check` in Python
 - [ ] Regroup CCs together if they are close and if their velocity vectors are 
@@ -12,6 +10,8 @@ TODO list:
 - [ ] For each detection: extract meteor video sequence + - a few seconds: this 
       way if we need to re-process it we don't have to run it through the whole 
       video again
+- [x] Compute extrapolated bounding boxes of tracks in `fmdt-log-parser` when 
+      generating the bounding boxes (with the `--trk-bb-path` option)
 - [x] Put a saturation flag for each detected object: meteor and star -> this 
       will help for photometry => in the connected-components analysis, compute 
       the number of saturated pixels per RoI (if I_p = 255)
