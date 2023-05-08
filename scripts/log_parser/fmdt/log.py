@@ -73,6 +73,7 @@ class LogParser:
             "id": "tid",
             "cols_rename": {
                 "track_id": "tid",
+                "track_state": "state",
                 "begin_frame #": "fbeg",
                 "begin_x": "xbeg",
                 "begin_y": "ybeg",

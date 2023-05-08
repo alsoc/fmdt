@@ -632,15 +632,19 @@ Table 5: List of Tracks
 
 .. code-block:: bash
 
-	# -------||---------------------------||---------------------------||---------||-------------------
-	#  Track ||           Begin           ||            End            ||  Object || Reason of changed
-	# -------||---------------------------||---------------------------||---------||    state (from
-	# -------||---------|--------|--------||---------|--------|--------||---------||  meteor to noise
-	#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type ||    object only)
-	# -------||---------|--------|--------||---------|--------|--------||---------||-------------------
-	   {tid} ||  {fbeg} | {xbeg} | {ybeg} ||  {fend} | {xend} | {yend} || {otype} ||          {reason}
+	# -----------------||---------------------------||---------------------------||---------||-------------------
+	#       Track      ||           Begin           ||            End            ||  Object || Reason of changed
+	# -----------------||---------------------------||---------------------------||---------||    state (from
+	# -------|---------||---------|--------|--------||---------|--------|--------||---------||  meteor to noise
+	#     Id |  State  || Frame # |      x |      y || Frame # |      x |      y ||    Type ||    object only)
+	# -------|---------||---------|--------|--------||---------|--------|--------||---------||-------------------
+	   {tid} | {state} ||  {fbeg} | {xbeg} | {ybeg} ||  {fend} | {xend} | {yend} || {otype} ||          {reason}
 
 Most of the columns of this table have been described in the
 :ref:`detect_stdout` section, here we focus only on extra columns:
 
+- ``{state}``: current state of the track (in a finite state machine): can be
+  ``updated``, ``lost`` or ``finished``. First, when a track is created, its
+  state is ``updated``. Then, ``updated`` can become ``lost``. ``lost`` can
+  become either ``finished`` or ``updated``. ``finished`` is a final state.
 - ``{reason}``: reason of the classification from ``meteor`` to ``noise``.

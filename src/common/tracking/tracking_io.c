@@ -40,20 +40,22 @@ void tracking_tracks_write_full(FILE* f, const vec_track_t tracks) {
             real_n_tracks++;
 
     fprintf(f, "# Tracks [%lu]:\n", (unsigned long)real_n_tracks);
-    fprintf(f, "# -------||---------------------------||---------------------------||---------||-------------------\n");
-    fprintf(f, "#  Track ||           Begin           ||            End            ||  Object || Reason of changed \n");
-    fprintf(f, "# -------||---------------------------||---------------------------||---------||    state (from    \n");
-    fprintf(f, "# -------||---------|--------|--------||---------|--------|--------||---------||  meteor to noise  \n");
-    fprintf(f, "#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type ||    object only)   \n");
-    fprintf(f, "# -------||---------|--------|--------||---------|--------|--------||---------||-------------------\n");
+    fprintf(f, "# ------------------||---------------------------||---------------------------||---------||-------------------\n");
+    fprintf(f, "#       Track       ||           Begin           ||            End            ||  Object || Reason of changed \n");
+    fprintf(f, "# ------------------||---------------------------||---------------------------||---------||    state (from    \n");
+    fprintf(f, "# -------|----------||---------|--------|--------||---------|--------|--------||---------||  meteor to noise  \n");
+    fprintf(f, "#     Id |    State || Frame # |      x |      y || Frame # |      x |      y ||    Type ||    object only)   \n");
+    fprintf(f, "# -------|----------||---------|--------|--------||---------|--------|--------||---------||-------------------\n");
 
     for (size_t i = 0; i < n_tracks; i++)
         if (tracks[i].id) {
+            char state[64];
+            snprintf(state, sizeof(state), "%s", g_state_to_string_with_spaces[tracks[i].state]);
             char reason[64] = "               --";
             if (tracks[i].obj_type == OBJ_NOISE)
                 snprintf(reason, sizeof(reason), "%s",
                     g_change_state_to_string_with_spaces[tracks[i].change_state_reason]);
-            fprintf(f, "   %5d || %7u | %6.1f | %6.1f || %7u | %6.1f | %6.1f || %s || %s \n", tracks[i].id,
+            fprintf(f, "   %5d | %s || %7u | %6.1f | %6.1f || %7u | %6.1f | %6.1f || %s || %s \n", tracks[i].id, state,
                     tracks[i].begin.frame, tracks[i].begin.x, tracks[i].begin.y, tracks[i].end.frame, tracks[i].end.x,
                     tracks[i].end.y, g_obj_to_string_with_spaces[tracks[i].obj_type], reason);
         }
