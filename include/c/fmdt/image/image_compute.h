@@ -98,6 +98,14 @@ void image_color_draw_BBs(img_data_t* img_data, const uint8_t** img, const BB_t*
                           const size_t n_BBs, const uint8_t show_id, const uint8_t is_gt);
 
 /**
+ * Draw the frame id given in parameter at the bottom left corner of the image.
+ * Do nothing if the program is not linked with OpenCV.
+ * @param img_data Image data.
+ * @param frame_id Id number of the current frame.
+ */
+void image_color_draw_frame_id(img_data_t* img_data, const size_t frame_id);
+
+/**
  * Creates a new image with the maximum intensity pixels between I and M
  * 
  * @param I Input matrix (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$).

@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifdef FMDT_OPENCV_LINK
 #include <tuple>
@@ -485,6 +486,25 @@ void image_color_draw_BBs(img_data_t* img_data, const uint8_t** img, const BB_t*
                    img_data->height);
 #ifdef FMDT_OPENCV_LINK
     image_draw_text(img_data, BBs, BBs_color, n_BBs, is_gt, show_id);
+#endif
+}
+
+void image_color_draw_frame_id(img_data_t* img_data, const size_t frame_id) {
+#ifdef FMDT_OPENCV_LINK
+    cv::Mat* cv_mat = (cv::Mat*)img_data->pixels;
+    rgb8_t gray = image_get_color(COLOR_GRAY);
+    size_t x = 5;
+    size_t y = img_data->height - 10;
+    char str[1024];
+    snprintf(str, sizeof(str), "Frame: %u", (unsigned)frame_id);
+    cv::putText(*cv_mat,
+                str,                                // text
+                cv::Point(x, y),                    // position
+                cv::FONT_HERSHEY_DUPLEX,            // font type
+                0.7,                                // font size
+                cv::Scalar(gray.r, gray.g, gray.b), // color
+                1,                                  // ?
+                cv::LINE_AA);                       // ?
 #endif
 }
 

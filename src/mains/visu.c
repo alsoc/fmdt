@@ -82,6 +82,9 @@ int main(int argc, char** argv) {
                 def_p_gt_path ? def_p_gt_path : "NULL");
         fprintf(stderr, "  --vid-out-path     Path to the output video file (MPEG-4 format)        [%s]\n",
                 def_p_vid_out_path ? def_p_vid_out_path : "NULL");
+#ifdef FMDT_OPENCV_LINK
+        fprintf(stderr, "  --vid-out-id       Write frame id on each frame                             \n");
+#endif
         fprintf(stderr, "  --help, -h         This help                                                \n");
         fprintf(stderr, "  --version, -v      Print the version                                        \n");
         exit(1);
@@ -109,6 +112,9 @@ int main(int argc, char** argv) {
     const int p_trk_only_meteor = args_find(argc, argv, "--trk-only-meteor,--only-meteor");
     const char* p_gt_path = args_find_char(argc, argv, "--gt-path,--in-gt", def_p_gt_path);
     const char* p_vid_out_path = args_find_char(argc, argv, "--vid-out-path,--out-video", def_p_vid_out_path);
+#ifdef FMDT_OPENCV_LINK
+    const int p_vid_out_id = args_find(argc, argv, "--vid-out-id");
+#endif
 
     // heading display
     printf("#  -------------------\n");
@@ -132,7 +138,9 @@ int main(int argc, char** argv) {
     printf("#  * trk-only-meteor = %d\n", p_trk_only_meteor);
     printf("#  * gt-path         = %s\n", p_gt_path);
     printf("#  * vid-out-path    = %s\n", p_vid_out_path);
-
+#ifdef FMDT_OPENCV_LINK
+    printf("#  * vid-out-id      = %d\n", p_vid_out_id);
+#endif
     printf("#\n");
 
     // arguments checking
@@ -280,6 +288,10 @@ int main(int argc, char** argv) {
 
         image_color_draw_BBs(img_data, (const uint8_t**)I0, (const BB_t*)BBs, (const enum color_e*)BBs_color,
                              cpt, p_trk_id, p_gt_path ? 1 : 0);
+#ifdef FMDT_OPENCV_LINK
+        if (p_vid_out_id)
+            image_color_draw_frame_id(img_data, frame);
+#endif
         video_writer_save_frame(video_writer, (const uint8_t**)image_color_get_pixels_2d(img_data));
     }
     video_writer_free(video_writer);

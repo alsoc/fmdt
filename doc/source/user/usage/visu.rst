@@ -32,6 +32,8 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--vid-out-path``   | STRING  | See :numref:`visu_vid-out-path`.                   |
 +----------------------+---------+----------------------------------------------------+
+| ``--vid-out-id``     | BOOLEAN | See :numref:`visu_vid-out-id`.                     |
++----------------------+---------+----------------------------------------------------+
 
 .. _visu_vid-in-path:
 
@@ -189,3 +191,15 @@ Path of the output video (supports also a path to a sequence of images
 ``path/basename_%05d.jpg``) with meteor tracking colored rectangles (|BBs|).
 If ``--gt-path`` is set then the bounding rectangles are red if *false positive*
 meteor and green if *true positive* meteor.
+
+.. _visu_vid-out-id:
+
+``--vid-out-id``
+----------------
+
+   :Type: BOOLEAN
+   :Example: ``--vid-out-id``
+
+Show the frame id number on each frame (on the bottom left corner of the image).
+Requires to link with OpenCV library (``-DFMDT_OPENCV_LINK`` CMake option,
+see :numref:`user_installation_cmake`).
