@@ -594,6 +594,14 @@ class LogParser:
             ]
         """
 
+        def find_valid_motion(frames:dict, fid:int):
+            firstFid = fid
+            while fid in frames:
+                if isinstance(frames[fid]["Motion"]["tx2"], float) and isinstance(frames[fid]["Motion"]["ty2"], float) and isinstance(frames[fid]["Motion"]["theta2"], float):
+                    return frames[fid]["Motion"]["tx2"], frames[fid]["Motion"]["ty2"], frames[fid]["Motion"]["theta2"]
+                fid -= 1
+            assert False, f"Cannot find valid motion :-( frame id = {firstFid}"
+
         for tid in tracks2RoIs:
             fbeg = tracks[tid]["fbeg"]
             fend = tracks[tid]["fend"]
@@ -601,47 +609,22 @@ class LogParser:
             if len(tracks2RoIs[tid]) != (fend - fbeg + 1):
                 print("(EE) len(tracks2RoIs[tid]) != (fend - fbeg + 1)")
                 sys.exit(1)
-            e = 0
-            posHist0 = {'x': None, 'y': None}
-            posHist1 = {'x': None, 'y': None}
+            posHist = {'x': None, 'y': None}
+            dx = None
+            dy = None
             for rid in tracks2RoIs[tid]:
                 entry = {}
                 if rid == 0:
                     # compute bounding box for extrapolated tracks
-                    if extrapolate and xcenter and ycenter and xradius and yradius:
-                        if e == 0:
-                            theta1 = frames[fcur - 1]["Motion"]["theta2"]
-                            tx1 = frames[fcur - 1]["Motion"]["tx2"]
-                            ty1 = frames[fcur - 1]["Motion"]["ty2"]
-
-                            x2_2 = posHist1["x"]
-                            y2_2 = posHist1["y"]
-
-                            x2_1 = tx1 + x2_2 * math.cos(theta1) - y2_2 * math.sin(theta1);
-                            y2_1 = ty1 + x2_2 * math.sin(theta1) + y2_2 * math.cos(theta1);
-
-                            x1_1 = posHist0["x"]
-                            y1_1 = posHist0["y"]
-
-                            dx = x1_1 - x2_1
-                            dy = y1_1 - y2_1
-
-                        theta = frames[fcur]["Motion"]["theta2"]
-                        tx = frames[fcur]["Motion"]["tx2"]
-                        ty = frames[fcur]["Motion"]["ty2"]
-
-                        xcenter = int(dx + tx + posHist0["x"] * math.cos(theta) - posHist0["y"] * math.sin(theta));
-                        ycenter = int(dy + ty + posHist0["x"] * math.sin(theta) + posHist0["y"] * math.cos(theta));
+                    if extrapolate and xradius and yradius and posHist["x"] != None and posHist["y"] != None and dx != None and dy != None:
+                        tx, ty, theta = find_valid_motion(frames, fcur)
+                        xcenter = int(dx + tx + posHist["x"] * math.cos(theta) - posHist["y"] * math.sin(theta));
+                        ycenter = int(dy + ty + posHist["x"] * math.sin(theta) + posHist["y"] * math.cos(theta));
+                        posHist = {'x': xcenter, 'y': ycenter}
                     else:
-                        xcenter = None
-                        ycenter = None
-                        xradius = None
-                        yradius = None
-                    e += 1
-                    posHist1 = posHist0
-                    posHist0 = {'x': xcenter, 'y': ycenter}
+                        fcur += 1
+                        continue
                 else:
-                    e = 0
                     xmin = frames[fcur]["RoIs"][rid]["xmin"]
                     xmax = frames[fcur]["RoIs"][rid]["xmax"]
                     ymin = frames[fcur]["RoIs"][rid]["ymin"]
@@ -650,11 +633,19 @@ class LogParser:
                     ycenter = math.ceil((ymin + ymax) / 2)
                     xradius = xcenter - xmin
                     yradius = ycenter - ymin
+
                     if extrapolate:
-                        x = frames[fcur]["RoIs"][rid]["x"]
-                        y = frames[fcur]["RoIs"][rid]["y"]
-                        posHist1 = posHist0
-                        posHist0 = {'x': x, 'y': y}
+                        x0_0 = frames[fcur]["RoIs"][rid]["x"]
+                        y0_0 = frames[fcur]["RoIs"][rid]["y"]
+
+                        if posHist["x"] != None and posHist["y"] != None:
+                            tx1, ty1, theta1 = find_valid_motion(frames, fcur)
+                            x1_0 = tx1 + posHist["x"] * math.cos(theta1) - posHist["y"] * math.sin(theta1);
+                            y1_0 = ty1 + posHist["x"] * math.sin(theta1) + posHist["y"] * math.cos(theta1);
+                            dx = x0_0 - x1_0
+                            dy = y0_0 - y1_0
+
+                        posHist = {'x': x0_0, 'y': y0_0}
 
                 entry["x_radius"] = xradius
                 entry["y_radius"] = yradius
