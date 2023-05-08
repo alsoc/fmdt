@@ -226,28 +226,29 @@ void _track_extrapolate(const History_t* history, track_t* cur_track) {
 }
 
 void _update_extrapol_vars(const History_t* history, track_t* cur_track) {
-    cur_track->extrapol_x2 = cur_track->extrapol_x1;
-    cur_track->extrapol_y2 = cur_track->extrapol_y1;
-    cur_track->extrapol_x1 = cur_track->end.x;
-    cur_track->extrapol_y1 = cur_track->end.y;
-
     size_t motion_id = _search_valid_motion_id(history, 0);
     float theta = history->motion[motion_id].theta;
     float tx = history->motion[motion_id].tx;
     float ty = history->motion[motion_id].ty;
 
-    float x2_2 = cur_track->extrapol_x2;
-    float y2_2 = cur_track->extrapol_y2;
+    float x2_1 = cur_track->extrapol_x1;
+    float y2_1 = cur_track->extrapol_y1;
 
-    // motion compensation from t - 2 to t - 1
-    float x2_1 = tx + x2_2 * cosf(theta) - y2_2 * sinf(theta);
-    float y2_1 = ty + x2_2 * sinf(theta) + y2_2 * cosf(theta);
+    // motion compensation from t - 1 to t
+    float x2_0 = tx + x2_1 * cosf(theta) - y2_1 * sinf(theta);
+    float y2_0 = ty + x2_1 * sinf(theta) + y2_1 * cosf(theta);
 
-    float x1_1 = cur_track->extrapol_x1;
-    float y1_1 = cur_track->extrapol_y1;
+    float x1_0 = cur_track->end.x;
+    float y1_0 = cur_track->end.y;
 
-    cur_track->extrapol_dx = x1_1 - x2_1;
-    cur_track->extrapol_dy = y1_1 - y2_1;
+    cur_track->extrapol_dx = x1_0 - x2_0;
+    cur_track->extrapol_dy = y1_0 - y2_0;
+
+    // for tracking @ t + 1
+    cur_track->extrapol_x2 = cur_track->extrapol_x1;
+    cur_track->extrapol_y2 = cur_track->extrapol_y1;
+    cur_track->extrapol_x1 = cur_track->end.x;
+    cur_track->extrapol_y1 = cur_track->end.y;
 }
 
 void _update_existing_tracks(History_t* history, vec_track_t track_array, const size_t frame,
