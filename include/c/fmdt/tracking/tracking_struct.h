@@ -100,29 +100,29 @@ typedef struct {
 typedef track_t* vec_track_t;
 
 /**
- *  History of the previous RoI features.
- *  This structure allows to access RoI in the past frames.
+ *  History of the previous RoI features and motions.
+ *  This structure allows to access RoI/motion in the past frames.
  *  RoIs at \f$t\f$ are stored in the first array element while RoIs at \f$t-\texttt{\_size}\f$ are store in the
  *  \f$\texttt{\_size} - 1\f$ element.
  *  The memory layout is a Structure of Arrays (SoA), each field is an array of `_max_size` capacity (except for
  * `_max_size` itself and `_size` fields that are both scalar values).
  */
 typedef struct {
-    RoI_t** array; /**< 2D array of RoIs, the first dimension is the time and the second dimension is the RoIs at a
-                        given time. */
+    RoI_t** RoIs; /**< 2D array of RoIs, the first dimension is the time and the second dimension is the RoIs at a
+                       given time. */
     motion_t* motion; /**< Array of motion estimations. */
     uint32_t* n_RoIs; /**< Array of numbers of RoIs. */
     uint32_t _max_n_RoIs; /**< Maximum number of RoIs. */
     size_t _size; /**< Current size/utilization of the fields. */
     size_t _max_size; /**< Maximum capacity of data that can be contained in the fields. */
-} RoIs_history_t;
+} History_t;
 
 /**
  *  Inner data used by the tracking.
  */
 typedef struct {
     vec_track_t tracks; /**< Vector of tracks. */
-    RoIs_history_t* RoIs_history; /**< RoIs history. */
+    History_t* history; /**< RoIs and motions history. */
     RoI_t* RoIs_list; /**< List of RoIs. This is a temporary array used to group all the RoIs belonging to a same
                            track. */
 } tracking_data_t;
