@@ -28,7 +28,7 @@ else
                      fmdt-detect-opt"
 fi
 
-curl https://lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_977a7ea9.zip --output refs_detect.zip
+curl https://lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_62d79311.zip --output refs_detect.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 unzip refs_detect.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
