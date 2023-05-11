@@ -250,27 +250,30 @@ class LogParser:
                 if nMatch == len(LogParser.Tables[vTable]["regex"]):
                     skip_table = 0
                     tableName = LogParser.Tables[vTable]["name"]
-                    continue
+                    break
 
-            # si c'est une exception alors on avance jusqu'a la nouvelle table
-            if skip_table:
-                l += 1
-                while l < len(lines) and lines[l][0] != '#': l += 1
-                # sauter la ligne ou il y a un seul caractere #
-                if l + 1 < len(lines): l += 1
-            # sinon on traite la table normalement
-            else:
-                # retrieve the real frameId
-                if tableName == "RoIs":
-                    regexc = re.compile(LogParser.Tables[tableName]["search"]["how"], re.IGNORECASE)
-                    frameId = int(re.search(regexc, name).group(0))
+            if not skip_table:
+                regex = re.compile(".*\[[0-9]*\]", re.IGNORECASE)
+                nEntries = None
+                if re.match(regex, name):
+                    nEntries = int(re.search(r'\[(.*?)\]',name).group(1))
 
-                (entries, cur) = LogParser.parseTab(lines, l, LogParser.Tables[tableName])
-                l = cur + 1
-                if "single_entry" in LogParser.Tables[tableName] and LogParser.Tables[tableName]["single_entry"]:
-                    curFrame[tableName] = entries[0]
+                if nEntries == None or (isinstance(nEntries, int) and nEntries > 0):
+                    # retrieve the real frameId
+                    if tableName == "RoIs":
+                        regexc = re.compile(LogParser.Tables[tableName]["search"]["how"], re.IGNORECASE)
+                        frameId = int(re.search(regexc, name).group(0))
+
+                    (entries, cur) = LogParser.parseTab(lines, l, LogParser.Tables[tableName])
+                    l = cur + 1
+                    if "single_entry" in LogParser.Tables[tableName] and LogParser.Tables[tableName]["single_entry"]:
+                        curFrame[tableName] = entries[0]
+                    else:
+                        curFrame[tableName] = entries
                 else:
-                    curFrame[tableName] = entries
+                    l += 1
+            else:
+                l += 1
         return (curFrame, frameId)
 
     @staticmethod
