@@ -257,13 +257,15 @@ uint32_t features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** im
  * @param no_labels_zeros_init Boolean for optimization purpose. If set to 1, \p out_labels is not initialized in this
  *                             function. Thus, it is up to the developer to properly initialize \p out_labels before
  *                             calling this routine. If you are not sure, prefer to set this boolean to 0.
+ * @return Number of labels.
  * @see RoIs_basic_t for more explanations about the features.
  */
-void _features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels, const int i0,
-                               const int i1, const int j0, const int j1, uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
-                               const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
-                               const uint32_t* RoIs_S, const size_t n_RoIs, const uint32_t S_min, const uint32_t S_max,
-                               const uint8_t threshold_high, const uint8_t no_labels_zeros_init);
+uint32_t _features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels,
+                                   const int i0, const int i1, const int j0, const int j1, uint32_t* RoIs_id,
+                                   const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
+                                   const uint32_t* RoIs_ymax, const uint32_t* RoIs_S, const size_t n_RoIs,
+                                   const uint32_t S_min, const uint32_t S_max, const uint8_t threshold_high,
+                                   const uint8_t no_labels_zeros_init);
 
 /**
  * @param in_labels Input 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
@@ -282,12 +284,14 @@ void _features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, 
  * @param no_labels_zeros_init Boolean for optimization purpose. If set to 1, \p out_labels is not initialized in this
  *                             function. Thus, it is up to the developer to properly initialize \p out_labels before
  *                             calling this routine. If you are not sure, prefer to set this boolean to 0.
+ * @return Number of labels.
  * @see _features_merge_CCL_HI_v3 for the explanations about the nature of the processing.
  * @see RoIs_basic_t for more explanations about the features.
  */
-void features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels, const int i0,
-                              const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic, const uint32_t S_min,
-                              const uint32_t S_max, const uint8_t threshold_high, const uint8_t no_labels_zeros_init);
+uint32_t features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels, const int i0,
+                                  const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic,
+                                  const uint32_t S_min, const uint32_t S_max, const uint8_t threshold_high,
+                                  const uint8_t no_labels_zeros_init);
 
 /**
  * Shrink features. Remove features when feature identifier value is 0.

@@ -358,11 +358,12 @@ uint32_t features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** im
                                      *RoIs_basic->_size, S_min, S_max);
 }
 
-void _features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels, const int i0,
-                               const int i1, const int j0, const int j1, uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
-                               const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
-                               const uint32_t* RoIs_S, const size_t n_RoIs, const uint32_t S_min, const uint32_t S_max,
-                               const uint8_t threshold_high, const uint8_t no_labels_zeros_init)
+uint32_t _features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels, const int i0,
+                                   const int i1, const int j0, const int j1, uint32_t* RoIs_id,
+                                   const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
+                                   const uint32_t* RoIs_ymax, const uint32_t* RoIs_S, const size_t n_RoIs,
+                                   const uint32_t S_min, const uint32_t S_max, const uint8_t threshold_high,
+                                   const uint8_t no_labels_zeros_init)
 {
     if (out_labels != NULL && (void*)in_labels != (void*)out_labels && !no_labels_zeros_init)
         for (int i = i0; i <= i1; i++)
@@ -417,14 +418,17 @@ void _features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, 
         next:;
         }
     }
+
+    return cur_label;
 }
 
-void features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels, const int i0,
-                              const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic, const uint32_t S_min,
-                              const uint32_t S_max, const uint8_t threshold_high, const uint8_t no_labels_zeros_init) {
-    _features_merge_CCL_HI_v3(in_labels, img, out_labels, i0, i1, j0, j1, RoIs_basic->id, RoIs_basic->xmin,
-                              RoIs_basic->xmax, RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S,
-                              *RoIs_basic->_size, S_min, S_max, threshold_high, no_labels_zeros_init);
+uint32_t features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels, const int i0,
+                                  const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic,
+                                  const uint32_t S_min, const uint32_t S_max, const uint8_t threshold_high,
+                                  const uint8_t no_labels_zeros_init) {
+    return _features_merge_CCL_HI_v3(in_labels, img, out_labels, i0, i1, j0, j1, RoIs_basic->id, RoIs_basic->xmin,
+                                     RoIs_basic->xmax, RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S,
+                                     *RoIs_basic->_size, S_min, S_max, threshold_high, no_labels_zeros_init);
 }
 
 size_t _features_shrink_basic(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xmin,
