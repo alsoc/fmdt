@@ -194,12 +194,14 @@ void features_extract(const uint32_t** labels, const int i0, const int i1, const
  * @param n_RoIs Number of connected-components (= number of RoIs) in the 2D array of `in_labels`.
  * @param S_min Minimum morphological threshold.
  * @param S_max Maximum morphological threshold.
+ * @return Number of labels.
  * @see RoIs_basic_t for more explanations about the features.
  */
-void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
-                               const int i1, const int j0, const int j1, uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
-                               const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
-                               const uint32_t* RoIs_S, const size_t n_RoIs, const uint32_t S_min, const uint32_t S_max);
+uint32_t _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels,
+                                   const int i0, const int i1, const int j0, const int j1, uint32_t* RoIs_id,
+                                   const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
+                                   const uint32_t* RoIs_ymax, const uint32_t* RoIs_S, const size_t n_RoIs,
+                                   const uint32_t S_min, const uint32_t S_max);
 
 /**
  * @param in_labels Input 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
@@ -214,12 +216,13 @@ void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_H
  * @param RoIs_basic Features.
  * @param S_min Minimum morphological threshold.
  * @param S_max Maximum morphological threshold.
+ * @return Number of labels.
  * @see _features_merge_CCL_HI_v2 for the explanations about the nature of the processing.
  * @see RoIs_basic_t for more explanations about the features.
  */
-void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
-                              const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic, const uint32_t S_min,
-                              const uint32_t S_max);
+uint32_t features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels,
+                                  const int i0, const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic,
+                                  const uint32_t S_min, const uint32_t S_max);
 
 /**
  * Hysteresis re-labeling and morphological thresholding. From a 2D array of labels (`in_label`) and a grayscale image

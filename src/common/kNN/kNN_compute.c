@@ -142,11 +142,11 @@ void _kNN_match2(const float** kNN_data_distances, const uint32_t** kNN_data_nea
     }
 }
 
-void _kNN_match(float** kNN_data_distances, uint32_t** kNN_data_nearest, uint32_t* kNN_data_conflicts,
-                const uint32_t* RoIs0_id, const uint32_t* RoIs0_S, const float* RoIs0_x, const float* RoIs0_y,
-                uint32_t* RoIs0_next_id, const size_t n_RoIs0, const uint32_t* RoIs1_id, const uint32_t* RoIs1_S,
-                const float* RoIs1_x, const float* RoIs1_y, uint32_t* RoIs1_prev_id, const size_t n_RoIs1, const int k,
-                const uint32_t max_dist, const float min_ratio_S) {
+uint32_t _kNN_match(float** kNN_data_distances, uint32_t** kNN_data_nearest, uint32_t* kNN_data_conflicts,
+                    const uint32_t* RoIs0_id, const uint32_t* RoIs0_S, const float* RoIs0_x, const float* RoIs0_y,
+                    uint32_t* RoIs0_next_id, const size_t n_RoIs0, const uint32_t* RoIs1_id, const uint32_t* RoIs1_S,
+                    const float* RoIs1_x, const float* RoIs1_y, uint32_t* RoIs1_prev_id, const size_t n_RoIs1,
+                    const int k, const uint32_t max_dist, const float min_ratio_S) {
     memset(RoIs0_next_id, 0, n_RoIs0 * sizeof(int32_t));
     memset(RoIs1_prev_id, 0, n_RoIs1 * sizeof(int32_t));
     assert(min_ratio_S >= 0.f && min_ratio_S <= 1.f);
@@ -155,13 +155,21 @@ void _kNN_match(float** kNN_data_distances, uint32_t** kNN_data_nearest, uint32_
                 kNN_data_conflicts, k, max_dist);
     _kNN_match2((const float**)kNN_data_distances, (const uint32_t**)kNN_data_nearest, RoIs0_id, RoIs0_S, RoIs0_next_id,
                 n_RoIs0, RoIs1_id, RoIs1_S, RoIs1_prev_id, n_RoIs1, min_ratio_S);
+
+    // compute the number of associations
+    int n_assos = 0;
+    for (size_t i = 0; i < n_RoIs0; i++)
+        if (RoIs0_next_id[i] != 0)
+            n_assos++;
+
+    return n_assos;
 }
 
-void kNN_match(kNN_data_t* kNN_data, const RoIs_basic_t* RoIs0_basic, const RoIs_basic_t* RoIs1_basic,
-               RoIs_asso_t* RoIs0_asso, RoIs_asso_t* RoIs1_asso, const int k, const uint32_t max_dist,
-               const float min_ratio_S) {
-    _kNN_match(kNN_data->distances, kNN_data->nearest, kNN_data->conflicts, RoIs0_basic->id, RoIs0_basic->S,
-               RoIs0_basic->x, RoIs0_basic->y, RoIs0_asso->next_id, *RoIs0_basic->_size, RoIs1_basic->id,
-               RoIs1_basic->S, RoIs1_basic->x, RoIs1_basic->y, RoIs1_asso->prev_id, *RoIs1_basic->_size, k, max_dist,
-               min_ratio_S);
+uint32_t kNN_match(kNN_data_t* kNN_data, const RoIs_basic_t* RoIs0_basic, const RoIs_basic_t* RoIs1_basic,
+                   RoIs_asso_t* RoIs0_asso, RoIs_asso_t* RoIs1_asso, const int k, const uint32_t max_dist,
+                   const float min_ratio_S) {
+    return _kNN_match(kNN_data->distances, kNN_data->nearest, kNN_data->conflicts, RoIs0_basic->id, RoIs0_basic->S,
+                      RoIs0_basic->x, RoIs0_basic->y, RoIs0_asso->next_id, *RoIs0_basic->_size, RoIs1_basic->id,
+                      RoIs1_basic->S, RoIs1_basic->x, RoIs1_basic->y, RoIs1_asso->prev_id, *RoIs1_basic->_size, k,
+                      max_dist, min_ratio_S);
 }
