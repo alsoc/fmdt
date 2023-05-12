@@ -349,15 +349,14 @@ int main(int argc, char** argv) {
                     skip_frame = 0;
                 }
             } else {
-                // features_init_RoIs(RoIs1);
-                // RoIs1->_size = 0;
+                RoIs1->_size = 0;
             }
         } else {
-            // features_init_RoIs(RoIs1);
-            // RoIs1->_size = 0;
+            RoIs1->_size = 0;
         }
 
-        size_t backup_RoIs1_size = RoIs1->_size;
+        const size_t backup_RoIs1_size = RoIs1->_size;
+
         if (skip_frame) {
             motion_est2.theta = 0.f;
             motion_est2.tx = 0.f;
@@ -375,12 +374,12 @@ int main(int argc, char** argv) {
         RoIs1->_size = backup_RoIs1_size;
 
         // save frames (CCs)
-        if (img_data && n_RoIs <= MAX_ROI_SIZE_BEFORE_SHRINK && n_RoIs_hyst <= MAX_ROI_SIZE && n_assos) {
+        if (img_data && n_RoIs <= MAX_ROI_SIZE_BEFORE_SHRINK && n_RoIs_hyst <= MAX_ROI_SIZE) {
             image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs1->basic, p_ccl_fra_id);
             video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
 
-        // save logs
+        // save stats
         if (p_log_path) {
             tools_create_folder(p_log_path);
             char filename[1024];
