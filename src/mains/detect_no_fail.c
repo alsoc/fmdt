@@ -348,11 +348,7 @@ int main(int argc, char** argv) {
                     motion_compute(RoIs0->basic, RoIs1->basic, RoIs1->asso, RoIs1->motion, &motion_est1, &motion_est2);
                     skip_frame = 0;
                 }
-            } else {
-                RoIs1->_size = 0;
             }
-        } else {
-            RoIs1->_size = 0;
         }
 
         if (skip_frame) {
@@ -411,6 +407,7 @@ int main(int argc, char** argv) {
         RoIs_t* tmp = RoIs0;
         RoIs0 = RoIs1;
         RoIs1 = tmp;
+        RoIs1->_size = 0;
     }
     fprintf(stderr, "\n");
 
