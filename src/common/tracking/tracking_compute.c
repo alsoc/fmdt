@@ -90,6 +90,7 @@ void tracking_free_data(tracking_data_t* tracking_data) {
     free(tracking_data);
 }
 
+// Return 1 if the current motion is valid, return 0 if not
 uint8_t _get_motion(const motion_t motion, float* theta, float* tx, float* ty) {
     if (!isnan(motion.tx) && !isnan(motion.ty)) {
         *theta = motion.theta;
@@ -104,14 +105,14 @@ uint8_t _get_motion(const motion_t motion, float* theta, float* tx, float* ty) {
     }
 }
 
-void __compute_angle_and_norms(const motion_t* motion, const float x0_0, const float y0_0, const float x1_1,
-                               const float y1_1, const float x2_2, const float y2_2, float *angle_degree,
-                               float *norm_u, float *norm_v) {
+void __compute_angle_and_norms(const motion_t* motion, const size_t motion_id, const float x0_0, const float y0_0,
+                               const float x1_1, const float y1_1, const float x2_2, const float y2_2,
+                               float *angle_degree, float *norm_u, float *norm_v) {
     float theta0, tx0, ty0;
-    _get_motion(motion[0], &theta0, &tx0, &ty0);
+    _get_motion(motion[motion_id + 0], &theta0, &tx0, &ty0);
 
     float theta1, tx1, ty1;
-    _get_motion(motion[1], &theta1, &tx1, &ty1);
+    _get_motion(motion[motion_id + 1], &theta1, &tx1, &ty1);
 
     float x0_2 = cosf(theta0 + theta1) * (x0_0 - (tx1 + tx0)) + sinf(theta0 + theta1) * (y0_0 - (ty1 + ty0));
     float y0_2 = cosf(theta0 + theta1) * (y0_0 - (ty1 + ty0)) - sinf(theta0 + theta1) * (x0_0 - (tx1 + tx0));
@@ -167,7 +168,7 @@ void _compute_angle_and_norms(const History_t* history, const track_t* cur_track
         y2_2 = history->RoIs[2][k].y;
     }
 
-    __compute_angle_and_norms(history->motion, x0_0, y0_0, x1_1, y1_1, x2_2, y2_2, angle_degree, norm_u, norm_v);
+    __compute_angle_and_norms(history->motion, 0, x0_0, y0_0, x1_1, y1_1, x2_2, y2_2, angle_degree, norm_u, norm_v);
 }
 
 // Returns 0 if no RoI matches or returns the RoI id found (RoI id >= 1)
@@ -278,7 +279,7 @@ void _update_existing_tracks(History_t* history, vec_track_t track_array, const 
                         float a = history->RoIs[0][next_id - 1].a;
                         float b = history->RoIs[0][next_id - 1].b;
                         if (min_ellipse_ratio && a == a && b == b) {
-                            float ratio = a / b;
+                            float ratio = (b == 0.f) ? a : a / b;
                             if (ratio < min_ellipse_ratio) {
                                 cur_track->change_state_reason = REASON_ELLIPSE_RATIO;
                                 cur_track->obj_type = OBJ_NOISE;
@@ -425,7 +426,7 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
                                 const float a = RoIs_list[r].a;
                                 const float b = RoIs_list[r].b;
                                 if (min_ellipse_ratio && a == a && b == b) {
-                                    float ratio = a / b;
+                                    float ratio = (b == 0.f) ? a : a / b;
                                     if (ratio < min_ellipse_ratio) {
                                         reason = REASON_ELLIPSE_RATIO;
                                         type = OBJ_NOISE;
@@ -436,7 +437,23 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
                         }
 
                         if (type == OBJ_METEOR && n_RoIs >= 3) {
+                            size_t motion_id = 0;
+                            for (unsigned r = n_RoIs - 1; r >= 2; r--) {
+                                float x0_0 = RoIs_list[r - 0].x, y0_0 = RoIs_list[r - 0].y;
+                                float x1_1 = RoIs_list[r - 1].x, y1_1 = RoIs_list[r - 1].y;
+                                float x2_2 = RoIs_list[r - 2].x, y2_2 = RoIs_list[r - 2].y;
 
+                                float norm_u, norm_v, angle_degree;
+                                __compute_angle_and_norms(history->motion, motion_id, x0_0, y0_0, x1_1, y1_1, x2_2,
+                                                          y2_2, &angle_degree, &norm_u, &norm_v);
+                                if (angle_degree >= angle_max || norm_u > norm_v) {
+                                    reason = (angle_degree >= angle_max) ? REASON_TOO_BIG_ANGLE :
+                                                                           REASON_WRONG_DIRECTION;
+                                    type = OBJ_NOISE;
+                                    break;
+                                }
+                                motion_id++;
+                            }
                         }
 
                         if (track_all || (!track_all && type == OBJ_METEOR))
