@@ -355,23 +355,18 @@ int main(int argc, char** argv) {
             RoIs1->_size = 0;
         }
 
-        const size_t backup_RoIs1_size = RoIs1->_size;
-
         if (skip_frame) {
             motion_est2.theta = 0.f;
             motion_est2.tx = 0.f;
             motion_est2.ty = 0.f;
             motion_est2.mean_error = 0.f;
             motion_est2.std_deviation = 0.f;
-            RoIs1->_size = 0;
         }
 
         // step 6: tracking
         tracking_perform(tracking_data, RoIs1, cur_fra, &motion_est2, p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all,
                          p_trk_star_min, p_trk_meteor_min, p_trk_meteor_max, p_trk_roi_path != NULL, p_trk_ext_o,
                          p_knn_s);
-
-        RoIs1->_size = backup_RoIs1_size;
 
         // save frames (CCs)
         if (img_data && n_RoIs <= MAX_ROI_SIZE_BEFORE_SHRINK && n_RoIs_hyst <= MAX_ROI_SIZE) {
