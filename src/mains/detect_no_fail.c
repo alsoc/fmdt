@@ -42,6 +42,7 @@ int main(int argc, char** argv) {
     int def_p_trk_meteor_min = 3;
     int def_p_trk_meteor_max = 100;
     float def_p_trk_ddev = 4.f;
+    float def_p_trk_ell_min = 0.f;
     char* def_p_trk_roi_path = NULL;
     char* def_p_log_path = NULL;
 
@@ -126,6 +127,9 @@ int main(int argc, char** argv) {
                 "                      higher than `ddev` x `std dev` to be considered in movement)           [%f]\n",
                 def_p_trk_ddev);
         fprintf(stderr,
+                "  --trk-ell-min       Minimum ellipse ratio to be considered as a meteor (0 = not used)      [%f]\n",
+                def_p_trk_ell_min);
+        fprintf(stderr,
                 "  --trk-all           Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
                 "  --trk-roi-path      Path to the file containing the RoI ids for each track                 [%s]\n",
@@ -177,6 +181,7 @@ int main(int argc, char** argv) {
     const int p_trk_meteor_min = args_find_int_min(argc, argv, "--trk-meteor-min,--fra-meteor-min", def_p_trk_meteor_min, 2);
     const int p_trk_meteor_max = args_find_int_min(argc, argv, "--trk-meteor-max,--fra-meteor-max", def_p_trk_meteor_max, 2);
     const float p_trk_ddev = args_find_float_min(argc, argv, "--trk-ddev,--diff-dev", def_p_trk_ddev, 0.f);
+    const float p_trk_ell_min = args_find_int_min(argc, argv, "--trk-ell-min", def_p_trk_ell_min, 0.f);
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
@@ -218,6 +223,7 @@ int main(int argc, char** argv) {
     printf("#  * trk-meteor-min = %d\n", p_trk_meteor_min);
     printf("#  * trk-meteor-max = %d\n", p_trk_meteor_max);
     printf("#  * trk-ddev       = %4.2f\n", p_trk_ddev);
+    printf("#  * trk-ell-min    = %f\n", p_trk_ell_min);
     printf("#  * trk-all        = %d\n", p_trk_all);
     printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * log-path       = %s\n", p_log_path);
@@ -249,6 +255,8 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--cca-mag' has to be combined with the '--log-path' parameter\n");
     if (p_cca_ell && !p_log_path)
         fprintf(stderr, "(WW) '--cca-ell' has to be combined with the '--log-path' parameter\n");
+    if (p_trk_ell_min && !p_cca_ell)
+        fprintf(stderr, "(WW) '--trk-ell-min' has to be combined with the '--cca-ell' parameter\n");
 
     // --------------------------------------- //
     // -- VIDEO ALLOCATION & INITIALISATION -- //
@@ -362,7 +370,7 @@ int main(int argc, char** argv) {
         // step 6: tracking
         tracking_perform(tracking_data, RoIs1, cur_fra, &motion_est2, p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all,
                          p_trk_star_min, p_trk_meteor_min, p_trk_meteor_max, p_trk_roi_path != NULL, p_trk_ext_o,
-                         p_knn_s);
+                         p_knn_s, p_trk_ell_min);
 
         // save frames (CCs)
         if (img_data && n_RoIs <= MAX_ROI_SIZE_BEFORE_SHRINK && n_RoIs_hyst <= MAX_ROI_SIZE) {

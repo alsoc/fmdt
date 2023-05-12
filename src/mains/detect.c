@@ -341,9 +341,10 @@ int main(int argc, char** argv) {
         motion_compute(RoIs0->basic, RoIs1->basic, RoIs1->asso, RoIs1->motion, &motion_est1, &motion_est2);
 
         // step 6: tracking
+        float min_ellipse_ratio = 0.f;
         tracking_perform(tracking_data, RoIs1, cur_fra, &motion_est2, p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all,
                          p_trk_star_min, p_trk_meteor_min, p_trk_meteor_max, p_trk_roi_path != NULL, p_trk_ext_o,
-                         p_knn_s);
+                         p_knn_s, min_ellipse_ratio);
 
         // save frames (CCs)
         if (img_data) {

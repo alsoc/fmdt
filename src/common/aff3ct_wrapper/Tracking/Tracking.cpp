@@ -44,6 +44,7 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
         const uint32_t n_RoIs = *static_cast<const uint32_t*>(t[ps_in_n_RoIs].get_dataptr());
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
 
+        float min_ellipse_ratio = 0.f;
         _tracking_perform(trk.tracking_data,
                           static_cast<const uint32_t*>(t[ps_in_RoIs_id].get_dataptr()),
                           static_cast<const uint32_t*>(t[ps_in_RoIs_xmin].get_dataptr()),
@@ -55,12 +56,14 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                           static_cast<const float*>(t[ps_in_RoIs_y].get_dataptr()),
                           static_cast<const float*>(t[ps_in_RoIs_error].get_dataptr()),
                           static_cast<const uint32_t*>(t[ps_in_RoIs_prev_id].get_dataptr()),
+                          nullptr,
+                          nullptr,
                           n_RoIs,
                           frame,
                           static_cast<const motion_t*>(t[ps_in_motion_est].get_dataptr()),
                           trk.r_extrapol, trk.angle_max, trk.diff_dev, trk.track_all, trk.fra_star_min,
                           trk.fra_meteor_min, trk.fra_meteor_max, trk.save_RoIs_id, trk.extrapol_order_max,
-                          trk.min_extrapol_ratio_S);
+                          trk.min_extrapol_ratio_S, min_ellipse_ratio);
 
         return aff3ct::runtime::status_t::SUCCESS;
     });

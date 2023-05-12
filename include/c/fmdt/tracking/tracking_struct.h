@@ -37,6 +37,7 @@ enum change_state_reason_e { REASON_UNKNOWN = 0, /*!< Unknown (= uninitialized).
                              REASON_TOO_BIG_ANGLE, /*!< Angle made by the 3 last positions is to big. */
                              REASON_WRONG_DIRECTION, /*!< Track radically changed its direction. */
                              REASON_TOO_LONG_DURATION, /*!< Track lived a too long time to be a meteor. */
+                             REASON_ELLIPSE_RATIO, /*!< Track ellipse ratio is to small. */
                              N_REASONS /*!< Number of reasons in the enumeration. */
 };
 
@@ -68,6 +69,8 @@ typedef struct {
     uint32_t time_motion; /*!< Number of times the RoI and its predecessors have been associated (moving RoI). */
     uint8_t is_extrapolated; /*!< Boolean that defines if this RoI has been extrapolated. It prevents to associate it to
                                   a new track. */
+    float a; /**< Semi-major axis (ellipse) of the RoI.*/
+    float b; /**< Semi-minor axis (ellipse) of the RoI.*/
 } RoI_t;
 
 /**

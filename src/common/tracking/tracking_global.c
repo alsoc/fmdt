@@ -54,6 +54,9 @@ void tracking_init_global_data() {
     char str_too_long_duration[64] = TOO_LONG_DURATION_STR;
     snprintf(g_change_state_to_string[REASON_TOO_LONG_DURATION],
         sizeof(g_change_state_to_string[REASON_TOO_LONG_DURATION]), "%s", str_too_long_duration);
+    char str_ellipse_ratio[64] = ELLIPSE_RATIO_STR;
+    snprintf(g_change_state_to_string[REASON_ELLIPSE_RATIO],
+        sizeof(g_change_state_to_string[REASON_ELLIPSE_RATIO]), "%s", str_ellipse_ratio);
 
     max = 0;
     for (int i = 0; i < N_REASONS; i++)

@@ -42,6 +42,9 @@
 /** Define "too long duration" string */
 #define TOO_LONG_DURATION_STR "too long duration"
 
+/** Define "ellipse ratio" string */
+#define ELLIPSE_RATIO_STR "ellipse ratio"
+
 /** Define "unknown" string (for state) */
 #define STATE_UNKNOWN_STR "unknown"
 
