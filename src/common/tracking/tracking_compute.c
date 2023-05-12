@@ -432,6 +432,7 @@ void _light_copy_RoIs(const uint32_t* RoIs_src_id, const uint32_t frame, const u
         RoIs_dst[i].time_motion = 0;
         RoIs_dst[i].prev_id = RoIs_src_prev_id[i];
         RoIs_dst[i].is_extrapolated = 0;
+        RoIs_dst[i].next_id = 0;
     }
 }
 
