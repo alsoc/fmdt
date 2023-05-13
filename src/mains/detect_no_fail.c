@@ -181,7 +181,7 @@ int main(int argc, char** argv) {
     const int p_trk_meteor_min = args_find_int_min(argc, argv, "--trk-meteor-min,--fra-meteor-min", def_p_trk_meteor_min, 2);
     const int p_trk_meteor_max = args_find_int_min(argc, argv, "--trk-meteor-max,--fra-meteor-max", def_p_trk_meteor_max, 2);
     const float p_trk_ddev = args_find_float_min(argc, argv, "--trk-ddev,--diff-dev", def_p_trk_ddev, 0.f);
-    const float p_trk_ell_min = args_find_int_min(argc, argv, "--trk-ell-min", def_p_trk_ell_min, 0.f);
+    const float p_trk_ell_min = args_find_float_min(argc, argv, "--trk-ell-min", def_p_trk_ell_min, 0.f);
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
@@ -256,7 +256,7 @@ int main(int argc, char** argv) {
     if (p_cca_ell && !p_log_path)
         fprintf(stderr, "(WW) '--cca-ell' has to be combined with the '--log-path' parameter\n");
     if (p_trk_ell_min && !p_cca_ell)
-        fprintf(stderr, "(WW) '--trk-ell-min' has to be combined with the '--cca-ell' parameter\n");
+        fprintf(stderr, "(WW) '--trk-ell-min' has no effect without the '--cca-ell' parameter\n");
 
     // --------------------------------------- //
     // -- VIDEO ALLOCATION & INITIALISATION -- //
@@ -324,7 +324,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         motion_t motion_est1, motion_est2;
-        uint32_t n_RoIs, n_RoIs_hyst, n_assos;
+        uint32_t n_RoIs, n_RoIs_hyst, n_assocs;
 
         // step 1: threshold low
         threshold((const uint8_t**)I, IL, i0, i1, j0, j1, p_ccl_hyst_lo);
@@ -348,10 +348,10 @@ int main(int argc, char** argv) {
                     features_compute_ellipse(RoIs1->basic, RoIs1->misc);
 
                 // step 4: k-NN matching
-                n_assos = kNN_match(knn_data, RoIs0->basic, RoIs1->basic, RoIs0->asso, RoIs1->asso, p_knn_k, p_knn_d,
-                                    p_knn_s);
+                n_assocs = kNN_match(knn_data, RoIs0->basic, RoIs1->basic, RoIs0->asso, RoIs1->asso, p_knn_k, p_knn_d,
+                                     p_knn_s);
 
-                if (n_assos) {
+                if (n_assocs) {
                     // step 5: motion estimation
                     motion_compute(RoIs0->basic, RoIs1->basic, RoIs1->asso, RoIs1->motion, &motion_est1, &motion_est2);
                     skip_frame = 0;
@@ -392,7 +392,7 @@ int main(int argc, char** argv) {
                 int prev_fra = cur_fra > p_vid_in_start ? cur_fra - (p_vid_in_skip + 1) : -1;
                     features_RoIs0_RoIs1_write(f, prev_fra, cur_fra, RoIs0->basic, RoIs0->misc, RoIs1->basic,
                                                RoIs1->misc, tracking_data->tracks);
-                if (n_assos && cur_fra > p_vid_in_start) {
+                if (n_assocs && cur_fra > p_vid_in_start) {
                     fprintf(f, "#\n");
                     kNN_asso_conflicts_write(f, knn_data, RoIs0->asso, RoIs1->asso, RoIs1->motion);
                     fprintf(f, "#\n");
