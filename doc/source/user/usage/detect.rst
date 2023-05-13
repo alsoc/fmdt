@@ -62,6 +62,8 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--trk-ddev``       | FLOAT   | See :numref:`detect_trk-ddev`.                     |
 +----------------------+---------+----------------------------------------------------+
+| ``--trk-ell-min``    | FLOAT   | See :numref:`detect_trk-ell-min`.                  |
++----------------------+---------+----------------------------------------------------+
 | ``--trk-all``        | BOOLEAN | See :numref:`detect_trk-all`.                      |
 +----------------------+---------+----------------------------------------------------+
 | ``--trk-roi-path``   | STRING  | See :numref:`detect_trk-roi-path`.                 |
@@ -376,6 +378,7 @@ Maximum number of frames to extrapolate for lost objects (linear extrapolation).
    :Example: ``--trk-angle 35.0``
 
 Tracking max angle between two meteors at :math:`t-1` and :math:`t` (in degree).
+This is a classification criterion.
 
 .. _detect_trk-star-min:
 
@@ -387,7 +390,8 @@ Tracking max angle between two meteors at :math:`t-1` and :math:`t` (in degree).
    :Default: ``15``
    :Example: ``--trk-star-min 5``
 
-Minimum number of frames required to track a star.
+Minimum number of frames required to track a star. This is a classification
+criterion.
 
 .. _detect_trk-meteor-min:
 
@@ -399,7 +403,8 @@ Minimum number of frames required to track a star.
    :Default: ``3``
    :Example: ``--trk-meteor-min 5``
 
-Minimum number of frames required to track a meteor.
+Minimum number of frames required to track a meteor. This is a classification
+criterion.
 
 .. _detect_trk-meteor-max:
 
@@ -411,7 +416,8 @@ Minimum number of frames required to track a meteor.
    :Default: ``100``
    :Example: ``--trk-meteor-max 50``
 
-Maximum number of frames required to track a meteor.
+Maximum number of frames required to track a meteor. This is a classification
+criterion.
 
 .. _detect_trk-ddev:
 
@@ -424,7 +430,22 @@ Maximum number of frames required to track a meteor.
    :Example: ``--trk-ddev 5.5``
 
 Multiplication factor of the standard deviation (|CC| error has to be higher
-than :math:`ddev \times stddev` to be considered in movement).
+than :math:`ddev \times stddev` to be considered in movement). This is a
+classification criterion.
+
+.. _detect_trk-ell-min:
+
+``--trk-ell-min``
+-----------------
+
+   :Type: FLOAT
+   :Default: ``0.0``
+   :Example: ``--cca-ell --trk-ell-min 3.0``
+
+Minimum ellipse ratio to be considered as a meteor. This is a classification
+criterion. If the value is ``0`` then this parameter has no effect. Moreover,
+this parameter requires the :ref:`detect_cca-ell` parameter to work. If the
+latest is not set, then this parameter is ignored.
 
 .. _detect_trk-all:
 
