@@ -361,11 +361,11 @@ int main(int argc, char** argv) {
                          p_knn_s, p_trk_ell_min);
 
         // save frames (CCs)
-        if (img_data && n_RoIs <= MAX_ROI_SIZE_BEFORE_SHRINK && n_RoIs_hyst <= MAX_ROI_SIZE) {
+        if (img_data && n_RoIs <= RoIs_tmp->_max_size && n_RoIs_hyst <= RoIs1->_max_size) {
             image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs1->basic, p_ccl_fra_id);
             video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
-        if ((p_cca_mag || p_ccl_fra_path) && n_RoIs <= MAX_ROI_SIZE_BEFORE_SHRINK)
+        if ((p_cca_mag || p_ccl_fra_path) && n_RoIs <= RoIs_tmp->_max_size)
             features_labels_zero_init(RoIs1->basic, L2);
 
         // save stats
@@ -378,7 +378,7 @@ int main(int argc, char** argv) {
                 fprintf(stderr, "(EE) error while opening '%s'\n", filename);
                 exit(1);
             }
-            if (n_RoIs <= MAX_ROI_SIZE_BEFORE_SHRINK && n_RoIs_hyst <= MAX_ROI_SIZE) {
+            if (n_RoIs <= RoIs_tmp->_max_size && n_RoIs_hyst <= RoIs1->_max_size) {
                 int prev_fra = cur_fra > p_vid_in_start ? cur_fra - (p_vid_in_skip + 1) : -1;
                 features_RoIs0_RoIs1_write(f, prev_fra, cur_fra, RoIs0->basic, RoIs0->misc, RoIs1->basic, RoIs1->misc,
                                            tracking_data->tracks);
