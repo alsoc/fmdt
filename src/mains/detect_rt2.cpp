@@ -339,8 +339,8 @@ int main(int argc, char** argv) {
 #endif
     if (p_cca_mag && !p_log_path)
         fprintf(stderr, "(WW) '--cca-mag' has to be combined with the '--log-path' parameter\n");
-    if (p_cca_ell && !p_log_path)
-        fprintf(stderr, "(WW) '--cca-ell' has to be combined with the '--log-path' parameter\n");
+    if (p_cca_ell && !p_log_path && !p_trk_ell_min)
+        fprintf(stderr, "(WW) '--cca-ell' has to be combined with the '--log-path' or the '--trk-ell-min' parameter\n");
     if (p_trk_ell_min) {
         fprintf(stderr, "(EE) '--trk-ell-min' is not supported yet in runtime versions of 'fmdt-detect-rt*'\n");
         exit(1);

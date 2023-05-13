@@ -253,8 +253,8 @@ int main(int argc, char** argv) {
 #endif
     if (p_cca_mag && !p_log_path)
         fprintf(stderr, "(WW) '--cca-mag' has to be combined with the '--log-path' parameter\n");
-    if (p_cca_ell && !p_log_path)
-        fprintf(stderr, "(WW) '--cca-ell' has to be combined with the '--log-path' parameter\n");
+    if (p_cca_ell && !p_log_path && !p_trk_ell_min)
+        fprintf(stderr, "(WW) '--cca-ell' has to be combined with the '--log-path' or the '--trk-ell-min' parameter\n");
     if (p_trk_ell_min && !p_cca_ell)
         fprintf(stderr, "(WW) '--trk-ell-min' has no effect without the '--cca-ell' parameter\n");
 
