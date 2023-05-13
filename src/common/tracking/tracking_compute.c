@@ -90,7 +90,7 @@ void tracking_free_data(tracking_data_t* tracking_data) {
     free(tracking_data);
 }
 
-// Return 1 if the current motion is valid, return 0 if not
+// Return 1 if the current motion is valid, return 0 if not (because of NaNs)
 uint8_t _get_motion(const motion_t motion, float* theta, float* tx, float* ty) {
     if (!isnan(motion.tx) && !isnan(motion.ty)) {
         *theta = motion.theta;
@@ -105,6 +105,7 @@ uint8_t _get_motion(const motion_t motion, float* theta, float* tx, float* ty) {
     }
 }
 
+// (xA_B, yA_B) = position of RoI `A` at `t - B`
 void __compute_angle_and_norms(const motion_t* motion, const size_t motion_id, const float x0_0, const float y0_0,
                                const float x1_1, const float y1_1, const float x2_2, const float y2_2,
                                float *angle_degree, float *norm_u, float *norm_v) {
@@ -275,6 +276,7 @@ void _update_existing_tracks(History_t* history, vec_track_t track_array, const 
             else if (cur_track->state == STATE_UPDATED) {
                 int next_id = history->RoIs[1][cur_track->end.id - 1].next_id;
                 if (next_id) {
+                    // classification from meteor to noise (part 1 - ellipse ratio)
                     if (cur_track->obj_type == OBJ_METEOR) {
                         float a = history->RoIs[0][next_id - 1].a;
                         float b = history->RoIs[0][next_id - 1].b;
@@ -289,17 +291,18 @@ void _update_existing_tracks(History_t* history, vec_track_t track_array, const 
                                 }
                             }
                         }
-                        if (cur_track->obj_type == OBJ_METEOR) {
-                            float norm_u, norm_v, angle_degree;
-                            _compute_angle_and_norms(history, cur_track, &angle_degree, &norm_u, &norm_v);
-                            if (angle_degree >= angle_max || norm_u > norm_v) {
-                                cur_track->change_state_reason = (angle_degree >= angle_max) ?
-                                    REASON_TOO_BIG_ANGLE : REASON_WRONG_DIRECTION;
-                                cur_track->obj_type = OBJ_NOISE;
-                                if (!track_all) {
-                                    cur_track->id = 0; // clear_index_track_array
-                                    continue;
-                                }
+                    }
+                    // classification from meteor to noise (part 2 - angle and direction)
+                    if (cur_track->obj_type == OBJ_METEOR) {
+                        float norm_u, norm_v, angle_degree;
+                        _compute_angle_and_norms(history, cur_track, &angle_degree, &norm_u, &norm_v);
+                        if (angle_degree >= angle_max || norm_u > norm_v) {
+                            cur_track->change_state_reason = (angle_degree >= angle_max) ?
+                                REASON_TOO_BIG_ANGLE : REASON_WRONG_DIRECTION;
+                            cur_track->obj_type = OBJ_NOISE;
+                            if (!track_all) {
+                                cur_track->id = 0; // clear_index_track_array
+                                continue;
                             }
                         }
                     }
@@ -419,7 +422,7 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
                             memcpy(&RoIs_list[ii], &history->RoIs[ii + 1][RoIs_list[ii - 1].prev_id - 1],
                                    sizeof(RoI_t));
 
-                        // classification from meteor to noise
+                        // classification from meteor to noise (part 1 - ellipse ratio)
                         enum change_state_reason_e reason = REASON_UNKNOWN;
                         if (type == OBJ_METEOR && min_ellipse_ratio) {
                             for (unsigned r = 0; r < n_RoIs; r++) {
@@ -435,7 +438,7 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
                                 }
                             }
                         }
-
+                        // classification from meteor to noise (part 2 - angle and direction)
                         if (type == OBJ_METEOR && n_RoIs >= 3) {
                             size_t motion_id = 0;
                             for (unsigned r = n_RoIs - 1; r >= 2; r--) {
@@ -455,7 +458,6 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
                                 motion_id++;
                             }
                         }
-
                         if (track_all || (!track_all && type == OBJ_METEOR))
                             _insert_new_track(RoIs_list, fra_min - 1, track_array, frame, type, reason, save_RoIs_id);
                     }
