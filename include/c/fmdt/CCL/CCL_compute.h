@@ -106,6 +106,7 @@ uint32_t CCL_LSL_threshold_apply(CCL_data_t *CCL_data, const uint8_t** img, uint
  * finally extract basic features.
  * Note: this is optimized to be faster than to compute the thresholding, to perform the LSL and to extract the features
  * separately.
+ * Note2: if the returned number of labels is higher than the \p RoIs_max_size value, then the features are not filled.
  * Arthur HENNEQUIN's LSL implementation.
  * @param CCL_data_er Relative labels (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
  * @param CCL_data_era Relative <-> absolute labels equivalences (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
@@ -134,6 +135,7 @@ uint32_t CCL_LSL_threshold_apply(CCL_data_t *CCL_data, const uint8_t** img, uint
  * @param RoIs_Sxy Array of sums of \f$x * y\f$ properties.
  * @param RoIs_x Array of centroids abscissa.
  * @param RoIs_y Array of centroids ordinate.
+ * @param RoIs_max_size Maximum capacity for arrays of RoIs.
  * @return Number of labels.
  */
 uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc,
@@ -142,13 +144,16 @@ uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CC
                                            const uint8_t threshold, uint32_t* RoIs_id, uint32_t* RoIs_xmin,
                                            uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
                                            uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, uint64_t* RoIs_Sx2,
-                                           uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x, float* RoIs_y);
+                                           uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x, float* RoIs_y,
+                                           const size_t RoIs_max_size);
 
 /**
  * First select pixels according to a threshold, then compute the Light Speed Labeling (LSL) algorithm and
  * finally extract basic features.
  * Note: this is optimized to be faster than to compute the thresholding, to perform the LSL and to extract the features
  * separately.
+ * Note2: if the returned number of labels is higher than the `*RoIs_basic->_max_size` value, then the features are not
+ * filled.
  * Arthur HENNEQUIN's LSL implementation.
  * @param CCL_data Inner data required to perform the LSL.
  * @param img Input grayscale image (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$, grayscale is in \f$[0;255]\f$ range).
@@ -157,9 +162,10 @@ uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CC
  * @param threshold Value (between \f$[0;255]\f$). If the pixel intensity is higher than \p threshold, then the pixel is
  *                  kept for the labeling, else the pixel is ignored.
  * @param RoIs_basic Basic features.
+ * @return Number of labels.
  */
-void CCL_LSL_threshold_features_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
-                                      const uint8_t threshold, RoIs_basic_t* RoIs_basic);
+uint32_t CCL_LSL_threshold_features_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
+                                          const uint8_t threshold, RoIs_basic_t* RoIs_basic);
 
 /**
  * Free the inner data.
@@ -221,6 +227,7 @@ uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint
  * finally extract basic features.
  * Note: this is optimized to be faster than to compute the thresholding, to perform the CCL and to extract the features
  * separately.
+ * Note2: if the returned number of labels is higher than the \p RoIs_max_size value, then the features are not filled.
  * Generic CCL implementation.
  * @param CCL_data Inner data required to perform the CCL.
  * @param img Input grayscale image (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$, grayscale is in \f$[0;255]\f$ range).
@@ -241,19 +248,23 @@ uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint
  * @param RoIs_Sxy Array of sums of \f$x * y\f$ properties.
  * @param RoIs_x Array of centroids abscissa.
  * @param RoIs_y Array of centroids ordinate.
+ * @param RoIs_max_size Maximum capacity for arrays of RoIs.
  * @return Number of labels.
  */
 uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
                                        const uint8_t threshold, uint32_t* RoIs_id, uint32_t* RoIs_xmin,
                                        uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
                                        uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, uint64_t* RoIs_Sx2,
-                                       uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x, float* RoIs_y);
+                                       uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x, float* RoIs_y,
+                                       const size_t RoIs_max_size);
 
 /**
  * First select pixels according to a threshold, then compute a Connected-Components Labeling algorithm and
  * finally extract basic features.
  * Note: this is optimized to be faster than to compute the thresholding, to perform the CCL and to extract the features
  * separately.
+ * Note2: if the returned number of labels is higher than the `*RoIs_basic->_max_size` value, then the features are not
+ * filled.
  * Generic CCL implementation.
  * @param CCL_data Inner data required to perform the CCL.
  * @param img Input grayscale image (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$, grayscale is in \f$[0;255]\f$ range).
@@ -262,9 +273,10 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
  * @param threshold Value (between \f$[0;255]\f$). If the pixel intensity is higher than \p threshold, then the pixel is
  *                  kept for the labeling, else the pixel is ignored.
  * @param RoIs_basic Basic features.
+ * @return Number of labels.
  */
-void CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
-                                  const uint8_t threshold, RoIs_basic_t* RoIs_basic);
+uint32_t CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
+                                      const uint8_t threshold, RoIs_basic_t* RoIs_basic);
 
 /**
  * Free the inner data.

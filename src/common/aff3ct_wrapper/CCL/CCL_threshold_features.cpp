@@ -62,8 +62,9 @@ CCL_threshold_features::CCL_threshold_features(const int i0, const int i1, const
                                                      static_cast<uint64_t*>(t[ps_out_RoIs_Sy2].get_dataptr()),
                                                      static_cast<uint64_t*>(t[ps_out_RoIs_Sxy].get_dataptr()),
                                                      static_cast<float*>(t[ps_out_RoIs_x].get_dataptr()),
-                                                     static_cast<float*>(t[ps_out_RoIs_y].get_dataptr()));
-
+                                                     static_cast<float*>(t[ps_out_RoIs_y].get_dataptr()),
+                                                     lsl.max_RoIs_size);
+        assert(*m_out_n_ROI <= lsl.max_RoIs_size);
         return aff3ct::runtime::status_t::SUCCESS;
     });
 }

@@ -16,8 +16,9 @@ rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 if test -f "${WD}/${build_root}/bin/fmdt-detect-rt-seq"; then
     list_exe_detect="fmdt-detect, \
-                     fmdt-detect-opt, \
                      fmdt-detect-no-fail, \
+                     fmdt-detect-opt, \
+                     fmdt-detect-opt-no-fail, \
                      fmdt-detect-rt-pip, \
                      fmdt-detect-rt-seq, \
                      fmdt-detect-rt2-pip, \
@@ -26,8 +27,9 @@ if test -f "${WD}/${build_root}/bin/fmdt-detect-rt-seq"; then
                      fmdt-detect-rt-opt-pip"
 else
     list_exe_detect="fmdt-detect, \
+                     fmdt-detect-no-fail, \
                      fmdt-detect-opt, \
-                     fmdt-detect-no-fail"
+                     fmdt-detect-opt-no-fail"
 fi
 
 curl https://lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_62d79311.zip --output refs_detect.zip

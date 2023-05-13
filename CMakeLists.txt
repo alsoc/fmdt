@@ -187,6 +187,13 @@ if(FMDT_DETECT_EXE)
 	list(APPEND fmdt_targets_list fmdt-detect-no-fail-exe)
 	set_target_properties(fmdt-detect-no-fail-exe PROPERTIES OUTPUT_NAME fmdt-detect-no-fail)
 
+	set(src_detectoptnofail_files
+	    ${src_dir}/mains/detect_opt_no_fail.c)
+	list(APPEND fmdt_src_list ${src_detectoptnofail_files})
+	add_executable(fmdt-detect-opt-no-fail-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_detectoptnofail_files})
+	list(APPEND fmdt_targets_list fmdt-detect-opt-no-fail-exe)
+	set_target_properties(fmdt-detect-opt-no-fail-exe PROPERTIES OUTPUT_NAME fmdt-detect-opt-no-fail)
+
 	if (FMDT_AFF3CT_RUNTIME)
 		set(src_detectrt_common_files
 		    ${src_dir}/common/tools.cpp

@@ -146,7 +146,7 @@ int main(int argc, char** argv) {
 
     // version
     if (args_find(argc, argv, "--version,-v")) {
-        version_print("detect-no-fail");
+        version_print("detect-opt-no-fail");
         exit(0);
     }
 
@@ -326,18 +326,16 @@ int main(int argc, char** argv) {
         motion_t motion_est1, motion_est2; // motion_est is initialized at 0 by default in C
         uint32_t n_RoIs, n_RoIs_hyst, n_assocs;
 
-        // step 1: threshold low
-        threshold((const uint8_t**)I, IL, i0, i1, j0, j1, p_ccl_hyst_lo);
-
-        // step 2: CCL/CCA
-        n_RoIs = CCL_apply(ccl_data, (const uint8_t**)IL, L1);
+        // step 1 + step 2: threshold low + CCL/CCA
+        n_RoIs = CCL_threshold_features_apply(ccl_data, (const uint8_t**)I, L1, p_ccl_hyst_lo, RoIs_tmp->basic);
         if (n_RoIs <= RoIs_tmp->_max_size) {
-            features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoIs, RoIs_tmp->basic);
-
             // step 3: hysteresis threshold & surface filtering (+ magnitude computations)
-            threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_ccl_hyst_hi);
-            n_RoIs_hyst = features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1,
-                                                   RoIs_tmp->basic, p_mrp_s_min, p_mrp_s_max);
+            // const uint8_t fast_out_labels = !p_ccl_fra_path; // no longer necessary because the
+                                                                // `features_labels_zero_init` func is called later
+            const uint8_t fast_out_labels = 1;
+            n_RoIs_hyst = features_merge_CCL_HI_v3((const uint32_t**)L1, (const uint8_t**)I, L2, i0, i1, j0, j1,
+                                                   RoIs_tmp->basic, p_mrp_s_min, p_mrp_s_max, p_ccl_hyst_hi,
+                                                   fast_out_labels);
             if (n_RoIs_hyst <= RoIs1->_max_size) {
                 features_shrink_basic(RoIs_tmp->basic, RoIs1->basic);
                 if (p_cca_mag)
@@ -367,6 +365,8 @@ int main(int argc, char** argv) {
             image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs1->basic, p_ccl_fra_id);
             video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
+        if ((p_cca_mag || p_ccl_fra_path) && n_RoIs <= MAX_ROI_SIZE_BEFORE_SHRINK)
+            features_labels_zero_init(RoIs1->basic, L2);
 
         // save stats
         if (p_log_path) {

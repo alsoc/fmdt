@@ -324,10 +324,13 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         // step 1 + step 2: threshold low + CCL/CCA
-        CCL_threshold_features_apply(ccl_data, (const uint8_t**)I, L1, p_ccl_hyst_lo, RoIs_tmp->basic);
+        unsigned n_RoIs = CCL_threshold_features_apply(ccl_data, (const uint8_t**)I, L1, p_ccl_hyst_lo,
+                                                       RoIs_tmp->basic);
+        assert(n_RoIs <= RoIs_tmp->_max_size);
 
         // step 3: hysteresis threshold & surface filtering (+ magnitude computations)
-        // const uint8_t fast_out_labels = !p_ccl_fra_path;
+        // const uint8_t fast_out_labels = !p_ccl_fra_path; // no longer necessary because the
+                                                            // `features_labels_zero_init` func is called later
         const uint8_t fast_out_labels = 1;
         features_merge_CCL_HI_v3((const uint32_t**)L1, (const uint8_t**)I, L2, i0, i1, j0, j1, RoIs_tmp->basic,
                                  p_mrp_s_min, p_mrp_s_max, p_ccl_hyst_hi, fast_out_labels);
