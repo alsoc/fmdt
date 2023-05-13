@@ -597,13 +597,11 @@ class LogParser:
             ]
         """
 
-        def find_valid_motion(frames:dict, fid:int):
-            firstFid = fid
-            while fid in frames:
-                if isinstance(frames[fid]["Motion"]["tx2"], float) and isinstance(frames[fid]["Motion"]["ty2"], float) and isinstance(frames[fid]["Motion"]["theta2"], float):
-                    return frames[fid]["Motion"]["tx2"], frames[fid]["Motion"]["ty2"], frames[fid]["Motion"]["theta2"]
-                fid -= 1
-            assert False, f"Cannot find valid motion :-( frame id = {firstFid}"
+        def get_motion(frames:dict, fid:int):
+            if "Motion" in frames[fid] and isinstance(frames[fid]["Motion"]["tx2"], float) and isinstance(frames[fid]["Motion"]["ty2"], float) and isinstance(frames[fid]["Motion"]["theta2"], float):
+                return frames[fid]["Motion"]["tx2"], frames[fid]["Motion"]["ty2"], frames[fid]["Motion"]["theta2"]
+            else:
+                return float(0), float(0), float(0)
 
         for tid in tracks2RoIs:
             fbeg = tracks[tid]["fbeg"]
@@ -620,7 +618,7 @@ class LogParser:
                 if rid == 0:
                     # compute bounding box for extrapolated tracks
                     if extrapolate and xradius and yradius and posHist["x"] != None and posHist["y"] != None and dx != None and dy != None:
-                        tx, ty, theta = find_valid_motion(frames, fcur)
+                        tx, ty, theta = get_motion(frames, fcur)
                         xcenter = int(dx + tx + posHist["x"] * math.cos(theta) - posHist["y"] * math.sin(theta));
                         ycenter = int(dy + ty + posHist["x"] * math.sin(theta) + posHist["y"] * math.cos(theta));
                         posHist = {'x': xcenter, 'y': ycenter}
@@ -642,7 +640,7 @@ class LogParser:
                         y0_0 = frames[fcur]["RoIs"][rid]["y"]
 
                         if posHist["x"] != None and posHist["y"] != None:
-                            tx1, ty1, theta1 = find_valid_motion(frames, fcur)
+                            tx1, ty1, theta1 = get_motion(frames, fcur)
                             x1_0 = tx1 + posHist["x"] * math.cos(theta1) - posHist["y"] * math.sin(theta1);
                             y1_0 = ty1 + posHist["x"] * math.sin(theta1) + posHist["y"] * math.cos(theta1);
                             dx = x0_0 - x1_0
