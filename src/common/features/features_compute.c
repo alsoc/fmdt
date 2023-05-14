@@ -399,8 +399,8 @@ uint32_t _features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** i
                                     }
                                 }
                             }
-                            cur_label++;
                         }
+                        cur_label++;
                         goto next;
                     }
                 }
