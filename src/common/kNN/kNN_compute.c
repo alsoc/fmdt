@@ -62,9 +62,9 @@ void _kNN_match1(const float* RoIs0_x, const float* RoIs0_y, const size_t n_RoIs
                  uint32_t* kNN_data_conflicts, const int k, const uint32_t max_dist) {
 #ifdef FMDT_ENABLE_DEBUG
     // vecteur de conflits pour debug
-    zero_ui32vector(kNN_data_conflicts, 0, n_RoIs1);
+    zero_ui32vector(kNN_data_conflicts, 0, n_RoIs1 - 1);
 #endif
-    zero_ui32matrix(kNN_data_nearest, 0, n_RoIs0, 0, n_RoIs1);
+    zero_ui32matrix(kNN_data_nearest, 0, n_RoIs0 - 1, 0, n_RoIs1 - 1);
 
     // calculs de toutes les distances euclidiennes au carré entre nc0 et nc1
     _compute_distance(RoIs0_x, RoIs0_y, n_RoIs0, RoIs1_x, RoIs1_y, n_RoIs1, kNN_data_distances);
