@@ -1,4 +1,9 @@
 TODO list:
+- [ ] Implement *socket forward* in AFF3CT-core will significantly speedup the
+      CCL. More precisely, *socket forward* is required to wrap the 
+      `features_labels_zero_init` function in the runtime)
+- [ ] Implement `--trk-ell-min` in `fmdt-detect-rt*` (the classification with 
+      ellipse ratio)
 - [ ] Add CI tests with `fmdt-check` 
 - [ ] Rewrite `fmdt-check` in Python
 - [ ] Regroup CCs together if they are close and if their velocity vectors are 
