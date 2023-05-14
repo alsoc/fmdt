@@ -1,5 +1,4 @@
 #include <stdio.h>
-#include <assert.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <nrc2.h>
@@ -348,7 +347,6 @@ int main(int argc, char** argv) {
         // step 2: CCL/CCA
         n_RoIs = CCL_apply(ccl_data, (const uint8_t**)IL, L1, 0);
         if (n_RoIs <= RoIs_tmp->_max_size) {
-            assert(n_RoIs <= RoIs_tmp->_max_size);
             features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoIs, RoIs_tmp->basic);
 
             // step 3: hysteresis threshold & surface filtering (+ magnitude computations)
