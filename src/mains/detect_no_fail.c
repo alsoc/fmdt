@@ -18,16 +18,6 @@
 #include "fmdt/image.h"
 #include "fmdt/version.h"
 
-/**
- *  Maximum number of RoIs before `features_merge_CCL_HI` selection.
- */
-#define MAX_ROI_SIZE_BEFORE_SHRINK 65535
-
-/**
- *  Maximum number of RoIs after `features_merge_CCL_HI` selection.
- */
-#define MAX_ROI_SIZE 400
-
 int main(int argc, char** argv) {
     // default values
     char* def_p_vid_in_path = NULL;
@@ -55,6 +45,8 @@ int main(int argc, char** argv) {
     float def_p_trk_ell_min = 0.f;
     char* def_p_trk_roi_path = NULL;
     char* def_p_log_path = NULL;
+    int def_p_cca_roi_max1 = 65535; // Maximum number of RoIs before `features_merge_CCL_HI` selection.
+    int def_p_cca_roi_max2 = 400; // Maximum number of RoIs after `features_merge_CCL_HI` selection.
 
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -98,6 +90,12 @@ int main(int argc, char** argv) {
                 "  --cca-mag           Enable magnitude and saturation counter computations                       \n");
         fprintf(stderr,
                 "  --cca-ell           Enable ellipse features computation                                        \n");
+        fprintf(stderr,
+                "  --cca-roi-max1      Maximum number of RoIs before hysteresis                               [%d]\n",
+                def_p_cca_roi_max1);
+        fprintf(stderr,
+                "  --cca-roi-max2      Maximum number of RoIs after hysteresis                                [%d]\n",
+                def_p_cca_roi_max2);
         fprintf(stderr,
                 "  --mrp-s-min         Minimum surface of the CCs in pixels                                   [%d]\n",
                 def_p_mrp_s_min);
@@ -179,6 +177,8 @@ int main(int argc, char** argv) {
 #endif
     const int p_cca_mag = args_find(argc, argv, "--cca-mag");
     const int p_cca_ell = args_find(argc, argv, "--cca-ell");
+    const int p_cca_roi_max1 = args_find_int_min(argc, argv, "--cca-roi-max1", def_p_cca_roi_max1, 0);
+    const int p_cca_roi_max2 = args_find_int_min(argc, argv, "--cca-roi-max2", def_p_cca_roi_max2, 0);
     const int p_mrp_s_min = args_find_int_min(argc, argv, "--mrp-s-min,--surface-min", def_p_mrp_s_min, 0);
     const int p_mrp_s_max = args_find_int_min(argc, argv, "--mrp-s-max,--surface-max", def_p_mrp_s_max, 0);
     const int p_knn_k = args_find_int_min(argc, argv, "--knn-k,-k", def_p_knn_k, 0);
@@ -221,6 +221,8 @@ int main(int argc, char** argv) {
 #endif
     printf("#  * cca-mag        = %d\n", p_cca_mag);
     printf("#  * cca-ell        = %d\n", p_cca_ell);
+    printf("#  * cca-roi-max1   = %d\n", p_cca_roi_max1);
+    printf("#  * cca-roi-max2   = %d\n", p_cca_roi_max2);
     printf("#  * mrp-s-min      = %d\n", p_mrp_s_min);
     printf("#  * mrp-s-max      = %d\n", p_mrp_s_max);
     printf("#  * knn-k          = %d\n", p_knn_k);
@@ -290,12 +292,12 @@ int main(int argc, char** argv) {
     // -- DATA ALLOCATION -- //
     // --------------------- //
 
-    RoIs_t* RoIs_tmp = features_alloc_RoIs(p_cca_mag, p_cca_mag, p_cca_ell, MAX_ROI_SIZE_BEFORE_SHRINK);
-    RoIs_t* RoIs0 = features_alloc_RoIs(p_cca_mag, p_cca_mag, p_cca_ell, MAX_ROI_SIZE);
-    RoIs_t* RoIs1 = features_alloc_RoIs(p_cca_mag, p_cca_mag, p_cca_ell, MAX_ROI_SIZE);
+    RoIs_t* RoIs_tmp = features_alloc_RoIs(p_cca_mag, p_cca_mag, p_cca_ell, p_cca_roi_max1);
+    RoIs_t* RoIs0 = features_alloc_RoIs(p_cca_mag, p_cca_mag, p_cca_ell, p_cca_roi_max2);
+    RoIs_t* RoIs1 = features_alloc_RoIs(p_cca_mag, p_cca_mag, p_cca_ell, p_cca_roi_max2);
     CCL_gen_data_t* ccl_data = CCL_alloc_data(CCL_str_to_enum(p_ccl_impl), i0, i1, j0, j1);
-    kNN_data_t* knn_data = kNN_alloc_data(MAX_ROI_SIZE);
-    tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_star_min, p_trk_meteor_min), MAX_ROI_SIZE);
+    kNN_data_t* knn_data = kNN_alloc_data(p_cca_roi_max2);
+    tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_star_min, p_trk_meteor_min), p_cca_roi_max2);
     int b = 1; // image border
     uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // grayscale input image
     uint8_t **IL = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold low)

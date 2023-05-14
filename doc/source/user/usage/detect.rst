@@ -38,6 +38,10 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--cca-ell``        | BOOLEAN | See :numref:`detect_cca-ell`.                      |
 +----------------------+---------+----------------------------------------------------+
+| ``--cca-roi-max1``   | INTEGER | See :numref:`detect_cca-roi-max1`.                 |
++----------------------+---------+----------------------------------------------------+
+| ``--cca-roi-max2``   | INTEGER | See :numref:`detect_cca-roi-max2`.                 |
++----------------------+---------+----------------------------------------------------+
 | ``--mrp-s-min``      | INTEGER | See :numref:`detect_mrp-s-min`.                    |
 +----------------------+---------+----------------------------------------------------+
 | ``--mrp-s-max``      | INTEGER | See :numref:`detect_mrp-s-max`.                    |
@@ -281,6 +285,32 @@ option).
 Enable the computation of two news features in the |CCA|: ``a`` the semi-major
 axis of an ellipse and ``b`` the semi-minor axis of an ellipse. This option
 has to be combined with the :ref:`detect_log-path` option.
+
+.. _detect_cca-roi-max1:
+
+``--cca-roi-max1``
+------------------
+
+   :Type: INTEGER
+   :Default: ``65535``
+   :Example: ``--cca-roi-max1 10000``
+
+Maximum number of RoIs before hysteresis threshold. Allow to manage the memory
+footprint of the program. The Smaller the maximum number of RoIs, the smaller
+the memory footprint.
+
+.. _detect_cca-roi-max2:
+
+``--cca-roi-max2``
+------------------
+
+   :Type: INTEGER
+   :Default: ``400``
+   :Example: ``--cca-roi-max2 200``
+
+Maximum number of RoIs after hysteresis threshold. Allow to manage the memory
+footprint of the program. The Smaller the maximum number of RoIs, the smaller
+the memory footprint.
 
 .. _detect_mrp-s-min:
 

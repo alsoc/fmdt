@@ -34,16 +34,6 @@
 #include "fmdt/aff3ct_wrapper/Logger/Logger_tracks.hpp"
 #include "fmdt/aff3ct_wrapper/Logger/Logger_frame.hpp"
 
-/**
- *  Maximum number of RoIs before `features_merge_CCL_HI` selection.
- */
-#define MAX_ROI_SIZE_BEFORE_SHRINK 65535
-
-/**
- *  Maximum number of RoIs after `features_merge_CCL_HI` selection.
- */
-#define MAX_ROI_SIZE 400
-
 int main(int argc, char** argv) {
     // default values
     char* def_p_vid_in_path = NULL;
@@ -79,6 +69,9 @@ int main(int argc, char** argv) {
     char def_p_pip_pin[50] = {"[0,0,0]"};
     char def_p_pip_pin_vals[50] = {"[[0],[0],[0]]"};
 #endif
+    int def_p_cca_roi_max1 = 65535; // Maximum number of RoIs before `features_merge_CCL_HI` selection.
+    int def_p_cca_roi_max2 = 400; // Maximum number of RoIs after `features_merge_CCL_HI` selection.
+
     // help
     if (args_find(argc, argv, "--help,-h")) {
         fprintf(stderr,
@@ -121,6 +114,12 @@ int main(int argc, char** argv) {
                 "  --cca-mag           Enable magnitude and saturation counter computations                       \n");
         fprintf(stderr,
                 "  --cca-ell           Enable ellipse features computation                                        \n");
+        fprintf(stderr,
+                "  --cca-roi-max1      Maximum number of RoIs before hysteresis                               [%d]\n",
+                def_p_cca_roi_max1);
+        fprintf(stderr,
+                "  --cca-roi-max2      Maximum number of RoIs after hysteresis                                [%d]\n",
+                def_p_cca_roi_max2);
         fprintf(stderr,
                 "  --mrp-s-min         Minimum surface of the CCs in pixels                                   [%d]\n",
                 def_p_mrp_s_min);
@@ -228,6 +227,8 @@ int main(int argc, char** argv) {
 #endif
     const int p_cca_mag = args_find(argc, argv, "--cca-mag");
     const int p_cca_ell = args_find(argc, argv, "--cca-ell");
+    const int p_cca_roi_max1 = args_find_int_min(argc, argv, "--cca-roi-max1", def_p_cca_roi_max1, 0);
+    const int p_cca_roi_max2 = args_find_int_min(argc, argv, "--cca-roi-max2", def_p_cca_roi_max2, 0);
     const int p_mrp_s_min = args_find_int_min(argc, argv, "--mrp-s-min,--surface-min", def_p_mrp_s_min, 0);
     const int p_mrp_s_max = args_find_int_min(argc, argv, "--mrp-s-max,--surface-max", def_p_mrp_s_max, 0);
     const int p_knn_k = args_find_int_min(argc, argv, "--knn-k,-k", def_p_knn_k, 0);
@@ -279,6 +280,8 @@ int main(int argc, char** argv) {
 #endif
     printf("#  * cca-mag        = %d\n", p_cca_mag);
     printf("#  * cca-ell        = %d\n", p_cca_ell);
+    printf("#  * cca-roi-max1   = %d\n", p_cca_roi_max1);
+    printf("#  * cca-roi-max2   = %d\n", p_cca_roi_max2);
     printf("#  * mrp-s-min      = %d\n", p_mrp_s_min);
     printf("#  * mrp-s-max      = %d\n", p_mrp_s_max);
     printf("#  * knn-k          = %d\n", p_knn_k);
@@ -382,14 +385,13 @@ int main(int argc, char** argv) {
     threshold_max0.set_custom_name("Thr0<max>");
     CCL ccl0(i0, i1, j0, j1, b, CCL_str_to_enum(p_ccl_impl));
     ccl0.set_custom_name("CCL0");
-    Features_extractor extractor0(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
+    Features_extractor extractor0(i0, i1, j0, j1, b, p_cca_roi_max1);
     extractor0.set_custom_name("Extractor0");
-    Features_merger_CCL_HI_v2 merger0(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_ROI_SIZE_BEFORE_SHRINK,
-                                      MAX_ROI_SIZE);
+    Features_merger_CCL_HI_v2 merger0(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, p_cca_roi_max1, p_cca_roi_max2);
     merger0.set_custom_name("Merger0");
-    Features_magnitude magnitude0(i0, i1, j0, j1, b, MAX_ROI_SIZE);
+    Features_magnitude magnitude0(i0, i1, j0, j1, b, p_cca_roi_max2);
     magnitude0.set_custom_name("Magnitude0");
-    Features_ellipse ellipse0(MAX_ROI_SIZE);
+    Features_ellipse ellipse0(p_cca_roi_max2);
     ellipse0.set_custom_name("Ellipse0");
 
     Threshold threshold_min1(i0, i1, j0, j1, b, p_ccl_hyst_lo);
@@ -398,31 +400,31 @@ int main(int argc, char** argv) {
     threshold_max1.set_custom_name("Thr1<max>");
     CCL ccl1(i0, i1, j0, j1, b, CCL_str_to_enum(p_ccl_impl));
     ccl1.set_custom_name("CCL1");
-    Features_extractor extractor1(i0, i1, j0, j1, b, MAX_ROI_SIZE_BEFORE_SHRINK);
+    Features_extractor extractor1(i0, i1, j0, j1, b, p_cca_roi_max1);
     extractor1.set_custom_name("Extractor1");
-    Features_merger_CCL_HI_v2 merger1(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, MAX_ROI_SIZE_BEFORE_SHRINK,
-                                      MAX_ROI_SIZE);
+    Features_merger_CCL_HI_v2 merger1(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, p_cca_roi_max1, p_cca_roi_max2);
     merger1.set_custom_name("Merger1");
-    Features_magnitude magnitude1(i0, i1, j0, j1, b, MAX_ROI_SIZE);
+    Features_magnitude magnitude1(i0, i1, j0, j1, b, p_cca_roi_max2);
     magnitude1.set_custom_name("Magnitude1");
-    Features_ellipse ellipse1(MAX_ROI_SIZE);
+    Features_ellipse ellipse1(p_cca_roi_max2);
     ellipse1.set_custom_name("Ellipse1");
 
-    kNN_matcher matcher(p_knn_k, p_knn_d, p_knn_s, MAX_ROI_SIZE);
-    Motion motion(MAX_ROI_SIZE);
+    kNN_matcher matcher(p_knn_k, p_knn_d, p_knn_s, p_cca_roi_max2);
+    Motion motion(p_cca_roi_max2);
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
-                      p_trk_meteor_max, p_trk_roi_path, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
-    Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data(),
-                         p_cca_mag, p_cca_mag, p_cca_ell);
-    Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_ROI_SIZE);
+                      p_trk_meteor_max, p_trk_roi_path, p_trk_ext_o, p_knn_s, p_cca_roi_max2);
+    Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, p_cca_roi_max2,
+                         tracking.get_data(), p_cca_mag, p_cca_mag, p_cca_ell);
+    Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, p_cca_roi_max2);
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");
     Logger_tracks log_track(p_log_path ? p_log_path : "", p_vid_in_start, tracking.get_data());
     log_track.set_custom_name("Logger_trk");
     std::unique_ptr<Logger_frame> log_frame;
     if (p_ccl_fra_path)
-        log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
+        log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b,
+                                         p_cca_roi_max2));
 
     // create reporters and probes for the real-time probes file
     size_t inter_frame_lvl = 1;

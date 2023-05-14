@@ -31,16 +31,6 @@
 #include "fmdt/aff3ct_wrapper/Logger/Logger_tracks.hpp"
 #include "fmdt/aff3ct_wrapper/Logger/Logger_frame.hpp"
 
-/**
- *  Maximum number of RoIs before `features_merge_CCL_HI` selection.
- */
-#define MAX_ROI_SIZE_BEFORE_SHRINK 65535
-
-/**
- *  Maximum number of RoIs after `features_merge_CCL_HI` selection.
- */
-#define MAX_ROI_SIZE 400
-
 int main(int argc, char** argv) {
     // default values
     char* def_p_vid_in_path = NULL;
@@ -77,6 +67,8 @@ int main(int argc, char** argv) {
     char def_p_pip_pin[50] = {"[0,0,0]"};
     char def_p_pip_pin_vals[50] = {"[[0],[0],[0]]"};
 #endif
+    int def_p_cca_roi_max1 = 65535; // Maximum number of RoIs before `features_merge_CCL_HI` selection.
+    int def_p_cca_roi_max2 = 400; // Maximum number of RoIs after `features_merge_CCL_HI` selection.
 
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -117,6 +109,12 @@ int main(int argc, char** argv) {
                 "  --cca-mag           Enable magnitude and saturation counter computations                       \n");
         fprintf(stderr,
                 "  --cca-ell           Enable ellipse features computation                                        \n");
+        fprintf(stderr,
+                "  --cca-roi-max1      Maximum number of RoIs before hysteresis                               [%d]\n",
+                def_p_cca_roi_max1);
+        fprintf(stderr,
+                "  --cca-roi-max2      Maximum number of RoIs after hysteresis                                [%d]\n",
+                def_p_cca_roi_max2);
         fprintf(stderr,
                 "  --mrp-s-min         Minimum surface of the CCs in pixels                                   [%d]\n",
                 def_p_mrp_s_min);
@@ -227,6 +225,8 @@ int main(int argc, char** argv) {
 #endif
     const int p_cca_mag = args_find(argc, argv, "--cca-mag");
     const int p_cca_ell = args_find(argc, argv, "--cca-ell");
+    const int p_cca_roi_max1 = args_find_int_min(argc, argv, "--cca-roi-max1", def_p_cca_roi_max1, 0);
+    const int p_cca_roi_max2 = args_find_int_min(argc, argv, "--cca-roi-max2", def_p_cca_roi_max2, 0);
     const int p_mrp_s_min = args_find_int_min(argc, argv, "--mrp-s-min,--surface-min", def_p_mrp_s_min, 0);
     const int p_mrp_s_max = args_find_int_min(argc, argv, "--mrp-s-max,--surface-max", def_p_mrp_s_max, 0);
     const int p_knn_k = args_find_int_min(argc, argv, "--knn-k,-k", def_p_knn_k, 0);
@@ -252,7 +252,6 @@ int main(int argc, char** argv) {
     vec_int_t p_pip_wait = args_find_vector_int(argc, argv, "--pip-wait", def_p_pip_wait);
     vec_int_t p_pip_pin = args_find_vector_int(argc, argv, "--pip-pin", def_p_pip_pin);
     vec2D_int_t p_pip_pin_vals = args_find_vector2D_int(argc, argv, "--pip-pin-vals", def_p_pip_pin_vals);
-
 #endif
 
     // heading display
@@ -280,6 +279,8 @@ int main(int argc, char** argv) {
 #endif
     printf("#  * cca-mag        = %d\n", p_cca_mag);
     printf("#  * cca-ell        = %d\n", p_cca_ell);
+    printf("#  * cca-roi-max1   = %d\n", p_cca_roi_max1);
+    printf("#  * cca-roi-max2   = %d\n", p_cca_roi_max2);
     printf("#  * mrp-s-min      = %d\n", p_mrp_s_min);
     printf("#  * mrp-s-max      = %d\n", p_mrp_s_max);
     printf("#  * knn-k          = %d\n", p_knn_k);
@@ -375,39 +376,38 @@ int main(int argc, char** argv) {
     j1 = video.get_j1();
     video.set_loop_size(p_vid_in_loop);
 
-    CCL_threshold_features lsl(i0, i1, j0, j1, b, p_ccl_hyst_lo, MAX_ROI_SIZE_BEFORE_SHRINK,
-                               CCL_str_to_enum(p_ccl_impl));
+    CCL_threshold_features lsl(i0, i1, j0, j1, b, p_ccl_hyst_lo, p_cca_roi_max1, CCL_str_to_enum(p_ccl_impl));
     lsl.set_custom_name("CCL_thr_ftr");
     const uint8_t no_labels_zeros_init = !p_ccl_fra_path && !p_cca_mag;
     Features_merger_CCL_HI_v3 merger(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, p_ccl_hyst_hi, no_labels_zeros_init,
-                                     MAX_ROI_SIZE_BEFORE_SHRINK, MAX_ROI_SIZE);
+                                     p_cca_roi_max1, p_cca_roi_max2);
     merger.set_custom_name("Merger");
-    Features_magnitude magnitude(i0, i1, j0, j1, b, MAX_ROI_SIZE);
+    Features_magnitude magnitude(i0, i1, j0, j1, b, p_cca_roi_max2);
     magnitude.set_custom_name("Magnitude");
-    Features_ellipse ellipse(MAX_ROI_SIZE);
+    Features_ellipse ellipse(p_cca_roi_max2);
     ellipse.set_custom_name("Ellipse");
-    kNN_matcher matcher(p_knn_k, p_knn_d, p_knn_s, MAX_ROI_SIZE);
-    Motion motion(MAX_ROI_SIZE);
+    kNN_matcher matcher(p_knn_k, p_knn_d, p_knn_s, p_cca_roi_max2);
+    Motion motion(p_cca_roi_max2);
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
-                      p_trk_meteor_max, p_trk_roi_path, p_trk_ext_o, p_knn_s, MAX_ROI_SIZE);
-    aff3ct::module::Delayer<uint32_t> delayer_RoIs_id(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoIs_xmin(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoIs_xmax(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoIs_ymin(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoIs_ymax(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoIs_S(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoIs_Sx(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoIs_Sy(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint64_t> delayer_RoIs_Sx2(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint64_t> delayer_RoIs_Sy2(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint64_t> delayer_RoIs_Sxy(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<float> delayer_RoIs_x(MAX_ROI_SIZE, 0.f);
-    aff3ct::module::Delayer<float> delayer_RoIs_y(MAX_ROI_SIZE, 0.f);
-    aff3ct::module::Delayer<uint32_t> delayer_RoIs_magnitude(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<uint32_t> delayer_RoIs_sat_count(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<float> delayer_RoIs_a(MAX_ROI_SIZE, 0);
-    aff3ct::module::Delayer<float> delayer_RoIs_b(MAX_ROI_SIZE, 0);
+                      p_trk_meteor_max, p_trk_roi_path, p_trk_ext_o, p_knn_s, p_cca_roi_max2);
+    aff3ct::module::Delayer<uint32_t> delayer_RoIs_id(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoIs_xmin(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoIs_xmax(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoIs_ymin(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoIs_ymax(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoIs_S(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoIs_Sx(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoIs_Sy(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<uint64_t> delayer_RoIs_Sx2(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<uint64_t> delayer_RoIs_Sy2(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<uint64_t> delayer_RoIs_Sxy(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<float> delayer_RoIs_x(p_cca_roi_max2, 0.f);
+    aff3ct::module::Delayer<float> delayer_RoIs_y(p_cca_roi_max2, 0.f);
+    aff3ct::module::Delayer<uint32_t> delayer_RoIs_magnitude(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<uint32_t> delayer_RoIs_sat_count(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<float> delayer_RoIs_a(p_cca_roi_max2, 0);
+    aff3ct::module::Delayer<float> delayer_RoIs_b(p_cca_roi_max2, 0);
     aff3ct::module::Delayer<uint32_t> delayer_n_RoIs(1, 0);
     delayer_RoIs_id.set_custom_name("D<RoIs_id>");
     delayer_RoIs_xmin.set_custom_name("D<RoIs_xmin>");
@@ -427,16 +427,17 @@ int main(int argc, char** argv) {
     delayer_RoIs_a.set_custom_name("D<RoIs_a>");
     delayer_RoIs_b.set_custom_name("D<RoIs_b>");
     delayer_n_RoIs.set_custom_name("D<n_RoIs>");
-    Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, MAX_ROI_SIZE, tracking.get_data(),
-                         p_cca_mag, p_cca_mag, p_cca_ell);
-    Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, MAX_ROI_SIZE);
+    Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, p_cca_roi_max2,
+                         tracking.get_data(), p_cca_mag, p_cca_mag, p_cca_ell);
+    Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, p_cca_roi_max2);
     Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
     log_motion.set_custom_name("Logger_motio");
     Logger_tracks log_track(p_log_path ? p_log_path : "", p_vid_in_start, tracking.get_data());
     log_track.set_custom_name("Logger_trk");
     std::unique_ptr<Logger_frame> log_frame;
     if (p_ccl_fra_path)
-        log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b, MAX_ROI_SIZE));
+        log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b,
+                                         p_cca_roi_max2));
 
     // create reporters and probes for the real-time probes file
     size_t inter_frame_lvl = 1;
