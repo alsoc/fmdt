@@ -44,11 +44,15 @@ void CCL_LSL_init_data(CCL_data_t* CCL_data);
  * @param i1 Last \f$y\f$ index in the image (included).
  * @param j0 First \f$x\f$ index in the image (included).
  * @param j1 Last \f$x\f$ index in the image (included).
+ * @param no_init_labels If this boolean is set to `1`, then the \p labels buffer is considered pre-initialized with `0`
+ *                       values. Else, if \p no_labels_init parameter is set to `0`, then this function will initialized
+ *                       zones that does not correspond to connected-components with `0` value. In doubt, prefer to set
+ *                       \p no_labels_init parameter to `0`.
  * @return Number of labels.
  */
 uint32_t _CCL_LSL_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc, uint32_t* CCL_data_eq,
                         uint32_t* CCL_data_ner, const uint8_t** img, uint32_t** labels, const int i0, const int i1,
-                        const int j0, const int j1);
+                        const int j0, const int j1, const uint8_t no_init_labels);
 
 /**
  * Compute the Light Speed Labeling (LSL) algorithm.
@@ -58,9 +62,13 @@ uint32_t _CCL_LSL_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_
  *            \f$\{0,255\}\f$).
  * @param labels Output labels (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$. The labels are in \f$[1;2^{32} -1]\f$ and
  *               0 value means no label).
+ * @param no_init_labels If this boolean is set to `1`, then the \p labels buffer is considered pre-initialized with `0`
+ *                       values. Else, if \p no_labels_init parameter is set to `0`, then this function will initialized
+ *                       zones that does not correspond to connected-components with `0` value. In doubt, prefer to set
+ *                       \p no_labels_init parameter to `0`.
  * @return Number of labels.
  */
-uint32_t CCL_LSL_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels);
+uint32_t CCL_LSL_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels, const uint8_t no_init_labels);
 
 /**
  * First select pixels according to a threshold, then compute the Light Speed Labeling (LSL) algorithm.
@@ -80,12 +88,16 @@ uint32_t CCL_LSL_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** lab
  * @param j1 Last \f$x\f$ index in the image (included).
  * @param threshold Value (between \f$[0;255]\f$). If the pixel intensity is higher than \p threshold, then the pixel is
  *                  kept for the labeling, else the pixel is ignored.
+ * @param no_init_labels If this boolean is set to `1`, then the \p labels buffer is considered pre-initialized with `0`
+ *                       values. Else, if \p no_labels_init parameter is set to `0`, then this function will initialized
+ *                       zones that does not correspond to connected-components with `0` value. In doubt, prefer to set
+ *                       \p no_labels_init parameter to `0`.
  * @return Number of labels.
  */
 uint32_t _CCL_LSL_threshold_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc,
                                   uint32_t* CCL_data_eq, uint32_t* CCL_data_ner, const uint8_t** img,
                                   uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
-                                  const uint8_t threshold);
+                                  const uint8_t threshold, const uint8_t no_init_labels);
 
 /**
  * First select pixels according to a threshold, then compute the Light Speed Labeling (LSL) algorithm.
@@ -97,9 +109,14 @@ uint32_t _CCL_LSL_threshold_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_er
  *               0 value means no label).
  * @param threshold Value (between \f$[0;255]\f$). If the pixel intensity is higher than \p threshold, then the pixel is
  *                  kept for the labeling, else the pixel is ignored.
+ * @param no_init_labels If this boolean is set to `1`, then the \p labels buffer is considered pre-initialized with `0`
+ *                       values. Else, if \p no_labels_init parameter is set to `0`, then this function will initialized
+ *                       zones that does not correspond to connected-components with `0` value. In doubt, prefer to set
+ *                       \p no_labels_init parameter to `0`.
  * @return Number of labels.
  */
-uint32_t CCL_LSL_threshold_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels, const uint8_t threshold);
+uint32_t CCL_LSL_threshold_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels, const uint8_t threshold,
+                                 const uint8_t no_init_labels);
 
 /**
  * First select pixels according to a threshold, then compute the Light Speed Labeling (LSL) algorithm and
@@ -136,6 +153,10 @@ uint32_t CCL_LSL_threshold_apply(CCL_data_t *CCL_data, const uint8_t** img, uint
  * @param RoIs_x Array of centroids abscissa.
  * @param RoIs_y Array of centroids ordinate.
  * @param RoIs_max_size Maximum capacity for arrays of RoIs.
+ * @param no_init_labels If this boolean is set to `1`, then the \p labels buffer is considered pre-initialized with `0`
+ *                       values. Else, if \p no_labels_init parameter is set to `0`, then this function will initialized
+ *                       zones that does not correspond to connected-components with `0` value. In doubt, prefer to set
+ *                       \p no_labels_init parameter to `0`.
  * @return Number of labels.
  */
 uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc,
@@ -145,7 +166,7 @@ uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CC
                                            uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
                                            uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, uint64_t* RoIs_Sx2,
                                            uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x, float* RoIs_y,
-                                           const size_t RoIs_max_size);
+                                           const size_t RoIs_max_size, const uint8_t no_init_labels);
 
 /**
  * First select pixels according to a threshold, then compute the Light Speed Labeling (LSL) algorithm and
@@ -162,10 +183,15 @@ uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CC
  * @param threshold Value (between \f$[0;255]\f$). If the pixel intensity is higher than \p threshold, then the pixel is
  *                  kept for the labeling, else the pixel is ignored.
  * @param RoIs_basic Basic features.
+ * @param no_init_labels If this boolean is set to `1`, then the \p labels buffer is considered pre-initialized with `0`
+ *                       values. Else, if \p no_labels_init parameter is set to `0`, then this function will initialized
+ *                       zones that does not correspond to connected-components with `0` value. In doubt, prefer to set
+ *                       \p no_labels_init parameter to `0`.
  * @return Number of labels.
  */
 uint32_t CCL_LSL_threshold_features_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
-                                          const uint8_t threshold, RoIs_basic_t* RoIs_basic);
+                                          const uint8_t threshold, RoIs_basic_t* RoIs_basic,
+                                          const uint8_t no_init_labels);
 
 /**
  * Free the inner data.
@@ -204,9 +230,13 @@ void CCL_init_data(CCL_gen_data_t* CCL_data);
  *            \f$\{0,255\}\f$).
  * @param labels Output labels (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$. The labels are in \f$[1;2^{32} -1]\f$ and
  *               0 value means no label).
+ * @param no_init_labels If this boolean is set to `1`, then the \p labels buffer is considered pre-initialized with `0`
+ *                       values. Else, if \p no_labels_init parameter is set to `0`, then this function will initialized
+ *                       zones that does not correspond to connected-components with `0` value. In doubt, prefer to set
+ *                       \p no_labels_init parameter to `0`.
  * @return Number of labels.
  */
-uint32_t CCL_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** labels);
+uint32_t CCL_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** labels, const uint8_t no_init_labels);
 
 /**
  * First select pixels according to a threshold, then compute a Connected-Components Labeling algorithm.
@@ -218,9 +248,14 @@ uint32_t CCL_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** lab
  *               0 value means no label).
  * @param threshold Value (between \f$[0;255]\f$). If the pixel intensity is higher than \p threshold, then the pixel is
  *                  kept for the labeling, else the pixel is ignored.
+ * @param no_init_labels If this boolean is set to `1`, then the \p labels buffer is considered pre-initialized with `0`
+ *                       values. Else, if \p no_labels_init parameter is set to `0`, then this function will initialized
+ *                       zones that does not correspond to connected-components with `0` value. In doubt, prefer to set
+ *                       \p no_labels_init parameter to `0`.
  * @return Number of labels.
  */
-uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** labels, const uint8_t threshold);
+uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** labels, const uint8_t threshold,
+                             const uint8_t no_init_labels);
 
 /**
  * First select pixels according to a threshold, then compute a Connected-Components Labeling algorithm and
@@ -249,6 +284,10 @@ uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint
  * @param RoIs_x Array of centroids abscissa.
  * @param RoIs_y Array of centroids ordinate.
  * @param RoIs_max_size Maximum capacity for arrays of RoIs.
+ * @param no_init_labels If this boolean is set to `1`, then the \p labels buffer is considered pre-initialized with `0`
+ *                       values. Else, if \p no_labels_init parameter is set to `0`, then this function will initialized
+ *                       zones that does not correspond to connected-components with `0` value. In doubt, prefer to set
+ *                       \p no_labels_init parameter to `0`.
  * @return Number of labels.
  */
 uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
@@ -256,7 +295,7 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
                                        uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
                                        uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, uint64_t* RoIs_Sx2,
                                        uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x, float* RoIs_y,
-                                       const size_t RoIs_max_size);
+                                       const size_t RoIs_max_size, const uint8_t no_init_labels);
 
 /**
  * First select pixels according to a threshold, then compute a Connected-Components Labeling algorithm and
@@ -273,10 +312,14 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
  * @param threshold Value (between \f$[0;255]\f$). If the pixel intensity is higher than \p threshold, then the pixel is
  *                  kept for the labeling, else the pixel is ignored.
  * @param RoIs_basic Basic features.
+ * @param no_init_labels If this boolean is set to `1`, then the \p labels buffer is considered pre-initialized with `0`
+ *                       values. Else, if \p no_labels_init parameter is set to `0`, then this function will initialized
+ *                       zones that does not correspond to connected-components with `0` value. In doubt, prefer to set
+ *                       \p no_labels_init parameter to `0`.
  * @return Number of labels.
  */
 uint32_t CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
-                                      const uint8_t threshold, RoIs_basic_t* RoIs_basic);
+                                      const uint8_t threshold, RoIs_basic_t* RoIs_basic, const uint8_t no_init_labels);
 
 /**
  * Free the inner data.

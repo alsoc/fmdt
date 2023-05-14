@@ -6,6 +6,7 @@
 #pragma once
 
 #include <stdint.h>
+#include <sys/time.h>
 
 // FMDT_ENABLE_DEBUG : macro definissant le fonctionnement general des macros de debug
 
@@ -45,3 +46,11 @@
 #define MAX(a, b) (((a) < (b)) ? (b) : (a))
 #endif
 #define CLAMP(x, a, b) MIN(MAX(x, a), b)
+
+#define TIME_POINT(name) struct timeval t_##name; \
+                         gettimeofday(&t_##name, NULL); \
+                         const double t_##name##_us = (double)(t_##name.tv_sec * 1e6 + t_##name.tv_usec);
+#define TIME_ELAPSED_US(name1, name2) (t_##name2##_us - t_##name1##_us)
+#define TIME_ELAPSED_MS(name1, name2) (t_##name2##_us - t_##name1##_us) * 1e-3
+#define TIME_ELAPSED_S(name1, name2) (t_##name2##_us - t_##name1##_us) * 1e-6
+#define TIME_ELAPSED_SEC(name1, name2) TIME_ELAPSED_S(name1, name2)

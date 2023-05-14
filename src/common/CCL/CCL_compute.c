@@ -259,9 +259,10 @@ uint32_t __CCL_LSL_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32
 
 uint32_t _CCL_LSL_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc, uint32_t* CCL_data_eq,
                         uint32_t* CCL_data_ner, const uint8_t** img, uint32_t** labels, const int i0, const int i1,
-                        const int j0, const int j1) {
-    for (int i = i0; i <= i1; i++)
-        memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
+                        const int j0, const int j1, const uint8_t no_init_labels) {
+    if (!no_init_labels)
+        for (int i = i0; i <= i1; i++)
+            memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
 
     // Step #1 - Segment detection
     for (int i = i0; i <= i1; i++)
@@ -276,17 +277,18 @@ uint32_t _CCL_LSL_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_
     return trueN;
 }
 
-uint32_t CCL_LSL_apply(CCL_data_t* CCL_data, const uint8_t** img, uint32_t** labels) {
+uint32_t CCL_LSL_apply(CCL_data_t* CCL_data, const uint8_t** img, uint32_t** labels, const uint8_t no_init_labels) {
     return _CCL_LSL_apply(CCL_data->er, CCL_data->era, CCL_data->rlc, CCL_data->eq, CCL_data->ner, img, labels,
-                          CCL_data->i0, CCL_data->i1, CCL_data->j0, CCL_data->j1);
+                          CCL_data->i0, CCL_data->i1, CCL_data->j0, CCL_data->j1, no_init_labels);
 }
 
 uint32_t _CCL_LSL_threshold_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc,
                                   uint32_t* CCL_data_eq, uint32_t* CCL_data_ner, const uint8_t** img,
                                   uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
-                                  const uint8_t threshold) {
-    for (int i = i0; i <= i1; i++)
-        memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
+                                  const uint8_t threshold, const uint8_t no_init_labels) {
+    if (!no_init_labels)
+        for (int i = i0; i <= i1; i++)
+            memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
 
     // Step #1 - Segment detection
     for (int i = i0; i <= i1; i++)
@@ -302,9 +304,10 @@ uint32_t _CCL_LSL_threshold_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_er
 }
 
 uint32_t CCL_LSL_threshold_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
-                                 const uint8_t threshold) {
+                                 const uint8_t threshold, const uint8_t no_init_labels) {
     return _CCL_LSL_threshold_apply(CCL_data->er, CCL_data->era, CCL_data->rlc, CCL_data->eq, CCL_data->ner, img,
-                                    labels, CCL_data->i0, CCL_data->i1, CCL_data->j0, CCL_data->j1, threshold);
+                                    labels, CCL_data->i0, CCL_data->i1, CCL_data->j0, CCL_data->j1, threshold,
+                                    no_init_labels);
 }
 
 uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CCL_data_era, uint32_t** CCL_data_rlc,
@@ -314,9 +317,10 @@ uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CC
                                            uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
                                            uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, uint64_t* RoIs_Sx2,
                                            uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x, float* RoIs_y,
-                                           const size_t RoIs_max_size) {
-    for (int i = i0; i <= i1; i++)
-        memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
+                                           const size_t RoIs_max_size, const uint8_t no_init_labels) {
+    if (!no_init_labels)
+        for (int i = i0; i <= i1; i++)
+            memset(labels[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
 
     // Step #1 - Segment detection
     for (int i = i0; i <= i1; i++)
@@ -341,14 +345,16 @@ uint32_t _CCL_LSL_threshold_features_apply(uint32_t** CCL_data_er, uint32_t** CC
 }
 
 uint32_t CCL_LSL_threshold_features_apply(CCL_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
-                                          const uint8_t threshold, RoIs_basic_t* RoIs_basic) {
+                                          const uint8_t threshold, RoIs_basic_t* RoIs_basic,
+                                          const uint8_t no_init_labels) {
     uint32_t n_RoIs = _CCL_LSL_threshold_features_apply(CCL_data->er, CCL_data->era, CCL_data->rlc, CCL_data->eq,
                                                         CCL_data->ner, img, labels, CCL_data->i0, CCL_data->i1,
                                                         CCL_data->j0, CCL_data->j1, threshold, RoIs_basic->id,
                                                         RoIs_basic->xmin, RoIs_basic->xmax, RoIs_basic->ymin,
                                                         RoIs_basic->ymax, RoIs_basic->S, RoIs_basic->Sx, RoIs_basic->Sy,
                                                         RoIs_basic->Sx2, RoIs_basic->Sy2, RoIs_basic->Sxy,
-                                                        RoIs_basic->x, RoIs_basic->y, *RoIs_basic->_max_size);
+                                                        RoIs_basic->x, RoIs_basic->y, *RoIs_basic->_max_size,
+                                                        no_init_labels);
     if (n_RoIs <= *RoIs_basic->_max_size)
         *RoIs_basic->_size = n_RoIs;
     return n_RoIs;
@@ -423,18 +429,22 @@ void CCL_init_data(CCL_gen_data_t* CCL_data) {
     }
 }
 
-uint32_t CCL_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** labels) {
+uint32_t CCL_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** labels, const uint8_t no_init_labels) {
     switch (CCL_data->impl) {
         case LSLH: {
-            return CCL_LSL_apply((CCL_data_t*)CCL_data->metadata, img, labels);
+            return CCL_LSL_apply((CCL_data_t*)CCL_data->metadata, img, labels, no_init_labels);
             break;
         }
         case LSLM: {
 #ifdef FMDT_LSL_LINK
             // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
+#ifdef FMDT_LSL_NEW_INTERFACE
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
-            // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
+            return (uint32_t)FLSL_FSM_new_start(img, (int32_t**)labels, metadata->FLSL, 0, NULL, no_init_labels);
+#else
+            LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             return (uint32_t)FLSL_FSM_start((uint8_t**)img, (int32_t**)labels, metadata->FLSL);
+#endif
             break;
 #else
             fprintf(stderr, "(EE) 'LSLM' implementation requires to link with the LSL library.\n");
@@ -449,10 +459,10 @@ uint32_t CCL_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** lab
 }
 
 uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint32_t** labels,
-                             const uint8_t _threshold) {
+                             const uint8_t _threshold, const uint8_t no_init_labels) {
     switch (CCL_data->impl) {
         case LSLH: {
-            return CCL_LSL_threshold_apply((CCL_data_t*)CCL_data->metadata, img, labels, _threshold);
+            return CCL_LSL_threshold_apply((CCL_data_t*)CCL_data->metadata, img, labels, _threshold, no_init_labels);
             break;
         }
         case LSLM: {
@@ -460,7 +470,8 @@ uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint
             // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
 #ifdef FMDT_LSL_NEW_INTERFACE
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
-            return (uint32_t)FLSL_FSM_new_start((uint8_t**)img, (int32_t**)labels, metadata->FLSL, _threshold, NULL);
+            return (uint32_t)FLSL_FSM_new_start(img, (int32_t**)labels, metadata->FLSL, _threshold, NULL,
+                                                no_init_labels);
 #else
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             threshold(img, metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
@@ -481,11 +492,12 @@ uint32_t CCL_threshold_apply(CCL_gen_data_t* CCL_data, const uint8_t** img, uint
 }
 
 uint32_t CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** img, uint32_t** labels,
-                                      const uint8_t _threshold, RoIs_basic_t* RoIs_basic) {
+                                      const uint8_t _threshold, RoIs_basic_t* RoIs_basic,
+                                      const uint8_t no_init_labels) {
     switch (CCL_data->impl) {
         case LSLH: {
             return CCL_LSL_threshold_features_apply((CCL_data_t*)CCL_data->metadata, img, labels, _threshold,
-                                                    RoIs_basic);
+                                                    RoIs_basic, no_init_labels);
             break;
         }
         case LSLM: {
@@ -508,8 +520,8 @@ uint32_t CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** 
             features.x = (float32*)RoIs_basic->x;
             features.y = (float32*)RoIs_basic->y;
             features._capacity = *RoIs_basic->_max_size;
-            uint32_t n_RoIs = (uint32_t)FLSL_FSM_new_start((uint8_t**)img, (int32_t**)labels, metadata->FLSL,
-                                                           _threshold, &features);
+            uint32_t n_RoIs = (uint32_t)FLSL_FSM_new_start(img, (int32_t**)labels, metadata->FLSL, _threshold,
+                                                           &features, no_init_labels);
             if (n_RoIs <= *RoIs_basic->_max_size)
                 *RoIs_basic->_size = n_RoIs;
             return n_RoIs;
@@ -517,7 +529,6 @@ uint32_t CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** 
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
             threshold(img, metadata->tmp_img, metadata->FLSL->nrl, metadata->FLSL->nrh, metadata->FLSL->ncl,
                       metadata->FLSL->nch, _threshold);
-            // int FLSL_FSM_start(uint8** img, sint32** labels, FLSL_Data* metadata);
             uint32_t n_RoIs = (uint32_t)FLSL_FSM_start((uint8_t**)metadata->tmp_img, (int32_t**)labels, metadata->FLSL);
             if (n_RoIs <= *RoIs_basic->_max_size) {
                 features_extract((const uint32_t**)labels, metadata->FLSL->nrl, metadata->FLSL->nrh,
@@ -543,7 +554,7 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
                                        uint32_t* RoIs_xmax, uint32_t* RoIs_ymin, uint32_t* RoIs_ymax,
                                        uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, uint64_t* RoIs_Sx2,
                                        uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x, float* RoIs_y,
-                                       const size_t RoIs_max_size) {
+                                       const size_t RoIs_max_size, const uint8_t no_init_labels) {
     switch (CCL_data->impl) {
         case LSLH: {
             CCL_data_t* metadata = (CCL_data_t*)CCL_data->metadata;
@@ -551,7 +562,8 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
                                                      metadata->ner, img, labels, metadata->i0, metadata->i1,
                                                      metadata->j0, metadata->j1, _threshold, RoIs_id, RoIs_xmin,
                                                      RoIs_xmax,  RoIs_ymin,  RoIs_ymax, RoIs_S, RoIs_Sx, RoIs_Sy,
-                                                     RoIs_Sx2, RoIs_Sy2, RoIs_Sxy, RoIs_x, RoIs_y, RoIs_max_size);
+                                                     RoIs_Sx2, RoIs_Sy2, RoIs_Sxy, RoIs_x, RoIs_y, RoIs_max_size,
+                                                     no_init_labels);
             break;
         }
         case LSLM: {
@@ -574,8 +586,8 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
             features.x = (float32*)RoIs_x;
             features.y = (float32*)RoIs_y;
             features._capacity = RoIs_max_size;
-            uint32_t n_RoIs = (uint32_t)FLSL_FSM_new_start((uint8_t**)img, (int32_t**)labels, metadata->FLSL,
-                                                           _threshold, &features);
+            uint32_t n_RoIs = (uint32_t)FLSL_FSM_new_start(img, (int32_t**)labels, metadata->FLSL, _threshold,
+                                                           &features, no_init_labels);
             return n_RoIs;
 #else
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;

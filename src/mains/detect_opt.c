@@ -262,6 +262,7 @@ int main(int argc, char** argv) {
     // -- VIDEO ALLOCATION & INITIALISATION -- //
     // --------------------------------------- //
 
+    TIME_POINT(start_alloc_init);
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
                                                     p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
@@ -311,6 +312,8 @@ int main(int argc, char** argv) {
     zero_ui8matrix(IH, i0 - b, i1 + b, j0 - b, j1 + b);
     if (p_cca_mag || p_ccl_fra_path)
         zero_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
+    TIME_POINT(stop_alloc_init);
+    printf("# Allocations and initialisations took %6.3f sec\n", TIME_ELAPSED_SEC(start_alloc_init, stop_alloc_init));
 
     // ----------------//
     // -- PROCESSING --//
@@ -320,20 +323,24 @@ int main(int argc, char** argv) {
     size_t real_n_tracks = 0;
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     int cur_fra;
+    TIME_POINT(start_compute);
     while ((cur_fra = video_reader_get_frame(video, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         // step 1 + step 2: threshold low + CCL/CCA
-        unsigned n_RoIs = CCL_threshold_features_apply(ccl_data, (const uint8_t**)I, L1, p_ccl_hyst_lo,
-                                                       RoIs_tmp->basic);
+        const uint8_t no_init_labels = 1; // increase CCL speed BUT requires to call
+                                          // `features_labels_zero_init(..., L1)` after
+        unsigned n_RoIs = CCL_threshold_features_apply(ccl_data, (const uint8_t**)I, L1, p_ccl_hyst_lo, RoIs_tmp->basic,
+                                                       no_init_labels);
         assert(n_RoIs <= RoIs_tmp->_max_size);
 
         // step 3: hysteresis threshold & surface filtering (+ magnitude computations)
         // const uint8_t fast_out_labels = !p_ccl_fra_path; // no longer necessary because the
-                                                            // `features_labels_zero_init` func is called later
+                                                            // `features_labels_zero_init(..., L2)` func is called later
         const uint8_t fast_out_labels = 1;
         features_merge_CCL_HI_v3((const uint32_t**)L1, (const uint8_t**)I, L2, i0, i1, j0, j1, RoIs_tmp->basic,
                                  p_mrp_s_min, p_mrp_s_max, p_ccl_hyst_hi, fast_out_labels);
+        features_labels_zero_init(RoIs_tmp->basic, L1);
         features_shrink_basic(RoIs_tmp->basic, RoIs1->basic);
         if (p_cca_mag)
             features_compute_magnitude((const uint8_t**)I, i0, i1, j0, j1, (const uint32_t**)L2, RoIs1->basic,
@@ -389,16 +396,22 @@ int main(int argc, char** argv) {
             }
         }
 
-        n_frames++;
-        real_n_tracks = tracking_count_objects(tracking_data->tracks, &n_stars, &n_meteors, &n_noise);
-        fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors, n_stars,
-                n_noise, (unsigned long)real_n_tracks);
-        fflush(stderr);
-
+        // swap RoIs0 <-> RoIs1 for the next frame
         RoIs_t* tmp = RoIs0;
         RoIs0 = RoIs1;
         RoIs1 = tmp;
+
+        n_frames++;
+        real_n_tracks = tracking_count_objects(tracking_data->tracks, &n_stars, &n_meteors, &n_noise);
+
+        TIME_POINT(stop_compute);
+        fprintf(stderr, " -- Time = %6.3f sec", TIME_ELAPSED_SEC(start_compute, stop_compute));
+        fprintf(stderr, " -- FPS = %4d", (int)(n_frames / (TIME_ELAPSED_SEC(start_compute, stop_compute))));
+        fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors, n_stars,
+                n_noise, (unsigned long)real_n_tracks);
+        fflush(stderr);
     }
+    TIME_POINT(stop_compute);
     fprintf(stderr, "\n");
 
     if (p_trk_roi_path) {
@@ -416,6 +429,8 @@ int main(int argc, char** argv) {
     printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, (unsigned long)real_n_tracks);
+    printf("# -> Took %6.3f seconds (avg %d FPS)\n", TIME_ELAPSED_SEC(start_compute, stop_compute),
+           (int)(n_frames / (TIME_ELAPSED_SEC(start_compute, stop_compute))));
 
     // ----------
     // -- FREE --

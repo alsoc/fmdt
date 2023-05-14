@@ -350,6 +350,7 @@ int main(int argc, char** argv) {
     // -- INITIALISATION GLOBAL DATA -- //
     // -------------------------------- //
 
+    std::chrono::time_point<std::chrono::steady_clock> t_start_alloc_init = std::chrono::steady_clock::now();
     tracking_init_global_data();
 
     // ---------------- //
@@ -845,18 +846,23 @@ int main(int argc, char** argv) {
                 auto time_duration =
                     (int64_t)std::chrono::duration_cast<std::chrono::microseconds>(t_stop - t_start).count();
                 auto time_duration_sec = time_duration * 1e-6;
-
+                n_frames++;
                 fprintf(stderr, " -- Time = %6.3f sec", time_duration_sec);
                 fprintf(stderr, " -- FPS = %4d", (int)(n_frames / time_duration_sec));
                 fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors,
                         n_stars, n_noise, (unsigned long)n_tracks);
                 fflush(stderr);
-                n_frames++;
                 if (rt_probes_file.is_open())
                     terminal_probes.temp_report(rt_probes_file);
             }
             return aff3ct::tools::Terminal::is_interrupt(); // catch "Ctrl+c" signal interruption
         };
+
+    std::chrono::time_point<std::chrono::steady_clock> t_stop_alloc_init = std::chrono::steady_clock::now();
+    auto time_duration =
+        (int64_t)std::chrono::duration_cast<std::chrono::microseconds>(t_stop_alloc_init - t_start_alloc_init).count();
+    auto time_duration_sec = time_duration * 1e-6;
+    printf("# Allocations and initialisations took %6.3f sec\n", time_duration_sec);
 
     printf("# The program is running...\n");
 
@@ -904,8 +910,8 @@ int main(int argc, char** argv) {
     printf("# -> Processed frames = %4d\n", n_frames);
     printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
            n_noise, (unsigned long)real_n_tracks);
-    auto time_duration = (int64_t)std::chrono::duration_cast<std::chrono::microseconds>(t_stop - t_start).count();
-    auto time_duration_sec = time_duration * 1e-6;
+    time_duration = (int64_t)std::chrono::duration_cast<std::chrono::microseconds>(t_stop - t_start).count();
+    time_duration_sec = time_duration * 1e-6;
     printf("# -> Took %6.3f seconds (avg %d FPS)\n", time_duration_sec, (int)(n_frames / time_duration_sec));
 
     // display the statistics of the tasks (if enabled)

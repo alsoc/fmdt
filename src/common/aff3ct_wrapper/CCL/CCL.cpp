@@ -30,7 +30,7 @@ CCL::CCL(const int i0, const int i1, const int j0, const int j1, const int b, co
                                        lsl.j1 + lsl.b, (const uint32_t**)lsl.out_labels);
 
         uint32_t* m_out_n_ROI = static_cast<uint32_t*>(t[ps_out_n_RoIs].get_dataptr());
-        *m_out_n_ROI = CCL_apply(lsl.data, lsl.in_img, lsl.out_labels);
+        *m_out_n_ROI = CCL_apply(lsl.data, lsl.in_img, lsl.out_labels, 0);
         return aff3ct::runtime::status_t::SUCCESS;
     });
 }

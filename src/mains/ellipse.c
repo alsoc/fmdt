@@ -248,7 +248,7 @@ int main(int argc, char** argv) {
         threshold((const uint8_t**)Max, IL, i0, i1, j0, j1, p_ccl_hyst_lo);
 
         // step 3: CCL/CCA
-        const int n_RoI = CCL_LSL_apply(ccl_data, (const uint8_t**)IL, L1);
+        const int n_RoI = CCL_LSL_apply(ccl_data, (const uint8_t**)IL, L1, 0);
         features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoI, RoIs_tmp->basic);
 
         // step 4: hysteresis threshold & surface filtering
