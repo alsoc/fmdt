@@ -340,7 +340,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         motion_t motion_est1, motion_est2; // motion_est is initialized at 0 by default in C
-        uint32_t n_RoIs, n_RoIs_hyst, n_assocs;
+        uint32_t n_RoIs = 0, n_RoIs_hyst = 0, n_assocs = 0;
 
         // step 1: threshold low
         threshold((const uint8_t**)I, IL, i0, i1, j0, j1, p_ccl_hyst_lo);

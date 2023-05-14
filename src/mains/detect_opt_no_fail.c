@@ -340,7 +340,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         motion_t motion_est1, motion_est2; // motion_est is initialized at 0 by default in C
-        uint32_t n_RoIs, n_RoIs_hyst, n_assocs;
+        uint32_t n_RoIs = 0, n_RoIs_hyst = 0, n_assocs = 0;
 
         // step 1 + step 2: threshold low + CCL/CCA
         const uint8_t no_init_labels = 1; // increase CCL speed but requires to call

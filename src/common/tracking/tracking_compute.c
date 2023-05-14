@@ -418,7 +418,7 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
                         memcpy(&RoIs_list[0], &history->RoIs[1][i], sizeof(RoI_t));
 
                         const size_t n_RoIs = fra_min - 1;
-                        for (int ii = 1; ii < n_RoIs; ii++)
+                        for (size_t ii = 1; ii < n_RoIs; ii++)
                             memcpy(&RoIs_list[ii], &history->RoIs[ii + 1][RoIs_list[ii - 1].prev_id - 1],
                                    sizeof(RoI_t));
 
