@@ -112,7 +112,8 @@ Features_merger_CCL_HI_v2::Features_merger_CCL_HI_v2(const int i0, const int i1,
                                                    static_cast<uint64_t*>(t[ps_out_RoIs_Sy2].get_dataptr()),
                                                    static_cast<uint64_t*>(t[ps_out_RoIs_Sxy].get_dataptr()),
                                                    static_cast<float*>(t[ps_out_RoIs_x].get_dataptr()),
-                                                   static_cast<float*>(t[ps_out_RoIs_y].get_dataptr()));
+                                                   static_cast<float*>(t[ps_out_RoIs_y].get_dataptr()),
+                                                   mrg.max_out_RoIs_size);
 
         *static_cast<uint32_t*>(t[ps_out_n_RoIs].get_dataptr()) = (uint32_t)out_n_RoIs;
 

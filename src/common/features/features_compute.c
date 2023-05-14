@@ -250,7 +250,6 @@ void _features_extract(const uint32_t** labels, const int i0, const int i1, cons
         for (int j = j0; j <= j1; j++) {
             uint32_t e = (uint32_t)labels[i][j];
             if (e > 0) {
-                assert(e < MAX_ROI_SIZE_BEFORE_SHRINK);
                 uint32_t r = e - 1;
                 RoIs_S[r] += 1;
                 RoIs_id[r] = e;
@@ -440,11 +439,11 @@ size_t _features_shrink_basic(const uint32_t* RoIs_src_id, const uint32_t* RoIs_
                               uint32_t* RoIs_dst_xmax, uint32_t* RoIs_dst_ymin, uint32_t* RoIs_dst_ymax,
                               uint32_t* RoIs_dst_S, uint32_t* RoIs_dst_Sx, uint32_t* RoIs_dst_Sy,
                               uint64_t* RoIs_dst_Sx2, uint64_t* RoIs_dst_Sy2, uint64_t* RoIs_dst_Sxy, float* RoIs_dst_x,
-                              float* RoIs_dst_y) {
+                              float* RoIs_dst_y, const size_t max_RoIs_dst_size) {
     size_t cpt = 0;
     for (size_t i = 0; i < n_RoIs_src; i++) {
         if (RoIs_src_id[i]) {
-            assert(cpt < MAX_ROI_SIZE);
+            assert(cpt < max_RoIs_dst_size);
             RoIs_dst_id[cpt] = cpt + 1;
             RoIs_dst_xmin[cpt] = RoIs_src_xmin[i];
             RoIs_dst_xmax[cpt] = RoIs_src_xmax[i];
@@ -478,7 +477,8 @@ void features_shrink_basic(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoI
                                                     RoIs_basic_dst->S, RoIs_basic_dst->Sx,
                                                     RoIs_basic_dst->Sy, RoIs_basic_dst->Sx2,
                                                     RoIs_basic_dst->Sy2, RoIs_basic_dst->Sxy,
-                                                    RoIs_basic_dst->x, RoIs_basic_dst->y);
+                                                    RoIs_basic_dst->x, RoIs_basic_dst->y,
+                                                    *RoIs_basic_dst->_max_size);
 }
 
 size_t _features_shrink_basic_misc(const uint32_t* RoIs_src_id, const uint32_t* RoIs_src_xmin,
@@ -494,12 +494,12 @@ size_t _features_shrink_basic_misc(const uint32_t* RoIs_src_id, const uint32_t* 
                                    uint32_t* RoIs_dst_Sx, uint32_t* RoIs_dst_Sy, uint64_t* RoIs_dst_Sx2,
                                    uint64_t* RoIs_dst_Sy2, uint64_t* RoIs_dst_Sxy, float* RoIs_dst_x,
                                    float* RoIs_dst_y, uint32_t* RoIs_dst_magnitude, uint32_t* RoIs_dst_sat_count,
-                                   float* RoIs_dst_a, float* RoIs_dst_b) {
+                                   float* RoIs_dst_a, float* RoIs_dst_b, const size_t max_RoIs_dst_size) {
 
     size_t cpt = 0;
     for (size_t i = 0; i < n_RoIs_src; i++) {
         if (RoIs_src_id[i]) {
-            assert(cpt < MAX_ROI_SIZE);
+            assert(cpt < max_RoIs_dst_size);
             RoIs_dst_id[cpt] = cpt + 1;
             RoIs_dst_xmin[cpt] = RoIs_src_xmin[i];
             RoIs_dst_xmax[cpt] = RoIs_src_xmax[i];
@@ -543,7 +543,8 @@ void features_shrink_basic_misc(const RoIs_basic_t* RoIs_basic_src, const RoIs_m
                                                          RoIs_basic_dst->Sx, RoIs_basic_dst->Sy, RoIs_basic_dst->Sx2,
                                                          RoIs_basic_dst->Sy2, RoIs_basic_dst->Sxy, RoIs_basic_dst->x,
                                                          RoIs_basic_dst->y, RoIs_misc_dst->magnitude,
-                                                         RoIs_misc_dst->sat_count, RoIs_misc_dst->a, RoIs_misc_dst->b);
+                                                         RoIs_misc_dst->sat_count, RoIs_misc_dst->a, RoIs_misc_dst->b,
+                                                         *RoIs_basic_dst->_max_size);
 }
 
 void _features_compute_magnitude(const uint8_t** img, const int i0, const int i1, const int j0, const int j1,

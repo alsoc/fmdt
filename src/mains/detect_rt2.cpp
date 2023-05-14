@@ -34,6 +34,16 @@
 #include "fmdt/aff3ct_wrapper/Logger/Logger_tracks.hpp"
 #include "fmdt/aff3ct_wrapper/Logger/Logger_frame.hpp"
 
+/**
+ *  Maximum number of RoIs before `features_merge_CCL_HI` selection.
+ */
+#define MAX_ROI_SIZE_BEFORE_SHRINK 65535
+
+/**
+ *  Maximum number of RoIs after `features_merge_CCL_HI` selection.
+ */
+#define MAX_ROI_SIZE 400
+
 int main(int argc, char** argv) {
     // default values
     char* def_p_vid_in_path = NULL;

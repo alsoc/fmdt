@@ -323,6 +323,7 @@ uint32_t features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** im
  * @param RoIs_dst_Sxy Destination array of sums of \f$x * y\f$ properties.
  * @param RoIs_dst_x Destination array of centroids abscissas.
  * @param RoIs_dst_y Destination array of centroids ordinates.
+ * @param max_RoIs_dst_size Maximum capacity of the `RoIs_dst_xxx` arrays.
  * @return Number of regions of interest (RoIs) after the data shrink.
  * @see features_merge_CCL_HI_v2 for more explanations about why some identifiers can be set to 0.
  * @see RoIs_basic_t for more explanations about the features.
@@ -336,7 +337,7 @@ size_t _features_shrink_basic(const uint32_t* RoIs_src_id, const uint32_t* RoIs_
                               uint32_t* RoIs_dst_xmax, uint32_t* RoIs_dst_ymin, uint32_t* RoIs_dst_ymax,
                               uint32_t* RoIs_dst_S, uint32_t* RoIs_dst_Sx, uint32_t* RoIs_dst_Sy,
                               uint64_t* RoIs_dst_Sx2, uint64_t* RoIs_dst_Sy2, uint64_t* RoIs_dst_Sxy, float* RoIs_dst_x,
-                              float* RoIs_dst_y);
+                              float* RoIs_dst_y, const size_t max_RoIs_dst_size);
 
 /**
  * @param RoIs_basic_src Source features.
@@ -385,6 +386,7 @@ void features_shrink_basic(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoI
  * @param RoIs_dst_sat_count Destination array of saturation counters.
  * @param RoIs_dst_a Destination array of RoI semi-major axis.
  * @param RoIs_dst_b Destination array of RoI semi-minor axis.
+ * @param max_RoIs_dst_size Maximum capacity of the `RoIs_dst_xxx` arrays.
  * @return size_t Number of regions of interest (RoIs) after the data shrink.
  * @see features_merge_CCL_HI_v2 for more explanations about why some identifiers can be set to 0.
  * @see RoIs_basic_t for more explanations about the features.
@@ -403,7 +405,7 @@ size_t _features_shrink_basic_misc(const uint32_t* RoIs_src_id, const uint32_t* 
                                    uint32_t* RoIs_dst_Sx, uint32_t* RoIs_dst_Sy, uint64_t* RoIs_dst_Sx2,
                                    uint64_t* RoIs_dst_Sy2, uint64_t* RoIs_dst_Sxy, float* RoIs_dst_x,
                                    float* RoIs_dst_y, uint32_t* RoIs_dst_magnitude, uint32_t* RoIs_dst_sat_count,
-                                   float* RoIs_dst_a, float* RoIs_dst_b);
+                                   float* RoIs_dst_a, float* RoIs_dst_b, const size_t max_RoIs_dst_size);
 
 /**
  * @param RoIs_basic_src Source features.

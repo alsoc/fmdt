@@ -42,7 +42,7 @@ Features_extractor::Features_extractor(const int i0, const int i1, const int j0,
                                        ext.in_img);
 
         uint32_t n_RoIs = *static_cast<uint32_t*>(t[ps_in_n_RoIs].get_dataptr());
-
+        assert(n_RoIs <= ext.max_RoIs_size);
         _features_extract(ext.in_img, ext.i0, ext.i1, ext.j0, ext.j1,
                           static_cast<uint32_t*>(t[ps_out_RoIs_id].get_dataptr()),
                           static_cast<uint32_t*>(t[ps_out_RoIs_xmin].get_dataptr()),
