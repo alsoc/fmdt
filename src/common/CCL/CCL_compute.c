@@ -505,7 +505,7 @@ uint32_t CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t** 
             // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
 #ifdef FMDT_LSL_NEW_INTERFACE
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
-            FLSL_features features;
+            FLSL_Features features;
             features.id = (uint32*)RoIs_basic->id;
             features.xmin = (uint32*)RoIs_basic->xmin;
             features.xmax = (uint32*)RoIs_basic->xmax;
@@ -571,7 +571,7 @@ uint32_t _CCL_threshold_features_apply(CCL_gen_data_t *CCL_data, const uint8_t**
             // /!\ SIMD LSL versions require {0, 255} 'img' to work!!
 #ifdef FMDT_LSL_NEW_INTERFACE
             LSLM_metadata_t* metadata = (LSLM_metadata_t*)CCL_data->metadata;
-            FLSL_features features;
+            FLSL_Features features;
             features.id = (uint32*)RoIs_id;
             features.xmin = (uint32*)RoIs_xmin;
             features.xmax = (uint32*)RoIs_xmax;
