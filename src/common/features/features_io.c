@@ -174,7 +174,7 @@ void _features_RoIs_write(FILE* f, const int frame, const uint32_t* RoIs_id, con
 
             char ratio_str[16];
             if (RoIs_a != NULL && RoIs_b != NULL) {
-                float ratio = (RoIs_b[i] == 0.0) ? RoIs_a[i] : RoIs_a[i] / RoIs_b[i];
+                float ratio = (RoIs_b[i] == 0.0f) ? RoIs_a[i] : RoIs_a[i] / RoIs_b[i];
                 snprintf(ratio_str, sizeof(ratio_str), "%6.2f", ratio);
             }
             else

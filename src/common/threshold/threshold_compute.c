@@ -34,7 +34,7 @@ void _threshold_ellipse_ratio(const float* RoIs_a, const float* RoIs_b, const si
         if (RoIs_id[e]) {
             float a = RoIs_a[e];
             float b = RoIs_b[e];
-            float ratio = (b == 0.0) ? a : (a / b);
+            float ratio = (b == 0.0f) ? a : (a / b);
             if (ratio < min_ratio) {
                 RoIs_id[e] = 0;
             }
