@@ -1,4 +1,7 @@
 TODO list:
+- [ ] Write an interactive Python script to ease the human detection task 
+      (= ground truth)
+- [ ] In `fmdt-log-parser`, find the RoIs without the "tracks to RoIs" file.
 - [ ] Implement *socket forward* in AFF3CT-core will significantly speedup the
       CCL. More precisely, *socket forward* is required to wrap the 
       `features_labels_zero_init` function in the runtime)
