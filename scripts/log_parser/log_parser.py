@@ -1,9 +1,15 @@
 #!/usr/bin/env python3
 
-import fmdt.log
+import sys
+
+major = 3
+minor = 9
+if not (sys.version_info[0] >= major and sys.version_info[1] >= minor):
+    raise Exception("'fmdt-log-parser' requires Python >= " + str(major) + "." + str(minor))
+
 import json
 import argparse
-import sys
+import fmdt.log
 
 parser = argparse.ArgumentParser(prog='fmdt-log-parser',
                                  formatter_class=argparse.ArgumentDefaultsHelpFormatter)
