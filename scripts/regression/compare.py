@@ -1,6 +1,7 @@
 #!/usr/bin/env python3
 
 import os
+import shutil
 import sys
 import hashlib
 import argparse
@@ -215,7 +216,7 @@ def display_res(res, exe_name):
     print("#")
     return 1
 
-file_exceptions = ["bb.txt", "mag.txt", "tracks.txt"]
+file_exceptions = ["bb.txt", "mag.txt", "tracks.txt", "trk2roi.txt"]
 
 def main_diff(path_ref, exe_name):
     res = []

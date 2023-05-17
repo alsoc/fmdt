@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <string.h>
 #include <stdlib.h>
+#include <stdio.h>
 
 #ifdef FMDT_OPENCV_LINK
 #include <tuple>
@@ -357,29 +358,61 @@ img_data_t* image_gs_alloc(const size_t img_width, const size_t img_height) {
 }
 
 void _image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* RoIs_id,
-                           const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
-                           const size_t n_RoIs, const uint8_t show_id) {
+                           const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
+                           const uint32_t* RoIs_ymax, const size_t n_RoIs, const uint8_t show_id) {
 #ifdef FMDT_OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     // convert labels to black & white image: white if there is a CC, black otherwise
+    // for (size_t i = 0; i < (size_t)pixels->rows; i++)
+    //     for (size_t j = 0; j < (size_t)pixels->cols; j++)
+    //         pixels->at<uint8_t>(i, j) = (labels[i][j] == 0) ? 0 : 255;
+
     for (size_t i = 0; i < (size_t)pixels->rows; i++)
         for (size_t j = 0; j < (size_t)pixels->cols; j++)
-            pixels->at<uint8_t>(i, j) = (labels[i][j] == 0) ? 0 : 255;
+            pixels->at<uint8_t>(i, j) = 0;
+
+    for (size_t i = 0; i < n_RoIs; i++) {
+        uint32_t id = RoIs_id[i];
+        uint32_t x0 = RoIs_ymin[i];
+        uint32_t x1 = RoIs_ymax[i];
+        uint32_t y0 = RoIs_xmin[i];
+        uint32_t y1 = RoIs_xmax[i];
+        for (uint32_t k = x0; k <= x1; k++)
+            for (uint32_t l = y0; l <= y1; l++)
+                if (labels[k][l] == id)
+                    pixels->at<uint8_t>(k, l) = 255;
+    }
+
     if (show_id)
         _image_draw_RoIs_id(*pixels, RoIs_id, RoIs_xmax, RoIs_ymin, RoIs_ymax, n_RoIs);
 #else
     uint8_t** pixels = (uint8_t**)img_data->pixels;
     // convert labels to black & white image: white if there is a CC, black otherwise
+    // for (size_t i = 0; i < img_data->height; i++)
+    //     for (size_t j = 0; j < img_data->width; j++)
+    //         pixels[i][j] = (labels[i][j] == 0) ? 0 : 255;
+
     for (size_t i = 0; i < img_data->height; i++)
-        for (size_t j = 0; j < img_data->width; j++)
-            pixels[i][j] = (labels[i][j] == 0) ? 0 : 255;
+        memset(pixels[i], 0, img_data->width * sizeof(uint8_t));
+
+    for (size_t i = 0; i < n_RoIs; i++) {
+        uint32_t id = RoIs_id[i];
+        uint32_t x0 = RoIs_ymin[i];
+        uint32_t x1 = RoIs_ymax[i];
+        uint32_t y0 = RoIs_xmin[i];
+        uint32_t y1 = RoIs_xmax[i];
+        for (uint32_t k = x0; k <= x1; k++)
+            for (uint32_t l = y0; l <= y1; l++)
+                if (labels[k][l] == id)
+                    pixels[k][l] = 255;
+    }
 #endif
 }
 
 void image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const RoIs_basic_t* RoIs_basic,
                           const uint8_t show_id) {
-    _image_gs_draw_labels(img_data, labels, RoIs_basic->id, RoIs_basic->xmax, RoIs_basic->ymin, RoIs_basic->ymax,
-                          *RoIs_basic->_size, show_id);
+    _image_gs_draw_labels(img_data, labels, RoIs_basic->id, RoIs_basic->xmin, RoIs_basic->xmax, RoIs_basic->ymin,
+                          RoIs_basic->ymax, *RoIs_basic->_size, show_id);
 }
 
 uint8_t* image_gs_get_pixels(img_data_t* img_data) {
@@ -453,6 +486,25 @@ void image_color_draw_BBs(img_data_t* img_data, const uint8_t** img, const BB_t*
                    img_data->height);
 #ifdef FMDT_OPENCV_LINK
     image_draw_text(img_data, BBs, BBs_color, n_BBs, is_gt, show_id);
+#endif
+}
+
+void image_color_draw_frame_id(img_data_t* img_data, const size_t frame_id) {
+#ifdef FMDT_OPENCV_LINK
+    cv::Mat* cv_mat = (cv::Mat*)img_data->pixels;
+    rgb8_t gray = image_get_color(COLOR_GRAY);
+    size_t x = 5;
+    size_t y = img_data->height - 10;
+    char str[1024];
+    snprintf(str, sizeof(str), "Frame: %u", (unsigned)frame_id);
+    cv::putText(*cv_mat,
+                str,                                // text
+                cv::Point(x, y),                    // position
+                cv::FONT_HERSHEY_DUPLEX,            // font type
+                0.7,                                // font size
+                cv::Scalar(gray.r, gray.g, gray.b), // color
+                1,                                  // ?
+                cv::LINE_AA);                       // ?
 #endif
 }
 

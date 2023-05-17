@@ -42,6 +42,21 @@
 /** Define "too long duration" string */
 #define TOO_LONG_DURATION_STR "too long duration"
 
+/** Define "ellipse ratio" string */
+#define ELLIPSE_RATIO_STR "ellipse ratio"
+
+/** Define "unknown" string (for state) */
+#define STATE_UNKNOWN_STR "unknown"
+
+/** Define "updated" string (for state) */
+#define STATE_UPDATED_STR "updated"
+
+/** Define "lost" string (for state) */
+#define STATE_LOST_STR "lost"
+
+/** Define "finished" string (for state) */
+#define STATE_FINISHED_STR "finished"
+
 /** LUT to find object color from its type */
 extern enum color_e g_obj_to_color[N_OBJECTS];
 
@@ -56,6 +71,12 @@ extern char g_change_state_to_string[N_REASONS][64];
 
 /** LUT to find reason string (with spaces) from its reason */
 extern char g_change_state_to_string_with_spaces[N_REASONS][64];
+
+/** LUT to find state string from its actual state */
+extern char g_state_to_string[N_STATES][64];
+
+/** LUT to find state string (with spaces) from its actual state */
+extern char g_state_to_string_with_spaces[N_STATES][64];
 
 /**
  * Initialize global LUTs (`g_obj_to_color`, `g_obj_to_string`, `g_obj_to_string_with_spaces`,

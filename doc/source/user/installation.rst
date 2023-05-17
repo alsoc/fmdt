@@ -13,8 +13,10 @@ command**:
 
 .. code-block:: bash
 
-	git submodule update --init --recursive
-
+	git submodule update --init --recursive -- lib/ffmpeg-io
+	git submodule update --init --recursive -- lib/nrc2
+	git submodule update --init --recursive -- lib/c-vector
+	git submodule update --init --recursive -- lib/aff3ct-core
 
 .. note:: ``ffmpeg-io`` requires the ``ffmpeg`` executable: **you need to
           install ffmpeg on your system** if you want to be able to read video
@@ -136,3 +138,13 @@ Here is the list of the CMake available options:
 
    Link with |AFF3CT| runtime and produce multi-threaded detection executable
    (``fmdt-detect-rt``).
+
+- ``FMDT_LSL_LINK``
+
+   :Type: BOOLEAN
+   :Default: OFF
+   :Example: ``cmake .. -DFMDT_LSL_LINK=ON``
+
+   Link with an external |CCL| library. Then the |CCL| implementation can be
+   changed with the :ref:`detect_ccl-impl` parameter. **This library is not
+   public yet so it may fail when enabling this option.**

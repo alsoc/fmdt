@@ -17,6 +17,7 @@ rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 # rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 export SPHINX_BUILDERNAME="html"
+export SKIP_VERSION="YES"
 make clean
 sphinx-build -M html source build -j $THREADS
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi

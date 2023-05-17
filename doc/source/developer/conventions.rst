@@ -194,3 +194,54 @@ Structures and Enumerations
                    COLOR_YELLOW,
                    N_COLORS
     };
+
+Other Conventions
+^^^^^^^^^^^^^^^^^
+
+Images Sizes and Borders
+""""""""""""""""""""""""
+
+In |FMDT| the image sizes are given with 4 parameters:
+
+- ``i0``: first height index in the image (included),
+- ``i1``: last height index in the image (included),
+- ``j0``: first width index in the image (included),
+- ``j1``: last width index in the image (included).
+
+Images data can be accessed in 2D: ``img[id_height][id_width]``.
+For instance if the resolution of the image is :math:`1920 \times 1080`, then
+the first pixel can be accessed like this: ``img[0][0]``
+and the last one like this: ``img[1079][1919]``. In the previous example:
+
+- ``i0 = 0``,
+- ``i1 = 1079``,
+- ``j0 = 0``,
+- ``j1 = 1919``.
+
+Here is an example how to loop over an image in |FMDT|:
+
+.. code-block:: c
+
+    for (int i = i0; i <= i1; i++)
+        for (int j = j0; j <= j1; i++)
+            printf("Pixel img[%d][%d] has the following val: %d\n",
+                   i, j, img[i][j]);
+
+In |FMDT|, images are allocated with the |NRC| library (see
+:numref:`developer_deps_nrc`). Then images can have borders (= extra columns or
+lines). The extra columns or lines on the left or on the top can be accessed
+with negatives indexes. The extra columns or lines on the right or on the bottom
+can be accessed with higher indexes than ``i1`` and ``j1`` values.
+
+Objects Identifiers
+"""""""""""""""""""
+
+In |FMDT| there are mainly two different types of object: the **RoIs** (= |CCs|)
+and the **tracks**. A |RoI| represents a set of connected pixels at a given time
+:math:`t` while a track represents an object over the time (stars, meteors,
+noise, ...).
+To distinguish different objects of the same type (|RoI| or track), |FMDT| uses
+unique identifiers. These identifiers are encoded by 32-bit unsigned integers
+and they start from **1** (and NOT 0).
+The 0 value is used to recognize uninitialized objects or to mark an object for
+later deletion.

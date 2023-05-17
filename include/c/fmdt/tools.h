@@ -5,9 +5,20 @@
 
 #pragma once
 
+#include <stdio.h>
 #include <stdint.h>
 
 #include "fmdt/image/image_struct.h"
+
+/**
+ *  Vector of int, to use with C vector lib.
+ */
+typedef int* vec_int_t;
+
+/**
+ *  Vector of vector of int, to use with C vector lib.
+ */
+typedef vec_int_t* vec2D_int_t;
 
 /**
  * Copy a 2D array.

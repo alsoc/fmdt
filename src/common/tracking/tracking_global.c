@@ -12,6 +12,8 @@ char g_obj_to_string[N_OBJECTS][64];
 char g_obj_to_string_with_spaces[N_OBJECTS][64];
 char g_change_state_to_string[N_REASONS][64];
 char g_change_state_to_string_with_spaces[N_REASONS][64];
+char g_state_to_string[N_STATES][64];
+char g_state_to_string_with_spaces[N_STATES][64];
 
 void tracking_init_global_data() {
     g_obj_to_color[OBJ_UNKNOWN] = UNKNOWN_COLOR;
@@ -52,6 +54,9 @@ void tracking_init_global_data() {
     char str_too_long_duration[64] = TOO_LONG_DURATION_STR;
     snprintf(g_change_state_to_string[REASON_TOO_LONG_DURATION],
         sizeof(g_change_state_to_string[REASON_TOO_LONG_DURATION]), "%s", str_too_long_duration);
+    char str_ellipse_ratio[64] = ELLIPSE_RATIO_STR;
+    snprintf(g_change_state_to_string[REASON_ELLIPSE_RATIO],
+        sizeof(g_change_state_to_string[REASON_ELLIPSE_RATIO]), "%s", str_ellipse_ratio);
 
     max = 0;
     for (int i = 0; i < N_REASONS; i++)
@@ -65,6 +70,29 @@ void tracking_init_global_data() {
             g_change_state_to_string_with_spaces[i][diff + c] = g_change_state_to_string[i][c];
         for (int c = 0; c < diff; c++)
             g_change_state_to_string_with_spaces[i][c] = ' ';
+    }
+
+    char str_state_unknown[64] = STATE_UNKNOWN_STR;
+    snprintf(g_state_to_string[STATE_UNKNOWN], sizeof(g_state_to_string[STATE_UNKNOWN]), "%s", str_state_unknown);
+    char str_state_updated[64] = STATE_UPDATED_STR;
+    snprintf(g_state_to_string[STATE_UPDATED], sizeof(g_state_to_string[STATE_UPDATED]), "%s", str_state_updated);
+    char str_state_lost[64] = STATE_LOST_STR;
+    snprintf(g_state_to_string[STATE_LOST], sizeof(g_state_to_string[STATE_LOST]), "%s", str_state_lost);
+    char str_state_finished[64] = STATE_FINISHED_STR;
+    snprintf(g_state_to_string[STATE_FINISHED], sizeof(g_state_to_string[STATE_FINISHED]), "%s", str_state_finished);
+
+    max = 0;
+    for (int i = 0; i < N_STATES; i++)
+        if (strlen(g_state_to_string[i]) > max)
+            max = strlen(g_state_to_string[i]);
+
+    for (int i = 0; i < N_STATES; i++) {
+        int len = strlen(g_state_to_string[i]);
+        int diff = max - len;
+        for (int c = len; c >= 0; c--)
+            g_state_to_string_with_spaces[i][diff + c] = g_state_to_string[i][c];
+        for (int c = 0; c < diff; c++)
+            g_state_to_string_with_spaces[i][c] = ' ';
     }
 }
 

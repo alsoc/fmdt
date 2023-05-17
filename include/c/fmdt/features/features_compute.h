@@ -149,7 +149,7 @@ void features_free_RoIs(RoIs_t* RoIs);
  */
 void _features_extract(const uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
                        uint32_t* RoIs_id, uint32_t* RoIs_xmin, uint32_t* RoIs_xmax, uint32_t* RoIs_ymin,
-                       uint32_t* RoIs_ymax, uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy, 
+                       uint32_t* RoIs_ymax, uint32_t* RoIs_S, uint32_t* RoIs_Sx, uint32_t* RoIs_Sy,
                        uint64_t* RoIs_Sx2, uint64_t* RoIs_Sy2, uint64_t* RoIs_Sxy, float* RoIs_x,
                        float* RoIs_y, const size_t n_RoIs);
 
@@ -194,12 +194,14 @@ void features_extract(const uint32_t** labels, const int i0, const int i1, const
  * @param n_RoIs Number of connected-components (= number of RoIs) in the 2D array of `in_labels`.
  * @param S_min Minimum morphological threshold.
  * @param S_max Maximum morphological threshold.
+ * @return Number of labels.
  * @see RoIs_basic_t for more explanations about the features.
  */
-void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
-                               const int i1, const int j0, const int j1, uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
-                               const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
-                               const uint32_t* RoIs_S, const size_t n_RoIs, const uint32_t S_min, const uint32_t S_max);
+uint32_t _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels,
+                                   const int i0, const int i1, const int j0, const int j1, uint32_t* RoIs_id,
+                                   const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
+                                   const uint32_t* RoIs_ymax, const uint32_t* RoIs_S, const size_t n_RoIs,
+                                   const uint32_t S_min, const uint32_t S_max);
 
 /**
  * @param in_labels Input 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
@@ -214,12 +216,82 @@ void _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_H
  * @param RoIs_basic Features.
  * @param S_min Minimum morphological threshold.
  * @param S_max Maximum morphological threshold.
+ * @return Number of labels.
  * @see _features_merge_CCL_HI_v2 for the explanations about the nature of the processing.
  * @see RoIs_basic_t for more explanations about the features.
  */
-void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels, const int i0,
-                              const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic, const uint32_t S_min,
-                              const uint32_t S_max);
+uint32_t features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels,
+                                  const int i0, const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic,
+                                  const uint32_t S_min, const uint32_t S_max);
+
+/**
+ * Hysteresis re-labeling and morphological thresholding. From a 2D array of labels (`in_label`) and a grayscale image
+ * (`img`), the function generates a new 2D array of labels (`out_labels`). The newly produced labels (`out_labels`)
+ * are a sub-set of the "old" labels (`in_labels`). Labels from `in_labels` are kept in `out_labels` only if at least
+ * one pixel of the current connected-component exists in the binary image (`img`). Finally, this function performs a
+ * morphological thresholding as follow: if \f$ S_{min} > S \f$ or \f$ S > S_{max}\f$ then the corresponding `RoIs_id`
+ * is set to 0.
+ * Note: this function is optimized to be more efficient than to compute the thresholding and to merge the labels
+ * separately.
+ * @param in_labels Input 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
+ * @param img Grayscale image (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$, grayscale is in \f$[0;255]\f$ range).
+ * @param out_labels Output 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$). \p out_labels can be NULL, this way
+ *                   only the features will be updated. \p out_labels can also be the same pointer as \p in_labels, this
+ *                   way the output labels will be computed in place.
+ * @param i0 First \f$y\f$ index in the labels (included).
+ * @param i1 Last \f$y\f$ index in the labels (included).
+ * @param j0 First \f$x\f$ index in the labels (included).
+ * @param j1 Last \f$x\f$ index in the labels (included).
+ * @param RoIs_id Array of RoI unique identifiers.
+ * @param RoIs_xmin Array of minimum \f$x\f$ coordinates of the bounding box.
+ * @param RoIs_xmax Array of maximum \f$x\f$ coordinates of the bounding box.
+ * @param RoIs_ymin Array of minimum \f$y\f$ coordinates of the bounding box.
+ * @param RoIs_ymax Array of maximum \f$y\f$ coordinates of the bounding box.
+ * @param RoIs_S Array of RoI surfaces.
+ * @param n_RoIs Number of connected-components (= number of RoIs) in the 2D array of `in_labels`.
+ * @param S_min Minimum morphological threshold.
+ * @param S_max Maximum morphological threshold.
+ * @param threshold_high Value (between \f$[0;255]\f$). If the pixel intensity is higher than \p threshold, then the
+ *                       pixel is kept for the re-labeling, else the pixel is ignored. \p threshold_high should be
+ *                       higher than the threshold value used for \p in_labels.
+ * @param no_labels_zeros_init Boolean for optimization purpose. If set to 1, \p out_labels is not initialized in this
+ *                             function. Thus, it is up to the developer to properly initialize \p out_labels before
+ *                             calling this routine. If you are not sure, prefer to set this boolean to 0.
+ * @return Number of labels.
+ * @see RoIs_basic_t for more explanations about the features.
+ */
+uint32_t _features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels,
+                                   const int i0, const int i1, const int j0, const int j1, uint32_t* RoIs_id,
+                                   const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
+                                   const uint32_t* RoIs_ymax, const uint32_t* RoIs_S, const size_t n_RoIs,
+                                   const uint32_t S_min, const uint32_t S_max, const uint8_t threshold_high,
+                                   const uint8_t no_labels_zeros_init);
+
+/**
+ * @param in_labels Input 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
+ * @param img Grayscale image (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$, grayscale is in \f$[0;255]\f$ range).
+ * @param out_labels Output 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
+ * @param i0 First \f$y\f$ index in the labels (included).
+ * @param i1 Last \f$y\f$ index in the labels (included).
+ * @param j0 First \f$x\f$ index in the labels (included).
+ * @param j1 Last \f$x\f$ index in the labels (included).
+ * @param RoIs_basic Features.
+ * @param S_min Minimum morphological threshold.
+ * @param S_max Maximum morphological threshold.
+ * @param threshold_high Value (between \f$[0;255]\f$). If the pixel intensity is higher than \p threshold, then the
+ *                       pixel is kept for the re-labeling, else the pixel is ignored. \p threshold_high should be
+ *                       higher than the threshold value used for \p in_labels.
+ * @param no_labels_zeros_init Boolean for optimization purpose. If set to 1, \p out_labels is not initialized in this
+ *                             function. Thus, it is up to the developer to properly initialize \p out_labels before
+ *                             calling this routine. If you are not sure, prefer to set this boolean to 0.
+ * @return Number of labels.
+ * @see _features_merge_CCL_HI_v3 for the explanations about the nature of the processing.
+ * @see RoIs_basic_t for more explanations about the features.
+ */
+uint32_t features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels, const int i0,
+                                  const int i1, const int j0, const int j1, RoIs_basic_t* RoIs_basic,
+                                  const uint32_t S_min, const uint32_t S_max, const uint8_t threshold_high,
+                                  const uint8_t no_labels_zeros_init);
 
 /**
  * Shrink features. Remove features when feature identifier value is 0.
@@ -251,6 +323,7 @@ void features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI
  * @param RoIs_dst_Sxy Destination array of sums of \f$x * y\f$ properties.
  * @param RoIs_dst_x Destination array of centroids abscissas.
  * @param RoIs_dst_y Destination array of centroids ordinates.
+ * @param max_RoIs_dst_size Maximum capacity of the `RoIs_dst_xxx` arrays.
  * @return Number of regions of interest (RoIs) after the data shrink.
  * @see features_merge_CCL_HI_v2 for more explanations about why some identifiers can be set to 0.
  * @see RoIs_basic_t for more explanations about the features.
@@ -264,7 +337,7 @@ size_t _features_shrink_basic(const uint32_t* RoIs_src_id, const uint32_t* RoIs_
                               uint32_t* RoIs_dst_xmax, uint32_t* RoIs_dst_ymin, uint32_t* RoIs_dst_ymax,
                               uint32_t* RoIs_dst_S, uint32_t* RoIs_dst_Sx, uint32_t* RoIs_dst_Sy,
                               uint64_t* RoIs_dst_Sx2, uint64_t* RoIs_dst_Sy2, uint64_t* RoIs_dst_Sxy, float* RoIs_dst_x,
-                              float* RoIs_dst_y);
+                              float* RoIs_dst_y, const size_t max_RoIs_dst_size);
 
 /**
  * @param RoIs_basic_src Source features.
@@ -313,6 +386,7 @@ void features_shrink_basic(const RoIs_basic_t* RoIs_basic_src, RoIs_basic_t* RoI
  * @param RoIs_dst_sat_count Destination array of saturation counters.
  * @param RoIs_dst_a Destination array of RoI semi-major axis.
  * @param RoIs_dst_b Destination array of RoI semi-minor axis.
+ * @param max_RoIs_dst_size Maximum capacity of the `RoIs_dst_xxx` arrays.
  * @return size_t Number of regions of interest (RoIs) after the data shrink.
  * @see features_merge_CCL_HI_v2 for more explanations about why some identifiers can be set to 0.
  * @see RoIs_basic_t for more explanations about the features.
@@ -331,7 +405,7 @@ size_t _features_shrink_basic_misc(const uint32_t* RoIs_src_id, const uint32_t* 
                                    uint32_t* RoIs_dst_Sx, uint32_t* RoIs_dst_Sy, uint64_t* RoIs_dst_Sx2,
                                    uint64_t* RoIs_dst_Sy2, uint64_t* RoIs_dst_Sxy, float* RoIs_dst_x,
                                    float* RoIs_dst_y, uint32_t* RoIs_dst_magnitude, uint32_t* RoIs_dst_sat_count,
-                                   float* RoIs_dst_a, float* RoIs_dst_b);
+                                   float* RoIs_dst_a, float* RoIs_dst_b, const size_t max_RoIs_dst_size);
 
 /**
  * @param RoIs_basic_src Source features.
@@ -353,11 +427,13 @@ void features_shrink_basic_misc(const RoIs_basic_t* RoIs_basic_src, const RoIs_m
  * and \f$N\f$ is the number of noisy pixels considered.
  * In addition, this function can also compute the saturation counter for each RoI (e. g. the number of pixels that have
  * an intensity \f$i_x = 255\f$).
- * @param img Image in grayscale (\f$[\texttt{img\_height}][\texttt{img\_width}]\f$, the values of the pixel
+ * @param img Image in grayscale (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$, the values of the pixel
  *            range are \f$ [ 0;255 ] \f$).
- * @param img_width Image width.
- * @param img_height Image height.
- * @param labels 2D array of labels (\f$[\texttt{img\_height}][\texttt{img\_width}]\f$).
+ * @param i0 First \f$y\f$ index in the image (included).
+ * @param i1 Last \f$y\f$ index in the image (included).
+ * @param j0 First \f$x\f$ index in the image (included).
+ * @param j1 Last \f$x\f$ index in the image (included).
+ * @param labels 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
  * @param RoIs_xmin Array of minimum \f$x\f$ coordinates of the bounding box.
  * @param RoIs_xmax Array of maximum \f$x\f$ coordinates of the bounding box.
  * @param RoIs_ymin Array of minimum \f$y\f$ coordinates of the bounding box.
@@ -369,41 +445,63 @@ void features_shrink_basic_misc(const RoIs_basic_t* RoIs_basic_src, const RoIs_m
  * @see RoIs_basic_t for more explanations about the basic features.
  * @see RoIs_misc_t for more explanations about the miscellaneous features.
  */
-void _features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
+void _features_compute_magnitude(const uint8_t** img, const int i0, const int i1, const int j0, const int j1,
                                  const uint32_t** labels, const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax,
                                  const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax, const uint32_t* RoIs_S,
                                  uint32_t* RoIs_magnitude, uint32_t* RoIs_sat_count, const size_t n_RoIs);
 
 /**
- * @param img Image in grayscale (\f$[\texttt{img\_height}][\texttt{img\_width}]\f$, the values of the pixel
+ * @param img Image in grayscale (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$, the values of the pixel
  *            range are \f$ [ 0;255 ] \f$).
- * @param img_width Image width.
- * @param img_height Image height.
- * @param labels 2D array of labels (\f$[\texttt{img\_height}][\texttt{img\_width}]\f$).
+ * @param i0 First \f$y\f$ index in the image (included).
+ * @param i1 Last \f$y\f$ index in the image (included).
+ * @param j0 First \f$x\f$ index in the image (included).
+ * @param j1 Last \f$x\f$ index in the image (included).
+ * @param labels 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
  * @param RoIs_basic Basic features.
  * @param RoIs_misc Miscellaneous features (including the magnitudes).
  * @see _features_compute_magnitude for the explanations about the nature of the processing.
  * @see RoIs_basic_t for more explanations about the basic features.
  * @see RoIs_misc_t for more explanations about the miscellaneous features.
  */
-void features_compute_magnitude(const uint8_t** img, const uint32_t img_width, const uint32_t img_height,
+void features_compute_magnitude(const uint8_t** img, const int i0, const int i1, const int j0, const int j1,
                                 const uint32_t** labels, const RoIs_basic_t* RoIs_basic, RoIs_misc_t* RoIs_misc);
 
 /**
+ * Initialize labels to zero value depending on bounding boxes.
+ * @param RoIs_xmin Array of minimum \f$x\f$ coordinates of the bounding box.
+ * @param RoIs_xmax Array of maximum \f$x\f$ coordinates of the bounding box.
+ * @param RoIs_ymin Array of minimum \f$y\f$ coordinates of the bounding box.
+ * @param RoIs_ymax Array of maximum \f$y\f$ coordinates of the bounding box.
+ * @param n_RoIs Number of connected-components (= number of RoIs).
+ * @param labels 2D array of labels (\f$[\texttt{img\_height}][\texttt{img\_width}]\f$).
+ */
+void _features_labels_zero_init(const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
+                                const uint32_t* RoIs_ymax, const size_t n_RoIs, uint32_t** labels);
+
+/**
+ * Initialize labels to zero value depending on bounding boxes.
+ * @param RoIs_basic Basic features (contains the bounding boxes).
+ * @param labels 2D array of labels (\f$[\texttt{img\_height}][\texttt{img\_width}]\f$).
+ * @see _features_labels_zero_init for the explanations about the nature of the processing.
+ */
+void features_labels_zero_init(const RoIs_basic_t* RoIs_basic, uint32_t** labels);
+
+/**
  * Compute the semi-major and the semi-minor axes of RoIs.
- * 
- * @param RoIs_S 
- * @param RoIs_Sx Sums of \f$x\f$ properties.
- * @param RoIs_Sy Sums of \f$y\f$ properties.
- * @param RoIs_Sx2 Sums of squared \f$x\f$ properties.
- * @param RoIs_Sy2 Sums of squared \f$x\f$ properties.
- * @param RoIs_Sxy Sums of \f$xy\f$ properties.
- * @param RoIs_a Semi-major axis.
- * @param RoIs_b Semi-minor axis.
+ *
+ * @param RoIs_S Array of RoI surfaces.
+ * @param RoIs_Sx Array of sums of \f$x\f$ properties.
+ * @param RoIs_Sy Array of sums of \f$y\f$ properties.
+ * @param RoIs_Sx2 Array of sums of squared \f$x\f$ properties.
+ * @param RoIs_Sy2 Array of sums of squared \f$x\f$ properties.
+ * @param RoIs_Sxy Array of sums of \f$xy\f$ properties.
+ * @param RoIs_a Array of semi-major axis.
+ * @param RoIs_b Array of semi-minor axis.
  * @param n_RoIs Number of connected-components (= number of RoIs).
  */
-void _features_compute_ellipse(const uint32_t *RoIs_S, const uint32_t *RoIs_Sx, const uint32_t *RoIs_Sy, 
-                               const uint64_t *RoIs_Sx2, const uint64_t *RoIs_Sy2, const uint64_t* RoIs_Sxy, 
+void _features_compute_ellipse(const uint32_t *RoIs_S, const uint32_t *RoIs_Sx, const uint32_t *RoIs_Sy,
+                               const uint64_t *RoIs_Sx2, const uint64_t *RoIs_Sy2, const uint64_t* RoIs_Sxy,
                                float *RoIs_a, float *RoIs_b, const size_t n_RoIs);
 
 /**

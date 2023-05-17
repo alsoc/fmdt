@@ -6,7 +6,6 @@
 #pragma once
 
 #include "fmdt/features/features_struct.h"
-#include "fmdt/tracking/tracking_struct.h"
 #include "fmdt/image/image_struct.h"
 
 /**
@@ -31,6 +30,7 @@ img_data_t* image_gs_alloc(const size_t img_width, const size_t img_height);
  * @param img_data Image data.
  * @param labels Labels (2D array of size \f$[\texttt{img\_data->height}][\texttt{img\_data->width}]\f$).
  * @param RoIs_id Array of RoI unique identifiers (useful only if `show_id == 1`).
+ * @param RoIs_xmin Array of minimum \f$x\f$ coordinates of the bounding box (useful only if `show_id == 1`).
  * @param RoIs_xmax Array of maximum \f$x\f$ coordinates of the bounding box (useful only if `show_id == 1`).
  * @param RoIs_ymin Array of minimum \f$y\f$ coordinates of the bounding box (useful only if `show_id == 1`).
  * @param RoIs_ymax Array of maximum \f$y\f$ coordinates of the bounding box (useful only if `show_id == 1`).
@@ -39,8 +39,8 @@ img_data_t* image_gs_alloc(const size_t img_width, const size_t img_height);
  *                the OpenCV library).
  */
 void _image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* RoIs_id,
-                           const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
-                           const size_t n_RoIs, const uint8_t show_id);
+                           const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
+                           const uint32_t* RoIs_ymax, const size_t n_RoIs, const uint8_t show_id);
 
 /**
  * @param img_data Image data.
@@ -96,6 +96,14 @@ img_data_t* image_color_alloc(const size_t img_width, const size_t img_height);
  */
 void image_color_draw_BBs(img_data_t* img_data, const uint8_t** img, const BB_t* BBs, const enum color_e* BBs_color,
                           const size_t n_BBs, const uint8_t show_id, const uint8_t is_gt);
+
+/**
+ * Draw the frame id given in parameter at the bottom left corner of the image.
+ * Do nothing if the program is not linked with OpenCV.
+ * @param img_data Image data.
+ * @param frame_id Id number of the current frame.
+ */
+void image_color_draw_frame_id(img_data_t* img_data, const size_t frame_id);
 
 /**
  * Creates a new image with the maximum intensity pixels between I and M

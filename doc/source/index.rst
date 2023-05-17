@@ -11,6 +11,7 @@ FMDT Documentation
    user/installation
    user/usage
    user/examples
+   user/references
 
 .. toctree::
    :caption: Developer Manual

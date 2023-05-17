@@ -11,6 +11,8 @@
 
 #pragma once
 
+#include "fmdt/tools.h"
+
 void args_del(int argc, char** argv, int index);
 
 /**
@@ -142,3 +144,57 @@ float args_find_float_max(int argc, char** argv, const char* arg, float def, flo
  *         pointer otherwise.
  */
 char* args_find_char(int argc, char** argv, const char* arg, char* def);
+
+/**
+ * Find an argument and return its corresponding value as a vector of int.
+ * @param argc Number of arguments in \p argv array of arguments.
+ * @param argv Array of arguments.
+ * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
+ *            comma (',') character.
+ * @param def Default value if the argument is not found.
+ * @return Allocate a vector corresponding to the convertion of the argument value if it exists in the command line, 
+ *         \p def value otherwise. Don't forget to free the vector.
+ */
+vec_int_t args_find_vector_int(int argc, char** argv, const char* arg, const char* def);
+
+/**
+ * Find an argument and return its corresponding value as a vector 2D of int.
+ * @param argc Number of arguments in \p argv array of arguments.
+ * @param argv Array of arguments.
+ * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
+ *            comma (',') character.
+ * @param def Default value if the argument is not found.
+ * @return Allocate a vector 2D corresponding to the convertion of the argument value if it exists in the command line, 
+ *         \p def value otherwise. Don't forget to free the vector 2D.
+ */
+vec2D_int_t args_find_vector2D_int(int argc, char** argv, const char* arg, const char* def);
+
+/**
+ * Convert a string of int into 1D (linear) array.
+ * @param arg Input string (ex: \f$[1, 5, 1]\f$).
+ * @param res Output 1D (linear) array.
+ */
+void args_convert_string_to_int_vector(const char* arg, vec_int_t *res);
+
+/**
+ * Convert a string of int into 2D (linear) array.
+ * @param arg Input string (ex: \f$[1, 5, 1]\f$).
+ * @param res Output 2D (linear) array.
+ */
+void args_convert_string_to_int_vector2D(const char* arg, vec2D_int_t *res);
+
+/**
+ * Convert a int 1D (linear) array to string.
+ * @param vec Input 1D (linear) array.
+ * @param res Output string (ex: \f$[1, 5, 1]\f$).
+ * @param sizeof_res Number of bytes in \p res.
+ */
+void args_convert_int_vector_to_string(vec_int_t vec, char *res, size_t sizeof_res);
+
+/**
+ * Convert a int 2D (linear) array to string.
+ * @param tab Input 2D (linear) array.
+ * @param res Output string (ex: \f$[1, 5, 1]\f$).
+ * @param sizeof_res Number of bytes in \p res.
+ */
+void args_convert_int_vector2D_to_string(vec2D_int_t tab, char *res, size_t sizeof_res);

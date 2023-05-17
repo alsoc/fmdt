@@ -46,12 +46,13 @@ void kNN_init_data(kNN_data_t* kNN_data);
  * @param max_dist Maximum distance between 2 RoIs to make the association.
  * @param min_ratio_S Minimum ratio between two RoIs. \f$ r_S = RoI_{S}^j / RoI_{S}^i\f$, if \f$r_S < r_S^{min}\f$
  *                    then the association is not made.
+ * @return The number of associations.
  */
-void _kNN_match(float** data_distances, uint32_t** data_nearest, uint32_t* data_conflicts, const uint32_t* RoIs0_id,
-                const uint32_t* RoIs0_S, const float* RoIs0_x, const float* RoIs0_y, uint32_t* RoIs0_next_id,
-                const size_t n_RoIs0, const uint32_t* RoIs1_id, const uint32_t* RoIs1_S, const float* RoIs1_x,
-                const float* RoIs1_y, uint32_t* RoIs1_prev_id, const size_t n_RoIs1, const int k,
-                const uint32_t max_dist, const float min_ratio_S);
+uint32_t _kNN_match(float** data_distances, uint32_t** data_nearest, uint32_t* data_conflicts, const uint32_t* RoIs0_id,
+                    const uint32_t* RoIs0_S, const float* RoIs0_x, const float* RoIs0_y, uint32_t* RoIs0_next_id,
+                    const size_t n_RoIs0, const uint32_t* RoIs1_id, const uint32_t* RoIs1_S, const float* RoIs1_x,
+                    const float* RoIs1_y, uint32_t* RoIs1_prev_id, const size_t n_RoIs1, const int k,
+                    const uint32_t max_dist, const float min_ratio_S);
 
 /**
  * @param kNN_data Inner kNN data.
@@ -63,11 +64,12 @@ void _kNN_match(float** data_distances, uint32_t** data_nearest, uint32_t* data_
  * @param max_dist Maximum distance between 2 RoIs to make the association.
  * @param min_ratio_S Minimum ratio between two RoIs. \f$ r_S = RoI_{S}^j / RoI_{S}^i\f$, if \f$r_S < r_S^{min}\f$
  *                    then the association is not made.
+ * @return The number of associations.
  * @see _kNN_match for the explanations about the nature of the processing.
  */
-void kNN_match(kNN_data_t* kNN_data, const RoIs_basic_t* RoIs0_basic, const RoIs_basic_t* RoIs1_basic,
-               RoIs_asso_t* RoIs0_asso, RoIs_asso_t* RoIs1_asso, const int k, const uint32_t max_dist,
-               const float min_ratio_S);
+uint32_t kNN_match(kNN_data_t* kNN_data, const RoIs_basic_t* RoIs0_basic, const RoIs_basic_t* RoIs1_basic,
+                   RoIs_asso_t* RoIs0_asso, RoIs_asso_t* RoIs1_asso, const int k, const uint32_t max_dist,
+                   const float min_ratio_S);
 
 /**
  * Deallocation of inner kNN data.

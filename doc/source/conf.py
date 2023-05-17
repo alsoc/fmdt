@@ -39,18 +39,20 @@ project = 'FMDT'
 copyright = '2023, FMDT team'
 author = 'FMDT team'
 
-# # get the FMDT version from Git
-# if (read_the_docs_build):
-#     subprocess.call('git fetch --unshallow', shell=True)
-# label = subprocess.check_output(["git", "describe"]).strip().decode(encoding='UTF-8')
-# split_label = label.split("-")
+if os.environ.get('SKIP_VERSION', 'NO') == 'YES':
+    version = "unknown_version"
+    release = version
+else:
+    # get the FMDT version from Git
+    if (read_the_docs_build):
+        subprocess.call('git fetch --unshallow', shell=True)
+    label = subprocess.check_output(["git", "describe"]).strip().decode(encoding='UTF-8')
+    split_label = label.split("-")
 
-# # The short X.Y version
-# version = split_label[0]
-# # The full version, including alpha/beta/rc tags
-# release = label
-version = "1.0"
-release = "v1.0"
+    # The short X.Y version
+    version = split_label[0]
+    # The full version, including alpha/beta/rc tags
+    release = label
 
 # -- General configuration ---------------------------------------------------
 

@@ -35,6 +35,8 @@ int main(int argc, char** argv) {
     int def_p_mrp_s_max = 1000;
     float def_p_ellipse = 5;
     char* def_p_log_path = NULL;
+    int def_p_cca_roi_max1 = 65535; // Maximum number of RoIs before `features_merge_CCL_HI` selection.
+    int def_p_cca_roi_max2 = 400; // Maximum number of RoIs after `features_merge_CCL_HI` selection.
 
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -74,6 +76,12 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --ccl-fra-id        Show the RoI/CC ids on the ouptut CC frames                                \n");
 #endif
+        fprintf(stderr,
+                "  --cca-roi-max1      Maximum number of RoIs before hysteresis                               [%d]\n",
+                def_p_cca_roi_max1);
+        fprintf(stderr,
+                "  --cca-roi-max2      Maximum number of RoIs after hysteresis                                [%d]\n",
+                def_p_cca_roi_max2);
         fprintf(stderr,
                 "  --mrp-s-min         Minimum surface of the CCs in pixels                                   [%d]\n",
                 def_p_mrp_s_min);
@@ -116,6 +124,8 @@ int main(int argc, char** argv) {
 #else
     const int p_ccl_fra_id = 0;
 #endif
+    const int p_cca_roi_max1 = args_find_int_min(argc, argv, "--cca-roi-max1", def_p_cca_roi_max1, 0);
+    const int p_cca_roi_max2 = args_find_int_min(argc, argv, "--cca-roi-max2", def_p_cca_roi_max2, 0);
     const int p_mrp_s_min = args_find_int_min(argc, argv, "--mrp-s-min,--surface-min", def_p_mrp_s_min, 0);
     const int p_mrp_s_max = args_find_int_min(argc, argv, "--mrp-s-max,--surface-max", def_p_mrp_s_max, 0);
     const float p_ellipse = args_find_float_min(argc, argv, "--eli-r", def_p_ellipse, 0);
@@ -145,6 +155,8 @@ int main(int argc, char** argv) {
 #ifdef FMDT_OPENCV_LINK
     printf("#  * ccl-fra-id     = %d\n", p_ccl_fra_id);
 #endif
+    printf("#  * cca-roi-max1   = %d\n", p_cca_roi_max1);
+    printf("#  * cca-roi-max2   = %d\n", p_cca_roi_max2);
     printf("#  * mrp-s-min      = %d\n", p_mrp_s_min);
     printf("#  * mrp-s-max      = %d\n", p_mrp_s_max);
     printf("#  * eli-r          = %.2f\n", p_ellipse);
@@ -194,8 +206,8 @@ int main(int argc, char** argv) {
     // -- DATA ALLOCATION -- //
     // --------------------- //
 
-    RoIs_t* RoIs_tmp = features_alloc_RoIs(false, false, true, MAX_ROI_SIZE_BEFORE_SHRINK);
-    RoIs_t* RoIs = features_alloc_RoIs(false, false, true, MAX_ROI_SIZE);
+    RoIs_t* RoIs_tmp = features_alloc_RoIs(false, false, true, p_cca_roi_max1);
+    RoIs_t* RoIs = features_alloc_RoIs(false, false, true, p_cca_roi_max2);
     CCL_data_t* ccl_data = CCL_LSL_alloc_data(i0, i1, j0, j1);
 
     int b = 1; // image border
@@ -248,8 +260,9 @@ int main(int argc, char** argv) {
         threshold((const uint8_t**)Max, IL, i0, i1, j0, j1, p_ccl_hyst_lo);
 
         // step 3: CCL/CCA
-        const int n_RoI = CCL_LSL_apply(ccl_data, (const uint8_t**)IL, L1);
-        features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoI, RoIs_tmp->basic);
+        const uint32_t n_RoIs = CCL_LSL_apply(ccl_data, (const uint8_t**)IL, L1, 0);
+        assert(n_RoIs <= RoIs_tmp->_max_size);
+        features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoIs, RoIs_tmp->basic);
 
         // step 4: hysteresis threshold & surface filtering
         threshold((const uint8_t**)Max, IH, i0, i1, j0, j1, p_ccl_hyst_hi);
@@ -276,15 +289,15 @@ int main(int argc, char** argv) {
             fprintf(f, "#\n");
         }
 
-        // step 6: filter on ellipse ratio
-        threshold_ellipse_ratio(RoIs->misc, p_ellipse);
-        features_shrink_basic_misc(RoIs->basic, RoIs->misc, RoIs->basic, RoIs->misc);
-
         // save frames (CCs)
         if (img_data) {
             image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs->basic, p_ccl_fra_id);
             video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
+
+        // step 6: filter on ellipse ratio
+        threshold_ellipse_ratio(RoIs->misc, p_ellipse);
+        features_shrink_basic_misc(RoIs->basic, RoIs->misc, RoIs->basic, RoIs->misc);
 
         // save stats (second part)
         if (p_log_path) {

@@ -1,4 +1,14 @@
 TODO list:
+- [ ] Write an interactive Python script to ease the human detection task 
+      (= ground truth)
+- [ ] In `fmdt-log-parser`, find the RoIs without the "tracks to RoIs" file.
+- [ ] Implement *socket forward* in AFF3CT-core will significantly speedup the
+      CCL. More precisely, *socket forward* is required to wrap the 
+      `features_labels_zero_init` function in the runtime)
+- [ ] Implement `--trk-ell-min` in `fmdt-detect-rt*` (the classification with 
+      ellipse ratio)
+- [ ] Add CI tests with `fmdt-check` 
+- [ ] Rewrite `fmdt-check` in Python
 - [ ] Regroup CCs together if they are close and if their velocity vectors are 
       close too
 - [ ] Limit the detection to only a particular angular range (say +/- 30 deg 
@@ -8,10 +18,11 @@ TODO list:
 - [ ] For each detection: extract meteor video sequence + - a few seconds: this 
       way if we need to re-process it we don't have to run it through the whole 
       video again
+- [x] Compute extrapolated bounding boxes of tracks in `fmdt-log-parser` when 
+      generating the bounding boxes (with the `--trk-bb-path` option)
 - [x] Put a saturation flag for each detected object: meteor and star -> this 
       will help for photometry => in the connected-components analysis, compute 
       the number of saturated pixels per RoI (if I_p = 255)
-- [ ] Add CI tests with `fmdt-check` 
 - [x] Support more image input formats
 - [x] Add `--video-loop` and `--video-buff` support to the video module (based 
       on `ffmpeg-io`)

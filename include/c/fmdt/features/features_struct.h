@@ -10,16 +10,6 @@
 #include <stddef.h>
 
 /**
- *  Maximum number of RoIs before `features_merge_CCL_HI_v2` selection.
- */
-#define MAX_ROI_SIZE_BEFORE_SHRINK 65535
-
-/**
- *  Maximum number of RoIs after `features_merge_CCL_HI_v2` selection.
- */
-#define MAX_ROI_SIZE 400
-
-/**
  *  Basic features: bounding box, surface & centroid.
  *  A bounding box represents a rectangular box around the RoI.
  *  The surface is the number of pixels that are in the connected-component (CC).

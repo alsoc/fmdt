@@ -24,6 +24,8 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--vid-in-threads`` | INTEGER | See :numref:`detect_vid-in-threads`.               |
 +----------------------+---------+----------------------------------------------------+
+| ``--ccl-impl``       | STRING  | See :numref:`detect_ccl-impl`.                     |
++----------------------+---------+----------------------------------------------------+
 | ``--ccl-hyst-lo``    | INTEGER | See :numref:`detect_ccl-hyst-lo`.                  |
 +----------------------+---------+----------------------------------------------------+
 | ``--ccl-hyst-hi``    | INTEGER | See :numref:`detect_ccl-hyst-hi`.                  |
@@ -31,6 +33,14 @@ The following table summarizes the available parameters:
 | ``--ccl-fra-path``   | STRING  | See :numref:`detect_ccl-fra-path`.                 |
 +----------------------+---------+----------------------------------------------------+
 | ``--ccl-fra-id``     | BOOLEAN | See :numref:`detect_ccl-fra-id`.                   |
++----------------------+---------+----------------------------------------------------+
+| ``--cca-mag``        | BOOLEAN | See :numref:`detect_cca-mag`.                      |
++----------------------+---------+----------------------------------------------------+
+| ``--cca-ell``        | BOOLEAN | See :numref:`detect_cca-ell`.                      |
++----------------------+---------+----------------------------------------------------+
+| ``--cca-roi-max1``   | INTEGER | See :numref:`detect_cca-roi-max1`.                 |
++----------------------+---------+----------------------------------------------------+
+| ``--cca-roi-max2``   | INTEGER | See :numref:`detect_cca-roi-max2`.                 |
 +----------------------+---------+----------------------------------------------------+
 | ``--mrp-s-min``      | INTEGER | See :numref:`detect_mrp-s-min`.                    |
 +----------------------+---------+----------------------------------------------------+
@@ -56,11 +66,11 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--trk-ddev``       | FLOAT   | See :numref:`detect_trk-ddev`.                     |
 +----------------------+---------+----------------------------------------------------+
+| ``--trk-ell-min``    | FLOAT   | See :numref:`detect_trk-ell-min`.                  |
++----------------------+---------+----------------------------------------------------+
 | ``--trk-all``        | BOOLEAN | See :numref:`detect_trk-all`.                      |
 +----------------------+---------+----------------------------------------------------+
-| ``--trk-bb-path``    | STRING  | See :numref:`detect_trk-bb-path`.                  |
-+----------------------+---------+----------------------------------------------------+
-| ``--trk-mag-path``   | STRING  | See :numref:`detect_trk-mag-path`.                 |
+| ``--trk-roi-path``   | STRING  | See :numref:`detect_trk-roi-path`.                 |
 +----------------------+---------+----------------------------------------------------+
 | ``--log-path``       | STRING  | See :numref:`detect_log-path`.                     |
 +----------------------+---------+----------------------------------------------------+
@@ -184,6 +194,23 @@ Number of times the video is read in loop.
 Select the number of threads to use to decode video input (in ``ffmpeg``). If
 set to ``0``, ``ffmpeg`` chooses the number of threads automatically.
 
+.. _detect_ccl-impl:
+
+``--ccl-impl``
+--------------
+
+   :Type: STRING
+   :Default: ``LSLH``
+   :Example: ``--ccl-impl LSLH``
+
+Choose the LSL implementation. Can be ``LSLH`` or ``LSLM``.
+
+``LSLH`` is the implementation discribed in :cite:`Lacassagne2009` and ``LSLM``
+is the implementation discribed in :cite:`Lemaitre2020`.
+
+.. note:: ``LSLM`` is only available if |FMDT| has been compiled with the CMake
+          ``-DFMDT_LSL_LINK=ON`` option (see :numref:`user_installation_cmake`).
+
 .. _detect_ccl-hyst-lo:
 
 ``--ccl-hyst-lo``
@@ -232,6 +259,58 @@ Path of the files for |CC| debug (``path/cc_%05d.png``).
 Show the |RoI|/|CC| ids on the output frames (to combine with ``--ccl-fra-path``
 parameter). Requires to link with OpenCV library (``-DFMDT_OPENCV_LINK`` CMake
 option, see :numref:`user_installation_cmake`).
+
+.. _detect_cca-mag:
+
+``--cca-mag``
+-------------
+
+   :Type: BOOLEAN
+   :Default: [empty]
+   :Example: ``--cca-mag``
+
+Enable the computation of two news features in the |CCA|: the magnitude and the
+counter of saturated pixels (to be combined with the :ref:`detect_log-path`
+option).
+
+.. _detect_cca-ell:
+
+``--cca-ell``
+-------------
+
+   :Type: BOOLEAN
+   :Default: [empty]
+   :Example: ``--cca-ell``
+
+Enable the computation of two news features in the |CCA|: ``a`` the semi-major
+axis of an ellipse and ``b`` the semi-minor axis of an ellipse. This option
+has to be combined with the :ref:`detect_log-path` option.
+
+.. _detect_cca-roi-max1:
+
+``--cca-roi-max1``
+------------------
+
+   :Type: INTEGER
+   :Default: ``65535``
+   :Example: ``--cca-roi-max1 10000``
+
+Maximum number of RoIs before hysteresis threshold. Allow to manage the memory
+footprint of the program. The Smaller the maximum number of RoIs, the smaller
+the memory footprint.
+
+.. _detect_cca-roi-max2:
+
+``--cca-roi-max2``
+------------------
+
+   :Type: INTEGER
+   :Default: ``400``
+   :Example: ``--cca-roi-max2 200``
+
+Maximum number of RoIs after hysteresis threshold. Allow to manage the memory
+footprint of the program. The Smaller the maximum number of RoIs, the smaller
+the memory footprint.
 
 .. _detect_mrp-s-min:
 
@@ -301,7 +380,7 @@ matches nothing). This parameter is also used for extrapolation in the tracking.
 
    :Deprecated: ``--r-extrapol``
    :Type: INTEGER
-   :Default: ``10``
+   :Default: ``5``
    :Example: ``--trk-ext-d 25``
 
 Search radius in pixels for |CC| extrapolation (piece-wise tracking).
@@ -329,6 +408,7 @@ Maximum number of frames to extrapolate for lost objects (linear extrapolation).
    :Example: ``--trk-angle 35.0``
 
 Tracking max angle between two meteors at :math:`t-1` and :math:`t` (in degree).
+This is a classification criterion.
 
 .. _detect_trk-star-min:
 
@@ -340,7 +420,8 @@ Tracking max angle between two meteors at :math:`t-1` and :math:`t` (in degree).
    :Default: ``15``
    :Example: ``--trk-star-min 5``
 
-Minimum number of frames required to track a star.
+Minimum number of frames required to track a star. This is a classification
+criterion.
 
 .. _detect_trk-meteor-min:
 
@@ -352,7 +433,8 @@ Minimum number of frames required to track a star.
    :Default: ``3``
    :Example: ``--trk-meteor-min 5``
 
-Minimum number of frames required to track a meteor.
+Minimum number of frames required to track a meteor. This is a classification
+criterion.
 
 .. _detect_trk-meteor-max:
 
@@ -364,7 +446,8 @@ Minimum number of frames required to track a meteor.
    :Default: ``100``
    :Example: ``--trk-meteor-max 50``
 
-Maximum number of frames required to track a meteor.
+Maximum number of frames required to track a meteor. This is a classification
+criterion.
 
 .. _detect_trk-ddev:
 
@@ -377,7 +460,22 @@ Maximum number of frames required to track a meteor.
    :Example: ``--trk-ddev 5.5``
 
 Multiplication factor of the standard deviation (|CC| error has to be higher
-than :math:`ddev \times stddev` to be considered in movement).
+than :math:`ddev \times stddev` to be considered in movement). This is a
+classification criterion.
+
+.. _detect_trk-ell-min:
+
+``--trk-ell-min``
+-----------------
+
+   :Type: FLOAT
+   :Default: ``0.0``
+   :Example: ``--cca-ell --trk-ell-min 3.0``
+
+Minimum ellipse ratio to be considered as a meteor. This is a classification
+criterion. If the value is ``0`` then this parameter has no effect. Moreover,
+this parameter requires the :ref:`detect_cca-ell` parameter to work. If the
+latest is not set, then this parameter is ignored.
 
 .. _detect_trk-all:
 
@@ -393,50 +491,28 @@ set, all object types are tracked (``meteor``, ``star`` or ``noise``).
 
 This parameter is used in the :func:`_tracking_perform` function.
 
-.. _detect_trk-bb-path:
+.. _detect_trk-roi-path:
 
-``--trk-bb-path``
------------------
-
-   :Deprecated: ``--out-bb``
-   :Type: STRING
-   :Default: [empty]
-   :Example: ``--trk-bb-path bb.txt``
-
-Path to the bounding boxes file required by ``fmdt-visu`` to draw detection
-rectangles. Each bounding box defines the area of an object, frame by frame.
-
-Here is the corresponding line format:
-
-.. code-block:: bash
-
-	{frame_id} {x_radius} {y_radius} {center_x} {center_y} {track_id} {is_extrapolated}
-
-Each line corresponds to a frame and to an object, each value is separated by a
-space character.
-
-.. _detect_trk-mag-path:
-
-``--trk-mag-path``
+``--trk-roi-path``
 ------------------
 
-   :Deprecated: ``--out-mag``
    :Type: STRING
    :Default: [empty]
-   :Example: ``--trk-mag-path mag.txt``
+   :Example: ``--trk-roi-path trk2roi.txt``
 
-Path to the output file containing magnitudes of the tracked objects. Each line
-corresponds to a track/object and here is the corresponding line format:
+Path to the output file containing lists of the |RoI| ids of the tracked
+objects. Each line corresponds to a track/object and here is the corresponding
+line format:
 
 .. code-block:: bash
 
-	{tid} {otype} {mag1} {mag2} {...} {magn}
+   {tid} {otype} {rid1} {rid2} {...} {ridn}
 
-``{mag1}`` is the first magnitude value of the track/object of ``{tid}`` id.
-``{mag2}`` is the second magnitude value (in the second frame where the object
-has been tracked). And so on, until the last magnitude value ``{magn}``. Note
-that sometime  the magnitude value can be ``0``, it means that the object has
-been extrapolated on this frame, thus the magnitude cannot be computed.
+``{rid1}`` is the first |RoI| id of the track/object of ``{tid}`` id.
+``{rid2}`` is the second |RoI| id (in the second frame where the object
+has been tracked). And so on, until the last |RoI| id ``{ridn}``. Note
+that sometime the |RoI| id can be ``0``, it means that the object has been
+extrapolated on this frame, thus there is no |RoI| id for this frame.
 
 .. _detect_log-path:
 
@@ -482,13 +558,13 @@ Table 1 and table 2: |RoIs|
 
 .. code-block:: bash
 
-	# ------||----------------||---------------------------||------------------------------------------------------------------||-------------------||-----------||------------||--------------------------
-	#   RoI ||      Track     ||        Bounding Box       ||                      Surface (S in pixels)                       ||      Center       || Magnitude || Saturation ||         Ellipse
-	# ------||----------------||---------------------------||------------------------------------------------------------------||-------------------||-----------||------------||--------------------------
-	# ------||------|---------||------|------|------|------||-----|----------|----------|------------|------------|------------||---------|---------||-----------||------------||--------|--------|--------
-	#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy |        Sx2 |        Sy2 |        Sxy ||       x |       y ||        -- ||    Counter ||      a |      b |  ratio
-	# ------||------|---------||------|------|------|------||-----|----------|----------|------------|------------|------------||---------|---------||-----------||------------||--------|--------|--------
-	  {rid} || {tid}| {otype} ||{xmin}|{xmax}|{ymin}|{ymax}|| {S} |     {Sx} |     {Sy} |      {Sx2} |      {Sy2} |      {Sxy} ||    {cx} |    {cy} ||     {mag} ||      {sat} ||    {a} |    {b} |    {r}
+	# ------||----------------||---------------------------||-------------------------------------------||-------------||-----------||------------||-------------------
+	#   RoI ||      Track     ||        Bounding Box       ||           Surface (S in pixels)           ||   Center    || Magnitude || Saturation ||      Ellipse
+	# ------||----------------||---------------------------||-------------------------------------------||-------------||-----------||------------||-------------------
+	# ------||------|---------||------|------|------|------||-----|------|------|-------|-------|-------||------|------||-----------||------------||-----|-----|-------
+	#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |   Sx |   Sy |   Sx2 |   Sy2 |   Sxy ||    x |    y ||        -- ||    Counter ||   a |   b | ratio
+	# ------||------|---------||------|------|------|------||-----|------|------|-------|-------|-------||------|------||-----------||------------||-----|-----|-------
+	  {rid} || {tid}| {otype} ||{xmin}|{xmax}|{ymin}|{ymax}|| {S} | {Sx} | {Sy} | {Sx2} | {Sy2} | {Sxy} || {cx} | {cy} ||     {mag} ||      {sat} || {a} | {b} |   {r}
 
 Each line corresponds to one |RoI|:
 
@@ -519,12 +595,15 @@ Each line corresponds to one |RoI|:
 
 ``{mag}`` and ``{sat}`` features are not enabled by default (and the ``-``
 character is printed in the corresponding columns). To enable theses features
-you need to use the :ref:`detect_trk-mag-path` command line parameter. For more
+you need to use the :ref:`detect_cca-mag` command line parameter. For more
 information about those features you can refer to the
 :func:`_features_compute_magnitude` function.
 
-``{a}``, ``{b}`` and ``{r}`` features are not implemented yet and the ``-``
-character is printed in the corresponding columns.
+``{a}``, ``{b}`` and ``{r}`` features are are not enabled by default (and the
+``-`` character is printed in the corresponding columns). To enable theses
+features you need to use the :ref:`detect_cca-ell` command line parameter. For
+more information about those features you can refer to the
+:func:`_features_compute_ellipse` function.
 
 Table 3: List of associations between |RoIs|
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -604,15 +683,19 @@ Table 5: List of Tracks
 
 .. code-block:: bash
 
-	# -------||---------------------------||---------------------------||---------||-------------------
-	#  Track ||           Begin           ||            End            ||  Object || Reason of changed
-	# -------||---------------------------||---------------------------||---------||    state (from
-	# -------||---------|--------|--------||---------|--------|--------||---------||  meteor to noise
-	#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type ||    object only)
-	# -------||---------|--------|--------||---------|--------|--------||---------||-------------------
-	   {tid} ||  {fbeg} | {xbeg} | {ybeg} ||  {fend} | {xend} | {yend} || {otype} ||          {reason}
+	# -----------------||---------------------------||---------------------------||---------||-------------------
+	#       Track      ||           Begin           ||            End            ||  Object || Reason of changed
+	# -----------------||---------------------------||---------------------------||---------||    state (from
+	# -------|---------||---------|--------|--------||---------|--------|--------||---------||  meteor to noise
+	#     Id |  State  || Frame # |      x |      y || Frame # |      x |      y ||    Type ||    object only)
+	# -------|---------||---------|--------|--------||---------|--------|--------||---------||-------------------
+	   {tid} | {state} ||  {fbeg} | {xbeg} | {ybeg} ||  {fend} | {xend} | {yend} || {otype} ||          {reason}
 
 Most of the columns of this table have been described in the
 :ref:`detect_stdout` section, here we focus only on extra columns:
 
+- ``{state}``: current state of the track (in a finite state machine): can be
+  ``updated``, ``lost`` or ``finished``. First, when a track is created, its
+  state is ``updated``. Then, ``updated`` can become ``lost``. ``lost`` can
+  become either ``finished`` or ``updated``. ``finished`` is a final state.
 - ``{reason}``: reason of the classification from ``meteor`` to ``noise``.

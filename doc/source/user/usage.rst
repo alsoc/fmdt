@@ -7,6 +7,7 @@ Executables Usage
 This project generates the following **command line** executables:
 
   - ``fmdt-detect``,
+  - ``fmdt-log-parser``,
   - ``fmdt-visu``,
   - ``fmdt-check``,
   - ``fmdt-maxred``,
@@ -28,10 +29,13 @@ additional detection binaries are produced:
 Both ``fmdt-detect-rt-seq`` and ``fmdt-detect-rt-pip`` have the same level of
 features than the standard ``fmdt-detect`` executable.
 
-``fmdt-visu`` mainly uses the ``fmdt-detect`` text outputs to generate
-highlighted video sequences. It can be combined with ground truth to
-distinguish good detected tracks (*true positive*) and bad detected tracks
-(*false positive*).
+``fmdt-log-parser`` is a Python script used to convert ``fmdt-detect`` log
+output into text files used by ``fmdt-visu`` and ``fmdt-check``.
+
+``fmdt-visu`` mainly uses the ``fmdt-detect`` text outputs (after conversion
+with ``fmdt-log-parser``) to generate highlighted video sequences. It can be
+combined with ground truth to distinguish good detected tracks (*true positive*)
+and bad detected tracks (*false positive*).
 
 ``fmdt-check`` compares detected tracks (``fmdt-detect``) with a given ground
 truth. The results are shown on the standard output.
@@ -51,6 +55,7 @@ The next sections describe the command line parameters of these tools.
    :caption: Contents
 
    usage/detect
+   usage/log
    usage/visu
    usage/check
    usage/maxred

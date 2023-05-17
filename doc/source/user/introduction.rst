@@ -83,9 +83,3 @@ chain (see :numref:`fig_detection_chain`) have been presented in a poster
 terms of throughput (|FPS|), latency and energy consumption. The selected
 hardware targets match embedded systems constraints (e.g.
 :math:`\mathcal{T} \ge 30` |FPS| and :math:`\mathcal{P} \leq 10` Watts).
-
-References
-""""""""""
-
-.. bibliography:: ../refs.bib
-

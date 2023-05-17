@@ -40,50 +40,36 @@ void tracking_tracks_write_full(FILE* f, const vec_track_t tracks) {
             real_n_tracks++;
 
     fprintf(f, "# Tracks [%lu]:\n", (unsigned long)real_n_tracks);
-    fprintf(f, "# -------||---------------------------||---------------------------||---------||-------------------\n");
-    fprintf(f, "#  Track ||           Begin           ||            End            ||  Object || Reason of changed \n");
-    fprintf(f, "# -------||---------------------------||---------------------------||---------||    state (from    \n");
-    fprintf(f, "# -------||---------|--------|--------||---------|--------|--------||---------||  meteor to noise  \n");
-    fprintf(f, "#     Id || Frame # |      x |      y || Frame # |      x |      y ||    Type ||    object only)   \n");
-    fprintf(f, "# -------||---------|--------|--------||---------|--------|--------||---------||-------------------\n");
+    fprintf(f, "# ------------------||---------------------------||---------------------------||---------||-------------------\n");
+    fprintf(f, "#       Track       ||           Begin           ||            End            ||  Object || Reason of changed \n");
+    fprintf(f, "# ------------------||---------------------------||---------------------------||---------||    state (from    \n");
+    fprintf(f, "# -------|----------||---------|--------|--------||---------|--------|--------||---------||  meteor to noise  \n");
+    fprintf(f, "#     Id |    State || Frame # |      x |      y || Frame # |      x |      y ||    Type ||    object only)   \n");
+    fprintf(f, "# -------|----------||---------|--------|--------||---------|--------|--------||---------||-------------------\n");
 
     for (size_t i = 0; i < n_tracks; i++)
         if (tracks[i].id) {
+            char state[64];
+            snprintf(state, sizeof(state), "%s", g_state_to_string_with_spaces[tracks[i].state]);
             char reason[64] = "               --";
             if (tracks[i].obj_type == OBJ_NOISE)
                 snprintf(reason, sizeof(reason), "%s",
                     g_change_state_to_string_with_spaces[tracks[i].change_state_reason]);
-            fprintf(f, "   %5d || %7u | %6.1f | %6.1f || %7u | %6.1f | %6.1f || %s || %s \n", tracks[i].id,
+            fprintf(f, "   %5d | %s || %7u | %6.1f | %6.1f || %7u | %6.1f | %6.1f || %s || %s \n", tracks[i].id, state,
                     tracks[i].begin.frame, tracks[i].begin.x, tracks[i].begin.y, tracks[i].end.frame, tracks[i].end.x,
                     tracks[i].end.y, g_obj_to_string_with_spaces[tracks[i].obj_type], reason);
         }
 }
 
-void tracking_BBs_write(FILE* file, const vec_BB_t* BBs, const vec_track_t tracks) {
-    assert(BBs != NULL);
-
-    vec_BB_t* BBs_hack = (vec_BB_t*)BBs;
-    size_t vs1 = vector_size(BBs_hack);
-    for (size_t f = 0; f < vs1; f++) {
-        size_t vs2 = vector_size(BBs[f]);
-        for (size_t t = 0; t < vs2; t++) {
-            if (tracks[BBs[f][t].track_id - 1].id) {
-                fprintf(file, "%d %d %d %d %d %d %d \n", BBs[f][t].frame_id, BBs[f][t].rx, BBs[f][t].ry, BBs[f][t].bb_x,
-                        BBs[f][t].bb_y, BBs[f][t].track_id, BBs[f][t].is_extrapolated);
-            }
-        }
-    }
-}
-
-void tracking_tracks_magnitudes_write(FILE* f, const vec_track_t tracks) {
+void tracking_tracks_RoIs_id_write(FILE* f, const vec_track_t tracks) {
     size_t n_tracks = vector_size(tracks);
     for (size_t i = 0; i < n_tracks; i++)
         if (tracks[i].id) {
             fprintf(f, " %5d %s ", tracks[i].id, g_obj_to_string_with_spaces[tracks[i].obj_type]);
-            if (tracks[i].magnitude != NULL) {
-                size_t vs = vector_size(tracks[i].magnitude);
+            if (tracks[i].RoIs_id != NULL) {
+                size_t vs = vector_size(tracks[i].RoIs_id);
                 for (size_t j = 0; j < vs; j++)
-                    fprintf(f, " %5u ", tracks[i].magnitude[j]);
+                    fprintf(f, " %5u ", tracks[i].RoIs_id[j]);
                 fprintf(f, "\n");
             }
         }
@@ -121,7 +107,7 @@ void tracking_parse_tracks(const char* filename, vec_track_t* tracks) {
             tmp_track->end.x = x1;
             tmp_track->end.y = y1;
             tmp_track->obj_type = tracking_string_to_obj_type((const char*)obj_type_str);
-            tmp_track->magnitude = NULL;
+            tmp_track->RoIs_id = NULL;
             tmp_track = NULL; // stop using temp now that the element is initialized
         }
     }
