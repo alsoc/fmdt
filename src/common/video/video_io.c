@@ -1,14 +1,26 @@
+#include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
+
+#ifdef FMDT_USE_FFMPEG_IO
 #include <ffmpeg-io/writer.h>
 #include <ffmpeg-io/reader.h>
+#endif // FMDT_USE_FFMPEG_IO
+
+#ifdef FMDT_USE_VCODECS_IO
+#include <vcodecs-io/vcodecs-io.h>
+#endif // FMDT_USE_VCODECS_IO
+
 #include <nrc2.h>
 #include <assert.h>
 
 #include "fmdt/video/video_io.h"
 
+
+
 #define MAX_BUFF_SIZE 16384
 
+#if FMDT_USE_FFMPEG_IO
 video_reader_t* video_reader_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
                                         const int bufferize, const size_t n_ffmpeg_threads, int* i0, int* i1, int* j0,
                                         int* j1) {
@@ -36,6 +48,7 @@ video_reader_t* video_reader_alloc_init(const char* path, const size_t start, co
         exit(1);
     }
 
+    
     video->frame_start = start;
     video->frame_end = end;
     video->frame_skip = skip;
@@ -85,6 +98,7 @@ video_reader_t* video_reader_alloc_init(const char* path, const size_t start, co
 
     return video;
 }
+
 
 static int _video_reader_get_frame(video_reader_t* video, uint8_t** img) {
     if (video->frame_end && video->frame_start + video->frame_current > video->frame_end)
@@ -204,3 +218,160 @@ void video_writer_free(video_writer_t* video) {
     ffmpeg_stop_writer(&video->ffmpeg);
     free(video);
 }
+
+#endif // FMDT_USE_FFMPEG_IO
+
+
+#if FMDT_USE_VCODECS_IO
+video_reader_t* video_reader_vcio_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
+                                        const int bufferize, const size_t n_ffmpeg_threads, int* i0, int* i1, int* j0,
+                                        int* j1) {
+
+    assert(!end || start <= end);
+    video_reader_t* video = (video_reader_t*)malloc(sizeof(video_reader_t));
+    if (!video) {
+        fprintf(stderr, "(EE) can't allocate video structure\n");
+        exit(1);
+    }
+
+    snprintf(video->path, sizeof(video->path), "%s", path);
+
+    vcio_options_init(&video->vcio_opts);
+    if (n_ffmpeg_threads) {
+	video->vcio_opts.thread_count = n_ffmpeg_threads;
+    }
+    if (start) {
+	video->vcio_opts.start_number = start;
+    }
+    if (end) {
+	video->vcio_opts.vframes = (end - start) + 1; // currently unused by vcio (it's mostly synchronous)
+    }
+
+    int status = vcio_reader_alloc(&video->reader, video->path, &video->vcio_opts);
+    if (status < 0) {
+	fprintf(stderr, "(EE) can't open file %s\n", video->path);
+	free(video);
+	exit(1);
+    }
+
+    video->frame_start = start;
+    video->frame_end = end;
+    video->frame_skip = skip;
+    video->frame_current = 0;
+    // Implicit pix format
+
+    
+    *i0 = 0;
+    *j0 = 0;
+    *i1 = video->reader.height - 1;
+    *j1 = video->reader.width - 1;
+
+
+    video->fra_buffer = NULL;
+    video->fra_count = 0;
+
+    video->cur_loop = 1;
+    video->loop_size = 1;
+
+    int frame_id = 0;
+    if (bufferize) {
+	fprintf(stdout, "Bufferizing image sequence\n");
+	
+        uint8_t*** fra_buffer_tmp;
+        fra_buffer_tmp = (uint8_t***)malloc(MAX_BUFF_SIZE * sizeof(uint8_t***));
+        do {
+            if (video->fra_count >= MAX_BUFF_SIZE) {
+                fprintf(stderr, "(EE) 'video->fra_count' has to be smaller than 'MAX_BUFF_SIZE' "
+                                "('video->fra_count' = %d, 'MAX_BUFF_SIZE' = %d\n)", (int)video->fra_count,
+                                (int)MAX_BUFF_SIZE);
+                exit(-1);
+            }
+            uint8_t **I = ui8matrix(*i0, *i1, *j0, *j1);
+            frame_id = video_reader_vcio_get_frame(video, I);
+            if (frame_id != -1) {
+                fra_buffer_tmp[video->fra_count -1] = I;
+            } else
+                free_ui8matrix(I, *i0, *i1, *j0, *j1);
+        } while (frame_id != -1);
+
+        video->fra_buffer = fra_buffer_tmp;
+        video->frame_current = 0;
+        video->cur_loop = 1;
+    }
+
+    return video;
+}
+
+
+static int _video_reader_vcio_get_frame(video_reader_t* video, uint8_t** img) {
+    if (video->frame_end && video->frame_start + video->frame_current > video->frame_end) {
+	fprintf(stdout, "End of video sequence");
+        return -1;
+    }
+
+    int status = vcio_read2d(&video->reader, img);
+    if (status <= 0) {
+        if (status < 0) // 0 == EOF
+            //fprintf(stderr, "(EE) %s\n", ffmpeg_error2str(video->ffmpeg.error));
+	    fprintf(stderr, "(EE) Could not read frame\n");
+        return -1;
+    }
+
+    int cur_fra = (int)video->frame_current;
+    video->frame_current++;
+    return cur_fra;
+}
+
+int video_reader_vcio_get_frame(video_reader_t* video, uint8_t** img) {
+
+    if (video->fra_buffer == NULL) { // Not bufferized
+	size_t skip = video->frame_current == 0 ? 0 : video->frame_skip;
+	int status;
+	int cur_fra = 0;
+	do {
+	    status = _video_reader_vcio_get_frame(video, img);
+	    
+	    if (status < 0 && video->cur_loop < video->loop_size) {
+		video->cur_loop++;
+		video->frame_current = 0;
+
+		vcio_reader_seek(&video->reader, video->frame_start, 0);
+	    }
+	} while ((status != -1) && skip--);
+	
+	if (video->cur_loop == 1 && status >= 0) {
+	    video->fra_count++;
+	}	
+	return (status < 0) ? status : video->frame_start + cur_fra + (video->cur_loop) * video->fra_count
+	    * (1 + video->frame_skip);
+    } else {
+
+	if (video->frame_current < video->fra_count || video->cur_loop < video->loop_size) {
+            if (video->frame_current == video->fra_count) {
+                video->cur_loop++;
+                video->frame_current = 0;
+            }
+            for (unsigned l = 0; l < video->reader.height; l++)
+                memcpy(img[l], video->fra_buffer[video->frame_current][l], video->reader.width);
+            int cur_fra = video->frame_start + (video->frame_current + (video->cur_loop -1) * video->fra_count) *
+		(1 + video->frame_skip);
+            video->frame_current++;
+            return cur_fra;
+        } else
+            return -1;	
+    }
+    
+}
+
+void video_reader_vcio_free(video_reader_t* video) {
+    vcio_reader_free(&video->reader);
+    if (video->fra_buffer) {
+        for (size_t i = 0; i < video->fra_count; i++)
+            free_ui8matrix(video->fra_buffer[i], 0, video->reader.height - 1, 0, video->reader.width - 1);
+        free(video->fra_buffer);
+    }
+    free(video);
+}
+
+#endif // FMDT_USE_VCODECS_IO
+

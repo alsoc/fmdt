@@ -48,6 +48,7 @@ int main(int argc, char** argv) {
     int def_p_cca_roi_max1 = 65535; // Maximum number of RoIs before `features_merge_CCL_HI` selection.
     int def_p_cca_roi_max2 = 400; // Maximum number of RoIs after `features_merge_CCL_HI` selection.
 
+    fprintf(stdout, "Starting fmdt-detect-opt\n");
     // help
     if (args_find(argc, argv, "--help,-h")) {
         fprintf(stderr,
@@ -276,8 +277,16 @@ int main(int argc, char** argv) {
 
     TIME_POINT(start_alloc_init);
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
-    video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
+    video_reader_t* video;
+
+#if FMDT_USE_VCODECS_IO
+    video = video_reader_vcio_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
+					 p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
+#else 
+    video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
                                                     p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
+#endif // FMDT_USE_VCODES_IO
+    
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;
     img_data_t* img_data = NULL;
@@ -336,7 +345,11 @@ int main(int argc, char** argv) {
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     int cur_fra;
     TIME_POINT(start_compute);
+#if FMDT_USE_VCODECS_IO
+    while ((cur_fra = video_reader_vcio_get_frame(video, I)) != -1) {
+#else 
     while ((cur_fra = video_reader_get_frame(video, I)) != -1) {
+#endif // FMDT_USE_VCODECS_IO
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         // step 1 + step 2: threshold low + CCL/CCA
@@ -422,6 +435,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors, n_stars,
                 n_noise, (unsigned long)real_n_tracks);
         fflush(stderr);
+
     }
     TIME_POINT(stop_compute);
     fprintf(stderr, "\n");
@@ -457,7 +471,13 @@ int main(int argc, char** argv) {
     features_free_RoIs(RoIs_tmp);
     features_free_RoIs(RoIs0);
     features_free_RoIs(RoIs1);
+
+#if FMDT_USE_VCODECS_IO
+    video_reader_vcio_free(video);
+#else
     video_reader_free(video);
+#endif // FMDT_USE_VCODECS_IO
+    
     if (img_data) {
         image_gs_free(img_data);
         video_writer_free(video_writer);

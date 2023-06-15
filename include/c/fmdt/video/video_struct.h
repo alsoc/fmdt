@@ -6,14 +6,32 @@
 #pragma once
 
 #include <stdint.h>
+#include <stddef.h>
+
+
+#ifdef FMDT_USE_FFMPEG_IO
 #include <ffmpeg-io/common.h>
+#endif // FMDT_USE_FFMPEG_IO
+
+#ifdef FMDT_USE_VCODECS_IO
+#include <vcodecs-io/vcodecs-io.h>
+#endif // FMDT_USE_VCODECS_IO
 
 /**
  *  Video reader structure.
  */
 typedef struct {
+
+#ifdef FMDT_USE_FFMPEG_IO
     ffmpeg_options ffmpeg_opts; /*!< FFMPEG options. */
     ffmpeg_handle ffmpeg; /*!< FFMPEG handle. */
+#endif // FMDT_USE_FFMPEG_IO
+
+#if FMDT_USE_VCODECS_IO
+    vcio_options_t vcio_opts;
+    vcio_reader_t reader;
+#endif // FMDT_USE_VCODECS_IO
+    
     size_t frame_start; /*!< Start frame number (first frame is frame 0). */
     size_t frame_end; /*!< Last frame number. */
     size_t frame_skip; /*!< Number of frames to skip between two frames (0 means no frame is skipped). */
@@ -39,7 +57,11 @@ enum pixfmt_e { PIXFMT_RGB24 = 0, /*!< 24 bits Red-Green-Blue. */
  *  Video writer structure.
  */
 typedef struct {
+#ifdef FMDT_USE_FFMPEG_IO
     ffmpeg_options ffmpeg_opts; /*!< FFMPEG options. */
     ffmpeg_handle ffmpeg; /*!< FFMPEG handle. */
+#endif // FMDT_USE_FFMPEG_IO
+
+    
     char path[2048]; /*!< Path to the video or images. */
 } video_writer_t;
