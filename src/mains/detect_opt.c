@@ -340,6 +340,10 @@ int main(int argc, char** argv) {
     // -- PROCESSING --//
     // ----------------//
 
+#if FMDT_USE_VCODECS_IO
+    fprintf(stdout, "Using vcodecs-io\n");
+#endif // 
+    
     printf("# The program is running...\n");
     size_t real_n_tracks = 0;
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
@@ -352,6 +356,11 @@ int main(int argc, char** argv) {
 #endif // FMDT_USE_VCODECS_IO
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
+	char frame_name[1024];
+	snprintf(frame_name, 1024, "frame%d.png", cur_fra);
+	
+	//SavePNG_ui8matrix(I, i0, i1, j0, j1, frame_name);
+	
         // step 1 + step 2: threshold low + CCL/CCA
         const uint8_t no_init_labels = 1; // increase CCL speed BUT requires to call
                                           // `features_labels_zero_init(..., L1)` after

@@ -15,6 +15,7 @@ option(FMDT_OPENCV_LINK "link with OpenCV library." OFF)
 option(FMDT_AFF3CT_RUNTIME "link with AFF3CT for execution runtime." OFF)
 option(FMDT_LSL_LINK "link with external LSL library." OFF)
 option(FMDT_LSL_NEW_INTERFACE "enable new LSL library interface." OFF)
+option(FMDT_USE_VCIO "load video sequences using vcodecs-io library rather than ffmpeg-io" OFF)
 
 if (FMDT_OPENCV_LINK OR FMDT_AFF3CT_RUNTIME)
 	set(FMDT_CPP ON)
@@ -35,9 +36,11 @@ message(STATUS "  * FMDT_OPENCV_LINK: '${FMDT_OPENCV_LINK}'")
 message(STATUS "  * FMDT_AFF3CT_RUNTIME: '${FMDT_AFF3CT_RUNTIME}'")
 message(STATUS "  * FMDT_LSL_LINK: '${FMDT_LSL_LINK}'")
 message(STATUS "  * FMDT_LSL_NEW_INTERFACE: '${FMDT_LSL_NEW_INTERFACE}'")
+message(STATUS "  * FMDT_USE_VCIO: '${FMDT_USE_VCIO}'")
 message(STATUS "FMDT info: ")
 message(STATUS "  * FMDT_CPP: '${FMDT_CPP}'")
 message(STATUS "  * CMAKE_BUILD_TYPE: '${CMAKE_BUILD_TYPE}'")
+
 
 # Check CMake options ---------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -326,6 +329,11 @@ endif()
 
 # Add and compile sub-projects ------------------------------------------------
 # -----------------------------------------------------------------------------
+
+if (FMDT_USE_VCIO)
+	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lib/vcodecs-io/")		
+endif()
+
 # ffmpeg-io
 if (NOT TARGET ffmpeg-io-slib)
 	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/ffmpeg-io/include/constants.h")
@@ -333,7 +341,7 @@ if (NOT TARGET ffmpeg-io-slib)
 		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/ffmpeg-io/)
 	else()
 		message(FATAL_ERROR "'ffmpeg-io' can't be found, try to init the submodule with the following cmd:\n"
-		                    "$ git submodule update --init -- ../lib/ffmpeg-io/")
+			"$ git submodule update --init -- ../lib/ffmpeg-io/")
 	endif()
 endif()
 
@@ -399,6 +407,12 @@ endif()
 if (FMDT_LSL_NEW_INTERFACE)
 	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_LSL_NEW_INTERFACE)
 endif()
+if (FMDT_USE_VCIO)
+	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_USE_VCODECS_IO)
+endif()
+
+# Keep ffmpeg-io enabled
+fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_USE_FFMPEG_IO)
 
 # Set include directory -------------------------------------------------------
 # -----------------------------------------------------------------------------
@@ -439,5 +453,11 @@ if (FMDT_LSL_LINK)
 		fmdt_target_link_libraries("${fmdt_targets_list}" PRIVATE lsl-simd-slib)
 	else()
 		fmdt_target_link_libraries("${fmdt_targets_list}" PRIVATE lsl-slib)
+	endif()
+endif()
+
+if (FMDT_USE_VCIO)
+	if (TARGET vcodecs-io-slib)
+		fmdt_target_link_libraries("${fmdt_targets_list}" PRIVATE vcodecs-io-slib)
 	endif()
 endif()
