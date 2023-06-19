@@ -323,19 +323,21 @@ static int _video_reader_vcio_get_frame(video_reader_t* video, uint8_t** img) {
 }
 
 int video_reader_vcio_get_frame(video_reader_t* video, uint8_t** img) {
-
+  retry:
     if (video->fra_buffer == NULL) { // Not bufferized
 	size_t skip = video->frame_current == 0 ? 0 : video->frame_skip;
 	int status;
 	int cur_fra = 0;
 	do {
 	    status = _video_reader_vcio_get_frame(video, img);
-	    
+
+	    // restart reader
 	    if (status < 0 && video->cur_loop < video->loop_size) {
 		video->cur_loop++;
 		video->frame_current = 0;
 
 		vcio_reader_seek(&video->reader, video->frame_start, 0);
+		goto retry;
 	    }
 	} while ((status != -1) && skip--);
 	
