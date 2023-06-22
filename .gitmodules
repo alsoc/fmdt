@@ -15,4 +15,4 @@
 	url = ../lsl-lib
 [submodule "lib/vcodecs-io"]
 	path = lib/vcodecs-io
-	url = git@gitlab.lip6.fr:sog/vcodecs-io.git
+	url = ../vcodecs-io.git
