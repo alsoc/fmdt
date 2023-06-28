@@ -46,6 +46,10 @@ typedef struct {
     size_t cur_loop; /*!< Current loop. */
 } video_reader_t;
 
+enum video_codec_e { FFMPEG_IO = 0,
+                     VCODEC_IO,
+};
+
 /**
  *  Pixel formats enumeration.
  */
@@ -65,3 +69,10 @@ typedef struct {
     
     char path[2048]; /*!< Path to the video or images. */
 } video_writer_t;
+
+/**
+ * Convert a string into an `video_codec_e` enum value
+ * @param str String that can be "FFMPEG-IO" or "VCODEC-IO" (if the code has been linked with vcodecs-io library)
+ * @return Corresponding enum value.
+ */
+enum video_codec_e video_str_to_enum(const char* str);
