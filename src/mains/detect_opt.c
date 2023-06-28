@@ -47,6 +47,7 @@ int main(int argc, char** argv) {
     char* def_p_log_path = NULL;
     int def_p_cca_roi_max1 = 65535; // Maximum number of RoIs before `features_merge_CCL_HI` selection.
     int def_p_cca_roi_max2 = 400; // Maximum number of RoIs after `features_merge_CCL_HI` selection.
+    char def_p_video_dec[16] = "FFMPEG-IO"; 
 
     fprintf(stdout, "Starting fmdt-detect-opt\n");
     // help
@@ -146,10 +147,16 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
+	
+	fprintf(stderr,
+                "  --video-dec         Select video decoder implementation ('FFMPEG-IO' or 'VCODEC-IO')                [%s]\n",
+                def_p_video_dec);
+	
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
         fprintf(stderr,
                 "  --version, -v       Print the version                                                          \n");
+
         exit(1);
     }
 
@@ -196,6 +203,7 @@ int main(int argc, char** argv) {
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
+    const char* p_video_dec = args_find_char(argc, argv, "--video-dec", def_p_video_dec);
 
     // heading display
     printf("#  ---------------------\n");
@@ -240,6 +248,7 @@ int main(int argc, char** argv) {
     printf("#  * trk-all        = %d\n", p_trk_all);
     printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * log-path       = %s\n", p_log_path);
+    printf("#  * video-dec      = %s\n", p_video_dec);
 
     printf("#\n");
 
@@ -316,6 +325,9 @@ int main(int argc, char** argv) {
     if (p_cca_mag || p_ccl_fra_path)
         L2 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b);
 
+    enum video_codec_e video_dec_type = video_str_to_enum(p_video_dec);
+ 
+    
     // ------------------------- //
     // -- DATA INITIALISATION -- //
     // ------------------------- //
@@ -349,11 +361,27 @@ int main(int argc, char** argv) {
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     int cur_fra;
     TIME_POINT(start_compute);
-#if FMDT_USE_VCODECS_IO
-    while ((cur_fra = video_reader_vcio_get_frame(video, I)) != -1) {
-#else 
-    while ((cur_fra = video_reader_get_frame(video, I)) != -1) {
-#endif // FMDT_USE_VCODECS_IO
+
+    
+    
+    while (cur_fra != -1) {
+
+
+	if (video_dec_type == FFMPEG_IO) {
+	    cur_fra = video_reader_get_frame(video, I);
+	} else { // VCODECS_IO
+#if FMDT_USE_VCODEC_IO
+	    cur_fra = video_reader_vcio_get_frame(video, I);
+#endif
+	    fprintf(stderr, "(EE) can not use vcodecs-io without link library\n");
+	    exit(-1);
+	}
+
+	if (cur_fra == -1) {
+	    break; // End of sequence
+	}
+    
+	
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
 	char frame_name[1024];
