@@ -47,7 +47,7 @@ typedef struct {
 } video_reader_t;
 
 enum video_codec_e { FFMPEG_IO = 0,
-                     VCODEC_IO,
+                     VCODECS_IO,
 };
 
 /**

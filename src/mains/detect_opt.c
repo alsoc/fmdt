@@ -288,13 +288,26 @@ int main(int argc, char** argv) {
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
     video_reader_t* video;
 
-#if FMDT_USE_VCODECS_IO
-    video = video_reader_vcio_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
-					 p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
+#ifndef FMDT_USE_VCODECS_IO
+#error "vcodecs-io not found"
+#endif // FMDT_USE_VCODECS_IO
+    
+    enum video_codec_e video_dec_type = video_str_to_enum(p_video_dec);
+
+    if (video_dec_type == FFMPEG_IO) {
+	video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
+					p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
+    
+    } else { // VCODECS_IO
+#ifdef FMDT_USE_VCODECS_IO
+	video = video_reader_vcio_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
+					     p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
 #else 
-    video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
-                                                    p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
-#endif // FMDT_USE_VCODES_IO
+	fprintf(stderr, "(EE) can not use vcodecs-io without link library (%s, L%d)\n", __FILE__, __LINE__);
+	exit(-1);
+#endif // 
+    }
+
     
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;
@@ -325,7 +338,6 @@ int main(int argc, char** argv) {
     if (p_cca_mag || p_ccl_fra_path)
         L2 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b);
 
-    enum video_codec_e video_dec_type = video_str_to_enum(p_video_dec);
  
     
     // ------------------------- //
@@ -370,11 +382,13 @@ int main(int argc, char** argv) {
 	if (video_dec_type == FFMPEG_IO) {
 	    cur_fra = video_reader_get_frame(video, I);
 	} else { // VCODECS_IO
-#if FMDT_USE_VCODEC_IO
+#ifdef FMDT_USE_VCODECS_IO
 	    cur_fra = video_reader_vcio_get_frame(video, I);
-#endif
-	    fprintf(stderr, "(EE) can not use vcodecs-io without link library\n");
+#else
+	    fprintf(stderr, "(EE) can not use vcodecs-io without link library (%s, L%d)\n", __FILE__, __LINE__);
 	    exit(-1);
+
+#endif // FMDT_USE_VCODECS_IO
 	}
 
 	if (cur_fra == -1) {
@@ -509,11 +523,13 @@ int main(int argc, char** argv) {
     features_free_RoIs(RoIs0);
     features_free_RoIs(RoIs1);
 
-#if FMDT_USE_VCODECS_IO
-    video_reader_vcio_free(video);
-#else
-    video_reader_free(video);
+    if (video_dec_type == FFMPEG_IO) {
+	video_reader_free(video);
+    } else {
+#ifdef FMDT_USE_VCODECS_IO
+	    video_reader_vcio_free(video);
 #endif // FMDT_USE_VCODECS_IO
+    }
     
     if (img_data) {
         image_gs_free(img_data);

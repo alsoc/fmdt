@@ -8,7 +8,7 @@ enum video_codec_e video_str_to_enum(const char* str) {
 
     if (strcmp(str, "FFMPEG-IO") == 0) {
 	return FFMPEG_IO;
-    } else if (strcmp(str, "VCODEC-IO") == 0) {
+    } else if (strcmp(str, "VCODECS-IO") == 0) {
 
 #ifdef FMDT_USE_VCODECS_IO
 	return VCODECS_IO;
