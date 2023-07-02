@@ -148,3 +148,13 @@ Here is the list of the CMake available options:
    Link with an external |CCL| library. Then the |CCL| implementation can be
    changed with the :ref:`detect_ccl-impl` parameter. **This library is not
    public yet so it may fail when enabling this option.**
+
+- ``FMDT_USE_VCIO``
+
+   :Type: BOOLEAN
+   :Default: OFF
+   :Example: ``cmake .. -DFMDT_USE_VCIO=ON``
+
+   Link with the external ``vcodecs-io`` library. This library can be used to
+   decode video files with the :ref:`detect_vid-in-dec` parameter. **This
+   library is not public yet so it may fail when enabling this option.**

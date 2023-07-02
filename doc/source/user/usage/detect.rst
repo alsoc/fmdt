@@ -24,6 +24,8 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--vid-in-threads`` | INTEGER | See :numref:`detect_vid-in-threads`.               |
 +----------------------+---------+----------------------------------------------------+
+| ``--vid-in-dec``     | STRING  | See :numref:`detect_vid-in-dec`.                   |
++----------------------+---------+----------------------------------------------------+
 | ``--ccl-impl``       | STRING  | See :numref:`detect_ccl-impl`.                     |
 +----------------------+---------+----------------------------------------------------+
 | ``--ccl-hyst-lo``    | INTEGER | See :numref:`detect_ccl-hyst-lo`.                  |
@@ -193,6 +195,22 @@ Number of times the video is read in loop.
 
 Select the number of threads to use to decode video input (in ``ffmpeg``). If
 set to ``0``, ``ffmpeg`` chooses the number of threads automatically.
+
+.. _detect_vid-in-dec:
+
+``--vid-in-dec``
+----------------
+
+   :Type: STRING
+   :Default: ``FFMPEG-IO``
+   :Example: ``--vid-in-dec VCODECS-IO``
+
+Select the input video decoder interface. ``FFMPEG-IO`` is based on the cmd line
+``ffmpeg`` executable to exchange decoded frames over a system pipe.
+``VCODECS-IO`` directly call the ``libav``.
+
+.. note:: ``VCODECS-IO`` works only if |FMDT| has been compiled with the CMake
+          ``-DFMDT_USE_VCIO=ON`` option (see :numref:`user_installation_cmake`).
 
 .. _detect_ccl-impl:
 
