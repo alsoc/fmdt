@@ -145,7 +145,7 @@ int main(int argc, char** argv) {
     int skip = 0;
     int i0, i1, j0, j1;
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, skip, 0,
-                                                    p_vid_in_threads, &i0, &i1, &j0, &j1);
+                                                    p_vid_in_threads, VCDC_FFMPEG_IO, &i0, &i1, &j0, &j1);
 
     // ---------------- //
     // -- ALLOCATION -- //
@@ -161,11 +161,11 @@ int main(int argc, char** argv) {
     if (p_trk_path) {
         img_data = image_color_alloc((j1 - j0) + 1, (i1 - i0) + 1);
         video_writer = video_writer_alloc_init(p_fra_out_path, p_vid_in_start, n_threads, i1 - i0 + 1, j1 - j0 + 1,
-                                               PIXFMT_RGB24);
+                                               PIXFMT_RGB24, VCDC_FFMPEG_IO);
     } else {
         img_data = image_gs_alloc((j1 - j0) + 1, (i1 - i0) + 1);
         video_writer = video_writer_alloc_init(p_fra_out_path, p_vid_in_start, n_threads, i1 - i0 + 1, j1 - j0 + 1,
-                                               PIXFMT_GRAY);
+                                               PIXFMT_GRAY, VCDC_FFMPEG_IO);
     }
 
     // ----------------//

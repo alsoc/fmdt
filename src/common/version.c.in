@@ -77,6 +77,30 @@ void version_print(const char* bin_name) {
     char opt_aff3ct[256] = "off";
 #endif
 
+#if defined(FMDT_LSL_LINK)
+    char opt_flsl[256] = "on";
+#else
+    char opt_flsl[256] = "off";
+#endif
+
+#if defined(FMDT_LSL_NEW_INTERFACE)
+ char opt_flsl_new_interface[256] = "on";
+#else
+ char opt_flsl_new_interface[256] = "off";
+#endif
+
+#if defined(FMDT_USE_FFMPEG_IO)
+    char opt_ffio_io[256] = "on";
+#else
+    char opt_ffio_io[256] = "off";
+#endif
+
+#if defined(FMDT_USE_VCIO)
+    char opt_vcio_io[256] = "on";
+#else
+    char opt_vcio_io[256] = "off";
+#endif
+
     if (strnlen(g_fmdt_version, sizeof(g_fmdt_version))) {
         char hash8[sizeof(g_fmdt_sha1)];
         strncpy(hash8, g_fmdt_sha1, sizeof(hash8));
@@ -87,9 +111,13 @@ void version_print(const char* bin_name) {
         printf("fmdt-%s (system: %s, compiler: %s-%s)\n", bin_name, os, compiler, compiler_version);
 
     printf("Compilation options:\n");
-    printf("  - Debug mode:       %s\n", opt_debug);
-    printf("  - Link with OpenCV: %s\n", opt_opencv_link);
-    printf("  - Link with AFF3CT: %s\n", opt_aff3ct);
+    printf("  - Debug mode:           %s\n", opt_debug);
+    printf("  - Link with OpenCV:     %s\n", opt_opencv_link);
+    printf("  - Link with AFF3CT:     %s\n", opt_aff3ct);
+    printf("  - Link with FLSL:       %s\n", opt_flsl);
+    printf("  - FLSL new interface:   %s\n", opt_flsl_new_interface);
+    printf("  - Link with ffmpeg-io:  %s\n", opt_ffio_io);
+    printf("  - Link with vcodecs-io: %s\n", opt_vcio_io);
     printf("Copyright (c) 2022-2023 - MIT license.\n");
     printf("This is free software; see the source for copying conditions.  There is NO\n");
     printf("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n");

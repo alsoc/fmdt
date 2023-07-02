@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
     int b = 1;
     int i0, i1, j0, j1; // image dimension (y_min, y_max, x_min, x_max)
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, 0, 0,
-                                                    p_vid_in_threads, &i0, &i1, &j0, &j1);
+                                                    p_vid_in_threads, VCDC_FFMPEG_IO, &i0, &i1, &j0, &j1);
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
     img_data_t* img_data = image_color_alloc((j1 - j0) - 1, (i1 - i0) + 1);
 
@@ -224,7 +224,7 @@ int main(int argc, char** argv) {
 
     size_t n_threads = 4;
     video_writer_t* video_writer = video_writer_alloc_init(p_vid_out_path, p_vid_in_start, n_threads, i1 - i0 + 1,
-                                                           j1 - j0 + 1, PIXFMT_RGB24);
+                                                           j1 - j0 + 1, PIXFMT_RGB24, VCDC_FFMPEG_IO);
 
     // parcours de la video
     enum color_e color = COLOR_MISC;

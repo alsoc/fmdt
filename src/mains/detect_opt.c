@@ -26,6 +26,7 @@ int main(int argc, char** argv) {
     int def_p_vid_in_skip = 0;
     int def_p_vid_in_loop = 1;
     int def_p_vid_in_threads = 0;
+    char def_p_vid_in_dec[16] = "FFMPEG-IO";
     char def_p_ccl_impl[16] = "LSLH";
     int def_p_ccl_hyst_lo = 55;
     int def_p_ccl_hyst_hi = 80;
@@ -47,7 +48,6 @@ int main(int argc, char** argv) {
     char* def_p_log_path = NULL;
     int def_p_cca_roi_max1 = 65535; // Maximum number of RoIs before `features_merge_CCL_HI` selection.
     int def_p_cca_roi_max2 = 400; // Maximum number of RoIs after `features_merge_CCL_HI` selection.
-    char def_p_video_dec[16] = "FFMPEG-IO"; 
 
     fprintf(stdout, "Starting fmdt-detect-opt\n");
     // help
@@ -72,6 +72,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --vid-in-threads    Select the number of threads to use to decode video input (in ffmpeg)  [%d]\n",
                 def_p_vid_in_threads);
+        fprintf(stderr,
+                "  --vid-in-dec        Select video decoder implementation ('FFMPEG-IO' or 'VCODEC-IO')       [%s]\n",
+                def_p_vid_in_dec);
         fprintf(stderr,
                 "  --ccl-impl          Select the CCL implementation to use ('LSLH' or 'LSLM')                [%s]\n",
                 def_p_ccl_impl);
@@ -148,9 +151,6 @@ int main(int argc, char** argv) {
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
         fprintf(stderr,
-                "  --video-dec         Select video decoder implementation ('FFMPEG-IO' or 'VCODEC-IO')       [%s]\n",
-                def_p_video_dec);
-        fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
         fprintf(stderr,
                 "  --version, -v       Print the version                                                          \n");
@@ -172,6 +172,7 @@ int main(int argc, char** argv) {
     const int p_vid_in_buff = args_find(argc, argv, "--vid-in-buff,--video-buff");
     const int p_vid_in_loop = args_find_int_min(argc, argv, "--vid-in-loop,--video-loop", def_p_vid_in_loop, 1);
     const int p_vid_in_threads = args_find_int_min(argc, argv, "--vid-in-threads,--ffmpeg-threads", def_p_vid_in_threads, 0);
+    const char* p_vid_in_dec = args_find_char(argc, argv, "--vid-in-dec", def_p_vid_in_dec);
     const char* p_ccl_impl = args_find_char(argc, argv, "--ccl-impl", def_p_ccl_impl);
     const int p_ccl_hyst_lo = args_find_int_min_max(argc, argv, "--ccl-hyst-lo,--light-min", def_p_ccl_hyst_lo, 0, 255);
     const int p_ccl_hyst_hi = args_find_int_min_max(argc, argv, "--ccl-hyst-hi,--light-max", def_p_ccl_hyst_hi, 0, 255);
@@ -201,7 +202,6 @@ int main(int argc, char** argv) {
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
-    const char* p_video_dec = args_find_char(argc, argv, "--video-dec", def_p_video_dec);
 
     // heading display
     printf("#  ---------------------\n");
@@ -219,6 +219,7 @@ int main(int argc, char** argv) {
     printf("#  * vid-in-buff    = %d\n", p_vid_in_buff);
     printf("#  * vid-in-loop    = %d\n", p_vid_in_loop);
     printf("#  * vid-in-threads = %d\n", p_vid_in_threads);
+    printf("#  * vid-in-dec     = %s\n", p_vid_in_dec);
     printf("#  * ccl-impl       = %s\n", p_ccl_impl);
     printf("#  * ccl-hyst-lo    = %d\n", p_ccl_hyst_lo);
     printf("#  * ccl-hyst-hi    = %d\n", p_ccl_hyst_hi);
@@ -246,8 +247,6 @@ int main(int argc, char** argv) {
     printf("#  * trk-all        = %d\n", p_trk_all);
     printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * log-path       = %s\n", p_log_path);
-    printf("#  * video-dec      = %s\n", p_video_dec);
-
     printf("#\n");
 
     // arguments checking
@@ -284,23 +283,9 @@ int main(int argc, char** argv) {
 
     TIME_POINT(start_alloc_init);
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
-    video_reader_t* video;
-
-    enum video_codec_e video_dec_type = video_str_to_enum(p_video_dec);
-    if (video_dec_type == FFMPEG_IO) {
-        video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
-                                        p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
-    
-    } else { // VCODECS_IO
-#ifdef FMDT_USE_VCODECS_IO
-        video = video_reader_vcio_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
-                                             p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
-#else 
-        fprintf(stderr, "(EE) can not use vcodecs-io without link library (%s, L%d)\n", __FILE__, __LINE__);
-        exit(-1);
-#endif
-    }
-    
+    video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
+                                                    p_vid_in_buff, p_vid_in_threads, video_str_to_enum(p_vid_in_dec),
+                                                    &i0, &i1, &j0, &j1);
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;
     img_data_t* img_data = NULL;
@@ -308,7 +293,7 @@ int main(int argc, char** argv) {
         img_data = image_gs_alloc((j1 - j0) + 1, (i1 - i0) + 1);
         const size_t n_threads = 1;
         video_writer = video_writer_alloc_init(p_ccl_fra_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
-                                               PIXFMT_GRAY);
+                                               PIXFMT_GRAY, VCDC_FFMPEG_IO);
     }
 
     // --------------------- //
@@ -354,36 +339,13 @@ int main(int argc, char** argv) {
     // -- PROCESSING -- //
     // ---------------- //
 
-#if FMDT_USE_VCODECS_IO
-    fprintf(stdout, "Using vcodecs-io\n");
-#endif // 
-    
     printf("# The program is running...\n");
     size_t real_n_tracks = 0;
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     int cur_fra;
     TIME_POINT(start_compute);
-
-    while (cur_fra != -1) {
-
-        if (video_dec_type == FFMPEG_IO) {
-            cur_fra = video_reader_get_frame(video, I);
-        } else { // VCODECS_IO
-#ifdef FMDT_USE_VCODECS_IO
-            cur_fra = video_reader_vcio_get_frame(video, I);
-#else
-        fprintf(stderr, "(EE) can not use vcodecs-io without link library (%s, L%d)\n", __FILE__, __LINE__);
-        exit(-1);
-#endif
-        }
-        if (cur_fra == -1)
-            break; // End of sequence
-
+    while ((cur_fra = video_reader_get_frame(video, I)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
-
-        // char frame_name[1024];
-        // snprintf(frame_name, 1024, "frame%d.png", cur_fra);
-        // SavePNG_ui8matrix(I, i0, i1, j0, j1, frame_name);
 
         // step 1 + step 2: threshold low + CCL/CCA
         const uint8_t no_init_labels = 1; // increase CCL speed BUT requires to call
@@ -504,13 +466,7 @@ int main(int argc, char** argv) {
     features_free_RoIs(RoIs_tmp);
     features_free_RoIs(RoIs0);
     features_free_RoIs(RoIs1);
-    if (video_dec_type == FFMPEG_IO) {
-        video_reader_free(video);
-    } else {
-#ifdef FMDT_USE_VCODECS_IO
-        video_reader_vcio_free(video);
-#endif
-    }
+    video_reader_free(video);
     if (img_data) {
         image_gs_free(img_data);
         video_writer_free(video_writer);

@@ -277,7 +277,8 @@ int main(int argc, char** argv) {
     TIME_POINT(start_alloc_init);
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
-                                                    p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
+                                                    p_vid_in_buff, p_vid_in_threads, VCDC_FFMPEG_IO, &i0, &i1, &j0,
+                                                    &j1);
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;
     img_data_t* img_data = NULL;
@@ -285,7 +286,7 @@ int main(int argc, char** argv) {
         img_data = image_gs_alloc((j1 - j0) + 1, (i1 - i0) + 1);
         const size_t n_threads = 1;
         video_writer = video_writer_alloc_init(p_ccl_fra_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
-                                               PIXFMT_GRAY);
+                                               PIXFMT_GRAY, VCDC_FFMPEG_IO);
     }
 
     // --------------------- //
