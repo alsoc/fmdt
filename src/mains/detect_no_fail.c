@@ -25,6 +25,7 @@ int main(int argc, char** argv) {
     int def_p_vid_in_skip = 0;
     int def_p_vid_in_loop = 1;
     int def_p_vid_in_threads = 0;
+    char def_p_vid_in_dec[16] = "FFMPEG-IO";
     char def_p_ccl_impl[16] = "LSLH";
     int def_p_ccl_hyst_lo = 55;
     int def_p_ccl_hyst_hi = 80;
@@ -69,6 +70,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --vid-in-threads    Select the number of threads to use to decode video input (in ffmpeg)  [%d]\n",
                 def_p_vid_in_threads);
+        fprintf(stderr,
+                "  --vid-in-dec        Select video decoder implementation ('FFMPEG-IO' or 'VCODEC-IO')       [%s]\n",
+                def_p_vid_in_dec);
         fprintf(stderr,
                 "  --ccl-impl          Select the CCL implementation to use ('LSLH' or 'LSLM')                [%s]\n",
                 def_p_ccl_impl);
@@ -165,6 +169,7 @@ int main(int argc, char** argv) {
     const int p_vid_in_buff = args_find(argc, argv, "--vid-in-buff,--video-buff");
     const int p_vid_in_loop = args_find_int_min(argc, argv, "--vid-in-loop,--video-loop", def_p_vid_in_loop, 1);
     const int p_vid_in_threads = args_find_int_min(argc, argv, "--vid-in-threads,--ffmpeg-threads", def_p_vid_in_threads, 0);
+    const char* p_vid_in_dec = args_find_char(argc, argv, "--vid-in-dec", def_p_vid_in_dec);
     const char* p_ccl_impl = args_find_char(argc, argv, "--ccl-impl", def_p_ccl_impl);
     const int p_ccl_hyst_lo = args_find_int_min_max(argc, argv, "--ccl-hyst-lo,--light-min", def_p_ccl_hyst_lo, 0, 255);
     const int p_ccl_hyst_hi = args_find_int_min_max(argc, argv, "--ccl-hyst-hi,--light-max", def_p_ccl_hyst_hi, 0, 255);
@@ -211,6 +216,7 @@ int main(int argc, char** argv) {
     printf("#  * vid-in-buff    = %d\n", p_vid_in_buff);
     printf("#  * vid-in-loop    = %d\n", p_vid_in_loop);
     printf("#  * vid-in-threads = %d\n", p_vid_in_threads);
+    printf("#  * vid-in-dec     = %s\n", p_vid_in_dec);
     printf("#  * ccl-impl       = %s\n", p_ccl_impl);
     printf("#  * ccl-hyst-lo    = %d\n", p_ccl_hyst_lo);
     printf("#  * ccl-hyst-hi    = %d\n", p_ccl_hyst_hi);
@@ -276,8 +282,8 @@ int main(int argc, char** argv) {
     TIME_POINT(start_alloc_init);
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
-                                                    p_vid_in_buff, p_vid_in_threads, VCDC_FFMPEG_IO, &i0, &i1, &j0,
-                                                    &j1);
+                                                    p_vid_in_buff, p_vid_in_threads, video_str_to_enum(p_vid_in_dec),
+                                                    &i0, &i1, &j0, &j1);
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;
     img_data_t* img_data = NULL;
@@ -327,9 +333,9 @@ int main(int argc, char** argv) {
     TIME_POINT(stop_alloc_init);
     printf("# Allocations and initialisations took %6.3f sec\n", TIME_ELAPSED_SEC(start_alloc_init, stop_alloc_init));
 
-    // ----------------//
-    // -- PROCESSING --//
-    // ----------------//
+    // ---------------- //
+    // -- PROCESSING -- //
+    // ---------------- //
 
     printf("# The program is running...\n");
     size_t real_n_tracks = 0;
@@ -450,9 +456,9 @@ int main(int argc, char** argv) {
     printf("# -> Took %6.3f seconds (avg %d FPS)\n", TIME_ELAPSED_SEC(start_compute, stop_compute),
            (int)(n_frames / (TIME_ELAPSED_SEC(start_compute, stop_compute))));
 
-    // ----------
-    // -- FREE --
-    // ----------
+    // ---------- //
+    // -- FREE -- //
+    // ---------- //
 
     free_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);

@@ -4,14 +4,14 @@
 #include "fmdt/aff3ct_wrapper/Video/Video2.hpp"
 
 Video2::Video2(const std::string filename, const size_t frame_start, const size_t frame_end, const size_t frame_skip,
-               const int bufferize, const size_t n_ffmpeg_threads, const int b)
+               const int bufferize, const size_t n_ffmpeg_threads, const int b, const enum video_codec_e codec_type)
 : Module(), i0(0), i1(0), j0(0), j1(0), b(b), video(nullptr), out_img0(nullptr), img_buf(nullptr), done(false) {
     const std::string name = "Video2";
     this->set_name(name);
     this->set_short_name(name);
 
     this->video = video_reader_alloc_init(filename.c_str(), frame_start, frame_end, frame_skip, bufferize,
-                                          n_ffmpeg_threads, VCDC_FFMPEG_IO, &this->i0, &this->i1, &this->j0, &this->j1);
+                                          n_ffmpeg_threads, codec_type, &this->i0, &this->i1, &this->j0, &this->j1);
 
     this->out_img0 = (uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint8_t*)));
     this->out_img0 -= i0 - b;

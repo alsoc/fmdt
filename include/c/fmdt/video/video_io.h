@@ -25,7 +25,7 @@
  */
 video_reader_t* video_reader_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
                                         const int bufferize, const size_t n_ffmpeg_threads,
-                                        enum video_codec_e codec_type, int* i0, int* i1, int* j0, int* j1);
+                                        const enum video_codec_e codec_type, int* i0, int* i1, int* j0, int* j1);
 
 /**
  * Write grayscale image in a given 2D array.
@@ -54,7 +54,7 @@ void video_reader_free(video_reader_t* video);
  */
 video_writer_t* video_writer_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
                                         const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt,
-                                        enum video_codec_e codec_type);
+                                        const enum video_codec_e codec_type);
 
 /**
  * Allocation of inner data required for a video writer.
