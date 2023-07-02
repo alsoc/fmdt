@@ -248,6 +248,9 @@ typedef struct {
     vcio_reader_t reader;
 } video_metadata_vcio_t;
 
+static int _video_reader_vcio_get_frame(video_reader_t* video, uint8_t** img);
+int video_reader_vcio_get_frame(video_reader_t* video, uint8_t** img);
+
 video_reader_t* video_reader_vcio_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
                                              const int bufferize, const size_t n_ffmpeg_threads, int* i0, int* i1,
                                              int* j0, int* j1) {
@@ -290,8 +293,8 @@ video_reader_t* video_reader_vcio_alloc_init(const char* path, const size_t star
 
     *i0 = 0;
     *j0 = 0;
-    *i1 = video->reader.height - 1;
-    *j1 = video->reader.width - 1;
+    *i1 = metadata->reader.height - 1;
+    *j1 = metadata->reader.width - 1;
 
     video->fra_buffer = NULL;
     video->fra_count = 0;
@@ -550,7 +553,7 @@ void video_writer_free(video_writer_t* video) {
     switch (video->codec_type) {
         case VCDC_FFMPEG_IO: {
 #ifdef FMDT_USE_FFMPEG_IO
-            video_writer_free(video);
+            video_writer_ffio_free(video);
             break;
 #else
             fprintf(stderr, "(EE) Link with the ffmpeg-io library is required.\n");

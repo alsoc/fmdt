@@ -11,7 +11,7 @@ enum video_codec_e video_str_to_enum(const char* str) {
 #ifdef FMDT_USE_VCODECS_IO
         return VCDC_VCODECS_IO;
 #else
-        fprintf(stderr, "(EE) '%s()' failed, 'VCODECS_IO' implementation requires to link with the vcodecs-io library.",
+        fprintf(stderr, "(EE) '%s()' failed, 'VCODECS_IO' implementation requires to link with the vcodecs-io library.\n",
             __func__);
         exit(-1);
 #endif
