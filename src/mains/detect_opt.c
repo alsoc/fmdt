@@ -147,11 +147,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
-	
-	fprintf(stderr,
-                "  --video-dec         Select video decoder implementation ('FFMPEG-IO' or 'VCODEC-IO')                [%s]\n",
+        fprintf(stderr,
+                "  --video-dec         Select video decoder implementation ('FFMPEG-IO' or 'VCODEC-IO')       [%s]\n",
                 def_p_video_dec);
-	
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
         fprintf(stderr,
@@ -288,26 +286,20 @@ int main(int argc, char** argv) {
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
     video_reader_t* video;
 
-#ifndef FMDT_USE_VCODECS_IO
-#error "vcodecs-io not found"
-#endif // FMDT_USE_VCODECS_IO
-    
     enum video_codec_e video_dec_type = video_str_to_enum(p_video_dec);
-
     if (video_dec_type == FFMPEG_IO) {
-	video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
-					p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
+        video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
+                                        p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
     
     } else { // VCODECS_IO
 #ifdef FMDT_USE_VCODECS_IO
-	video = video_reader_vcio_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
-					     p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
+        video = video_reader_vcio_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
+                                             p_vid_in_buff, p_vid_in_threads, &i0, &i1, &j0, &j1);
 #else 
-	fprintf(stderr, "(EE) can not use vcodecs-io without link library (%s, L%d)\n", __FILE__, __LINE__);
-	exit(-1);
-#endif // 
+        fprintf(stderr, "(EE) can not use vcodecs-io without link library (%s, L%d)\n", __FILE__, __LINE__);
+        exit(-1);
+#endif
     }
-
     
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;
@@ -338,8 +330,6 @@ int main(int argc, char** argv) {
     if (p_cca_mag || p_ccl_fra_path)
         L2 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b);
 
- 
-    
     // ------------------------- //
     // -- DATA INITIALISATION -- //
     // ------------------------- //
@@ -360,9 +350,9 @@ int main(int argc, char** argv) {
     TIME_POINT(stop_alloc_init);
     printf("# Allocations and initialisations took %6.3f sec\n", TIME_ELAPSED_SEC(start_alloc_init, stop_alloc_init));
 
-    // ----------------//
-    // -- PROCESSING --//
-    // ----------------//
+    // ---------------- //
+    // -- PROCESSING -- //
+    // ---------------- //
 
 #if FMDT_USE_VCODECS_IO
     fprintf(stdout, "Using vcodecs-io\n");
@@ -374,35 +364,27 @@ int main(int argc, char** argv) {
     int cur_fra;
     TIME_POINT(start_compute);
 
-    
-    
     while (cur_fra != -1) {
 
-
-	if (video_dec_type == FFMPEG_IO) {
-	    cur_fra = video_reader_get_frame(video, I);
-	} else { // VCODECS_IO
+        if (video_dec_type == FFMPEG_IO) {
+            cur_fra = video_reader_get_frame(video, I);
+        } else { // VCODECS_IO
 #ifdef FMDT_USE_VCODECS_IO
-	    cur_fra = video_reader_vcio_get_frame(video, I);
+            cur_fra = video_reader_vcio_get_frame(video, I);
 #else
-	    fprintf(stderr, "(EE) can not use vcodecs-io without link library (%s, L%d)\n", __FILE__, __LINE__);
-	    exit(-1);
+        fprintf(stderr, "(EE) can not use vcodecs-io without link library (%s, L%d)\n", __FILE__, __LINE__);
+        exit(-1);
+#endif
+        }
+        if (cur_fra == -1)
+            break; // End of sequence
 
-#endif // FMDT_USE_VCODECS_IO
-	}
-
-	if (cur_fra == -1) {
-	    break; // End of sequence
-	}
-    
-	
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
-	char frame_name[1024];
-	snprintf(frame_name, 1024, "frame%d.png", cur_fra);
-	
-	//SavePNG_ui8matrix(I, i0, i1, j0, j1, frame_name);
-	
+        // char frame_name[1024];
+        // snprintf(frame_name, 1024, "frame%d.png", cur_fra);
+        // SavePNG_ui8matrix(I, i0, i1, j0, j1, frame_name);
+
         // step 1 + step 2: threshold low + CCL/CCA
         const uint8_t no_init_labels = 1; // increase CCL speed BUT requires to call
                                           // `features_labels_zero_init(..., L1)` after
@@ -509,9 +491,9 @@ int main(int argc, char** argv) {
     printf("# -> Took %6.3f seconds (avg %d FPS)\n", TIME_ELAPSED_SEC(start_compute, stop_compute),
            (int)(n_frames / (TIME_ELAPSED_SEC(start_compute, stop_compute))));
 
-    // ----------
-    // -- FREE --
-    // ----------
+    // ---------- //
+    // -- FREE -- //
+    // ---------- //
 
     free_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -522,15 +504,13 @@ int main(int argc, char** argv) {
     features_free_RoIs(RoIs_tmp);
     features_free_RoIs(RoIs0);
     features_free_RoIs(RoIs1);
-
     if (video_dec_type == FFMPEG_IO) {
-	video_reader_free(video);
+        video_reader_free(video);
     } else {
 #ifdef FMDT_USE_VCODECS_IO
-	    video_reader_vcio_free(video);
-#endif // FMDT_USE_VCODECS_IO
+        video_reader_vcio_free(video);
+#endif
     }
-    
     if (img_data) {
         image_gs_free(img_data);
         video_writer_free(video_writer);

@@ -330,11 +330,6 @@ endif()
 
 # Add and compile sub-projects ------------------------------------------------
 # -----------------------------------------------------------------------------
-
-if (FMDT_USE_VCIO)
-	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lib/vcodecs-io/")		
-endif()
-
 # ffmpeg-io
 if (NOT TARGET ffmpeg-io-slib)
 	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/ffmpeg-io/include/constants.h")
@@ -383,6 +378,11 @@ if (FMDT_LSL_LINK)
 			                    "$ git submodule update --init -- ../lib/lsl/")
 		endif()
 	endif()
+endif()
+
+# vcodecs-io
+if (FMDT_USE_VCIO)
+	add_subdirectory("${CMAKE_CURRENT_SOURCE_DIR}/lib/vcodecs-io/")
 endif()
 
 # Add definitions -------------------------------------------------------------
@@ -456,7 +456,6 @@ if (FMDT_LSL_LINK)
 		fmdt_target_link_libraries("${fmdt_targets_list}" PRIVATE lsl-slib)
 	endif()
 endif()
-
 if (FMDT_USE_VCIO)
 	if (TARGET vcodecs-io-slib)
 		fmdt_target_link_libraries("${fmdt_targets_list}" PRIVATE vcodecs-io-slib)
