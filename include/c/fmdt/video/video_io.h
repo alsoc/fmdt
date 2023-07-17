@@ -17,6 +17,7 @@
  *                  but usually the video sequences are too big to be stored in memory).
  * @param n_ffmpeg_threads Number of threads used in FFMPEG to decode the video sequence (0 means FFMPEG will decide).
  * @param codec_type Select the API to use for video codec (`VCDC_FFMPEG-IO` or `VCDC_VCODEC-IO`).
+ * @param codec_hwaccel_name Select Hardware accelerator ('NONE', 'NVDEC', 'VIDEOTOOLBOX'). A NULL value will default to 'NONE'.
  * @param i0 Return the first \f$y\f$ index in the labels (included).
  * @param i1 Return the last \f$y\f$ index in the labels (included).
  * @param j0 Return the first \f$x\f$ index in the labels (included).
@@ -25,7 +26,9 @@
  */
 video_reader_t* video_reader_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
                                         const int bufferize, const size_t n_ffmpeg_threads,
-                                        const enum video_codec_e codec_type, int* i0, int* i1, int* j0, int* j1);
+                                        const enum video_codec_e codec_type,
+					const enum video_codec_hwaccel_e hwaccel,
+					int* i0, int* i1, int* j0, int* j1);
 
 /**
  * Write grayscale image in a given 2D array.

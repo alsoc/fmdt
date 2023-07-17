@@ -252,7 +252,9 @@ static int _video_reader_vcio_get_frame(video_reader_t* video, uint8_t** img);
 int video_reader_vcio_get_frame(video_reader_t* video, uint8_t** img);
 
 video_reader_t* video_reader_vcio_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
-                                             const int bufferize, const size_t n_ffmpeg_threads, int* i0, int* i1,
+                                             const int bufferize, const size_t n_ffmpeg_threads,
+					     const enum video_codec_hwaccel_e hwaccel,
+					     int* i0, int* i1,
                                              int* j0, int* j1) {
     assert(!end || start <= end);
     video_reader_t* video = (video_reader_t*)malloc(sizeof(video_reader_t));
@@ -261,6 +263,20 @@ video_reader_t* video_reader_vcio_alloc_init(const char* path, const size_t star
         exit(1);
     }
 
+
+    enum AVHWDeviceType av_hwaccel;
+    switch (hwaccel) {
+    case VCDC_HWACCEL_CUDA:
+	av_hwaccel = AV_HWDEVICE_TYPE_CUDA;
+	break;
+    case VCDC_HWACCEL_VIDEOTOOLBOX:
+	av_hwaccel = AV_HWDEVICE_TYPE_VIDEOTOOLBOX;
+	break;	
+    default: // VCDC_HWACCEL_NONE
+	av_hwaccel = AV_HWDEVICE_TYPE_NONE;
+	break;
+    }
+    
     snprintf(video->path, sizeof(video->path), "%s", path);
 
     video->codec_type = VCDC_VCODECS_IO;
@@ -412,11 +428,12 @@ void video_reader_vcio_free(video_reader_t* video) {
 
 video_reader_t* video_reader_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
                                         const int bufferize, const size_t n_ffmpeg_threads,
-                                        const enum video_codec_e codec_type, int* i0, int* i1, int* j0, int* j1) {
+                                        const enum video_codec_e codec_type, const enum video_codec_hwaccel_e hwaccel,
+					int* i0, int* i1, int* j0, int* j1) {
     switch (codec_type) {
         case VCDC_FFMPEG_IO: {
 #ifdef FMDT_USE_FFMPEG_IO
-            return video_reader_ffio_alloc_init(path, start, end, skip, bufferize, n_ffmpeg_threads, i0, i1, j0, j1);
+            return video_reader_ffio_alloc_init(path, start, end, skip, bufferize, n_ffmpeg_threads, hwaccel, i0, i1, j0, j1);
             break;
 #else
             fprintf(stderr, "(EE) Link with the ffmpeg-io library is required.\n");
@@ -425,7 +442,7 @@ video_reader_t* video_reader_alloc_init(const char* path, const size_t start, co
         }
         case VCDC_VCODECS_IO: {
 #ifdef FMDT_USE_VCODECS_IO
-            return video_reader_vcio_alloc_init(path, start, end, skip, bufferize, n_ffmpeg_threads, i0, i1, j0, j1);
+            return video_reader_vcio_alloc_init(path, start, end, skip, bufferize, n_ffmpeg_threads, hwaccel, i0, i1, j0, j1);
             break;
 #else
             fprintf(stderr, "(EE) Link with the vcodecs-io library is required.\n");

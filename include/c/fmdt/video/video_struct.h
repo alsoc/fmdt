@@ -18,6 +18,15 @@ enum video_codec_e { VCDC_FFMPEG_IO = 0, /*!< Library calling the `ffmpeg` execu
 };
 
 /**
+ * Video codec hardware acceleration enumeration
+ */
+enum video_codec_hwaccel_e {
+    VCDC_HWACCEL_NONE = 0,
+    VCDC_HWACCEL_CUDA,
+    VCDC_HWACCEL_VIDEOTOOLBOX,
+};
+
+/**
  *  Video reader structure.
  */
 typedef struct {
@@ -59,3 +68,11 @@ typedef struct {
  * @return Corresponding enum value.
  */
 enum video_codec_e video_str_to_enum(const char* str);
+
+
+/**
+ * Convert a string into an `video_codec_hwaccel_e` enum value
+ * @param str String that can be "NONE", "CUDA" or "VIDEOTOOLBOX" 
+ * @return Corresponding enum value.
+ */
+enum video_codec_hwaccel_e video_hwaccel_str_to_enum(const char* str);

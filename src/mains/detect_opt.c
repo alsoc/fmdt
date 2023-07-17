@@ -27,6 +27,7 @@ int main(int argc, char** argv) {
     int def_p_vid_in_loop = 1;
     int def_p_vid_in_threads = 0;
     char def_p_vid_in_dec[16] = "FFMPEG-IO";
+    char def_p_vid_in_dec_hwaccel[16] = "NONE";
     char def_p_ccl_impl[16] = "LSLH";
     int def_p_ccl_hyst_lo = 55;
     int def_p_ccl_hyst_hi = 80;
@@ -73,8 +74,11 @@ int main(int argc, char** argv) {
                 "  --vid-in-threads    Select the number of threads to use to decode video input (in ffmpeg)  [%d]\n",
                 def_p_vid_in_threads);
         fprintf(stderr,
-                "  --vid-in-dec        Select video decoder implementation ('FFMPEG-IO' or 'VCODEC-IO')       [%s]\n",
+                "  --vid-in-dec        Select video decoder implementation ('FFMPEG-IO' or 'VCODECS-IO')       [%s]\n",
                 def_p_vid_in_dec);
+	fprintf(stderr,
+		"--vid-in-dec-hw       Select video decoder hardware acceleration ('NONE', 'NVDEC', 'VIDEOTOOLBOX') [%s]\n",
+		def_p_vid_in_dec_hwaccel);
         fprintf(stderr,
                 "  --ccl-impl          Select the CCL implementation to use ('LSLH' or 'LSLM')                [%s]\n",
                 def_p_ccl_impl);
@@ -173,6 +177,7 @@ int main(int argc, char** argv) {
     const int p_vid_in_loop = args_find_int_min(argc, argv, "--vid-in-loop,--video-loop", def_p_vid_in_loop, 1);
     const int p_vid_in_threads = args_find_int_min(argc, argv, "--vid-in-threads,--ffmpeg-threads", def_p_vid_in_threads, 0);
     const char* p_vid_in_dec = args_find_char(argc, argv, "--vid-in-dec", def_p_vid_in_dec);
+    const char* p_vid_in_dec_hwaccel = args_find_char(argc, argv, "--vid-in-dec-hwaccel", def_p_vid_in_dec_hwaccel);
     const char* p_ccl_impl = args_find_char(argc, argv, "--ccl-impl", def_p_ccl_impl);
     const int p_ccl_hyst_lo = args_find_int_min_max(argc, argv, "--ccl-hyst-lo,--light-min", def_p_ccl_hyst_lo, 0, 255);
     const int p_ccl_hyst_hi = args_find_int_min_max(argc, argv, "--ccl-hyst-hi,--light-max", def_p_ccl_hyst_hi, 0, 255);
@@ -212,41 +217,43 @@ int main(int argc, char** argv) {
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
-    printf("#  * vid-in-path    = %s\n", p_vid_in_path);
-    printf("#  * vid-in-start   = %d\n", p_vid_in_start);
-    printf("#  * vid-in-stop    = %d\n", p_vid_in_stop);
-    printf("#  * vid-in-skip    = %d\n", p_vid_in_skip);
-    printf("#  * vid-in-buff    = %d\n", p_vid_in_buff);
-    printf("#  * vid-in-loop    = %d\n", p_vid_in_loop);
-    printf("#  * vid-in-threads = %d\n", p_vid_in_threads);
-    printf("#  * vid-in-dec     = %s\n", p_vid_in_dec);
-    printf("#  * ccl-impl       = %s\n", p_ccl_impl);
-    printf("#  * ccl-hyst-lo    = %d\n", p_ccl_hyst_lo);
-    printf("#  * ccl-hyst-hi    = %d\n", p_ccl_hyst_hi);
-    printf("#  * ccl-fra-path   = %s\n", p_ccl_fra_path);
-#ifdef FMDT_OPENCV_LINK
-    printf("#  * ccl-fra-id     = %d\n", p_ccl_fra_id);
-#endif
-    printf("#  * cca-mag        = %d\n", p_cca_mag);
-    printf("#  * cca-ell        = %d\n", p_cca_ell);
-    printf("#  * cca-roi-max1   = %d\n", p_cca_roi_max1);
-    printf("#  * cca-roi-max2   = %d\n", p_cca_roi_max2);
-    printf("#  * mrp-s-min      = %d\n", p_mrp_s_min);
-    printf("#  * mrp-s-max      = %d\n", p_mrp_s_max);
-    printf("#  * knn-k          = %d\n", p_knn_k);
-    printf("#  * knn-d          = %d\n", p_knn_d);
-    printf("#  * knn-s          = %1.3f\n", p_knn_s);
-    printf("#  * trk-ext-d      = %d\n", p_trk_ext_d);
-    printf("#  * trk-ext-o      = %d\n", p_trk_ext_o);
-    printf("#  * trk-angle      = %f\n", p_trk_angle);
-    printf("#  * trk-star-min   = %d\n", p_trk_star_min);
-    printf("#  * trk-meteor-min = %d\n", p_trk_meteor_min);
-    printf("#  * trk-meteor-max = %d\n", p_trk_meteor_max);
-    printf("#  * trk-ddev       = %4.2f\n", p_trk_ddev);
-    printf("#  * trk-ell-min    = %f\n", p_trk_ell_min);
-    printf("#  * trk-all        = %d\n", p_trk_all);
-    printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
-    printf("#  * log-path       = %s\n", p_log_path);
+    printf("#  * vid-in-path        = %s\n", p_vid_in_path);
+    printf("#  * vid-in-start       = %d\n", p_vid_in_start);
+    printf("#  * vid-in-stop        = %d\n", p_vid_in_stop);
+    printf("#  * vid-in-skip        = %d\n", p_vid_in_skip);
+    printf("#  * vid-in-buff        = %d\n", p_vid_in_buff);
+    printf("#  * vid-in-loop        = %d\n", p_vid_in_loop);
+    printf("#  * vid-in-threads     = %d\n", p_vid_in_threads);
+    printf("#  * vid-in-dec         = %s\n", p_vid_in_dec);
+    printf("#  * vid-in-dec-hwaccel = %s\n", p_vid_in_dec_hwaccel);
+
+    printf("#  * ccl-impl           = %s\n", p_ccl_impl);
+    printf("#  * ccl-hyst-lo        = %d\n", p_ccl_hyst_lo);
+    printf("#  * ccl-hyst-hi        = %d\n", p_ccl_hyst_hi);
+    printf("#  * ccl-fra-path       = %s\n", p_ccl_fra_path);
+#ifdef FMDT_OPENCV_LINK		    
+    printf("#  * ccl-fra-id         = %d\n", p_ccl_fra_id);
+#endif				    
+    printf("#  * cca-mag            = %d\n", p_cca_mag);
+    printf("#  * cca-ell            = %d\n", p_cca_ell);
+    printf("#  * cca-roi-max1       = %d\n", p_cca_roi_max1);
+    printf("#  * cca-roi-max2       = %d\n", p_cca_roi_max2);
+    printf("#  * mrp-s-min          = %d\n", p_mrp_s_min);
+    printf("#  * mrp-s-max          = %d\n", p_mrp_s_max);
+    printf("#  * knn-k              = %d\n", p_knn_k);
+    printf("#  * knn-d              = %d\n", p_knn_d);
+    printf("#  * knn-s              = %1.3f\n", p_knn_s);
+    printf("#  * trk-ext-d          = %d\n", p_trk_ext_d);
+    printf("#  * trk-ext-o          = %d\n", p_trk_ext_o);
+    printf("#  * trk-angle          = %f\n", p_trk_angle);
+    printf("#  * trk-star-min       = %d\n", p_trk_star_min);
+    printf("#  * trk-meteor-min     = %d\n", p_trk_meteor_min);
+    printf("#  * trk-meteor-max     = %d\n", p_trk_meteor_max);
+    printf("#  * trk-ddev           = %4.2f\n", p_trk_ddev);
+    printf("#  * trk-ell-min        = %f\n", p_trk_ell_min);
+    printf("#  * trk-all            = %d\n", p_trk_all);
+    printf("#  * trk-roi-path       = %s\n", p_trk_roi_path);
+    printf("#  * log-path           = %s\n", p_log_path);
     printf("#\n");
 
     // arguments checking
@@ -285,7 +292,8 @@ int main(int argc, char** argv) {
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
                                                     p_vid_in_buff, p_vid_in_threads, video_str_to_enum(p_vid_in_dec),
-                                                    &i0, &i1, &j0, &j1);
+						    video_hwaccel_str_to_enum(p_vid_in_dec_hwaccel),
+						    &i0, &i1, &j0, &j1);
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;
     img_data_t* img_data = NULL;
