@@ -20,7 +20,8 @@ typedef struct {
 } video_metadata_ffio_t;
 
 video_reader_t* video_reader_ffio_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
-                                             const int bufferize, const size_t n_ffmpeg_threads, int* i0, int* i1,
+                                             const int bufferize, const size_t n_ffmpeg_threads,
+					     const enum video_codec_hwaccel_e hwaccel, int* i0, int* i1,
                                              int* j0, int* j1) {
     assert(!end || start <= end);
     video_reader_t* video = (video_reader_t*)malloc(sizeof(video_reader_t));

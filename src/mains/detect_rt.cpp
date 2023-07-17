@@ -32,6 +32,7 @@
 #include "fmdt/aff3ct_wrapper/Logger/Logger_motion.hpp"
 #include "fmdt/aff3ct_wrapper/Logger/Logger_tracks.hpp"
 #include "fmdt/aff3ct_wrapper/Logger/Logger_frame.hpp"
+#include "fmdt/video/video_struct.h"
 
 int main(int argc, char** argv) {
     // default values
@@ -383,7 +384,7 @@ int main(int argc, char** argv) {
     const size_t b = 1; // image border
     size_t i0, i1, j0, j1;
     Video video(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip, p_vid_in_buff, p_vid_in_threads, b,
-                video_str_to_enum(p_vid_in_dec), p_vid_in_dec_hwaccel);
+                video_str_to_enum(p_vid_in_dec), video_hwaccel_str_to_enum(p_vid_in_dec_hwaccel)); 
     i0 = video.get_i0();
     i1 = video.get_i1();
     j0 = video.get_j0();

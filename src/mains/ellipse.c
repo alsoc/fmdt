@@ -7,6 +7,7 @@
 #include "fmdt/args.h"
 #include "fmdt/tools.h"
 #include "fmdt/macros.h"
+#include "fmdt/video/video_struct.h"
 #include "vec.h"
 
 #include "fmdt/CCL.h"
@@ -191,7 +192,7 @@ int main(int argc, char** argv) {
 
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
-                                                    p_vid_in_buff, p_vid_in_threads, VCDC_FFMPEG_IO, &i0, &i1, &j0,
+                                                    p_vid_in_buff, p_vid_in_threads, VCDC_FFMPEG_IO, VCDC_HWACCEL_NONE, &i0, &i1, &j0,
                                                     &j1);
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;

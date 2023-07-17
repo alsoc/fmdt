@@ -29,7 +29,7 @@ protected:
 public:
     Video2(const std::string filename, const size_t frame_start, const size_t frame_end, const size_t frame_skip,
            const int bufferize, const size_t n_ffmpeg_threads, const int b,
-           const enum video_codec_e codec_type = VCDC_FFMPEG_IO);
+           const enum video_codec_e codec_type = VCDC_FFMPEG_IO, const enum video_codec_hwaccel_e hwaccel = VCDC_HWACCEL_NONE);
     virtual ~Video2();
     virtual bool is_done() const;
     inline uint8_t** get_out_img0();
