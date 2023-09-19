@@ -5,7 +5,7 @@
 
 Video::Video(const std::string filename, const size_t frame_start, const size_t frame_end, const size_t frame_skip,
              const int bufferize, const size_t n_ffmpeg_threads, const int b, const enum video_codec_e codec_type,
-	     const enum video_codec_hwaccel_e hwaccel)
+             const enum video_codec_hwaccel_e hwaccel)
 : Module(), i0(0), i1(0), j0(0), j1(0), b(b), video(nullptr), out_img(nullptr), done(false) {
     const std::string name = "Video";
     this->set_name(name);
