@@ -26,7 +26,7 @@ enum video_codec_hwaccel_e video_hwaccel_str_to_enum(const char* str) {
         return VCDC_HWACCEL_NONE;
     } else if (strcmp(str, "NVDEC") == 0) {
         return VCDC_HWACCEL_NVDEC;
-    } else if (strcmp(str, "VIDEOTOOLBOX") == 0) {
+    } else if (strcmp(str, "VIDTB") == 0) {
         return VCDC_HWACCEL_VIDEOTOOLBOX;
     } else {
         fprintf(stderr, "(EE) '%s()' failed, unknow input ('%s').\n", __func__, str);

@@ -94,11 +94,11 @@ int main(int argc, char** argv) {
                 "  --vid-in-threads    Select the number of threads to use to decode video input (in ffmpeg)  [%d]\n",
                 def_p_vid_in_threads);
         fprintf(stderr,
-                "  --vid-in-dec        Select video decoder implementation ('FFMPEG-IO' or 'VCODECS-IO')       [%s]\n",
+                "  --vid-in-dec        Select video decoder implementation ('FFMPEG-IO' or 'VCODECS-IO')      [%s]\n",
                 def_p_vid_in_dec);
-	fprintf(stderr,
-		"--vid-in-dec-hw       Select video decoder hardware acceleration ('NONE', 'NVDEC', 'VIDEOTOOLBOX') [%s]\n",
-		def_p_vid_in_dec_hw);
+        fprintf(stderr,
+                "--vid-in-dec-hw       Select video decoder hardware acceleration ('NONE', 'NVDEC', 'VIDTB')  [%s]\n",
+                def_p_vid_in_dec_hw);
         fprintf(stderr,
                 "  --ccl-impl          Select the CCL implementation to use ('LSLH' or 'LSLM')                [%s]\n",
                 def_p_ccl_impl);
@@ -260,7 +260,6 @@ int main(int argc, char** argv) {
     vec_int_t p_pip_wait = args_find_vector_int(argc, argv, "--pip-wait", def_p_pip_wait); 
     vec_int_t p_pip_pin = args_find_vector_int(argc, argv, "--pip-pin", def_p_pip_pin);
     vec2D_int_t p_pip_pin_vals = args_find_vector2D_int(argc, argv, "--pip-pin-vals", def_p_pip_pin_vals);
-
 #endif
 
     // heading display

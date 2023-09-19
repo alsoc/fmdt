@@ -337,7 +337,7 @@ if (NOT TARGET ffmpeg-io-slib)
 		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/ffmpeg-io/)
 	else()
 		message(FATAL_ERROR "'ffmpeg-io' can't be found, try to init the submodule with the following cmd:\n"
-			"$ git submodule update --init -- ../lib/ffmpeg-io/")
+		                    "$ git submodule update --init -- ../lib/ffmpeg-io/")
 	endif()
 endif()
 
