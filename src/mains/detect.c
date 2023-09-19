@@ -28,7 +28,7 @@ int main(int argc, char** argv) {
     int def_p_vid_in_loop = 1;
     int def_p_vid_in_threads = 0;
     char def_p_vid_in_dec[16] = "FFMPEG-IO";
-    char def_p_vid_in_dec_hwaccel[16] = "NONE";
+    char def_p_vid_in_dec_hw[16] = "NONE";
     char def_p_ccl_impl[16] = "LSLH";
     int def_p_ccl_hyst_lo = 55;
     int def_p_ccl_hyst_hi = 80;
@@ -78,7 +78,7 @@ int main(int argc, char** argv) {
                 def_p_vid_in_dec);
 	fprintf(stderr,
 		"--vid-in-dec-hw       Select video decoder hardware acceleration ('NONE', 'NVDEC', 'VIDEOTOOLBOX') [%s]\n",
-		def_p_vid_in_dec_hwaccel);
+		def_p_vid_in_dec_hw);
 
         fprintf(stderr,
                 "  --ccl-impl          Select the CCL implementation to use ('LSLH' or 'LSLM')                [%s]\n",
@@ -177,8 +177,7 @@ int main(int argc, char** argv) {
     const int p_vid_in_loop = args_find_int_min(argc, argv, "--vid-in-loop,--video-loop", def_p_vid_in_loop, 1);
     const int p_vid_in_threads = args_find_int_min(argc, argv, "--vid-in-threads,--ffmpeg-threads", def_p_vid_in_threads, 0);
     const char* p_vid_in_dec = args_find_char(argc, argv, "--vid-in-dec", def_p_vid_in_dec);
-    const char* p_vid_in_dec_hwaccel = args_find_char(argc, argv, "--vid-in-dec-hwaccel", def_p_vid_in_dec_hwaccel);
-
+    const char* p_vid_in_dec_hw = args_find_char(argc, argv, "--vid-in-dec-hw", def_p_vid_in_dec_hw);
     const char* p_ccl_impl = args_find_char(argc, argv, "--ccl-impl", def_p_ccl_impl);
     const int p_ccl_hyst_lo = args_find_int_min_max(argc, argv, "--ccl-hyst-lo,--light-min", def_p_ccl_hyst_lo, 0, 255);
     const int p_ccl_hyst_hi = args_find_int_min_max(argc, argv, "--ccl-hyst-hi,--light-max", def_p_ccl_hyst_hi, 0, 255);
@@ -226,8 +225,7 @@ int main(int argc, char** argv) {
     printf("#  * vid-in-loop    = %d\n", p_vid_in_loop);
     printf("#  * vid-in-threads = %d\n", p_vid_in_threads);
     printf("#  * vid-in-dec     = %s\n", p_vid_in_dec);
-    printf("#  * vid-in-dec-hwaccel = %s\n", p_vid_in_dec_hwaccel);
-
+    printf("#  * vid-in-dec-hw  = %s\n", p_vid_in_dec_hw);
     printf("#  * ccl-impl       = %s\n", p_ccl_impl);
     printf("#  * ccl-hyst-lo    = %d\n", p_ccl_hyst_lo);
     printf("#  * ccl-hyst-hi    = %d\n", p_ccl_hyst_hi);
@@ -294,8 +292,7 @@ int main(int argc, char** argv) {
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
                                                     p_vid_in_buff, p_vid_in_threads, video_str_to_enum(p_vid_in_dec),
-						    video_hwaccel_str_to_enum(p_vid_in_dec_hwaccel),
-                                                    &i0, &i1, &j0, &j1);
+                                                    video_hwaccel_str_to_enum(p_vid_in_dec_hw), &i0, &i1, &j0, &j1);
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;
     img_data_t* img_data = NULL;

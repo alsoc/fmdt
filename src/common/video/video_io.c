@@ -21,12 +21,17 @@ typedef struct {
 
 video_reader_t* video_reader_ffio_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
                                              const int bufferize, const size_t n_ffmpeg_threads,
-					     const enum video_codec_hwaccel_e hwaccel, int* i0, int* i1,
-                                             int* j0, int* j1) {
+                                             const enum video_codec_hwaccel_e hwaccel, int* i0, int* i1, int* j0,
+                                             int* j1) {
     assert(!end || start <= end);
     video_reader_t* video = (video_reader_t*)malloc(sizeof(video_reader_t));
     if (!video) {
         fprintf(stderr, "(EE) can't allocate video structure\n");
+        exit(1);
+    }
+
+    if (hwaccel != VCDC_HWACCEL_NONE) {
+        fprintf(stderr, "(EE) Only 'VCDC_HWACCEL_NONE' is supported at this time.\n");
         exit(1);
     }
 
@@ -254,9 +259,8 @@ int video_reader_vcio_get_frame(video_reader_t* video, uint8_t** img);
 
 video_reader_t* video_reader_vcio_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
                                              const int bufferize, const size_t n_ffmpeg_threads,
-					     const enum video_codec_hwaccel_e hwaccel,
-					     int* i0, int* i1,
-                                             int* j0, int* j1) {
+                                             const enum video_codec_hwaccel_e hwaccel, int* i0, int* i1, int* j0,
+                                             int* j1) {
     assert(!end || start <= end);
     video_reader_t* video = (video_reader_t*)malloc(sizeof(video_reader_t));
     if (!video) {
@@ -264,19 +268,24 @@ video_reader_t* video_reader_vcio_alloc_init(const char* path, const size_t star
         exit(1);
     }
 
-
-    enum AVHWDeviceType av_hwaccel;
-    switch (hwaccel) {
-    case VCDC_HWACCEL_CUDA:
-	av_hwaccel = AV_HWDEVICE_TYPE_CUDA;
-	break;
-    case VCDC_HWACCEL_VIDEOTOOLBOX:
-	av_hwaccel = AV_HWDEVICE_TYPE_VIDEOTOOLBOX;
-	break;	
-    default: // VCDC_HWACCEL_NONE
-	av_hwaccel = AV_HWDEVICE_TYPE_NONE;
-	break;
+    if (hwaccel != VCDC_HWACCEL_NONE) {
+        fprintf(stderr, "(EE) Only 'VCDC_HWACCEL_NONE' is supported at this time.\n");
+        exit(1);
     }
+
+    // Dead code...
+    // enum AVHWDeviceType av_hwaccel;
+    // switch (hwaccel) {
+    //     case VCDC_HWACCEL_NVDEC:
+    //         av_hwaccel = AV_HWDEVICE_TYPE_CUDA;
+    //         break;
+    //     case VCDC_HWACCEL_VIDEOTOOLBOX:
+    //         av_hwaccel = AV_HWDEVICE_TYPE_VIDEOTOOLBOX;
+    //         break;
+    //     default: // VCDC_HWACCEL_NONE
+    //         av_hwaccel = AV_HWDEVICE_TYPE_NONE;
+    //         break;
+    // }
     
     snprintf(video->path, sizeof(video->path), "%s", path);
 
@@ -430,7 +439,7 @@ void video_reader_vcio_free(video_reader_t* video) {
 video_reader_t* video_reader_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
                                         const int bufferize, const size_t n_ffmpeg_threads,
                                         const enum video_codec_e codec_type, const enum video_codec_hwaccel_e hwaccel,
-					int* i0, int* i1, int* j0, int* j1) {
+                                        int* i0, int* i1, int* j0, int* j1) {
     switch (codec_type) {
         case VCDC_FFMPEG_IO: {
 #ifdef FMDT_USE_FFMPEG_IO

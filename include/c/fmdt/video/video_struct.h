@@ -21,9 +21,9 @@ enum video_codec_e { VCDC_FFMPEG_IO = 0, /*!< Library calling the `ffmpeg` execu
  * Video codec hardware acceleration enumeration
  */
 enum video_codec_hwaccel_e {
-    VCDC_HWACCEL_NONE = 0,
-    VCDC_HWACCEL_CUDA,
-    VCDC_HWACCEL_VIDEOTOOLBOX,
+    VCDC_HWACCEL_NONE = 0, /*!< No hardware acceleration, use the CPU. */
+    VCDC_HWACCEL_NVDEC, /*!< Use NVDec from Nvidia GPUs. */
+    VCDC_HWACCEL_VIDEOTOOLBOX, /*!< Use Videotoolbox on Apple devices. */
 };
 
 /**
