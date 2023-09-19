@@ -139,8 +139,10 @@ set(src_common_files
     ${src_dir}/common/image/image_io.c
     ${src_dir}/common/kNN/kNN_compute.c
     ${src_dir}/common/kNN/kNN_io.c
+    ${src_dir}/common/morpho/morpho_compute.c
     ${src_dir}/common/motion/motion_compute.c
     ${src_dir}/common/motion/motion_io.c
+    ${src_dir}/common/sigma_delta/sigma_delta_compute.c
     ${src_dir}/common/threshold/threshold_compute.c
     ${src_dir}/common/tracking/tracking_compute.c
     ${src_dir}/common/tracking/tracking_global.c
@@ -176,6 +178,13 @@ if(FMDT_DETECT_EXE)
 	add_executable(fmdt-detect-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_detect_files})
 	list(APPEND fmdt_targets_list fmdt-detect-exe)
 	set_target_properties(fmdt-detect-exe PROPERTIES OUTPUT_NAME fmdt-detect)
+
+	set(src_detect_motion_files
+	    ${src_dir}/mains/detect_motion.c)
+	list(APPEND fmdt_src_list ${src_detect_motion_files})
+	add_executable(fmdt-detect-motion-exe $<TARGET_OBJECTS:fmdt-common-obj> ${src_detect_motion_files})
+	list(APPEND fmdt_targets_list fmdt-detect-motion-exe)
+	set_target_properties(fmdt-detect-motion-exe PROPERTIES OUTPUT_NAME fmdt-detect-motion)
 
 	set(src_detectopt_files
 	    ${src_dir}/mains/detect_opt.c)

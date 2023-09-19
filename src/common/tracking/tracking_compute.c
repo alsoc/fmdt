@@ -292,8 +292,10 @@ void _update_existing_tracks(History_t* history, vec_track_t track_array, const 
                             }
                         }
                     }
+                    float e = history->RoIs[1][cur_track->end.id - 1].error;
                     // classification from meteor to noise (part 2 - angle and direction)
-                    if (cur_track->obj_type == OBJ_METEOR) {
+                    // "e == e" is a hack to skip this condition when "RoIs_error" is NULL
+                    if (e == e && cur_track->obj_type == OBJ_METEOR) {
                         float norm_u, norm_v, angle_degree;
                         _compute_angle_and_norms(history, cur_track, &angle_degree, &norm_u, &norm_v);
                         if (angle_degree >= angle_max || norm_u > norm_v) {
@@ -385,7 +387,8 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
             int is_new_meteor = 0;
             enum obj_e type = OBJ_STAR;
             // if motion detected
-            if (fabs(e - history->motion[0].mean_error) > diff_dev * history->motion[0].std_deviation) {
+            // "e != e" is a hack to always do this condition when "RoIs_error" is NULL
+            if (e != e || fabs(e - history->motion[0].mean_error) > diff_dev * history->motion[0].std_deviation) {
                 if (history->RoIs[1][i].is_extrapolated)
                     continue; // Extrapolated
                 is_new_meteor = 1;
@@ -439,7 +442,8 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
                             }
                         }
                         // classification from meteor to noise (part 2 - angle and direction)
-                        if (type == OBJ_METEOR && n_RoIs >= 3) {
+                        // "e == e" is a hack to skip this condition when "RoIs_error" is NULL
+                        if (e == e && (type == OBJ_METEOR && n_RoIs >= 3)) {
                             size_t motion_id = 0;
                             for (unsigned r = n_RoIs - 1; r >= 2; r--) {
                                 float x0_0 = RoIs_list[r - 0].x, y0_0 = RoIs_list[r - 0].y;
@@ -482,7 +486,7 @@ void _light_copy_RoIs(const uint32_t* RoIs_src_id, const uint32_t frame, const u
         RoIs_dst[i].S = RoIs_src_S[i];
         RoIs_dst[i].x = RoIs_src_x[i];
         RoIs_dst[i].y = RoIs_src_y[i];
-        RoIs_dst[i].error = RoIs_src_error[i];
+        RoIs_dst[i].error = RoIs_src_error ? RoIs_src_error[i] : NAN;
         RoIs_dst[i].time = 0;
         RoIs_dst[i].time_motion = 0;
         RoIs_dst[i].prev_id = RoIs_src_prev_id[i];
@@ -491,13 +495,6 @@ void _light_copy_RoIs(const uint32_t* RoIs_src_id, const uint32_t frame, const u
         RoIs_dst[i].a = RoIs_src_a ? RoIs_src_a[i] : NAN;
         RoIs_dst[i].b = RoIs_src_b ? RoIs_src_b[i] : NAN;
     }
-}
-
-void light_copy_RoIs(const RoIs_t* RoIs_src, const uint32_t frame, RoI_t* RoIs_dst) {
-    _light_copy_RoIs(RoIs_src->id, frame, RoIs_src->basic->xmin, RoIs_src->basic->xmax, RoIs_src->basic->ymin,
-                     RoIs_src->basic->ymax, RoIs_src->basic->S, RoIs_src->basic->x, RoIs_src->basic->y,
-                     RoIs_src->motion->error, RoIs_src->asso->prev_id, RoIs_src->misc->a, RoIs_src->misc->b,
-                     RoIs_src->_size, RoIs_dst);
 }
 
 void _update_RoIs_next_id(const uint32_t* RoIs_prev_id, RoI_t* RoIs_dst, const size_t n_RoIs) {
@@ -521,7 +518,8 @@ void _tracking_perform(tracking_data_t* tracking_data, const uint32_t* RoIs_id, 
     tracking_data->history->n_RoIs[0] = n_RoIs;
     _light_copy_RoIs(RoIs_id, frame, RoIs_xmin, RoIs_xmax, RoIs_ymin, RoIs_ymax, RoIs_S, RoIs_x, RoIs_y, RoIs_error,
                      RoIs_prev_id, RoIs_a, RoIs_b, n_RoIs, tracking_data->history->RoIs[0]);
-    tracking_data->history->motion[0] = *motion_est;
+    if (motion_est)
+        tracking_data->history->motion[0] = *motion_est;
     if (tracking_data->history->_size > 0)
         _update_RoIs_next_id(RoIs_prev_id, tracking_data->history->RoIs[1], n_RoIs);
     if (tracking_data->history->_size < tracking_data->history->_max_size)
@@ -545,8 +543,9 @@ void tracking_perform(tracking_data_t* tracking_data, const RoIs_t* RoIs, const 
                       const size_t fra_meteor_max, const uint8_t save_RoIs_id, const uint8_t extrapol_order_max,
                       const float min_extrapol_ratio_S, const float min_ellipse_ratio) {
     _tracking_perform(tracking_data, RoIs->id, RoIs->basic->xmin, RoIs->basic->xmax, RoIs->basic->ymin,
-                      RoIs->basic->ymax, RoIs->basic->S, RoIs->basic->x, RoIs->basic->y, RoIs->motion->error,
-                      RoIs->asso->prev_id, RoIs->misc->a, RoIs->misc->b, RoIs->_size, frame, motion_est, r_extrapol,
-                      angle_max, diff_dev, track_all, fra_star_min, fra_meteor_min, fra_meteor_max, save_RoIs_id,
+                      RoIs->basic->ymax, RoIs->basic->S, RoIs->basic->x, RoIs->basic->y,
+                      RoIs->motion ? RoIs->motion->error : NULL, RoIs->asso->prev_id, RoIs->misc ? RoIs->misc->a : NULL,
+                      RoIs->misc ? RoIs->misc->b : NULL, RoIs->_size, frame, motion_est, r_extrapol, angle_max,
+                      diff_dev, track_all, fra_star_min, fra_meteor_min, fra_meteor_max, save_RoIs_id,
                       extrapol_order_max, min_extrapol_ratio_S, min_ellipse_ratio);
 }

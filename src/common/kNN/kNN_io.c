@@ -68,13 +68,36 @@ void _kNN_asso_conflicts_write(FILE* f, const float** kNN_data_distances, const 
         if (RoIs0_next_id[i]) {
             char moving_str[32];
             size_t j = (size_t)(RoIs0_next_id[i] - 1);
-            if (RoIs1_is_moving[j])
-                snprintf(moving_str, sizeof(moving_str), "      yes");
-            else
-                snprintf(moving_str, sizeof(moving_str), "       no");
+            if (RoIs1_is_moving) {
+                if (RoIs1_is_moving[j])
+                    snprintf(moving_str, sizeof(moving_str), "      yes");
+                else
+                    snprintf(moving_str, sizeof(moving_str), "       no");
+            } else {
+                snprintf(moving_str, sizeof(moving_str), "        -");
+            }
             float dist_ij = sqrtf(kNN_data_distances[i][j]);
-            fprintf(f, "  %4u | %4u || %6.3f | %4d || %8.4f | %8.4f | %8.4f || %s \n", RoIs0_id[i], RoIs0_next_id[i],
-                    dist_ij, kNN_data_nearest[i][j], RoIs1_dx[j], RoIs1_dy[j], RoIs1_error[j], moving_str);
+
+            char dx_str[16];
+            if (RoIs1_dx != NULL)
+                snprintf(dx_str, sizeof(dx_str), "%8.4f", RoIs1_dx[j]);
+            else
+                strcpy(dx_str, "       -");
+
+            char dy_str[16];
+            if (RoIs1_dy != NULL)
+                snprintf(dy_str, sizeof(dy_str), "%8.4f", RoIs1_dy[j]);
+            else
+                strcpy(dy_str, "       -");
+
+            char error_str[16];
+            if (RoIs1_error != NULL)
+                snprintf(error_str, sizeof(error_str), "%8.4f", RoIs1_error[j]);
+            else
+                strcpy(error_str, "       -");
+
+            fprintf(f, "  %4u | %4u || %6.3f | %4d || %s | %s | %s || %s \n", RoIs0_id[i], RoIs0_next_id[i],
+                    dist_ij, kNN_data_nearest[i][j], dx_str, dy_str, error_str, moving_str);
         }
     }
 
@@ -86,6 +109,7 @@ void kNN_asso_conflicts_write(FILE* f, const kNN_data_t* kNN_data, const RoIs_as
                               const RoIs_asso_t* RoIs1_asso, const RoIs_motion_t* RoIs1_motion) {
     _kNN_asso_conflicts_write(f, (const float**)kNN_data->distances, (const uint32_t**)kNN_data->nearest,
                               (const uint32_t*)kNN_data->conflicts, RoIs0_asso->id, RoIs0_asso->next_id,
-                              *RoIs0_asso->_size, RoIs1_motion->dx, RoIs1_motion->dy, RoIs1_motion->error,
-                              RoIs1_motion->is_moving, *RoIs1_asso->_size);
+                              *RoIs0_asso->_size, RoIs1_motion ? RoIs1_motion->dx : NULL,
+                              RoIs1_motion ? RoIs1_motion->dy : NULL, RoIs1_motion ? RoIs1_motion->error : NULL,
+                              RoIs1_motion ? RoIs1_motion->is_moving : NULL, *RoIs1_asso->_size);
 }

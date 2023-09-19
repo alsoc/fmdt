@@ -167,6 +167,16 @@ void _features_extract(const uint32_t** labels, const int i0, const int i1, cons
 void features_extract(const uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
                       const size_t n_RoIs, RoIs_basic_t* RoIs_basic);
 
+uint32_t _features_filter_surface(const uint32_t** in_labels, uint32_t** out_labels, const int i0, const int i1,
+                                  const int j0, const int j1, uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
+                                  const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
+                                  const uint32_t* RoIs_S, const size_t n_RoIs, const uint32_t S_min,
+                                  const uint32_t S_max);
+
+uint32_t features_filter_surface(const uint32_t** in_labels, uint32_t** out_labels, const int i0, const int i1,
+                                 const int j0, const int j1, RoIs_basic_t* RoIs_basic, const uint32_t S_min,
+                                 const uint32_t S_max);
+
 /**
  * Hysteresis re-labeling and morphological thresholding. From a 2D array of labels (`in_label`) and a binary image
  * (`img_HI`), the function generates a new 2D array of labels (`out_labels`). The newly produced labels (`out_labels`)

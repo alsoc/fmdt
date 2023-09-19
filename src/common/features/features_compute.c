@@ -210,20 +210,28 @@ RoIs_t* features_alloc_RoIs(const uint8_t enable_magnitude, const uint8_t enable
 void features_init_RoIs(RoIs_t* RoI) {
     memset(RoI->id, 0, RoI->_max_size * sizeof(uint32_t));
     const uint8_t init_id = 0;
-    features_init_RoIs_basic(RoI->basic, init_id);
-    features_init_RoIs_asso(RoI->asso, init_id);
-    features_init_RoIs_motion(RoI->motion, init_id);
-    features_init_RoIs_misc(RoI->misc, init_id);
+    if (RoI->basic)
+        features_init_RoIs_basic(RoI->basic, init_id);
+    if (RoI->asso)
+        features_init_RoIs_asso(RoI->asso, init_id);
+    if (RoI->motion)
+        features_init_RoIs_motion(RoI->motion, init_id);
+    if (RoI->misc)
+        features_init_RoIs_misc(RoI->misc, init_id);
     RoI->_size = 0;
 }
 
 void features_free_RoIs(RoIs_t* RoI) {
     free(RoI->id);
     const uint8_t free_id = 0;
-    features_free_RoIs_basic(RoI->basic, free_id);
-    features_free_RoIs_asso(RoI->asso, free_id);
-    features_free_RoIs_motion(RoI->motion, free_id);
-    features_free_RoIs_misc(RoI->misc, free_id);
+    if (RoI->basic)
+        features_free_RoIs_basic(RoI->basic, free_id);
+    if (RoI->asso)
+        features_free_RoIs_asso(RoI->asso, free_id);
+    if (RoI->motion)
+        features_free_RoIs_motion(RoI->motion, free_id);
+    if (RoI->misc)
+        features_free_RoIs_misc(RoI->misc, free_id);
     free(RoI);
 }
 
@@ -285,6 +293,71 @@ void features_extract(const uint32_t** labels, const int i0, const int i1, const
                       RoIs_basic->ymax, RoIs_basic->S, RoIs_basic->Sx, RoIs_basic->Sy, RoIs_basic->Sx2, RoIs_basic->Sy2,
                       RoIs_basic->Sxy, RoIs_basic->x, RoIs_basic->y, *RoIs_basic->_size);
 }
+
+uint32_t _features_filter_surface(const uint32_t** in_labels, uint32_t** out_labels, const int i0, const int i1,
+                                  const int j0, const int j1, uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
+                                  const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
+                                  const uint32_t* RoIs_S, const size_t n_RoIs, const uint32_t S_min,
+                                  const uint32_t S_max) {
+    if (out_labels != NULL && (void*)in_labels != (void*)out_labels)
+        for (int i = i0; i <= i1; i++)
+            memset(out_labels[i], 0, (j1 - j0 + 1) * sizeof(uint32_t));
+
+    uint32_t x0, x1, y0, y1, id;
+    uint32_t cur_label = 1;
+    for (size_t i = 0; i < n_RoIs; i++) {
+        if (RoIs_id[i]) {
+            id = RoIs_id[i];
+            x0 = RoIs_ymin[i];
+            x1 = RoIs_ymax[i];
+            y0 = RoIs_xmin[i];
+            y1 = RoIs_xmax[i];
+            if (S_min > RoIs_S[i] || RoIs_S[i] > S_max) {
+                RoIs_id[i] = 0;
+                if (out_labels != NULL && ((void*)in_labels == (void*)out_labels)) {
+                    for (uint32_t k = x0; k <= x1; k++) {
+                        for (uint32_t l = y0; l <= y1; l++) {
+                            if (in_labels[k][l] == id)
+                                out_labels[k][l] = 0;
+                        }
+                    }
+                }
+                continue;
+            }
+            for (uint32_t k = x0; k <= x1; k++) {
+                for (uint32_t l = y0; l <= y1; l++) {
+                    if (in_labels[k][l] == id) {
+                        if (out_labels != NULL) {
+                            for (k = x0; k <= x1; k++) {
+                                for (l = y0; l <= y1; l++) {
+                                    if (in_labels[k][l] == id) {
+                                        out_labels[k][l] = cur_label;
+                                    }
+                                }
+                            }
+                        }
+                        cur_label++;
+                    }
+                }
+            }
+        }
+    }
+
+    return cur_label;
+}
+
+uint32_t features_filter_surface(const uint32_t** in_labels, uint32_t** out_labels, const int i0, const int i1,
+                                 const int j0, const int j1, RoIs_basic_t* RoIs_basic, const uint32_t S_min,
+                                 const uint32_t S_max) {
+    return _features_filter_surface(in_labels, out_labels, i0, i1, j0, j1, RoIs_basic->id, RoIs_basic->xmin,
+                                    RoIs_basic->xmax, RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S,
+                                    *RoIs_basic->_size, S_min, S_max);
+}
+
+
+
+
+
 
 uint32_t _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels,
                                    const int i0, const int i1, const int j0, const int j1, uint32_t* RoIs_id,

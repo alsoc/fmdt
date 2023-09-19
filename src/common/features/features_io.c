@@ -121,19 +121,19 @@ void _features_RoIs_write(FILE* f, const int frame, const uint32_t* RoIs_id, con
     fprintf(f, "Regions of interest (RoI) [%d]: \n", cpt);
     // if (cpt) {  // for compare.py
     if (tracks) {
-        fprintf(f, "# ------||----------------||---------------------------||------------------------------------------------------------------------||-------------------||-----------||------------||--------------------------\n");
-        fprintf(f, "#   RoI ||      Track     ||        Bounding Box       ||                         Surface (S in pixels)                          ||      Center       || Magnitude || Saturation ||         Ellipse          \n");
-        fprintf(f, "# ------||----------------||---------------------------||------------------------------------------------------------------------||-------------------||-----------||------------||--------------------------\n");
-        fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------|--------------|--------------|--------------||---------|---------||-----------||------------||--------|--------|--------\n");
-        fprintf(f, "#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy |          Sx2 |          Sy2 |          Sxy ||       x |       y ||        -- ||    Counter ||      a |      b |  ratio \n");
-        fprintf(f, "# ------||------|---------||------|------|------|------||-----|----------|----------|--------------|--------------|--------------||---------|---------||-----------||------------||--------|--------|--------\n");
+        fprintf(f, "# ------||----------------||---------------------------||--------------------------------------------------------------------------||-------------------||-----------||------------||--------------------------\n");
+        fprintf(f, "#   RoI ||      Track     ||        Bounding Box       ||                          Surface (S in pixels)                           ||      Center       || Magnitude || Saturation ||         Ellipse          \n");
+        fprintf(f, "# ------||----------------||---------------------------||--------------------------------------------------------------------------||-------------------||-----------||------------||--------------------------\n");
+        fprintf(f, "# ------||------|---------||------|------|------|------||-------|----------|----------|--------------|--------------|--------------||---------|---------||-----------||------------||--------|--------|--------\n");
+        fprintf(f, "#    ID ||   ID |    Type || xmin | xmax | ymin | ymax ||     S |       Sx |       Sy |          Sx2 |          Sy2 |          Sxy ||       x |       y ||        -- ||    Counter ||      a |      b |  ratio \n");
+        fprintf(f, "# ------||------|---------||------|------|------|------||-------|----------|----------|--------------|--------------|--------------||---------|---------||-----------||------------||--------|--------|--------\n");
     } else {
-        fprintf(f, "# ------||---------------------------||------------------------------------------------------------------------||-------------------||-----------||------------||--------------------------\n");
-        fprintf(f, "#   RoI ||        Bounding Box       ||                         Surface (S in pixels)                          ||      Center       || Magnitude || Saturation ||         Ellipse          \n");
-        fprintf(f, "# ------||---------------------------||------------------------------------------------------------------------||-------------------||-----------||------------||--------------------------\n");
-        fprintf(f, "# ------||------|------|------|------||-----|----------|----------|--------------|--------------|--------------||---------|---------||-----------||------------||--------|--------|--------\n");
-        fprintf(f, "#    ID || xmin | xmax | ymin | ymax ||   S |       Sx |       Sy |          Sx2 |          Sy2 |          Sxy ||       x |       y ||        -- ||    Counter ||      a |      b |  ratio \n");
-        fprintf(f, "# ------||------|------|------|------||-----|----------|----------|--------------|--------------|--------------||---------|---------||-----------||------------||--------|--------|--------\n");
+        fprintf(f, "# ------||---------------------------||--------------------------------------------------------------------------||-------------------||-----------||------------||--------------------------\n");
+        fprintf(f, "#   RoI ||        Bounding Box       ||                          Surface (S in pixels)                           ||      Center       || Magnitude || Saturation ||         Ellipse          \n");
+        fprintf(f, "# ------||---------------------------||--------------------------------------------------------------------------||-------------------||-----------||------------||--------------------------\n");
+        fprintf(f, "# ------||------|------|------|------||-------|----------|----------|--------------|--------------|--------------||---------|---------||-----------||------------||--------|--------|--------\n");
+        fprintf(f, "#    ID || xmin | xmax | ymin | ymax ||     S |       Sx |       Sy |          Sx2 |          Sy2 |          Sxy ||       x |       y ||        -- ||    Counter ||      a |      b |  ratio \n");
+        fprintf(f, "# ------||------|------|------|------||-------|----------|----------|--------------|--------------|--------------||---------|---------||-----------||------------||--------|--------|--------\n");
     }
     // }
 
@@ -181,12 +181,12 @@ void _features_RoIs_write(FILE* f, const int frame, const uint32_t* RoIs_id, con
                 strcpy(ratio_str, "     -");
 
             if (tracks) {
-                fprintf(f, "   %4u || %s | %s || %4u | %4u | %4u | %4u || %3u | %8u | %8u | %12u | %12u | %12u || %7.1f | %7.1f || %s || %s || %s | %s | %s \n",
+                fprintf(f, "   %4u || %s | %s || %4u | %4u | %4u | %4u || %5u | %8u | %8u | %12u | %12u | %12u || %7.1f | %7.1f || %s || %s || %s | %s | %s \n",
                         RoIs_id[i], task_id_str, task_obj_type, RoIs_xmin[i], RoIs_xmax[i], RoIs_ymin[i], RoIs_ymax[i],
                         RoIs_S[i], RoIs_Sx[i], RoIs_Sy[i], (uint32_t)RoIs_Sx2[i], (uint32_t)RoIs_Sy2[i],
                         (uint32_t)RoIs_Sxy[i], RoIs_x[i], RoIs_y[i], mag_str, satc_str, a_str, b_str, ratio_str);
             } else {
-                fprintf(f, "   %4u || %4u | %4u | %4u | %4u || %3u | %8u | %8u | %12u | %12u | %12u || %7.1f | %7.1f || %s || %s || %s | %s | %s \n",
+                fprintf(f, "   %4u || %4u | %4u | %4u | %4u || %5u | %8u | %8u | %12u | %12u | %12u || %7.1f | %7.1f || %s || %s || %s | %s | %s \n",
                         RoIs_id[i], RoIs_xmin[i], RoIs_xmax[i], RoIs_ymin[i], RoIs_ymax[i],
                         RoIs_S[i], RoIs_Sx[i], RoIs_Sy[i], (uint32_t)RoIs_Sx2[i], (uint32_t)RoIs_Sy2[i],
                         (uint32_t)RoIs_Sxy[i], RoIs_x[i], RoIs_y[i], mag_str, satc_str, a_str, b_str, ratio_str);
@@ -236,10 +236,12 @@ void features_RoIs0_RoIs1_write(FILE* f, const int prev_frame, const int cur_fra
     _features_RoIs0_RoIs1_write(f, prev_frame, cur_frame, RoIs0_basic->id, RoIs0_basic->xmin, RoIs0_basic->xmax,
                                 RoIs0_basic->ymin, RoIs0_basic->ymax, RoIs0_basic->S, RoIs0_basic->Sx, RoIs0_basic->Sy,
                                 RoIs0_basic->Sx2, RoIs0_basic->Sy2, RoIs0_basic->Sxy, RoIs0_basic->x, RoIs0_basic->y,
-                                RoIs0_misc->magnitude, RoIs0_misc->sat_count, RoIs0_misc->a, RoIs0_misc->b,
+                                RoIs0_misc ? RoIs0_misc->magnitude : NULL, RoIs0_misc ? RoIs0_misc->sat_count : NULL,
+                                RoIs0_misc ? RoIs0_misc->a : NULL, RoIs0_misc ? RoIs0_misc->b : NULL,
                                 *RoIs0_basic->_size, RoIs1_basic->id, RoIs1_basic->xmin, RoIs1_basic->xmax,
                                 RoIs1_basic->ymin, RoIs1_basic->ymax, RoIs1_basic->S, RoIs1_basic->Sx, RoIs1_basic->Sy,
                                 RoIs1_basic->Sx2, RoIs1_basic->Sy2, RoIs1_basic->Sxy, RoIs1_basic->x, RoIs1_basic->y,
-                                RoIs1_misc->magnitude, RoIs1_misc->sat_count, RoIs1_misc->a, RoIs1_misc->b,
+                                RoIs1_misc ? RoIs1_misc->magnitude : NULL, RoIs1_misc ? RoIs1_misc->sat_count : NULL,
+                                RoIs1_misc ? RoIs1_misc->a : NULL, RoIs1_misc ? RoIs1_misc->b : NULL,
                                 *RoIs1_basic->_size, tracks);
 }
