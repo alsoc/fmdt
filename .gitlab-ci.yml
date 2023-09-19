@@ -181,7 +181,7 @@ build-linux-clang-c:
     - tar -zcvf build_linux_clang_c.tar.gz build_linux_clang_c
 
 build-linux-icpc:
-  image: intel/oneapi-hpckit
+  image: intel/oneapi-hpckit:2022.2-devel-ubuntu20.04
   stage: build
   variables:
     GIT_SUBMODULE_STRATEGY: recursive
