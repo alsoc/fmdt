@@ -256,6 +256,9 @@ void _update_existing_tracks(History_t* history, vec_track_t track_array, const 
     for (size_t i = 0; i < n_tracks; i++) {
         track_t* cur_track = &track_array[i];
         if (cur_track->id && cur_track->state != STATE_FINISHED) {
+            const float e = history->RoIs[1][cur_track->end.id - 1].error;
+            // 'simple_tracking' is a hack to disable complex tracking (METEOR -> NOISE detection)
+            const uint8_t simple_tracking = e != e;
             if (cur_track->state == STATE_LOST) {
                 size_t RoI_id = _find_matching_RoI(history, cur_track, r_extrapol, min_extrapol_ratio_S);
                 if (RoI_id) {
@@ -277,7 +280,7 @@ void _update_existing_tracks(History_t* history, vec_track_t track_array, const 
                 int next_id = history->RoIs[1][cur_track->end.id - 1].next_id;
                 if (next_id) {
                     // classification from meteor to noise (part 1 - ellipse ratio)
-                    if (cur_track->obj_type == OBJ_METEOR) {
+                    if (!simple_tracking && (cur_track->obj_type == OBJ_METEOR)) {
                         float a = history->RoIs[0][next_id - 1].a;
                         float b = history->RoIs[0][next_id - 1].b;
                         if (min_ellipse_ratio && a == a && b == b) {
@@ -292,10 +295,8 @@ void _update_existing_tracks(History_t* history, vec_track_t track_array, const 
                             }
                         }
                     }
-                    float e = history->RoIs[1][cur_track->end.id - 1].error;
                     // classification from meteor to noise (part 2 - angle and direction)
-                    // "e == e" is a hack to skip this condition when "RoIs_error" is NULL
-                    if (e == e && cur_track->obj_type == OBJ_METEOR) {
+                    if (!simple_tracking && (cur_track->obj_type == OBJ_METEOR)) {
                         float norm_u, norm_v, angle_degree;
                         _compute_angle_and_norms(history, cur_track, &angle_degree, &norm_u, &norm_v);
                         if (angle_degree >= angle_max || norm_u > norm_v) {
@@ -336,8 +337,8 @@ void _update_existing_tracks(History_t* history, vec_track_t track_array, const 
                     _track_extrapolate(history, cur_track);
                 }
             }
-            if (cur_track->obj_type == OBJ_METEOR &&
-                _tracking_get_track_time(cur_track->begin, cur_track->end) >= fra_meteor_max) {
+            if (!simple_tracking && (cur_track->obj_type == OBJ_METEOR &&
+                _tracking_get_track_time(cur_track->begin, cur_track->end) >= fra_meteor_max)) {
                 cur_track->obj_type = OBJ_NOISE;
                 cur_track->change_state_reason = REASON_TOO_LONG_DURATION;
                 if (!track_all) {
@@ -384,6 +385,8 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
         int asso = history->RoIs[1][i].next_id;
         if (asso) {
             float e = history->RoIs[0][asso - 1].error;
+            // 'simple_tracking' is a hack to disable complex tracking (METEOR -> NOISE detection)
+            const uint8_t simple_tracking = e != e;
             int is_new_meteor = 0;
             enum obj_e type = OBJ_STAR;
             // if motion detected
@@ -427,7 +430,7 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
 
                         // classification from meteor to noise (part 1 - ellipse ratio)
                         enum change_state_reason_e reason = REASON_UNKNOWN;
-                        if (type == OBJ_METEOR && min_ellipse_ratio) {
+                        if (!simple_tracking && (type == OBJ_METEOR && min_ellipse_ratio)) {
                             for (unsigned r = 0; r < n_RoIs; r++) {
                                 const float a = RoIs_list[r].a;
                                 const float b = RoIs_list[r].b;
@@ -442,8 +445,7 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
                             }
                         }
                         // classification from meteor to noise (part 2 - angle and direction)
-                        // "e == e" is a hack to skip this condition when "RoIs_error" is NULL
-                        if (e == e && (type == OBJ_METEOR && n_RoIs >= 3)) {
+                        if (!simple_tracking && (type == OBJ_METEOR && n_RoIs >= 3)) {
                             size_t motion_id = 0;
                             for (unsigned r = n_RoIs - 1; r >= 2; r--) {
                                 float x0_0 = RoIs_list[r - 0].x, y0_0 = RoIs_list[r - 0].y;

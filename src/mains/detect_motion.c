@@ -1,7 +1,11 @@
 /*
-./bin/fmdt-detect-motion --vid-in-path ~/Videos/car3/car_3%03d.pgm --ccl-fra-path cars/%03d.png --mrp-s-min 50 --mrp-s-max 10000 --log-path ./detect_log_car --trk-roi-path ./tracks_2_rois_car.txt --knn-d 10 --trk-angle 180 --trk-meteor-min 4 --trk-all
+./bin/fmdt-detect-motion --vid-in-path ~/Videos/car3/car_3%03d.pgm --ccl-fra-path cars/%03d.png --mrp-s-min 50 --mrp-s-max 10000 --log-path ./detect_log_car --trk-roi-path ./tracks_2_rois_car.txt --trk-obj-min 4
 ./bin/fmdt-log-parser --log-path ./detect_log_car --trk-roi-path ./tracks_2_rois_car.txt --trk-path ./out_detect_tracks_car.txt --trk-bb-path ./out_detect_bb_car.txt
 ./bin/fmdt-visu --vid-in-path ~/Videos/car3/car_3%03d.pgm --trk-path ./out_detect_tracks_car.txt --trk-bb-path ./out_detect_bb_car.txt --vid-out-path visu_car/%04d.png
+
+./bin/fmdt-detect-motion --vid-in-path ~/Videos/webcam.mov --ccl-fra-path webcam/%03d.png --mrp-s-min 50 --mrp-s-max 100000 --log-path ./detect_log_webcam --trk-roi-path ./tracks_2_rois_webcam.txt --trk-obj-min 4
+./bin/fmdt-log-parser --log-path ./detect_log_webcam --trk-roi-path ./tracks_2_rois_webcam.txt --trk-path ./out_detect_tracks_webcam.txt --trk-bb-path ./out_detect_bb_webcam.txt
+./bin/fmdt-visu --vid-in-path ~/Videos/webcam.mov --trk-path ./out_detect_tracks_webcam.txt --trk-bb-path ./out_detect_bb_webcam.txt --vid-out-path visu_webcam.mp4
 */
 
 #include <stdio.h>
@@ -40,20 +44,17 @@ int main(int argc, char** argv) {
     char def_p_vid_in_dec_hw[16] = "NONE";
     char def_p_ccl_impl[16] = "LSLH";
     char* def_p_ccl_fra_path = NULL;
-    int def_p_mrp_s_min = 3;
-    int def_p_mrp_s_max = 1000;
+    int def_p_mrp_s_min = 50;
+    int def_p_mrp_s_max = 100000;
     int def_p_knn_k = 3;
     int def_p_knn_d = 10;
     float def_p_knn_s = 0.125f;
     int def_p_trk_ext_d = 5;
     int def_p_trk_ext_o = 3;
-    float def_p_trk_angle = 20;
-    int def_p_trk_star_min = 15;
-    int def_p_trk_meteor_min = 3;
-    int def_p_trk_meteor_max = 100;
+    int def_p_trk_obj_min = 4;
     char* def_p_trk_roi_path = NULL;
     char* def_p_log_path = NULL;
-    int def_p_cca_roi_max = 65535; // Maximum number of RoIs
+    int def_p_cca_roi_max = 8192; // Maximum number of RoIs
 
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -118,17 +119,8 @@ int main(int argc, char** argv) {
                 "  --trk-ext-o         Maximum number of frames to extrapolate (linear) for lost objects      [%d]\n",
                 def_p_trk_ext_o);
         fprintf(stderr,
-                "  --trk-angle         Tracking max angle between two meteors at t-1 and t (in degree)        [%f]\n",
-                def_p_trk_angle);
-        fprintf(stderr,
-                "  --trk-star-min      Minimum number of frames required to track a star                      [%d]\n",
-                def_p_trk_star_min);
-        fprintf(stderr,
-                "  --trk-meteor-min    Minimum number of frames required to track a meteor                    [%d]\n",
-                def_p_trk_meteor_min);
-        fprintf(stderr,
-                "  --trk-meteor-max    Maximum number of frames required to track a meteor                    [%d]\n",
-                def_p_trk_meteor_max);
+                "  --trk-obj-min       Minimum number of frames required to track an object                   [%d]\n",
+                def_p_trk_obj_min);
         fprintf(stderr,
                 "  --trk-all           Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
@@ -175,20 +167,17 @@ int main(int argc, char** argv) {
     const float p_knn_s = args_find_float_min_max(argc, argv, "--knn-s,--min-ratio-s", def_p_knn_s, 0.f, 1.f);
     const int p_trk_ext_d = args_find_int_min(argc, argv, "--trk-ext-d,--r-extrapol", def_p_trk_ext_d, 0);
     const int p_trk_ext_o = args_find_int_min_max(argc, argv, "--trk-ext-o,--extrapol-order", def_p_trk_ext_o, 0, 255);
-    const float p_trk_angle = args_find_float_min_max(argc, argv, "--trk-angle,--angle-max", def_p_trk_angle, 0.f, 360.f);
-    const int p_trk_star_min = args_find_int_min(argc, argv, "--trk-star-min,--fra-star-min", def_p_trk_star_min, 2);
-    const int p_trk_meteor_min = args_find_int_min(argc, argv, "--trk-meteor-min,--fra-meteor-min", def_p_trk_meteor_min, 2);
-    const int p_trk_meteor_max = args_find_int_min(argc, argv, "--trk-meteor-max,--fra-meteor-max", def_p_trk_meteor_max, 2);
+    const int p_trk_obj_min = args_find_int_min(argc, argv, "--trk-obj-min,--trk-meteor-min,--fra-meteor-min", def_p_trk_obj_min, 2);
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
 
     // heading display
-    printf("#  ---------------------\n");
-    printf("# |          ----*      |\n");
-    printf("# | --* FMDT-DETECT --* |\n");
-    printf("# |   -------*          |\n");
-    printf("#  ---------------------\n");
+    printf("#  ----------------------------\n");
+    printf("# |          ----*             |\n");
+    printf("# | --* FMDT-DETECT-MOTION --* |\n");
+    printf("# |   -------*                 |\n");
+    printf("#  ----------------------------\n");
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
@@ -214,10 +203,7 @@ int main(int argc, char** argv) {
     printf("#  * knn-s          = %1.3f\n", p_knn_s);
     printf("#  * trk-ext-d      = %d\n", p_trk_ext_d);
     printf("#  * trk-ext-o      = %d\n", p_trk_ext_o);
-    printf("#  * trk-angle      = %f\n", p_trk_angle);
-    printf("#  * trk-star-min   = %d\n", p_trk_star_min);
-    printf("#  * trk-meteor-min = %d\n", p_trk_meteor_min);
-    printf("#  * trk-meteor-max = %d\n", p_trk_meteor_max);
+    printf("#  * trk-obj-min    = %d\n", p_trk_obj_min);
     printf("#  * trk-all        = %d\n", p_trk_all);
     printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * log-path       = %s\n", p_log_path);
@@ -227,10 +213,6 @@ int main(int argc, char** argv) {
     // arguments checking
     if (!p_vid_in_path) {
         fprintf(stderr, "(EE) '--vid-in-path' is missing\n");
-        exit(1);
-    }
-    if (p_trk_meteor_max < p_trk_meteor_min) {
-        fprintf(stderr, "(EE) '--trk-meteor-max' has to be bigger than '--trk-meteor-min'\n");
         exit(1);
     }
     if (p_vid_in_stop && p_vid_in_stop < p_vid_in_start) {
@@ -268,20 +250,20 @@ int main(int argc, char** argv) {
     RoIs_t* RoIs_tmp = features_alloc_RoIs(0, 0, 0, p_cca_roi_max);
     RoIs_t* RoIs0 = features_alloc_RoIs(0, 0, 0, p_cca_roi_max);
     RoIs_t* RoIs1 = features_alloc_RoIs(0, 0, 0, p_cca_roi_max);
-
+    // free unused parts (motion) of the features
     features_free_RoIs_motion(RoIs_tmp->motion, 0); RoIs_tmp->motion = NULL;
     features_free_RoIs_motion(RoIs0->motion, 0); RoIs0->motion = NULL;
     features_free_RoIs_motion(RoIs1->motion, 0); RoIs1->motion = NULL;
-
+    // free unused parts (misc) of the features
     features_free_RoIs_misc(RoIs_tmp->misc, 0); RoIs_tmp->misc = NULL;
     features_free_RoIs_misc(RoIs0->misc, 0); RoIs0->misc = NULL;
     features_free_RoIs_misc(RoIs1->misc, 0); RoIs1->misc = NULL;
 
     CCL_gen_data_t* ccl_data = CCL_alloc_data(CCL_str_to_enum(p_ccl_impl), i0, i1, j0, j1);
     kNN_data_t* knn_data = kNN_alloc_data(p_cca_roi_max);
-    tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_star_min, p_trk_meteor_min), p_cca_roi_max);
+    tracking_data_t* tracking_data = tracking_alloc_data(p_trk_obj_min, p_cca_roi_max);
     int b = 1; // image border
-    uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // grayscale input image
+    uint8_t **IG = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // grayscale input image
     uint8_t **IB = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after Sigma-Delta)
     uint32_t **L1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL)
     uint32_t **L2 = NULL; // labels (CCL + surface filter)
@@ -295,6 +277,7 @@ int main(int argc, char** argv) {
     // -- DATA INITIALISATION -- //
     // ------------------------- //
 
+    morpho_init_data(morpho_data);
     tracking_init_global_data();
     features_init_RoIs(RoIs_tmp);
     features_init_RoIs(RoIs0);
@@ -302,14 +285,11 @@ int main(int argc, char** argv) {
     tracking_init_data(tracking_data);
     CCL_init_data(ccl_data);
     kNN_init_data(knn_data);
-    zero_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
+    zero_ui8matrix(IG, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui8matrix(IB, i0 - b, i1 + b, j0 - b, j1 + b);
     zero_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
     if (p_ccl_fra_path)
         zero_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
-
-    morpho_init_data(morpho_data);
-
     TIME_POINT(stop_alloc_init);
     printf("# Allocations and initialisations took %6.3f sec\n", TIME_ELAPSED_SEC(start_alloc_init, stop_alloc_init));
 
@@ -322,15 +302,15 @@ int main(int argc, char** argv) {
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     int cur_fra;
     TIME_POINT(start_compute);
-    while ((cur_fra = video_reader_get_frame(video, I)) != -1) {
+    while ((cur_fra = video_reader_get_frame(video, IG)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         if (n_frames == 0)
-            sigma_delta_init_data(sd_data, (const uint8_t**)I, i0, i1, j0, j1);
+            sigma_delta_init_data(sd_data, (const uint8_t**)IG, i0, i1, j0, j1);
 
         // step 1: motion detection with Sigma-Delta algorithm
         const uint8_t N = 2;
-        sigma_delta_compute(sd_data, (const uint8_t**)I, IB, i0, i1, j0, j1, N);
+        sigma_delta_compute(sd_data, (const uint8_t**)IG, IB, i0, i1, j0, j1, N);
         morpho_compute_opening3(morpho_data, (const uint8_t**)IB, IB, i0, i1, j0, j1);
         morpho_compute_closing3(morpho_data, (const uint8_t**)IB, IB, i0, i1, j0, j1);
 
@@ -348,9 +328,8 @@ int main(int argc, char** argv) {
         kNN_match(knn_data, RoIs0->basic, RoIs1->basic, RoIs0->asso, RoIs1->asso, p_knn_k, p_knn_d, p_knn_s);
 
         // step 5: tracking
-        tracking_perform(tracking_data, RoIs1, cur_fra, NULL, p_trk_ext_d, p_trk_angle, 0.f, p_trk_all,
-                         p_trk_star_min, p_trk_meteor_min, p_trk_meteor_max, p_trk_roi_path != NULL, p_trk_ext_o,
-                         p_knn_s, 0);
+        tracking_perform(tracking_data, RoIs1, cur_fra, NULL, p_trk_ext_d, 0.f, 0.f, p_trk_all, 0, p_trk_obj_min, 0,
+                         p_trk_roi_path != NULL, p_trk_ext_o, p_knn_s, 0);
 
         // save frames (CCs)
         if (img_data) {
@@ -420,7 +399,7 @@ int main(int argc, char** argv) {
     // -- FREE -- //
     // ---------- //
 
-    free_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
+    free_ui8matrix(IG, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(IB, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
     if (p_ccl_fra_path)
