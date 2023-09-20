@@ -17,6 +17,7 @@
 typedef struct {
     ffmpeg_options ffmpeg_opts; /*!< FFMPEG options. */
     ffmpeg_handle ffmpeg; /*!< FFMPEG handle. */
+    char hwaccel[2048]; /*!< Hardware acceleration string. */
 } video_metadata_ffio_t;
 
 video_reader_t* video_reader_ffio_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
@@ -27,11 +28,6 @@ video_reader_t* video_reader_ffio_alloc_init(const char* path, const size_t star
     video_reader_t* video = (video_reader_t*)malloc(sizeof(video_reader_t));
     if (!video) {
         fprintf(stderr, "(EE) can't allocate video structure\n");
-        exit(1);
-    }
-
-    if (hwaccel != VCDC_HWACCEL_NONE) {
-        fprintf(stderr, "(EE) Only 'VCDC_HWACCEL_NONE' is supported at this time.\n");
         exit(1);
     }
 
@@ -48,6 +44,17 @@ video_reader_t* video_reader_ffio_alloc_init(const char* path, const size_t star
         metadata->ffmpeg_opts.start_number = start;
     if (end)
         metadata->ffmpeg_opts.vframes = (end - start) + 1;
+
+    switch(hwaccel) {
+        case VCDC_HWACCEL_VIDEOTOOLBOX:
+            metadata->ffmpeg_opts.hwaccel_dec = ffmpeg_hwaccel_videotoolbox;
+            break;
+        case VCDC_HWACCEL_NVDEC:
+            metadata->ffmpeg_opts.hwaccel_dec = ffmpeg_hwaccel_nvdec;
+            break;
+        default:
+            break;
+    }
 
     ffmpeg_init(&metadata->ffmpeg);
     if (!ffmpeg_probe(&metadata->ffmpeg, video->path, &metadata->ffmpeg_opts)) {
