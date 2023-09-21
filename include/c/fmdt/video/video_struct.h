@@ -60,6 +60,7 @@ typedef struct {
     enum video_codec_e codec_type; /*!< Video encoder type (`VCDC_FFMPEG_IO` or `VCDC_VCODECS_IO`). */
     void* metadata; /*!< Internal metadata used by the video encoder. */
     char path[2048]; /*!< Path to the video or images. */
+    int win_play; /*!< Boolean: if 0 write into a file, if 1 play in a SDL window. */
 } video_writer_t;
 
 /**

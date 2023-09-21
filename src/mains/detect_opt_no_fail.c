@@ -297,7 +297,7 @@ int main(int argc, char** argv) {
         img_data = image_gs_alloc((j1 - j0) + 1, (i1 - i0) + 1);
         const size_t n_threads = 1;
         video_writer = video_writer_alloc_init(p_ccl_fra_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
-                                               PIXFMT_GRAY, VCDC_FFMPEG_IO);
+                                               PIXFMT_GRAY, VCDC_FFMPEG_IO, 0);
     }
 
     // --------------------- //

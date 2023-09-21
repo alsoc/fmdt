@@ -17,8 +17,8 @@
 #include "fmdt/video.h"
 #include "fmdt/version.h"
 
-void add_to_BB_coord_list(vec_BB_t* BBs, vec_color_e* BBs_color, size_t elem, int rx, int ry, int bb_x,
-                          int bb_y, int frame_id, int track_id, int is_extrapolated, enum color_e color) {
+static void add_to_BB_coord_list(vec_BB_t* BBs, vec_color_e* BBs_color, size_t elem, int rx, int ry, int bb_x,
+                                 int bb_y, int frame_id, int track_id, int is_extrapolated, enum color_e color) {
 #ifndef NDEBUG
     size_t alloc_amt = vector_get_alloc(*BBs);
     size_t alloc_amt2 = vector_get_alloc(*BBs_color);
@@ -225,7 +225,7 @@ int main(int argc, char** argv) {
 
     size_t n_threads = 4;
     video_writer_t* video_writer = video_writer_alloc_init(p_vid_out_path, p_vid_in_start, n_threads, i1 - i0 + 1,
-                                                           j1 - j0 + 1, PIXFMT_RGB24, VCDC_FFMPEG_IO);
+                                                           j1 - j0 + 1, PIXFMT_RGB24, VCDC_FFMPEG_IO, 0);
 
     // parcours de la video
     enum color_e color = COLOR_MISC;

@@ -13,6 +13,7 @@
 #include <ffmpeg-io/common.h>
 #include <ffmpeg-io/writer.h>
 #include <ffmpeg-io/reader.h>
+#include <ffmpeg-io/player.h>
 
 typedef struct {
     ffmpeg_options ffmpeg_opts; /*!< FFMPEG options. */
@@ -186,9 +187,32 @@ void video_reader_ffio_free(video_reader_t* video) {
     free(video);
 }
 
+static int ffmpeg_start_writer_or_player(ffmpeg_handle* handle, const char* filename, const ffmpeg_options* opt,
+                                         const int win_play) {
+    if (!win_play) {
+        assert(filename);
+        return ffmpeg_start_writer(handle, filename, opt);
+    } else
+        return ffmpeg_start_player(handle, opt);
+}
+
+static int ffmpeg_write2d_or_play2d(ffmpeg_handle* handle, uint8_t** data, const int win_play) {
+    if (!win_play)
+        return ffmpeg_write2d(handle, data);
+    else
+        return ffmpeg_play2d(handle, data);
+}
+
+static int ffmpeg_stop_writer_or_player(ffmpeg_handle* handle, const int win_play) {
+    if (!win_play)
+        return ffmpeg_stop_writer(handle);
+    else
+        return ffmpeg_stop_player(handle);
+}
+
 video_writer_t* video_writer_ffio_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
                                              const size_t img_height, const size_t img_width,
-                                             const enum pixfmt_e pixfmt) {
+                                             const enum pixfmt_e pixfmt, const int win_play) {
     video_writer_t* video = (video_writer_t*)malloc(sizeof(video_writer_t));
     if (!video) {
         fprintf(stderr, "(EE) can't allocate video structure\n");
@@ -198,6 +222,7 @@ video_writer_t* video_writer_ffio_alloc_init(const char* path, const size_t star
     snprintf(video->path, sizeof(video->path), "%s", path);
 
     video->codec_type = VCDC_FFMPEG_IO;
+    video->win_play = win_play;
     video_metadata_ffio_t* metadata = (video_metadata_ffio_t*)malloc(sizeof(video_metadata_ffio_t));
     video->metadata = (void*)metadata;
 
@@ -224,7 +249,7 @@ video_writer_t* video_writer_ffio_alloc_init(const char* path, const size_t star
             exit(1);
     }
 
-    if (!ffmpeg_start_writer(&metadata->ffmpeg, video->path, &metadata->ffmpeg_opts)) {
+    if (!ffmpeg_start_writer_or_player(&metadata->ffmpeg, video->path, &metadata->ffmpeg_opts, video->win_play)) {
         fprintf(stderr, "(EE) can't open file %s\n", video->path);
         free(video);
         exit(1);
@@ -236,8 +261,8 @@ video_writer_t* video_writer_ffio_alloc_init(const char* path, const size_t star
 void video_writer_ffio_save_frame(video_writer_t* video, const uint8_t** img) {
     assert(video->codec_type == VCDC_FFMPEG_IO);
     video_metadata_ffio_t* metadata = (video_metadata_ffio_t*)video->metadata;
-    if (!ffmpeg_write2d(&metadata->ffmpeg, (uint8_t**)img)) {
-        fprintf(stderr, "(EE) ffmpeg_write2d: %s\n", ffmpeg_error2str(metadata->ffmpeg.error));
+    if (!ffmpeg_write2d_or_play2d(&metadata->ffmpeg, (uint8_t**)img, video->win_play)) {
+        fprintf(stderr, "(EE) ffmpeg_write2d_or_play2d: %s\n", ffmpeg_error2str(metadata->ffmpeg.error));
         exit(-1);
     }
 }
@@ -245,7 +270,7 @@ void video_writer_ffio_save_frame(video_writer_t* video, const uint8_t** img) {
 void video_writer_ffio_free(video_writer_t* video) {
     assert(video->codec_type == VCDC_FFMPEG_IO);
     video_metadata_ffio_t* metadata = (video_metadata_ffio_t*)video->metadata;
-    ffmpeg_stop_writer(&metadata->ffmpeg);
+    ffmpeg_stop_writer_or_player(&metadata->ffmpeg, video->win_play);
     free(metadata);
     free(video);
 }
@@ -529,11 +554,11 @@ void video_reader_free(video_reader_t* video) {
 
 video_writer_t* video_writer_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
                                         const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt,
-                                        const enum video_codec_e codec_type) {
+                                        const enum video_codec_e codec_type, const int win_play) {
     switch (codec_type) {
         case VCDC_FFMPEG_IO: {
 #ifdef FMDT_USE_FFMPEG_IO
-            return video_writer_ffio_alloc_init(path, start, n_ffmpeg_threads, img_height, img_width, pixfmt);
+            return video_writer_ffio_alloc_init(path, start, n_ffmpeg_threads, img_height, img_width, pixfmt, win_play);
             break;
 #else
             fprintf(stderr, "(EE) Link with the ffmpeg-io library is required.\n");
