@@ -251,14 +251,11 @@ void _update_extrapol_vars(const History_t* history, track_t* cur_track) {
 void _update_existing_tracks(History_t* history, vec_track_t track_array, const size_t frame, const size_t r_extrapol,
                              const float angle_max, const int track_all, const size_t fra_meteor_max,
                              const uint8_t extrapol_order_max, const float min_extrapol_ratio_S,
-                             const float min_ellipse_ratio) {
+                             const float min_ellipse_ratio, const uint8_t simple_tracking) {
     size_t n_tracks = vector_size(track_array);
     for (size_t i = 0; i < n_tracks; i++) {
         track_t* cur_track = &track_array[i];
         if (cur_track->id && cur_track->state != STATE_FINISHED) {
-            const float e = history->RoIs[1][cur_track->end.id - 1].error;
-            // 'simple_tracking' is a hack to disable complex tracking (METEOR -> NOISE detection)
-            const uint8_t simple_tracking = e != e;
             if (cur_track->state == STATE_LOST) {
                 size_t RoI_id = _find_matching_RoI(history, cur_track, r_extrapol, min_extrapol_ratio_S);
                 if (RoI_id) {
@@ -380,18 +377,17 @@ void _insert_new_track(const RoI_t* RoIs_list, const unsigned n_RoIs, vec_track_
 
 void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track_array, const size_t frame,
                         const float diff_dev, const float angle_max, const int track_all, const size_t fra_star_min,
-                        const size_t fra_meteor_min, const float min_ellipse_ratio, const uint8_t save_RoIs_id) {
+                        const size_t fra_meteor_min, const float min_ellipse_ratio, const uint8_t save_RoIs_id,
+                        const uint8_t simple_tracking) {
     for (size_t i = 0; i < history->n_RoIs[1]; i++) {
         int asso = history->RoIs[1][i].next_id;
         if (asso) {
             float e = history->RoIs[0][asso - 1].error;
-            // 'simple_tracking' is a hack to disable complex tracking (METEOR -> NOISE detection)
-            const uint8_t simple_tracking = e != e;
             int is_new_meteor = 0;
             enum obj_e type = OBJ_STAR;
             // if motion detected
-            // "e != e" is a hack to always do this condition when "RoIs_error" is NULL
-            if (e != e || fabs(e - history->motion[0].mean_error) > diff_dev * history->motion[0].std_deviation) {
+            if (simple_tracking ||
+                (fabs(e - history->motion[0].mean_error) > diff_dev * history->motion[0].std_deviation)) {
                 if (history->RoIs[1][i].is_extrapolated)
                     continue; // Extrapolated
                 is_new_meteor = 1;
@@ -517,6 +513,9 @@ void _tracking_perform(tracking_data_t* tracking_data, const uint32_t* RoIs_id, 
     assert(extrapol_order_max < tracking_data->history->_max_size);
     assert(min_extrapol_ratio_S >= 0.f && min_extrapol_ratio_S <= 1.f);
 
+    // 'simple_tracking' is a hack to disable complex tracking (METEOR -> NOISE detection)
+    const uint8_t simple_tracking = RoIs_error == NULL;
+
     tracking_data->history->n_RoIs[0] = n_RoIs;
     _light_copy_RoIs(RoIs_id, frame, RoIs_xmin, RoIs_xmax, RoIs_ymin, RoIs_ymax, RoIs_S, RoIs_x, RoIs_y, RoIs_error,
                      RoIs_prev_id, RoIs_a, RoIs_b, n_RoIs, tracking_data->history->RoIs[0]);
@@ -529,9 +528,11 @@ void _tracking_perform(tracking_data_t* tracking_data, const uint32_t* RoIs_id, 
 
     if (tracking_data->history->_size >= 2) {
         _create_new_tracks(tracking_data->history, tracking_data->RoIs_list, &tracking_data->tracks, frame,
-                           diff_dev, angle_max, track_all, fra_star_min, fra_meteor_min, min_ellipse_ratio, save_RoIs_id);
+                           diff_dev, angle_max, track_all, fra_star_min, fra_meteor_min, min_ellipse_ratio,
+                           save_RoIs_id, simple_tracking);
         _update_existing_tracks(tracking_data->history, tracking_data->tracks, frame, r_extrapol, angle_max,
-                                track_all, fra_meteor_max, extrapol_order_max, min_extrapol_ratio_S, min_ellipse_ratio);
+                                track_all, fra_meteor_max, extrapol_order_max, min_extrapol_ratio_S, min_ellipse_ratio,
+                                simple_tracking);
     }
 
     rotate_history(tracking_data->history);

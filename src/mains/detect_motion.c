@@ -137,8 +137,6 @@ int main(int argc, char** argv) {
                 "  --trk-obj-min       Minimum number of frames required to track an object                   [%d]\n",
                 def_p_trk_obj_min);
         fprintf(stderr,
-                "  --trk-all           Tracks all object types (star, meteor or noise)                            \n");
-        fprintf(stderr,
                 "  --trk-roi-path      Path to the file containing the RoI ids for each track                 [%s]\n",
                 def_p_trk_roi_path ? def_p_trk_roi_path : "NULL");
         fprintf(stderr,
@@ -185,7 +183,6 @@ int main(int argc, char** argv) {
     const int p_trk_ext_d = args_find_int_min(argc, argv, "--trk-ext-d,--r-extrapol", def_p_trk_ext_d, 0);
     const int p_trk_ext_o = args_find_int_min_max(argc, argv, "--trk-ext-o,--extrapol-order", def_p_trk_ext_o, 0, 255);
     const int p_trk_obj_min = args_find_int_min(argc, argv, "--trk-obj-min,--trk-meteor-min,--fra-meteor-min", def_p_trk_obj_min, 2);
-    const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
     const int p_vid_out_play = args_find(argc, argv, "--vid-out-play");
@@ -222,7 +219,6 @@ int main(int argc, char** argv) {
     printf("#  * trk-ext-d      = %d\n", p_trk_ext_d);
     printf("#  * trk-ext-o      = %d\n", p_trk_ext_o);
     printf("#  * trk-obj-min    = %d\n", p_trk_obj_min);
-    printf("#  * trk-all        = %d\n", p_trk_all);
     printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * log-path       = %s\n", p_log_path);
     printf("#  * vid-out-play   = %d\n", p_vid_out_play);
@@ -293,7 +289,7 @@ int main(int argc, char** argv) {
 
     CCL_gen_data_t* ccl_data = CCL_alloc_data(CCL_str_to_enum(p_ccl_impl), i0, i1, j0, j1);
     kNN_data_t* knn_data = kNN_alloc_data(p_cca_roi_max);
-    tracking_data_t* tracking_data = tracking_alloc_data(p_trk_obj_min, p_cca_roi_max);
+    tracking_data_t* tracking_data = tracking_alloc_data(p_trk_obj_min + 10, p_cca_roi_max);
     int b = 1; // image border
     uint8_t **IG = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // grayscale input image
     uint8_t **IB = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after Sigma-Delta)
@@ -360,7 +356,7 @@ int main(int argc, char** argv) {
         kNN_match(knn_data, RoIs0->basic, RoIs1->basic, RoIs0->asso, RoIs1->asso, p_knn_k, p_knn_d, p_knn_s);
 
         // step 5: tracking
-        tracking_perform(tracking_data, RoIs1, cur_fra, NULL, p_trk_ext_d, 0.f, 0.f, p_trk_all, 0, p_trk_obj_min, 0,
+        tracking_perform(tracking_data, RoIs1, cur_fra, NULL, p_trk_ext_d, 0.f, 0.f, 0, 0, p_trk_obj_min, 0,
                          p_trk_roi_path != NULL, p_trk_ext_o, p_knn_s, 0);
 
         // save frames (CCs)
