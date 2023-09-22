@@ -1,6 +1,8 @@
 /*
-./bin/fmdt-detect-motion --vid-in-path ~/Videos/car3/car_3%03d.pgm --ccl-fra-path cars/%03d.png --mrp-s-min 50 --mrp-s-max 10000 --log-path ./detect_log_car --trk-roi-path ./tracks_2_rois_car.txt --trk-obj-min 4 --vid-out-play
-./bin/fmdt-detect-motion --vid-in-path ~/Videos/webcam.mov --ccl-fra-path webcam/%03d.png --mrp-s-min 50 --mrp-s-max 100000 --log-path ./detect_log_webcam --trk-roi-path ./tracks_2_rois_webcam.txt --trk-obj-min 4 --vid-out-play
+wget www-soc.lip6.fr/~lacas/ImageProcessing/MotionDetection/car3.zip
+unzip car3.zip
+mkdir cars_ccl
+./bin/fmdt-detect-motion --vid-in-path ~/Videos/car3/car_3%03d.pgm --ccl-fra-path cars_ccl/%03d.png --log-path ./log_cars --vid-out-play
 */
 #include <stdio.h>
 #include <assert.h>
@@ -66,7 +68,7 @@ int main(int argc, char** argv) {
     float def_p_knn_s = 0.125f;
     int def_p_trk_ext_d = 5;
     int def_p_trk_ext_o = 3;
-    int def_p_trk_obj_min = 4;
+    int def_p_trk_obj_min = 2;
     char* def_p_trk_roi_path = NULL;
     char* def_p_log_path = NULL;
     int def_p_cca_roi_max = 8192; // Maximum number of RoIs
