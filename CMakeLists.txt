@@ -153,6 +153,7 @@ set(src_common_files
     ${src_dir}/common/validation/validation_io.c
     ${src_dir}/common/video/video_io.c
     ${src_dir}/common/video/video_struct.c
+    ${src_dir}/common/visu/visu_io.c
     ${lib_dir}/c-vector/vec.c)
 list(APPEND fmdt_src_list ${src_common_files})
 

@@ -2,7 +2,7 @@
 wget www-soc.lip6.fr/~lacas/ImageProcessing/MotionDetection/car3.zip
 unzip car3.zip
 mkdir cars_ccl
-./bin/fmdt-detect-motion --vid-in-path ~/Videos/car3/car_3%03d.pgm --ccl-fra-path cars_ccl/%03d.png --log-path ./log_cars --vid-out-play
+./bin/fmdt-detect-motion --vid-in-path ./car3/car_3%03d.pgm --ccl-fra-path ./cars_ccl/%03d.png --log-path ./log_cars --vid-out-play
 */
 #include <stdio.h>
 #include <assert.h>
@@ -30,24 +30,7 @@ mkdir cars_ccl
 
 #include "fmdt/sigma_delta.h"
 #include "fmdt/morpho.h"
-
-static void add_to_BB_coord_list(vec_BB_t* BBs, vec_color_e* BBs_color, size_t elem, int rx, int ry, int bb_x,
-                                 int bb_y, int frame_id, int track_id, int is_extrapolated, enum color_e color) {
-    size_t vs = vector_size(*BBs);
-    BB_t* BB_elem = (vs == elem) ? vector_add_asg(BBs) : &(*BBs)[elem];
-    BB_elem->frame_id = frame_id;
-    BB_elem->track_id = track_id;
-    BB_elem->bb_x = bb_x;
-    BB_elem->bb_y = bb_y;
-    BB_elem->rx = rx;
-    BB_elem->ry = ry;
-    BB_elem->is_extrapolated = is_extrapolated;
-
-    if (vs == elem)
-        vector_add(BBs_color, COLOR_MISC);
-    enum color_e* BB_color_elem = &(*BBs_color)[elem];
-    *BB_color_elem = color;
-}
+#include "fmdt/visu.h"
 
 int main(int argc, char** argv) {
     // default values
@@ -72,6 +55,7 @@ int main(int argc, char** argv) {
     char* def_p_trk_roi_path = NULL;
     char* def_p_log_path = NULL;
     int def_p_cca_roi_max = 8192; // Maximum number of RoIs
+    char* def_p_vid_out_path = NULL;
 
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -145,6 +129,9 @@ int main(int argc, char** argv) {
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
         fprintf(stderr,
+                "  --vid-out-path      Path to video file or to an images sequence to write the output        [%s]\n",
+                def_p_vid_out_path ? def_p_vid_out_path : "NULL");
+        fprintf(stderr,
                 "  --vid-out-play      Show the output video in a SDL window                                      \n");
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
@@ -187,6 +174,7 @@ int main(int argc, char** argv) {
     const int p_trk_obj_min = args_find_int_min(argc, argv, "--trk-obj-min,--trk-meteor-min,--fra-meteor-min", def_p_trk_obj_min, 2);
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
+    const char* p_vid_out_path = args_find_char(argc, argv, "--vid-out-path", def_p_vid_out_path);
     const int p_vid_out_play = args_find(argc, argv, "--vid-out-play");
 
     // heading display
@@ -223,6 +211,7 @@ int main(int argc, char** argv) {
     printf("#  * trk-obj-min    = %d\n", p_trk_obj_min);
     printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * log-path       = %s\n", p_log_path);
+    printf("#  * vid-out-path   = %s\n", p_vid_out_path);
     printf("#  * vid-out-play   = %d\n", p_vid_out_play);
 
     printf("#\n");
@@ -240,6 +229,8 @@ int main(int argc, char** argv) {
     if (p_ccl_fra_id && !p_ccl_fra_path)
         fprintf(stderr, "(WW) '--ccl-fra-id' has to be combined with the '--ccl-fra-path' parameter\n");
 #endif
+    if (p_vid_out_path && p_vid_out_play)
+        fprintf(stderr, "(WW) '--vid-out-path' will be ignore because '--vid-out-play' is set\n");
 
     // --------------------------------------- //
     // -- VIDEO ALLOCATION & INITIALISATION -- //
@@ -260,17 +251,10 @@ int main(int argc, char** argv) {
                                                PIXFMT_GRAY, VCDC_FFMPEG_IO, 0);
     }
 
-    img_data_t* img_data2 = NULL;
-    video_writer_t* video_writer2 = NULL;
-    vec_BB_t BBs = NULL;
-    vec_color_e BBs_color = NULL;
-    if (p_vid_out_play) {
-        img_data2 = image_color_alloc((j1 - j0) - 1, (i1 - i0) + 1);
-        const size_t n_threads = 1;
-        video_writer2 = video_writer_alloc_init(NULL, p_vid_in_start, n_threads, i1 - i0 + 1, j1 - j0 + 1, PIXFMT_RGB24,
-                                                VCDC_FFMPEG_IO, p_vid_out_play);
-        BBs = (vec_BB_t)vector_create();
-        BBs_color = (vec_color_e)vector_create();
+    visu_data_t *visu_data = NULL;
+    if (p_vid_out_play || p_vid_out_path) {
+        visu_data = visu_alloc_init(p_vid_out_path, p_vid_in_start, 1, (i1 - i0) + 1, (j1 - j0) + 1, PIXFMT_RGB24,
+                                    VCDC_FFMPEG_IO, p_vid_out_play, p_trk_obj_min, p_cca_roi_max);
     }
 
     // --------------------- //
@@ -359,7 +343,7 @@ int main(int argc, char** argv) {
 
         // step 5: tracking
         tracking_perform(tracking_data, RoIs1, cur_fra, NULL, p_trk_ext_d, 0.f, 0.f, 0, 0, p_trk_obj_min, 0,
-                         p_trk_roi_path != NULL, p_trk_ext_o, p_knn_s, 0);
+                         p_trk_roi_path != NULL || visu_data, p_trk_ext_o, p_knn_s, 0);
 
         // save frames (CCs)
         if (img_data) {
@@ -389,33 +373,8 @@ int main(int argc, char** argv) {
             fclose(f);
         }
 
-        if (p_vid_out_play) {
-            int cpt = 0;
-            size_t n_tracks = vector_size(tracking_data->tracks);
-            for (size_t i = 0; i < n_tracks; i++) {
-                const uint32_t track_id = tracking_data->tracks[i].id;
-                if (track_id && tracking_data->tracks[i].state != STATE_FINISHED) {
-                    enum color_e color = color = COLOR_GREEN; // COLOR_GREEN = moving object
-                    const uint32_t track_is_extrapolated = tracking_data->tracks[i].end.is_extrapolated;
-                    const uint32_t track_x = (uint32_t)roundf(tracking_data->tracks[i].end.x);
-                    const uint32_t track_y = (uint32_t)roundf(tracking_data->tracks[i].end.y);
-                    const uint32_t track_rx = (tracking_data->tracks[i].end.xmax - tracking_data->tracks[i].end.xmin) / 2;
-                    const uint32_t track_ry = (tracking_data->tracks[i].end.ymax - tracking_data->tracks[i].end.ymin) / 2;
-                    add_to_BB_coord_list(&BBs, &BBs_color, cpt, track_rx, track_ry, track_x, track_y, n_frames, track_id,
-                                         track_is_extrapolated, color);
-                    cpt++;
-                }
-            }
-
-            const int is_track_id = 1;
-            const int is_gt_path = 0;
-            image_color_draw_BBs(img_data2, (const uint8_t**)IG, (const BB_t*)BBs, (const enum color_e*)BBs_color, cpt,
-                                 is_track_id, is_gt_path);
-#ifdef FMDT_OPENCV_LINK
-            image_color_draw_frame_id(img_data2, n_frames);
-#endif
-            video_writer_save_frame(video_writer2, (const uint8_t**)image_color_get_pixels_2d(img_data2));
-        }
+        if (visu_data)
+            visu_display(visu_data, (const uint8_t**)IG, RoIs1->basic, tracking_data);
 
         // swap RoIs0 <-> RoIs1 for the next frame
         RoIs_t* tmp = RoIs0;
@@ -435,6 +394,9 @@ int main(int argc, char** argv) {
     TIME_POINT(stop_compute);
     fprintf(stderr, "\n");
 
+    if (visu_data)
+        visu_display_flush(visu_data, tracking_data);
+
     if (p_trk_roi_path) {
         FILE* f = fopen(p_trk_roi_path, "w");
         if (f == NULL) {
@@ -448,8 +410,7 @@ int main(int argc, char** argv) {
 
     printf("# Tracks statistics:\n");
     printf("# -> Processed frames = %4d\n", n_frames);
-    printf("# -> Detected tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\n", n_meteors, n_stars,
-           n_noise, (unsigned long)real_n_tracks);
+    printf("# -> Detected tracks = %3lu\n", (unsigned long)real_n_tracks);
     printf("# -> Took %6.3f seconds (avg %d FPS)\n", TIME_ELAPSED_SEC(start_compute, stop_compute),
            (int)(n_frames / (TIME_ELAPSED_SEC(start_compute, stop_compute))));
 
@@ -470,12 +431,8 @@ int main(int argc, char** argv) {
         image_gs_free(img_data);
         video_writer_free(video_writer);
     }
-    if (p_vid_out_play) {
-        image_color_free(img_data2);
-        video_writer_free(video_writer2);
-        vector_free(BBs);
-        vector_free(BBs_color);
-    }
+    if (visu_data)
+        visu_free(visu_data);
     CCL_free_data(ccl_data);
     kNN_free_data(knn_data);
     tracking_free_data(tracking_data);
