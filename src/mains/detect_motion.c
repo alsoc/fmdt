@@ -289,7 +289,7 @@ int main(int argc, char** argv) {
 
     CCL_gen_data_t* ccl_data = CCL_alloc_data(CCL_str_to_enum(p_ccl_impl), i0, i1, j0, j1);
     kNN_data_t* knn_data = kNN_alloc_data(p_cca_roi_max);
-    tracking_data_t* tracking_data = tracking_alloc_data(p_trk_obj_min + 10, p_cca_roi_max);
+    tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_obj_min, p_trk_ext_o) + 1, p_cca_roi_max);
     int b = 1; // image border
     uint8_t **IG = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // grayscale input image
     uint8_t **IB = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after Sigma-Delta)
