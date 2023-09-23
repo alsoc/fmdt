@@ -1,4 +1,5 @@
 #include <stdio.h>
+#include <assert.h>
 #include <stdlib.h>
 #include <stdint.h>
 #include <nrc2.h>
@@ -16,6 +17,7 @@
 #include "fmdt/video.h"
 #include "fmdt/image.h"
 #include "fmdt/version.h"
+#include "fmdt/visu.h"
 
 int main(int argc, char** argv) {
     // default values
@@ -48,6 +50,7 @@ int main(int argc, char** argv) {
     char* def_p_log_path = NULL;
     int def_p_cca_roi_max1 = 65535; // Maximum number of RoIs before `features_merge_CCL_HI` selection.
     int def_p_cca_roi_max2 = 400; // Maximum number of RoIs after `features_merge_CCL_HI` selection.
+    char* def_p_vid_out_path = NULL;
 
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -153,6 +156,15 @@ int main(int argc, char** argv) {
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
         fprintf(stderr,
+                "  --vid-out-path      Path to video file or to an images sequence to write the output        [%s]\n",
+                def_p_vid_out_path ? def_p_vid_out_path : "NULL");
+        fprintf(stderr,
+                "  --vid-out-play      Show the output video in a SDL window                                      \n");
+#ifdef FMDT_OPENCV_LINK
+        fprintf(stderr,
+                "  --vid-out-id        Draw the track ids on the ouptut video                                     \n");
+#endif
+        fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
         fprintf(stderr,
                 "  --version, -v       Print the version                                                          \n");
@@ -204,6 +216,13 @@ int main(int argc, char** argv) {
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
+    const char* p_vid_out_path = args_find_char(argc, argv, "--vid-out-path", def_p_vid_out_path);
+    const int p_vid_out_play = args_find(argc, argv, "--vid-out-play");
+#ifdef FMDT_OPENCV_LINK
+    const int p_vid_out_id = args_find(argc, argv, "--vid-out-id");
+#else
+    const int p_vid_out_id = 0;
+#endif
 
     // heading display
     printf("#  ---------------------\n");
@@ -250,7 +269,11 @@ int main(int argc, char** argv) {
     printf("#  * trk-all        = %d\n", p_trk_all);
     printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * log-path       = %s\n", p_log_path);
-
+    printf("#  * vid-out-path   = %s\n", p_vid_out_path);
+    printf("#  * vid-out-play   = %d\n", p_vid_out_play);
+#ifdef FMDT_OPENCV_LINK
+    printf("#  * vid-out-id     = %d\n", p_vid_out_id);
+#endif
     printf("#\n");
 
     // arguments checking
@@ -280,6 +303,8 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--cca-ell' has to be combined with the '--log-path' or the '--trk-ell-min' parameter\n");
     if (p_trk_ell_min && !p_cca_ell)
         fprintf(stderr, "(WW) '--trk-ell-min' has no effect without the '--cca-ell' parameter\n");
+    if (p_vid_out_path && p_vid_out_play)
+        fprintf(stderr, "(WW) '--vid-out-path' will be ignore because '--vid-out-play' is set\n");
 
     // --------------------------------------- //
     // -- VIDEO ALLOCATION & INITIALISATION -- //
@@ -298,6 +323,14 @@ int main(int argc, char** argv) {
         const size_t n_threads = 1;
         video_writer = video_writer_alloc_init(p_ccl_fra_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
                                                PIXFMT_GRAY, VCDC_FFMPEG_IO, 0);
+    }
+    visu_data_t *visu_data = NULL;
+    if (p_vid_out_play || p_vid_out_path) {
+        const uint8_t draw_legend = 1;
+        const uint8_t n_threads = 1;
+        visu_data = visu_alloc_init(p_vid_out_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
+                                    PIXFMT_RGB24, VCDC_FFMPEG_IO, p_vid_out_id, draw_legend, p_vid_out_play,
+                                    MAX(p_trk_star_min, p_trk_meteor_min + p_trk_meteor_max), def_p_cca_roi_max2);
     }
 
     // --------------------- //
@@ -392,8 +425,8 @@ int main(int argc, char** argv) {
 
         // step 6: tracking
         tracking_perform(tracking_data, RoIs1, cur_fra, &motion_est2, p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all,
-                         p_trk_star_min, p_trk_meteor_min, p_trk_meteor_max, p_trk_roi_path != NULL, p_trk_ext_o,
-                         p_knn_s, p_trk_ell_min);
+                         p_trk_star_min, p_trk_meteor_min, p_trk_meteor_max, p_trk_roi_path != NULL || visu_data,
+                         p_trk_ext_o, p_knn_s, p_trk_ell_min);
 
         // save frames (CCs)
         if (img_data && n_RoIs <= RoIs_tmp->_max_size && n_RoIs_hyst <= RoIs1->_max_size) {
@@ -429,6 +462,12 @@ int main(int argc, char** argv) {
                 tracking_tracks_write_full(f, tracking_data->tracks);
             }
             fclose(f);
+        }
+
+        // display the result to the screen or write it into a video file
+        if (visu_data) {
+            assert(cur_fra == n_frames);
+            visu_display(visu_data, (const uint8_t**)I, RoIs1->basic, tracking_data->tracks);
         }
 
         // swap RoIs0 <-> RoIs1 for the next frame
@@ -469,6 +508,10 @@ int main(int argc, char** argv) {
     printf("# -> Took %6.3f seconds (avg %d FPS)\n", TIME_ELAPSED_SEC(start_compute, stop_compute),
            (int)(n_frames / (TIME_ELAPSED_SEC(start_compute, stop_compute))));
 
+    // some frames have been buffered for the visualization, display or write these frames here
+    if (visu_data)
+        visu_flush(visu_data, tracking_data->tracks);
+
     // ---------- //
     // -- FREE -- //
     // ---------- //
@@ -487,6 +530,8 @@ int main(int argc, char** argv) {
         image_gs_free(img_data);
         video_writer_free(video_writer);
     }
+    if (visu_data)
+        visu_free(visu_data);
     CCL_free_data(ccl_data);
     kNN_free_data(knn_data);
     tracking_free_data(tracking_data);
