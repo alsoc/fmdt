@@ -28,21 +28,20 @@ visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t 
                              const size_t max_RoIs_size);
 
 /**
- * Display a frame.
+ * Display a frame. If the buffer is not fully filled: display nothing and just copy the current frame to the buffer.
  * @param visu A pointer of previously allocated inner visu data.
  * @param img Input grayscale/RGB image (2D array \f$[\texttt{img\_height}][\texttt{img\_width}]\f$).
  * @param RoIs Last RoIs to bufferize.
- * @param tracking_data Data from the tracking.
+ * @param tracks A vector of tracks.
  */
-void visu_display(visu_data_t* visu, const uint8_t** img, const RoIs_basic_t* RoIs,
-                  const tracking_data_t* tracking_data);
+void visu_display(visu_data_t* visu, const uint8_t** img, const RoIs_basic_t* RoIs, const vec_track_t tracks);
 
 /**
- * Display all the remaining frames in the buffer.
+ * Display all the remaining frames (= flush the the buffer).
  * @param visu A pointer of previously allocated inner visu data.
- * @param tracking_data Data from the tracking.
+ * @param tracks A vector of tracks.
  */
-void visu_display_flush(visu_data_t* visu, const tracking_data_t* tracking_data);
+void visu_flush(visu_data_t* visu, const vec_track_t tracks);
 
 /**
  * Deallocation of inner visu data.

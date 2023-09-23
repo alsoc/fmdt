@@ -38,8 +38,8 @@ visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t 
     return visu;
 }
 
-static void _add_to_BB_coord_list(vec_BB_t* BBs, vec_color_e* BBs_color, size_t elem, int rx, int ry, int bb_x,
-                                  int bb_y, int frame_id, int track_id, int is_extrapolated, enum color_e color) {
+void _add_to_BB_coord_list(vec_BB_t* BBs, vec_color_e* BBs_color, size_t elem, int rx, int ry, int bb_x, int bb_y,
+                           int frame_id, int track_id, int is_extrapolated, enum color_e color) {
     size_t vs = vector_size(*BBs);
     BB_t* BB_elem = (vs == elem) ? vector_add_asg(BBs) : &(*BBs)[elem];
     BB_elem->frame_id = frame_id;
@@ -56,22 +56,21 @@ static void _add_to_BB_coord_list(vec_BB_t* BBs, vec_color_e* BBs_color, size_t 
     *BB_color_elem = color;
 }
 
-static void _visu_write_or_play(visu_data_t* visu, const tracking_data_t* tracking_data) {
+void _visu_write_or_play(visu_data_t* visu, const vec_track_t tracks) {
     const size_t frame_id = visu->buff_id_read;
     const size_t real_buff_id_read = visu->buff_id_read % visu->buff_size;
     int cpt = 0;
-    size_t n_tracks = vector_size(tracking_data->tracks);
+    size_t n_tracks = vector_size(tracks);
     for (size_t i = 0; i < n_tracks; i++) {
-        const uint32_t track_id = tracking_data->tracks[i].id;
-        if (track_id && (tracking_data->tracks[i].end  .frame >= frame_id &&
-                         tracking_data->tracks[i].begin.frame <= frame_id)) {
+        const uint32_t track_id = tracks[i].id;
+        if (track_id && (tracks[i].end  .frame >= frame_id && tracks[i].begin.frame <= frame_id)) {
             enum color_e color = COLOR_GREEN; // COLOR_GREEN = moving object
 
-            const size_t offset = tracking_data->tracks[i].end.frame - frame_id;
-            assert(tracking_data->tracks[i].RoIs_id != NULL);
-            const size_t RoIs_id_size = vector_size(tracking_data->tracks[i].RoIs_id);
+            const size_t offset = tracks[i].end.frame - frame_id;
+            assert(tracks[i].RoIs_id != NULL);
+            const size_t RoIs_id_size = vector_size(tracks[i].RoIs_id);
             assert(RoIs_id_size > offset);
-            const uint32_t RoI_id = tracking_data->tracks[i].RoIs_id[(RoIs_id_size - 1) - offset];
+            const uint32_t RoI_id = tracks[i].RoIs_id[(RoIs_id_size - 1) - offset];
 
             RoIs_basic_t *RoIs_tmp = visu->RoIs[real_buff_id_read];
             if (RoI_id) {
@@ -99,13 +98,12 @@ static void _visu_write_or_play(visu_data_t* visu, const tracking_data_t* tracki
     video_writer_save_frame(visu->video_writer, (const uint8_t**)image_color_get_pixels_2d(visu->img_data));
 }
 
-void visu_display(visu_data_t* visu, const uint8_t** img, const RoIs_basic_t* RoIs,
-                  const tracking_data_t* tracking_data) {
+void visu_display(visu_data_t* visu, const uint8_t** img, const RoIs_basic_t* RoIs, const vec_track_t tracks) {
     // ------------------------
     // write or play image ----
     // ------------------------
     if (visu->n_filled_buff == visu->buff_size) {
-        _visu_write_or_play(visu, tracking_data);
+        _visu_write_or_play(visu, tracks);
 
         visu->n_filled_buff--;
         visu->buff_id_read++;
@@ -134,9 +132,9 @@ void visu_display(visu_data_t* visu, const uint8_t** img, const RoIs_basic_t* Ro
     visu->buff_id_write++;
 }
 
-void visu_display_flush(visu_data_t* visu, const tracking_data_t* tracking_data) {
+void visu_flush(visu_data_t* visu, const vec_track_t tracks) {
     while (visu->n_filled_buff) {
-        _visu_write_or_play(visu, tracking_data);
+        _visu_write_or_play(visu, tracks);
 
         visu->n_filled_buff--;
         visu->buff_id_read++;

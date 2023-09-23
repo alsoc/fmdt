@@ -386,7 +386,7 @@ int main(int argc, char** argv) {
 
         if (visu_data) {
             assert(cur_fra == n_frames);
-            visu_display(visu_data, (const uint8_t**)IG, RoIs1->basic, tracking_data);
+            visu_display(visu_data, (const uint8_t**)IG, RoIs1->basic, tracking_data->tracks);
         }
 
         // swap RoIs0 <-> RoIs1 for the next frame
@@ -408,7 +408,7 @@ int main(int argc, char** argv) {
     fprintf(stderr, "\n");
 
     if (visu_data)
-        visu_display_flush(visu_data, tracking_data);
+        visu_flush(visu_data, tracking_data->tracks);
 
     if (p_trk_roi_path) {
         FILE* f = fopen(p_trk_roi_path, "w");
