@@ -44,7 +44,11 @@ mkdir traffic_2160p_ccl
 #include "fmdt/visu.h"
 
 int main(int argc, char** argv) {
-    // default values
+
+    // ---------------------------------- //
+    // -- DEFAULT VALUES OF PARAMETERS -- //
+    // ---------------------------------- //
+
     char* def_p_vid_in_path = NULL;
     int def_p_vid_in_start = 0;
     int def_p_vid_in_stop = 0;
@@ -53,6 +57,7 @@ int main(int argc, char** argv) {
     int def_p_vid_in_threads = 0;
     char def_p_vid_in_dec[16] = "FFMPEG-IO";
     char def_p_vid_in_dec_hw[16] = "NONE";
+    int def_p_sd_n = 2;
     char def_p_ccl_impl[16] = "LSLH";
     char* def_p_ccl_fra_path = NULL;
     int def_p_mrp_s_min = 50;
@@ -68,7 +73,10 @@ int main(int argc, char** argv) {
     int def_p_cca_roi_max = 65536; // Maximum number of RoIs
     char* def_p_vid_out_path = NULL;
 
-    // help
+    // ------------------------ //
+    // -- CMD LINE ARGS HELP -- //
+    // ------------------------ //
+
     if (args_find(argc, argv, "--help,-h")) {
         fprintf(stderr,
                 "  --vid-in-path       Path to video file or to an images sequence                            [%s]\n",
@@ -94,8 +102,11 @@ int main(int argc, char** argv) {
                 "  --vid-in-dec        Select video decoder implementation ('FFMPEG-IO' or 'VCODEC-IO')       [%s]\n",
                 def_p_vid_in_dec);
         fprintf(stderr,
-                "--vid-in-dec-hw       Select video decoder hardware acceleration ('NONE', 'NVDEC', 'VIDTB')  [%s]\n",
+                "  --vid-in-dec-hw     Select video decoder hardware acceleration ('NONE', 'NVDEC', 'VIDTB')  [%s]\n",
                 def_p_vid_in_dec_hw);
+        fprintf(stderr,
+                "  --sd-n              Value of the N parameter in the Sigma-Delta algorithm                  [%d]\n",
+                def_p_sd_n);
         fprintf(stderr,
                 "  --ccl-impl          Select the CCL implementation to use ('LSLH' or 'LSLM')                [%s]\n",
                 def_p_ccl_impl);
@@ -157,7 +168,10 @@ int main(int argc, char** argv) {
         exit(0);
     }
 
-    // parse arguments
+    // ------------------------- //
+    // -- PARSE CMD LINE ARGS -- //
+    // ------------------------- //
+
     const char* p_vid_in_path = args_find_char(argc, argv, "--vid-in-path,--in-video", def_p_vid_in_path);
     const int p_vid_in_start = args_find_int_min(argc, argv, "--vid-in-start,--fra-start", def_p_vid_in_start, 0);
     const int p_vid_in_stop = args_find_int_min(argc, argv, "--vid-in-stop,--fra-end", def_p_vid_in_stop, 0);
@@ -167,6 +181,7 @@ int main(int argc, char** argv) {
     const int p_vid_in_threads = args_find_int_min(argc, argv, "--vid-in-threads,--ffmpeg-threads", def_p_vid_in_threads, 0);
     const char* p_vid_in_dec = args_find_char(argc, argv, "--vid-in-dec", def_p_vid_in_dec);
     const char* p_vid_in_dec_hw = args_find_char(argc, argv, "--vid-in-dec-hw", def_p_vid_in_dec_hw);
+    const int p_sd_n = args_find_int_min(argc, argv, "--sd-n", def_p_sd_n, 0);
     const char* p_ccl_impl = args_find_char(argc, argv, "--ccl-impl", def_p_ccl_impl);
     const char* p_ccl_fra_path = args_find_char(argc, argv, "--ccl-fra-path,--out-frames", def_p_ccl_fra_path);
 #ifdef FMDT_OPENCV_LINK
@@ -188,7 +203,10 @@ int main(int argc, char** argv) {
     const char* p_vid_out_path = args_find_char(argc, argv, "--vid-out-path", def_p_vid_out_path);
     const int p_vid_out_play = args_find(argc, argv, "--vid-out-play");
 
-    // heading display
+    // --------------------- //
+    // -- HEADING DISPLAY -- //
+    // --------------------- //
+
     printf("#  ----------------------------\n");
     printf("# |          ----*             |\n");
     printf("# | --* FMDT-DETECT-MOTION --* |\n");
@@ -206,6 +224,7 @@ int main(int argc, char** argv) {
     printf("#  * vid-in-threads = %d\n", p_vid_in_threads);
     printf("#  * vid-in-dec     = %s\n", p_vid_in_dec);
     printf("#  * vid-in-dec-hw  = %s\n", p_vid_in_dec_hw);
+    printf("#  * sd-n           = %d\n", p_sd_n);
     printf("#  * ccl-impl       = %s\n", p_ccl_impl);
     printf("#  * ccl-fra-path   = %s\n", p_ccl_fra_path);
 #ifdef FMDT_OPENCV_LINK
@@ -227,7 +246,10 @@ int main(int argc, char** argv) {
 
     printf("#\n");
 
-    // arguments checking
+    // -------------------------- //
+    // -- CMD LINE ARGS CHECKS -- //
+    // -------------------------- //
+
     if (!p_vid_in_path) {
         fprintf(stderr, "(EE) '--vid-in-path' is missing\n");
         exit(1);
@@ -261,7 +283,6 @@ int main(int argc, char** argv) {
         video_writer = video_writer_alloc_init(p_ccl_fra_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
                                                PIXFMT_GRAY, VCDC_FFMPEG_IO, 0);
     }
-
     visu_data_t *visu_data = NULL;
     if (p_vid_out_play || p_vid_out_path) {
         visu_data = visu_alloc_init(p_vid_out_path, p_vid_in_start, 1, (i1 - i0) + 1, (j1 - j0) + 1, PIXFMT_RGB24,
@@ -272,18 +293,14 @@ int main(int argc, char** argv) {
     // -- DATA ALLOCATION -- //
     // --------------------- //
 
-    RoIs_t* RoIs_tmp = features_alloc_RoIs(0, 0, 0, p_cca_roi_max);
     RoIs_t* RoIs0 = features_alloc_RoIs(0, 0, 0, p_cca_roi_max);
     RoIs_t* RoIs1 = features_alloc_RoIs(0, 0, 0, p_cca_roi_max);
     // free unused parts (motion) of the features
-    features_free_RoIs_motion(RoIs_tmp->motion, 0); RoIs_tmp->motion = NULL;
     features_free_RoIs_motion(RoIs0->motion, 0); RoIs0->motion = NULL;
     features_free_RoIs_motion(RoIs1->motion, 0); RoIs1->motion = NULL;
     // free unused parts (misc) of the features
-    features_free_RoIs_misc(RoIs_tmp->misc, 0); RoIs_tmp->misc = NULL;
     features_free_RoIs_misc(RoIs0->misc, 0); RoIs0->misc = NULL;
     features_free_RoIs_misc(RoIs1->misc, 0); RoIs1->misc = NULL;
-
     CCL_gen_data_t* ccl_data = CCL_alloc_data(CCL_str_to_enum(p_ccl_impl), i0, i1, j0, j1);
     kNN_data_t* knn_data = kNN_alloc_data(p_cca_roi_max);
     tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_obj_min, p_trk_ext_o) + 1, p_cca_roi_max);
@@ -294,7 +311,6 @@ int main(int argc, char** argv) {
     uint32_t **L2 = NULL; // labels (CCL + surface filter)
     if (p_ccl_fra_path)
         L2 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b);
-
     sigma_delta_data_t* sd_data = sigma_delta_alloc_data(i0 - b, i1 + b, j0 - b, j1 + b, 1, 254);
     morpho_data_t* morpho_data = morpho_alloc_data(i0 - b, i1 + b, j0 - b, j1 + b);
 
@@ -304,7 +320,6 @@ int main(int argc, char** argv) {
 
     morpho_init_data(morpho_data);
     tracking_init_global_data();
-    features_init_RoIs(RoIs_tmp);
     features_init_RoIs(RoIs0);
     features_init_RoIs(RoIs1);
     tracking_init_data(tracking_data);
@@ -318,72 +333,83 @@ int main(int argc, char** argv) {
     TIME_POINT(stop_alloc_init);
     printf("# Allocations and initialisations took %6.3f sec\n", TIME_ELAPSED_SEC(start_alloc_init, stop_alloc_init));
 
-    // ---------------- //
-    // -- PROCESSING -- //
-    // ---------------- //
+    // --------------------- //
+    // -- PROCESSING LOOP -- //
+    // --------------------- //
 
     printf("# The program is running...\n");
-    size_t real_n_tracks = 0;
-    unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
+    size_t n_moving_objs = 0, n_frames = 0;
     int cur_fra;
     TIME_POINT(start_compute);
     while ((cur_fra = video_reader_get_frame(video, IG)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
-        if (n_frames == 0)
+        // for the first frame, initialize Sigma-Delta algorithm
+        if (n_frames == 0)  {
             sigma_delta_init_data(sd_data, (const uint8_t**)IG, i0, i1, j0, j1);
 
-        // step 1: motion detection with Sigma-Delta algorithm
-        const uint8_t N = 2;
-        sigma_delta_compute(sd_data, (const uint8_t**)IG, IB, i0, i1, j0, j1, N);
-        morpho_compute_opening3(morpho_data, (const uint8_t**)IB, IB, i0, i1, j0, j1);
-        morpho_compute_closing3(morpho_data, (const uint8_t**)IB, IB, i0, i1, j0, j1);
+        // for other frames, execute the image processing chain
+        } else {
 
-        // step 2: CCL/CCA
-        const uint32_t n_RoIs = CCL_apply(ccl_data, (const uint8_t**)IB, L1, 0);
-        assert(n_RoIs <= RoIs_tmp->_max_size);
-        features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoIs, RoIs_tmp->basic);
+            // -------------------------------------- //
+            // -- IMAGE PROCESSING CHAIN EXECUTION -- //
+            // -------------------------------------- //
 
-        // step 3: surface filtering
-        features_filter_surface((const uint32_t**)L1, L2, i0, i1, j0, j1, RoIs_tmp->basic, p_mrp_s_min,
-                                p_mrp_s_max);
-        features_shrink_basic(RoIs_tmp->basic, RoIs1->basic);
+            // step 1: motion detection with Sigma-Delta algorithm
+            sigma_delta_compute(sd_data, (const uint8_t**)IG, IB, i0, i1, j0, j1, p_sd_n);
+            morpho_compute_opening3(morpho_data, (const uint8_t**)IB, IB, i0, i1, j0, j1);
+            morpho_compute_closing3(morpho_data, (const uint8_t**)IB, IB, i0, i1, j0, j1);
 
-        // step 4: k-NN matching
-        kNN_match(knn_data, RoIs0->basic, RoIs1->basic, RoIs0->asso, RoIs1->asso, p_knn_k, p_knn_d, p_knn_s);
+            // step 2: CCL/CCA
+            const uint32_t n_RoIs = CCL_apply(ccl_data, (const uint8_t**)IB, L1, 0);
+            assert(n_RoIs <= RoIs1->_max_size);
+            features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoIs, RoIs1->basic);
 
-        // step 5: tracking
-        tracking_perform(tracking_data, RoIs1, cur_fra, NULL, p_trk_ext_d, 0.f, 0.f, 0, 0, p_trk_obj_min, 0,
-                         p_trk_roi_path != NULL || visu_data, p_trk_ext_o, p_knn_s, 0);
+            // step 3: surface filtering
+            features_filter_surface((const uint32_t**)L1, L2, i0, i1, j0, j1, RoIs1->basic, p_mrp_s_min, p_mrp_s_max);
+            features_shrink_basic(RoIs1->basic, RoIs1->basic);
 
-        // save frames (CCs)
-        if (img_data) {
-            image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs1->basic, p_ccl_fra_id);
-            video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
+            // step 4: k-NN matching
+            kNN_match(knn_data, RoIs0->basic, RoIs1->basic, RoIs0->asso, RoIs1->asso, p_knn_k, p_knn_d, p_knn_s);
+
+            // step 5: tracking
+            tracking_perform(tracking_data, RoIs1, cur_fra, NULL, p_trk_ext_d, 0.f, 0.f, 0, 0, p_trk_obj_min, 0,
+                             p_trk_roi_path != NULL || visu_data, p_trk_ext_o, p_knn_s, 0);
+
+            // ---------- //
+            // -- LOGS -- //
+            // ---------- //
+
+            // save frames (CCs)
+            if (img_data) {
+                image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs1->basic, p_ccl_fra_id);
+                video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
+            }
+
+            // save stats
+            if (p_log_path) {
+                tools_create_folder(p_log_path);
+                char filename[1024];
+                snprintf(filename, sizeof(filename), "%s/%05d.txt", p_log_path, cur_fra);
+                FILE* f = fopen(filename, "w");
+                if (f == NULL) {
+                    fprintf(stderr, "(EE) error while opening '%s'\n", filename);
+                    exit(1);
+                }
+                int prev_fra = cur_fra > p_vid_in_start ? cur_fra - (p_vid_in_skip + 1) : -1;
+                features_RoIs0_RoIs1_write(f, prev_fra, cur_fra, RoIs0->basic, RoIs0->misc, RoIs1->basic, RoIs1->misc,
+                                           tracking_data->tracks);
+                if (cur_fra > p_vid_in_start) {
+                    fprintf(f, "#\n");
+                    kNN_asso_conflicts_write(f, knn_data, RoIs0->asso, RoIs1->asso, RoIs1->motion);
+                    fprintf(f, "#\n");
+                    tracking_tracks_write_full(f, tracking_data->tracks);
+                }
+                fclose(f);
+            }
         }
 
-        // save stats
-        if (p_log_path) {
-            tools_create_folder(p_log_path);
-            char filename[1024];
-            snprintf(filename, sizeof(filename), "%s/%05d.txt", p_log_path, cur_fra);
-            FILE* f = fopen(filename, "w");
-            if (f == NULL) {
-                fprintf(stderr, "(EE) error while opening '%s'\n", filename);
-                exit(1);
-            }
-            int prev_fra = cur_fra > p_vid_in_start ? cur_fra - (p_vid_in_skip + 1) : -1;
-            features_RoIs0_RoIs1_write(f, prev_fra, cur_fra, RoIs0->basic, RoIs0->misc, RoIs1->basic, RoIs1->misc,
-                                       tracking_data->tracks);
-            if (cur_fra > p_vid_in_start) {
-                fprintf(f, "#\n");
-                kNN_asso_conflicts_write(f, knn_data, RoIs0->asso, RoIs1->asso, RoIs1->motion);
-                fprintf(f, "#\n");
-                tracking_tracks_write_full(f, tracking_data->tracks);
-            }
-            fclose(f);
-        }
-
+        // display the result to the screen or write it into a video file
         if (visu_data) {
             assert(cur_fra == n_frames);
             visu_display(visu_data, (const uint8_t**)IG, RoIs1->basic, tracking_data->tracks);
@@ -395,20 +421,16 @@ int main(int argc, char** argv) {
         RoIs1 = tmp;
 
         n_frames++;
-        real_n_tracks = tracking_count_objects(tracking_data->tracks, &n_stars, &n_meteors, &n_noise);
+        n_moving_objs = tracking_count_objects(tracking_data->tracks, NULL, NULL, NULL);
 
         TIME_POINT(stop_compute);
         fprintf(stderr, " -- Time = %6.3f sec", TIME_ELAPSED_SEC(start_compute, stop_compute));
         fprintf(stderr, " -- FPS = %4d", (int)(n_frames / (TIME_ELAPSED_SEC(start_compute, stop_compute))));
-        fprintf(stderr, " -- Tracks = ['meteor': %3d, 'star': %3d, 'noise': %3d, 'total': %3lu]\r", n_meteors, n_stars,
-                n_noise, (unsigned long)real_n_tracks);
+        fprintf(stderr, " -- Tracks = %3lu\r", (unsigned long)n_moving_objs);
         fflush(stderr);
     }
     TIME_POINT(stop_compute);
     fprintf(stderr, "\n");
-
-    if (visu_data)
-        visu_flush(visu_data, tracking_data->tracks);
 
     if (p_trk_roi_path) {
         FILE* f = fopen(p_trk_roi_path, "w");
@@ -422,10 +444,14 @@ int main(int argc, char** argv) {
     tracking_tracks_write(stdout, tracking_data->tracks);
 
     printf("# Tracks statistics:\n");
-    printf("# -> Processed frames = %4d\n", n_frames);
-    printf("# -> Detected tracks = %3lu\n", (unsigned long)real_n_tracks);
+    printf("# -> Processed frames = %4u\n", (unsigned)n_frames);
+    printf("# -> Detected tracks = %3lu\n", (unsigned long)n_moving_objs);
     printf("# -> Took %6.3f seconds (avg %d FPS)\n", TIME_ELAPSED_SEC(start_compute, stop_compute),
            (int)(n_frames / (TIME_ELAPSED_SEC(start_compute, stop_compute))));
+
+    // some frames have been buffered for the visualization, display or write these frames here
+    if (visu_data)
+        visu_flush(visu_data, tracking_data->tracks);
 
     // ---------- //
     // -- FREE -- //
@@ -436,7 +462,6 @@ int main(int argc, char** argv) {
     free_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
     if (p_ccl_fra_path)
         free_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
-    features_free_RoIs(RoIs_tmp);
     features_free_RoIs(RoIs0);
     features_free_RoIs(RoIs1);
     video_reader_free(video);

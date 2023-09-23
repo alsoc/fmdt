@@ -16,23 +16,31 @@ size_t tracking_get_track_time(const vec_track_t tracks, const size_t t) {
 size_t tracking_count_objects(const vec_track_t tracks, unsigned* n_stars, unsigned* n_meteors,
                               unsigned* n_noise) {
     size_t n_tracks = vector_size(tracks);
-    (*n_stars) = (*n_meteors) = (*n_noise) = 0;
+    unsigned n_stars_tmp = 0, n_meteors_tmp = 0, n_noise_tmp = 0;
     for (size_t i = 0; i < n_tracks; i++)
         if (tracks[i].id)
             switch (tracks[i].obj_type) {
             case OBJ_STAR:
-                (*n_stars)++;
+                n_stars_tmp++;
                 break;
             case OBJ_METEOR:
-                (*n_meteors)++;
+                n_meteors_tmp++;
                 break;
             case OBJ_NOISE:
-                (*n_noise)++;
+                n_noise_tmp++;
                 break;
             default:
                 fprintf(stderr, "(EE) This should never happen ('tracks[i].obj_type = %d', 'i = %lu')\n",
                         tracks[i].obj_type, (unsigned long)i);
                 exit(1);
             }
-    return (*n_stars) + (*n_meteors) + (*n_noise);
+
+    if (n_stars != NULL)
+       (*n_stars) =  n_stars_tmp;
+    if (n_meteors != NULL)
+       (*n_meteors) =  n_meteors_tmp;
+    if (n_noise != NULL)
+       (*n_noise) =  n_noise_tmp;
+
+    return n_stars_tmp + n_meteors_tmp + n_noise_tmp;
 }

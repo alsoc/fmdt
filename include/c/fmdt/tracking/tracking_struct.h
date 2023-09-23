@@ -149,9 +149,9 @@ size_t tracking_get_track_time(const vec_track_t tracks, const size_t t);
 /**
  * Counts the number of tracks in a vector of tracks.
  * @param tracks A vector of tracks.
- * @param n_stars Write the number of tracks that have been classified as star.
- * @param n_meteors Write the number of tracks that have been classified as meteor.
- * @param n_noise Write the number of tracks that have been classified as noise.
+ * @param n_stars Write the number of tracks that have been classified as star (can be NULL).
+ * @param n_meteors Write the number of tracks that have been classified as meteor (can be NULL).
+ * @param n_noise Write the number of tracks that have been classified as noise (can be NULL).
  * @return The real number of tracks (may be less than the \p tracks vector size).
  */
 size_t tracking_count_objects(const vec_track_t tracks, unsigned* n_stars, unsigned* n_meteors, unsigned* n_noise);
