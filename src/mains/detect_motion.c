@@ -155,6 +155,10 @@ int main(int argc, char** argv) {
                 def_p_vid_out_path ? def_p_vid_out_path : "NULL");
         fprintf(stderr,
                 "  --vid-out-play      Show the output video in a SDL window                                      \n");
+#ifdef FMDT_OPENCV_LINK
+        fprintf(stderr,
+                "  --vid-out-id        Draw the track ids on the ouptut video                                     \n");
+#endif
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
         fprintf(stderr,
@@ -202,6 +206,11 @@ int main(int argc, char** argv) {
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
     const char* p_vid_out_path = args_find_char(argc, argv, "--vid-out-path", def_p_vid_out_path);
     const int p_vid_out_play = args_find(argc, argv, "--vid-out-play");
+#ifdef FMDT_OPENCV_LINK
+    const int p_vid_out_id = args_find(argc, argv, "--vid-out-id");
+#else
+    const int p_vid_out_id = 0;
+#endif
 
     // --------------------- //
     // -- HEADING DISPLAY -- //
@@ -243,6 +252,9 @@ int main(int argc, char** argv) {
     printf("#  * log-path       = %s\n", p_log_path);
     printf("#  * vid-out-path   = %s\n", p_vid_out_path);
     printf("#  * vid-out-play   = %d\n", p_vid_out_play);
+#ifdef FMDT_OPENCV_LINK
+    printf("#  * vid-out-id     = %d\n", p_vid_out_id);
+#endif
 
     printf("#\n");
 
@@ -286,7 +298,7 @@ int main(int argc, char** argv) {
     visu_data_t *visu_data = NULL;
     if (p_vid_out_play || p_vid_out_path) {
         visu_data = visu_alloc_init(p_vid_out_path, p_vid_in_start, 1, (i1 - i0) + 1, (j1 - j0) + 1, PIXFMT_RGB24,
-                                    VCDC_FFMPEG_IO, p_vid_out_play, p_trk_obj_min, p_cca_roi_max);
+                                    VCDC_FFMPEG_IO, p_vid_out_id, p_vid_out_play, p_trk_obj_min, p_cca_roi_max);
     }
 
     // --------------------- //

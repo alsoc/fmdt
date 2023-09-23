@@ -12,8 +12,8 @@
 
 visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
                              const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt,
-                             const enum video_codec_e codec_type, const int win_play, const size_t buff_size,
-                             const size_t max_RoIs_size) {
+                             const enum video_codec_e codec_type, const uint8_t draw_track_id, const int win_play,
+                             const size_t buff_size, const size_t max_RoIs_size) {
     assert(buff_size > 0);
     visu_data_t* visu = (visu_data_t*)malloc(sizeof(visu_data_t));
     visu->img_height = img_height;
@@ -33,6 +33,7 @@ visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t 
     visu->img_data = image_color_alloc(img_height, img_width);
     visu->BBs = (vec_BB_t)vector_create();
     visu->BBs_color = (vec_color_e)vector_create();
+    visu->draw_track_id = draw_track_id;
 
     return visu;
 }
@@ -86,14 +87,15 @@ void _visu_write_or_play(visu_data_t* visu, const vec_track_t tracks) {
         }
     }
 
-    const int is_track_id = 1;
     const int is_gt_path = 0;
+    const uint8_t draw_legend = 0;
     image_color_draw_BBs(visu->img_data, (const uint8_t**)visu->I[real_buff_id_read], (const BB_t*)visu->BBs,
-                         (const enum color_e*)visu->BBs_color, cpt, is_track_id, is_gt_path);
+                         (const enum color_e*)visu->BBs_color, cpt, visu->draw_track_id, is_gt_path, draw_legend);
 
 #ifdef FMDT_OPENCV_LINK
     image_color_draw_frame_id(visu->img_data, frame_id);
 #endif
+
     video_writer_save_frame(visu->video_writer, (const uint8_t**)image_color_get_pixels_2d(visu->img_data));
 }
 

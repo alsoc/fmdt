@@ -93,9 +93,10 @@ img_data_t* image_color_alloc(const size_t img_height, const size_t img_width);
  * @param show_id Boolean to enable display of the BB ids (has no effect if the program has not be linked with the
  *                OpenCV).
  * @param is_gt Boolean to draw the ground truth legend (has no effect is the program has not been linked with OpenCV).
+ * @param draw_legend If 1, draw the legend (has no effect is the program has not been linked with OpenCV).
  */
 void image_color_draw_BBs(img_data_t* img_data, const uint8_t** img, const BB_t* BBs, const enum color_e* BBs_color,
-                          const size_t n_BBs, const uint8_t show_id, const uint8_t is_gt);
+                          const size_t n_BBs, const uint8_t show_id, const uint8_t is_gt, const uint8_t draw_legend);
 
 /**
  * Draw the frame id given in parameter at the bottom left corner of the image.

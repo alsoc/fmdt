@@ -236,7 +236,7 @@ int main(int argc, char** argv) {
 
         int n_BB = m;
         image_color_draw_BBs(img_data, (const uint8_t**)M, (const BB_t*)BBs, (const enum color_e*)BBs_color,
-                             n_BB, p_trk_id, p_gt_path ? 1 : 0);
+                             n_BB, p_trk_id, p_gt_path ? 1 : 0, 1);
         video_writer_save_frame(video_writer, (const uint8_t**)image_color_get_pixels_2d(img_data));
         vector_free(tracks);
         free(BBs);

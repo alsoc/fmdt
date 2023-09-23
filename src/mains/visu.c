@@ -288,7 +288,7 @@ int main(int argc, char** argv) {
         }
 
         image_color_draw_BBs(img_data, (const uint8_t**)I0, (const BB_t*)BBs, (const enum color_e*)BBs_color,
-                             cpt, p_trk_id, p_gt_path ? 1 : 0);
+                             cpt, p_trk_id, p_gt_path ? 1 : 0, 1);
 #ifdef FMDT_OPENCV_LINK
         if (p_vid_out_id)
             image_color_draw_frame_id(img_data, frame);

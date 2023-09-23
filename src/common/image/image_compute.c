@@ -26,9 +26,9 @@
 
 rgb8_t image_get_color(enum color_e color) {
     rgb8_t gray;
-    gray.g = 175;
-    gray.b = 175;
-    gray.r = 175;
+    gray.g = 125;
+    gray.b = 125;
+    gray.r = 125;
 
     rgb8_t green;
     green.g = 255;
@@ -248,13 +248,15 @@ void image_draw_track_id(cv::Mat& cv_img, const BB_t* BBs, const enum color_e* B
 }
 
 void image_draw_text(img_data_t* img_data, const BB_t* BBs, const enum color_e* BBs_color, const int nBB,
-                     int validation, int show_id) {
+                     int validation, int show_id, int draw_legend) {
     unsigned box_size = 20, h_space = 10, v_space = 10;
-    image_draw_legend_squares(image_color_get_pixels_2d(img_data), box_size, h_space, v_space, validation);
+    if (draw_legend)
+        image_draw_legend_squares(image_color_get_pixels_2d(img_data), box_size, h_space, v_space, validation);
     cv::Mat* cv_mat = (cv::Mat*)img_data->pixels;
     if (show_id)
         image_draw_track_id(*cv_mat, BBs, BBs_color, nBB);
-    image_draw_legend_text(*cv_mat, box_size, h_space, v_space, validation);
+    if (draw_legend)
+        image_draw_legend_text(*cv_mat, box_size, h_space, v_space, validation);
 }
 
 void _image_draw_RoIs_id(cv::Mat& cv_img, const uint32_t* RoIs_id, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
@@ -462,7 +464,7 @@ img_data_t* image_color_alloc(const size_t img_height, const size_t img_width) {
 
 void image_color_draw_BBs(img_data_t* img_data, const uint8_t** img, const BB_t* BBs,
                           const enum color_e* BBs_color, const size_t n_BBs, const uint8_t show_id,
-                          const uint8_t is_gt) {
+                          const uint8_t is_gt, const uint8_t draw_legend) {
 #ifdef FMDT_OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     for (size_t i = 0; i < (size_t)pixels->rows; i++) {
@@ -485,7 +487,7 @@ void image_color_draw_BBs(img_data_t* img_data, const uint8_t** img, const BB_t*
     image_draw_BBs(image_color_get_pixels_2d(img_data), BBs, BBs_color, n_BBs, img_data->width,
                    img_data->height);
 #ifdef FMDT_OPENCV_LINK
-    image_draw_text(img_data, BBs, BBs_color, n_BBs, is_gt, show_id);
+    image_draw_text(img_data, BBs, BBs_color, n_BBs, is_gt, show_id, draw_legend);
 #endif
 }
 

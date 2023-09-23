@@ -26,6 +26,7 @@ typedef struct {
     size_t buff_id_read; /*!< Index of the current buffer to read. */
     size_t buff_id_write; /*!< Index of the current buffer to write. */
     size_t n_filled_buff; /*!< Number of filled buffers. */
+    uint8_t draw_track_id; /*!< If 1, draw the track id corresponding to the bounding box. */
 
     vec_BB_t BBs;
     vec_color_e BBs_color;
