@@ -38,7 +38,6 @@ mkdir traffic_2160p_ccl
 #include "fmdt/image.h"
 #include "fmdt/version.h"
 #include "fmdt/video/video_struct.h"
-
 #include "fmdt/sigma_delta.h"
 #include "fmdt/morpho.h"
 #include "fmdt/visu.h"
@@ -297,8 +296,11 @@ int main(int argc, char** argv) {
     }
     visu_data_t *visu_data = NULL;
     if (p_vid_out_play || p_vid_out_path) {
-        visu_data = visu_alloc_init(p_vid_out_path, p_vid_in_start, 1, (i1 - i0) + 1, (j1 - j0) + 1, PIXFMT_RGB24,
-                                    VCDC_FFMPEG_IO, p_vid_out_id, p_vid_out_play, p_trk_obj_min, p_cca_roi_max);
+        const uint8_t draw_legend = 0;
+        const uint8_t n_threads = 1;
+        visu_data = visu_alloc_init(p_vid_out_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
+                                    PIXFMT_RGB24, VCDC_FFMPEG_IO, p_vid_out_id, draw_legend, p_vid_out_play,
+                                    p_trk_obj_min, p_cca_roi_max);
     }
 
     // --------------------- //

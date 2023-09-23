@@ -18,6 +18,7 @@
  * @param pixfmt Pixels format (grayscale or RGB).
  * @param codec_type Select the API to use for video codec (`VCDC_FFMPEG_IO` or `VCDC_VCODECS_IO`).
  * @param draw_track_id If 1, draw the track id corresponding to the bounding box.
+ * @param draw_legend If 1, draw the legend on images.
  * @param win_play Boolean, if 0 write into a file, if 1 play in a SDL window.
  * @param buff_size Number of frames to buffer.
  * @param max_RoIs_size Max number of RoIs to allocate per frame.
@@ -25,8 +26,9 @@
  */
 visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
                              const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt,
-                             const enum video_codec_e codec_type, const uint8_t draw_track_id, const int win_play,
-                             const size_t buff_size, const size_t max_RoIs_size);
+                             const enum video_codec_e codec_type, const uint8_t draw_track_id,
+                             const uint8_t draw_legend, const int win_play, const size_t buff_size,
+                             const size_t max_RoIs_size);
 
 /**
  * Display a frame. If the buffer is not fully filled: display nothing and just copy the current frame to the buffer.

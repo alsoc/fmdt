@@ -9,11 +9,13 @@
 #include "fmdt/visu/visu_io.h"
 #include "fmdt/features/features_compute.h"
 #include "fmdt/image/image_compute.h"
+#include "fmdt/tracking/tracking_global.h"
 
 visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
                              const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt,
-                             const enum video_codec_e codec_type, const uint8_t draw_track_id, const int win_play,
-                             const size_t buff_size, const size_t max_RoIs_size) {
+                             const enum video_codec_e codec_type, const uint8_t draw_track_id,
+                             const uint8_t draw_legend, const int win_play, const size_t buff_size,
+                             const size_t max_RoIs_size) {
     assert(buff_size > 0);
     visu_data_t* visu = (visu_data_t*)malloc(sizeof(visu_data_t));
     visu->img_height = img_height;
@@ -34,6 +36,7 @@ visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t 
     visu->BBs = (vec_BB_t)vector_create();
     visu->BBs_color = (vec_color_e)vector_create();
     visu->draw_track_id = draw_track_id;
+    visu->draw_legend = draw_legend;
 
     return visu;
 }
@@ -64,7 +67,7 @@ void _visu_write_or_play(visu_data_t* visu, const vec_track_t tracks) {
     for (size_t i = 0; i < n_tracks; i++) {
         const uint32_t track_id = tracks[i].id;
         if (track_id && (tracks[i].end  .frame >= frame_id && tracks[i].begin.frame <= frame_id)) {
-            enum color_e color = COLOR_GREEN; // COLOR_GREEN = moving object
+            enum color_e color = g_obj_to_color[tracks[i].obj_type];
 
             const size_t offset = tracks[i].end.frame - frame_id;
             assert(tracks[i].RoIs_id != NULL);
@@ -88,9 +91,8 @@ void _visu_write_or_play(visu_data_t* visu, const vec_track_t tracks) {
     }
 
     const int is_gt_path = 0;
-    const uint8_t draw_legend = 0;
     image_color_draw_BBs(visu->img_data, (const uint8_t**)visu->I[real_buff_id_read], (const BB_t*)visu->BBs,
-                         (const enum color_e*)visu->BBs_color, cpt, visu->draw_track_id, is_gt_path, draw_legend);
+                         (const enum color_e*)visu->BBs_color, cpt, visu->draw_track_id, is_gt_path, visu->draw_legend);
 
 #ifdef FMDT_OPENCV_LINK
     image_color_draw_frame_id(visu->img_data, frame_id);
