@@ -30,6 +30,7 @@
 #include "fmdt/aff3ct_wrapper/Logger/Logger_motion.hpp"
 #include "fmdt/aff3ct_wrapper/Logger/Logger_tracks.hpp"
 #include "fmdt/aff3ct_wrapper/Logger/Logger_frame.hpp"
+#include "fmdt/aff3ct_wrapper/Visu/Visu.hpp"
 
 int main(int argc, char** argv) {
     // default values
@@ -71,6 +72,7 @@ int main(int argc, char** argv) {
 #endif
     int def_p_cca_roi_max1 = 65535; // Maximum number of RoIs before `features_merge_CCL_HI` selection.
     int def_p_cca_roi_max2 = 400; // Maximum number of RoIs after `features_merge_CCL_HI` selection.
+    char* def_p_vid_out_path = NULL;
 
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -176,6 +178,15 @@ int main(int argc, char** argv) {
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
         fprintf(stderr,
+                "  --vid-out-path      Path to video file or to an images sequence to write the output        [%s]\n",
+                def_p_vid_out_path ? def_p_vid_out_path : "NULL");
+        fprintf(stderr,
+                "  --vid-out-play      Show the output video in a SDL window                                      \n");
+#ifdef FMDT_OPENCV_LINK
+        fprintf(stderr,
+                "  --vid-out-id        Draw the track ids on the ouptut video                                     \n");
+#endif
+        fprintf(stderr,
                 "  --rt-stats          Display runtime statistics (executed tasks report)                         \n");
         fprintf(stderr,
                 "  --rt-prb-path       Path of the output probe vales, only required for benchmarking purpose [%s]\n",
@@ -254,6 +265,13 @@ int main(int argc, char** argv) {
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_trk_bb_path = args_find_char(argc, argv, "--trk-bb-path,--out-bb", def_p_trk_bb_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
+    const char* p_vid_out_path = args_find_char(argc, argv, "--vid-out-path", def_p_vid_out_path);
+    const int p_vid_out_play = args_find(argc, argv, "--vid-out-play");
+#ifdef FMDT_OPENCV_LINK
+    const int p_vid_out_id = args_find(argc, argv, "--vid-out-id");
+#else
+    const int p_vid_out_id = 0;
+#endif
     const int p_task_stats = args_find(argc, argv, "--rt-stats,--task-stats");
     const char* p_out_probes = args_find_char(argc, argv, "--rt-prb-path,--out-probes", def_p_out_probes);
 #ifdef FMDT_ENABLE_PIPELINE
@@ -310,6 +328,11 @@ int main(int argc, char** argv) {
     printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * trk-bb-path    = %s\n", p_trk_bb_path);
     printf("#  * log-path       = %s\n", p_log_path);
+    printf("#  * vid-out-path   = %s\n", p_vid_out_path);
+    printf("#  * vid-out-play   = %d\n", p_vid_out_play);
+#ifdef FMDT_OPENCV_LINK
+    printf("#  * vid-out-id     = %d\n", p_vid_out_id);
+#endif
     printf("#  * rt-stats       = %d\n", p_task_stats);
     printf("#  * rt-prb-path    = %s\n", p_out_probes);
 #ifdef FMDT_ENABLE_PIPELINE
@@ -319,11 +342,11 @@ int main(int argc, char** argv) {
     args_convert_int_vector_to_string(p_pip_wait, str_pip_wait, sizeof(str_pip_wait));
     args_convert_int_vector_to_string(p_pip_pin, str_pip_pin, sizeof(str_pip_pin));
     args_convert_int_vector2D_to_string(p_pip_pin_vals, str_pip_pin_vals, sizeof(str_pip_pin_vals));
-    printf("#  * pip-threads        = %s\n", str_pip_threads);
-    printf("#  * pip-sync           = %s\n", str_pip_sync);
-    printf("#  * pip-wait           = %s\n", str_pip_wait);
-    printf("#  * pip-pin            = %s\n", str_pip_pin);
-    printf("#  * pip-pin-vals       = %s\n", str_pip_pin_vals);
+    printf("#  * pip-threads    = %s\n", str_pip_threads);
+    printf("#  * pip-sync       = %s\n", str_pip_sync);
+    printf("#  * pip-wait       = %s\n", str_pip_wait);
+    printf("#  * pip-pin        = %s\n", str_pip_pin);
+    printf("#  * pip-pin-vals   = %s\n", str_pip_pin_vals);
 #endif
     printf("#\n");
 #ifdef FMDT_ENABLE_PIPELINE
@@ -366,6 +389,8 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--trk-ell-min' is not supported yet in runtime versions of 'fmdt-detect-rt*'\n");
         exit(1);
     }
+    if (p_vid_out_path && p_vid_out_play)
+        fprintf(stderr, "(WW) '--vid-out-path' will be ignore because '--vid-out-play' is set\n");
 
     // -------------------------------- //
     // -- GLOBAL DATA INITIALISATION -- //
@@ -403,7 +428,8 @@ int main(int argc, char** argv) {
     Motion motion(p_cca_roi_max2);
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
-                      p_trk_meteor_max, p_trk_roi_path, p_trk_ext_o, p_knn_s, p_cca_roi_max2);
+                      p_trk_meteor_max, p_trk_roi_path || p_vid_out_play || p_vid_out_path, p_trk_ext_o, p_knn_s,
+                      p_cca_roi_max2);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_id(p_cca_roi_max2, 0);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_xmin(p_cca_roi_max2, 0);
     aff3ct::module::Delayer<uint32_t> delayer_RoIs_xmax(p_cca_roi_max2, 0);
@@ -451,6 +477,15 @@ int main(int argc, char** argv) {
     if (p_ccl_fra_path)
         log_frame.reset(new Logger_frame(p_ccl_fra_path, p_vid_in_start, p_ccl_fra_id, i0, i1, j0, j1, b,
                                          p_cca_roi_max2));
+    std::unique_ptr<Visu> visu;
+    if (p_vid_out_play || p_vid_out_path) {
+        const uint8_t draw_legend = 1;
+        const uint8_t n_threads = 1;
+        visu.reset(new Visu(p_vid_out_path, p_vid_in_start, n_threads, i0, i1, j0, j1, b, PIXFMT_RGB24, VCDC_FFMPEG_IO,
+                            p_vid_out_id, draw_legend, p_vid_out_play,
+                            MAX(p_trk_star_min, p_trk_meteor_min + p_trk_meteor_max), def_p_cca_roi_max2,
+                            tracking.get_data()));
+    }
 
     // create reporters and probes for the real-time probes file
     size_t inter_frame_lvl = 1;
@@ -756,6 +791,18 @@ int main(int argc, char** argv) {
             (*prb_ts_s3e)[aff3ct::module::prb::tsk::probe] = (*prb_thr_time)[aff3ct::module::prb::sck::probe_noin::status];
     }
 
+    if (visu) {
+        (*visu)[vis::sck::display::in_img] = video[vid::sck::generate::out_img];
+        (*visu)[vis::sck::display::in_RoIs_xmin] = merger[ftr_mrg3::sck::merge::out_RoIs_xmin];
+        (*visu)[vis::sck::display::in_RoIs_xmax] = merger[ftr_mrg3::sck::merge::out_RoIs_xmax];
+        (*visu)[vis::sck::display::in_RoIs_ymin] = merger[ftr_mrg3::sck::merge::out_RoIs_ymin];
+        (*visu)[vis::sck::display::in_RoIs_ymax] = merger[ftr_mrg3::sck::merge::out_RoIs_ymax];
+        (*visu)[vis::sck::display::in_RoIs_x] = merger[ftr_mrg3::sck::merge::out_RoIs_x];
+        (*visu)[vis::sck::display::in_RoIs_y] = merger[ftr_mrg3::sck::merge::out_RoIs_y];
+        (*visu)[vis::sck::display::in_n_RoIs] = merger[ftr_mrg3::sck::merge::out_n_RoIs];
+        (*visu)[vis::sck::display::in_fake] = tracking[trk::sck::perform::status];
+    }
+
     // --------------------------------- //
     // -- CREATE SEQUENCE OR PIPELINE -- //
     // --------------------------------- //
@@ -963,6 +1010,10 @@ int main(int argc, char** argv) {
         std::get<0>(sep_stages[2]).push_back(&(*log_frame)[lgr_fra::tsk::write]);
     }
 
+    if (visu) {
+        std::get<0>(sep_stages[2]).push_back(&(*visu)[vis::tsk::display]);
+    }
+
     aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
                                                    sep_stages,
                                                    tools_convert_int_cvector_int_stdvector(p_pip_threads),
@@ -1088,6 +1139,10 @@ int main(int argc, char** argv) {
         aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
 #endif
     }
+
+    // some frames have been buffered for the visualization, display or write these frames here
+    if (visu)
+        visu->flush();
 
 #ifdef FMDT_ENABLE_PIPELINE
     // ----------

@@ -30,6 +30,10 @@ visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t 
                              const uint8_t draw_legend, const int win_play, const size_t buff_size,
                              const size_t max_RoIs_size);
 
+void _visu_display(visu_data_t* visu, const uint8_t** img, const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax,
+                   const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax, const float* RoIs_x, const float* RoIs_y,
+                   const size_t n_RoIs, const vec_track_t tracks);
+
 /**
  * Display a frame. If the buffer is not fully filled: display nothing and just copy the current frame to the buffer.
  * @param visu A pointer of previously allocated inner visu data.

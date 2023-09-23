@@ -101,7 +101,9 @@ void _visu_write_or_play(visu_data_t* visu, const vec_track_t tracks) {
     video_writer_save_frame(visu->video_writer, (const uint8_t**)image_color_get_pixels_2d(visu->img_data));
 }
 
-void visu_display(visu_data_t* visu, const uint8_t** img, const RoIs_basic_t* RoIs, const vec_track_t tracks) {
+void _visu_display(visu_data_t* visu, const uint8_t** img, const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax,
+                   const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax, const float* RoIs_x, const float* RoIs_y,
+                   const size_t n_RoIs, const vec_track_t tracks) {
     // ------------------------
     // write or play image ----
     // ------------------------
@@ -121,18 +123,21 @@ void visu_display(visu_data_t* visu, const uint8_t** img, const RoIs_basic_t* Ro
     for (size_t i = 0; i < visu->img_height; i++)
         memcpy(visu->I[real_buff_id_write][i], img[i], visu->img_width * sizeof(uint8_t));
 
-    assert(*RoIs->_size <= *visu->RoIs[real_buff_id_write]->_max_size);
-    *visu->RoIs[real_buff_id_write]->_size = *RoIs->_size;
-    // memcpy(visu->RoIs[real_buff_id_write]->id,   RoIs->id,   *RoIs->_size * sizeof(uint32_t));
-    memcpy(visu->RoIs[real_buff_id_write]->xmin, RoIs->xmin, *RoIs->_size * sizeof(uint32_t));
-    memcpy(visu->RoIs[real_buff_id_write]->xmax, RoIs->xmax, *RoIs->_size * sizeof(uint32_t));
-    memcpy(visu->RoIs[real_buff_id_write]->ymin, RoIs->ymin, *RoIs->_size * sizeof(uint32_t));
-    memcpy(visu->RoIs[real_buff_id_write]->ymax, RoIs->ymax, *RoIs->_size * sizeof(uint32_t));
-    memcpy(visu->RoIs[real_buff_id_write]->x,    RoIs->x,    *RoIs->_size * sizeof(float));
-    memcpy(visu->RoIs[real_buff_id_write]->y,    RoIs->y,    *RoIs->_size * sizeof(float));
+    assert(n_RoIs <= *visu->RoIs[real_buff_id_write]->_max_size);
+    *visu->RoIs[real_buff_id_write]->_size = n_RoIs;
+    memcpy(visu->RoIs[real_buff_id_write]->xmin, RoIs_xmin, n_RoIs * sizeof(uint32_t));
+    memcpy(visu->RoIs[real_buff_id_write]->xmax, RoIs_xmax, n_RoIs * sizeof(uint32_t));
+    memcpy(visu->RoIs[real_buff_id_write]->ymin, RoIs_ymin, n_RoIs * sizeof(uint32_t));
+    memcpy(visu->RoIs[real_buff_id_write]->ymax, RoIs_ymax, n_RoIs * sizeof(uint32_t));
+    memcpy(visu->RoIs[real_buff_id_write]->x,    RoIs_x,    n_RoIs * sizeof(float));
+    memcpy(visu->RoIs[real_buff_id_write]->y,    RoIs_y,    n_RoIs * sizeof(float));
 
     visu->n_filled_buff++;
     visu->buff_id_write++;
+}
+
+void visu_display(visu_data_t* visu, const uint8_t** img, const RoIs_basic_t* RoIs, const vec_track_t tracks) {
+    _visu_display(visu, img, RoIs->xmin, RoIs->xmax, RoIs->ymin, RoIs->ymax, RoIs->x, RoIs->y, *RoIs->_size, tracks);
 }
 
 void visu_flush(visu_data_t* visu, const vec_track_t tracks) {

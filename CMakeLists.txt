@@ -228,7 +228,8 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_RoIs.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_tracks.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Threshold/Threshold.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Tracking/Tracking.cpp)
+		    ${src_dir}/common/aff3ct_wrapper/Tracking/Tracking.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Visu/Visu.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt_common_files})
 		add_library(fmdt-detect-rt-common-obj OBJECT ${src_detectrt_common_files})
 		list(APPEND fmdt_targets_list fmdt-detect-rt-common-obj)
