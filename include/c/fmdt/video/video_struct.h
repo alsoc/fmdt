@@ -65,7 +65,7 @@ typedef struct {
 
 /**
  * Convert a string into an `video_codec_e` enum value
- * @param str String that can be "FFMPEG-IO" or "VCODEC-IO" (if the code has been linked with vcodecs-io library)
+ * @param str String that can be "FFMPEG-IO" or "VCODECS-IO" (if the code has been linked with vcodecs-io library)
  * @return Corresponding enum value.
  */
 enum video_codec_e video_str_to_enum(const char* str);
