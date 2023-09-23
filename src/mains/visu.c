@@ -204,7 +204,7 @@ int main(int argc, char** argv) {
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, 0, 0,
                                                     p_vid_in_threads, VCDC_FFMPEG_IO, VCDC_HWACCEL_NONE, &i0, &i1, &j0, &j1);
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
-    img_data_t* img_data = image_color_alloc((j1 - j0) - 1, (i1 - i0) + 1);
+    img_data_t* img_data = image_color_alloc((i1 - i0) + 1, (j1 - j0) - 1);
 
     // validation pour établir si une track est vrai/faux positif
     if (p_gt_path) {

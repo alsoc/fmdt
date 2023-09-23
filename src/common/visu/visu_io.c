@@ -30,8 +30,7 @@ visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t 
         visu->I[i] = ui8matrix(0, visu->img_height + 1, 0, visu->img_width + 1);
         visu->RoIs[i] = features_alloc_RoIs_basic(max_RoIs_size, NULL);
     }
-    visu->img_data = image_color_alloc(img_width, img_height); // super dangereux d'avoir un ordre différent pour cette
-                                                               // fonction !!!
+    visu->img_data = image_color_alloc(img_height, img_width);
     visu->BBs = (vec_BB_t)vector_create();
     visu->BBs_color = (vec_color_e)vector_create();
 

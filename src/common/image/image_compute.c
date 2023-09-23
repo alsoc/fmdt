@@ -340,7 +340,7 @@ rgb8_t** image_color_load(const char* filename, long* i0, long* i1, long* j0, lo
     return img;
 }
 
-img_data_t* image_gs_alloc(const size_t img_width, const size_t img_height) {
+img_data_t* image_gs_alloc(const size_t img_height, const size_t img_width) {
     img_data_t* img_data = (img_data_t*)malloc(sizeof(img_data_t));
     img_data->width = img_width;
     img_data->height = img_height;
@@ -443,7 +443,7 @@ void image_gs_free(img_data_t* img_data) {
     free(img_data);
 }
 
-img_data_t* image_color_alloc(const size_t img_width, const size_t img_height) {
+img_data_t* image_color_alloc(const size_t img_height, const size_t img_width) {
     img_data_t* img_data = (img_data_t*)malloc(sizeof(img_data_t));
     img_data->width = img_width;
     img_data->height = img_height;

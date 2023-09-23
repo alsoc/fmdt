@@ -17,11 +17,11 @@ rgb8_t image_get_color(enum color_e color);
 
 /**
  * Allocate grayscale image data.
- * @param img_width Image width.
  * @param img_height Image height.
+ * @param img_width Image width.
  * @return Pointer of image data.
  */
-img_data_t* image_gs_alloc(const size_t img_width, const size_t img_height);
+img_data_t* image_gs_alloc(const size_t img_height, const size_t img_width);
 
 /**
  * Convert labels into a black & white image.
@@ -73,11 +73,11 @@ void image_gs_free(img_data_t* img_data);
 
 /**
  * Allocate color image data.
- * @param img_width Image width.
  * @param img_height Image height.
+ * @param img_width Image width.
  * @return Pointer of image data.
  */
-img_data_t* image_color_alloc(const size_t img_width, const size_t img_height);
+img_data_t* image_color_alloc(const size_t img_height, const size_t img_width);
 
 /**
  * Draw bounding boxes (BBs) on a color image.

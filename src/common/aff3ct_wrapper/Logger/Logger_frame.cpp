@@ -17,7 +17,7 @@ Logger_frame::Logger_frame(const std::string frames_path, const size_t fra_start
     this->in_labels = (const uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint32_t*)));
     this->in_labels -= i0 - b;
 
-    this->img_data = image_gs_alloc((j1 - j0) + 1, (i1 - i0) + 1);
+    this->img_data = image_gs_alloc((i1 - i0) + 1, (j1 - j0) + 1);
     const size_t n_threads = 1;
     this->video_writer = video_writer_alloc_init(frames_path.c_str(), fra_start, n_threads, (i1 - i0) + 1,
                                                  (j1 - j0) + 1, PIXFMT_GRAY, VCDC_FFMPEG_IO, 0);
