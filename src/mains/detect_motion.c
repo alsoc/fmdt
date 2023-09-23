@@ -3,7 +3,18 @@ wget www-soc.lip6.fr/~lacas/ImageProcessing/MotionDetection/car3.zip
 unzip car3.zip
 mkdir cars_ccl
 ./bin/fmdt-detect-motion --vid-in-path ./car3/car_3%03d.pgm --ccl-fra-path ./cars_ccl/%03d.png --log-path ./log_cars --vid-out-play
+
+wget www.potionmagic.eu/~adrien/data/traffic.zip
+unzip traffic.zip
+mkdir traffic_1080p_ccl
+mkdir traffic_2160p_ccl
+./bin/fmdt-detect-motion --vid-in-path ./traffic/1080p_day_street_side_view.mp4 --ccl-fra-path ./traffic_1080p_ccl/%03d.png --log-path ./log_traffic_1080p --vid-out-play --trk-obj-min 5 --mrp-s-min 2000 --knn-d 50
+./bin/fmdt-detect-motion --vid-in-path ./traffic/1080p_day_street_top_view_snow.mp4 --ccl-fra-path ./traffic_1080p_ccl/%03d.png --log-path ./log_traffic_1080p --vid-out-play --trk-obj-min 5 --mrp-s-min 2000 --knn-d 50
+./bin/fmdt-detect-motion --vid-in-path ./traffic/1080p_day_street_top_view.mp4 --ccl-fra-path ./traffic_1080p_ccl/%03d.png --log-path ./log_traffic_1080p --vid-out-play --trk-obj-min 25 --mrp-s-min 150 --knn-d 50
+./bin/fmdt-detect-motion --vid-in-path ./traffic/2160p_day_highway_car_tolls.mp4 --ccl-fra-path ./traffic_2160p_ccl/%03d.png --log-path ./log_traffic_2160p --vid-out-play --trk-obj-min 50 --mrp-s-min 500 --knn-d 50
+./bin/fmdt-detect-motion --vid-in-path ./traffic/2160p_night_street_top_view.mp4 --ccl-fra-path ./traffic_2160p_ccl/%03d.png --log-path ./log_traffic_2160p --vid-out-play --trk-obj-min 5 --mrp-s-min 500 --knn-d 50
 */
+
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>
@@ -54,7 +65,7 @@ int main(int argc, char** argv) {
     int def_p_trk_obj_min = 2;
     char* def_p_trk_roi_path = NULL;
     char* def_p_log_path = NULL;
-    int def_p_cca_roi_max = 8192; // Maximum number of RoIs
+    int def_p_cca_roi_max = 65536; // Maximum number of RoIs
     char* def_p_vid_out_path = NULL;
 
     // help
@@ -373,8 +384,10 @@ int main(int argc, char** argv) {
             fclose(f);
         }
 
-        if (visu_data)
+        if (visu_data) {
+            assert(cur_fra == n_frames);
             visu_display(visu_data, (const uint8_t**)IG, RoIs1->basic, tracking_data);
+        }
 
         // swap RoIs0 <-> RoIs1 for the next frame
         RoIs_t* tmp = RoIs0;
