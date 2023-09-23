@@ -300,7 +300,7 @@ int main(int argc, char** argv) {
     printf("#  * vid-in-loop    = %d\n", p_vid_in_loop);
     printf("#  * vid-in-threads = %d\n", p_vid_in_threads);
     printf("#  * vid-in-dec     = %s\n", p_vid_in_dec);
-    printf("#  * vid-in-dec-hw  = %s\n", p_vid_in_dec);
+    printf("#  * vid-in-dec-hw  = %s\n", p_vid_in_dec_hw);
     printf("#  * ccl-impl       = %s\n", p_ccl_impl);
     printf("#  * ccl-hyst-lo    = %d\n", p_ccl_hyst_lo);
     printf("#  * ccl-hyst-hi    = %d\n", p_ccl_hyst_hi);
