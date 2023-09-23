@@ -216,6 +216,7 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/common/aff3ct_wrapper/CCL/CCL.cpp
 		    ${src_dir}/common/aff3ct_wrapper/CCL/CCL_threshold_features.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Features/Features_extractor.cpp
+		    ${src_dir}/common/aff3ct_wrapper/Features/Features_labels_zero_init.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Features/Features_merger_CCL_HI_v2.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Features/Features_merger_CCL_HI_v3.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Features/Features_magnitude.cpp

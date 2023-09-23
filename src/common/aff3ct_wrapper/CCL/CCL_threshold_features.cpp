@@ -5,9 +5,9 @@
 
 CCL_threshold_features::CCL_threshold_features(const int i0, const int i1, const int j0, const int j1, const int b,
                                                const uint8_t threshold, const size_t max_RoIs_size,
-                                               const enum ccl_impl_e impl)
+                                               const enum ccl_impl_e impl, const bool no_init_labels)
 : Module(), i0(i0), i1(i1), j0(j0), j1(j1), b(b), threshold(threshold), max_RoIs_size(max_RoIs_size), data(nullptr),
-  in_img(nullptr) {
+  in_img(nullptr), no_init_labels(no_init_labels) {
     const std::string name = "CCL_threshold_features";
     this->set_name(name);
     this->set_short_name(name);
@@ -33,6 +33,12 @@ CCL_threshold_features::CCL_threshold_features(const int i0, const int i1, const
     auto ps_out_RoIs_Sxy = this->template create_socket_out<uint64_t>(p, "out_RoIs_Sxy", max_RoIs_size);
     auto ps_out_RoIs_x = this->template create_socket_out<float>(p, "out_RoIs_x", max_RoIs_size);
     auto ps_out_RoIs_y = this->template create_socket_out<float>(p, "out_RoIs_y", max_RoIs_size);
+
+    // if the CCL does not initialize the output img of labels, we need to do it the first time ;-)
+    if (no_init_labels) {
+        uint32_t* out_labels = static_cast<uint32_t*>(p[ps_out_labels].get_dataptr());
+        std::fill(out_labels, out_labels + i_socket_size, 0);
+    }
 
     this->create_codelet(p, [ps_in_img, ps_out_labels, ps_out_n_RoIs, ps_out_RoIs_id, ps_out_RoIs_xmin,
                              ps_out_RoIs_xmax, ps_out_RoIs_ymin, ps_out_RoIs_ymax, ps_out_RoIs_S, ps_out_RoIs_Sx,
@@ -63,8 +69,7 @@ CCL_threshold_features::CCL_threshold_features(const int i0, const int i1, const
                                                      static_cast<uint64_t*>(t[ps_out_RoIs_Sxy].get_dataptr()),
                                                      static_cast<float*>(t[ps_out_RoIs_x].get_dataptr()),
                                                      static_cast<float*>(t[ps_out_RoIs_y].get_dataptr()),
-                                                     lsl.max_RoIs_size,
-                                                     0);
+                                                     lsl.max_RoIs_size, lsl.no_init_labels);
         assert(*m_out_n_ROI <= lsl.max_RoIs_size);
         return aff3ct::runtime::status_t::SUCCESS;
     });

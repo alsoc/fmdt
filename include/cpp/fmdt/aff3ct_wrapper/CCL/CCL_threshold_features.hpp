@@ -28,10 +28,12 @@ protected:
     CCL_gen_data_t *data;
     const uint8_t** in_img;
     uint32_t** out_labels;
+    const bool no_init_labels;
 
 public:
     CCL_threshold_features(const int i0, const int i1, const int j0, const int j1, const int b, const uint8_t threshold,
-                           const size_t max_RoIs_size, const enum ccl_impl_e impl = LSLH);
+                           const size_t max_RoIs_size, const enum ccl_impl_e impl = LSLH,
+                           const bool no_init_labels = false);
     virtual ~CCL_threshold_features();
     virtual CCL_threshold_features* clone() const;
     inline uint32_t** get_out_labels();

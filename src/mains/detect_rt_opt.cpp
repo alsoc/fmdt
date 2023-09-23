@@ -22,6 +22,7 @@
 #include "fmdt/aff3ct_wrapper/Motion/Motion.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_magnitude.hpp"
 #include "fmdt/aff3ct_wrapper/Features/Features_ellipse.hpp"
+#include "fmdt/aff3ct_wrapper/Features/Features_labels_zero_init.hpp"
 #include "fmdt/aff3ct_wrapper/kNN_matcher/kNN_matcher.hpp"
 #include "fmdt/aff3ct_wrapper/Tracking/Tracking.hpp"
 #include "fmdt/aff3ct_wrapper/Video/Video.hpp"
@@ -414,12 +415,16 @@ int main(int argc, char** argv) {
     j1 = video.get_j1();
     video.set_loop_size(p_vid_in_loop);
 
-    CCL_threshold_features lsl(i0, i1, j0, j1, b, p_ccl_hyst_lo, p_cca_roi_max1, CCL_str_to_enum(p_ccl_impl));
+    const bool no_init_labels = true;
+    CCL_threshold_features lsl(i0, i1, j0, j1, b, p_ccl_hyst_lo, p_cca_roi_max1, CCL_str_to_enum(p_ccl_impl),
+                               no_init_labels);
     lsl.set_custom_name("CCL_thr_ftr");
     const uint8_t no_labels_zeros_init = !p_ccl_fra_path && !p_cca_mag;
     Features_merger_CCL_HI_v3 merger(i0, i1, j0, j1, b, p_mrp_s_min, p_mrp_s_max, p_ccl_hyst_hi, no_labels_zeros_init,
                                      p_cca_roi_max1, p_cca_roi_max2);
     merger.set_custom_name("Merger");
+    Features_labels_zero_init labels0(i0, i1, j0, j1, b, p_cca_roi_max1);
+    labels0.set_custom_name("Labels0");
     Features_magnitude magnitude(i0, i1, j0, j1, b, p_cca_roi_max2);
     magnitude.set_custom_name("Magnitude");
     Features_ellipse ellipse(p_cca_roi_max2);
@@ -569,6 +574,15 @@ int main(int argc, char** argv) {
     merger[ftr_mrg3::sck::merge::in_RoIs_x] = lsl[ccl_tf::sck::apply::out_RoIs_x];
     merger[ftr_mrg3::sck::merge::in_RoIs_y] = lsl[ccl_tf::sck::apply::out_RoIs_y];
     merger[ftr_mrg3::sck::merge::in_n_RoIs] = lsl[ccl_tf::sck::apply::out_n_RoIs];
+
+    // put zeros in the first image of labels, this way the CCL doen not need to do it and it is 2x faster!
+    labels0[ftr_lzi::sck::zinit::in_out_labels] = lsl[ccl_tf::sck::apply::out_labels];
+    labels0[ftr_lzi::sck::zinit::in_RoIs_xmin] = lsl[ccl_tf::sck::apply::out_RoIs_xmin];
+    labels0[ftr_lzi::sck::zinit::in_RoIs_xmax] = lsl[ccl_tf::sck::apply::out_RoIs_xmax];
+    labels0[ftr_lzi::sck::zinit::in_RoIs_ymin] = lsl[ccl_tf::sck::apply::out_RoIs_ymin];
+    labels0[ftr_lzi::sck::zinit::in_RoIs_ymax] = lsl[ccl_tf::sck::apply::out_RoIs_ymax];
+    labels0[ftr_lzi::sck::zinit::in_n_RoIs] = lsl[ccl_tf::sck::apply::out_n_RoIs];
+    labels0[ftr_lzi::sck::zinit::in_fake] = merger[ftr_mrg3::sck::merge::status];
 
     // step 3.5 : compute magnitude / ellipse for each RoI
     if (p_cca_mag) {
@@ -1013,6 +1027,8 @@ int main(int argc, char** argv) {
     if (visu) {
         std::get<0>(sep_stages[2]).push_back(&(*visu)[vis::tsk::display]);
     }
+
+    std::get<0>(sep_stages[1]).push_back(&(labels0)[ftr_lzi::tsk::zinit]);
 
     aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
                                                    sep_stages,
