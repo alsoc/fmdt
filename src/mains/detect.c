@@ -448,7 +448,7 @@ int main(int argc, char** argv) {
 
         // display the result to the screen or write it into a video file
         if (visu_data) {
-            assert(cur_fra == n_frames);
+            assert(cur_fra == (int)n_frames);
             visu_display(visu_data, (const uint8_t**)I, RoIs1->basic, tracking_data->tracks);
         }
 
