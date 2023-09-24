@@ -9,3 +9,7 @@ aff3ct::runtime::Task& Motion::operator[](const mtn::tsk t) {
 aff3ct::runtime::Socket& Motion::operator[](const mtn::sck::compute s) {
     return aff3ct::module::Module::operator[]((size_t)mtn::tsk::compute)[(size_t)s];
 }
+
+aff3ct::runtime::Socket& Motion::operator[](const std::string &tsk_sck) {
+    return aff3ct::module::Module::operator[](tsk_sck);
+}

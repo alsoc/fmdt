@@ -42,6 +42,7 @@ public:
     inline void set_loop_size(size_t loop_size);
     inline aff3ct::runtime::Task& operator[](const vid2::tsk t);
     inline aff3ct::runtime::Socket& operator[](const vid2::sck::generate s);
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
 };
 
 #include "fmdt/aff3ct_wrapper/Video/Video2.hxx"

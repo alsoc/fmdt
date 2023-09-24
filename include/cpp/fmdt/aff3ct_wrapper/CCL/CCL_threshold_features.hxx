@@ -13,3 +13,7 @@ aff3ct::runtime::Task& CCL_threshold_features::operator[](const ccl_tf::tsk t) {
 aff3ct::runtime::Socket& CCL_threshold_features::operator[](const ccl_tf::sck::apply s) {
     return aff3ct::module::Module::operator[]((size_t)ccl_tf::tsk::apply)[(size_t)s];
 }
+
+aff3ct::runtime::Socket& CCL_threshold_features::operator[](const std::string &tsk_sck) {
+    return aff3ct::module::Module::operator[](tsk_sck);
+}

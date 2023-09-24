@@ -13,3 +13,7 @@ aff3ct::runtime::Task& Tracking::operator[](const trk::tsk t) {
 aff3ct::runtime::Socket& Tracking::operator[](const trk::sck::perform s) {
     return aff3ct::module::Module::operator[]((size_t)trk::tsk::perform)[(size_t)s];
 }
+
+aff3ct::runtime::Socket& Tracking::operator[](const std::string &tsk_sck) {
+    return aff3ct::module::Module::operator[](tsk_sck);
+}

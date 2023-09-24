@@ -29,6 +29,8 @@ public:
     inline uint8_t** get_out_img();
     inline aff3ct::runtime::Task& operator[](const thr::tsk t);
     inline aff3ct::runtime::Socket& operator[](const thr::sck::apply s);
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
+
 protected:
     void init_data();
     using Module::deep_copy;

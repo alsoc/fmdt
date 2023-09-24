@@ -9,3 +9,7 @@ aff3ct::runtime::Task& Features_ellipse::operator[](const ftr_ell::tsk t) {
 aff3ct::runtime::Socket& Features_ellipse::operator[](const ftr_ell::sck::compute s) {
     return aff3ct::module::Module::operator[]((size_t)ftr_ell::tsk::compute)[(size_t)s];
 }
+
+aff3ct::runtime::Socket& Features_ellipse::operator[](const std::string &tsk_sck) {
+    return aff3ct::module::Module::operator[](tsk_sck);
+}

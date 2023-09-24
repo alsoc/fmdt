@@ -13,3 +13,7 @@ aff3ct::runtime::Task& Threshold::operator[](const thr::tsk t) {
 aff3ct::runtime::Socket& Threshold::operator[](const thr::sck::apply s) {
     return aff3ct::module::Module::operator[]((size_t)thr::tsk::apply)[(size_t)s];
 }
+
+aff3ct::runtime::Socket& Threshold::operator[](const std::string &tsk_sck) {
+    return aff3ct::module::Module::operator[](tsk_sck);
+}

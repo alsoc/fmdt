@@ -32,6 +32,7 @@ public:
     virtual kNN_matcher* clone() const;
     inline aff3ct::runtime::Task& operator[](const knn::tsk t);
     inline aff3ct::runtime::Socket& operator[](const knn::sck::match s);
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
 
 protected:
     void init_data();

@@ -9,3 +9,7 @@ aff3ct::runtime::Task& Logger_kNN::operator[](const lgr_knn::tsk t) {
 aff3ct::runtime::Socket& Logger_kNN::operator[](const lgr_knn::sck::write s) {
     return aff3ct::module::Module::operator[]((size_t)lgr_knn::tsk::write)[(size_t)s];
 }
+
+aff3ct::runtime::Socket& Logger_kNN::operator[](const std::string &tsk_sck) {
+    return aff3ct::module::Module::operator[](tsk_sck);
+}

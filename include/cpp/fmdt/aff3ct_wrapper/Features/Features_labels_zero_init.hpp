@@ -30,6 +30,8 @@ public:
 
     inline aff3ct::runtime::Task& operator[](const ftr_lzi::tsk t);
     inline aff3ct::runtime::Socket& operator[](const ftr_lzi::sck::zinit s);
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
+
 protected:
     void init_data();
     using Module::deep_copy;

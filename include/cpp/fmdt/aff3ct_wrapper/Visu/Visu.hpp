@@ -37,6 +37,7 @@ public:
     void flush();
     inline aff3ct::runtime::Task& operator[](const vis::tsk t);
     inline aff3ct::runtime::Socket& operator[](const vis::sck::display s);
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
 };
 
 #include "fmdt/aff3ct_wrapper/Visu/Visu.hxx"

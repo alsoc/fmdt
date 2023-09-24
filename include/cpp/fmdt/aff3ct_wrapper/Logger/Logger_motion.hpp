@@ -24,6 +24,7 @@ public:
     virtual ~Logger_motion();
     inline aff3ct::runtime::Task& operator[](const lgr_mtn::tsk t);
     inline aff3ct::runtime::Socket& operator[](const lgr_mtn::sck::write s);
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
 };
 
 #include "fmdt/aff3ct_wrapper/Logger/Logger_motion.hxx"

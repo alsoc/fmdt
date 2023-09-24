@@ -39,6 +39,8 @@ public:
     inline uint32_t** get_out_labels();
     inline aff3ct::runtime::Task& operator[](const ftr_mrg2::tsk t);
     inline aff3ct::runtime::Socket& operator[](const ftr_mrg2::sck::merge s);
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
+
 protected:
     void init_data();
     using Module::deep_copy;

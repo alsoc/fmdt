@@ -13,3 +13,7 @@ aff3ct::runtime::Task& CCL::operator[](const ccl::tsk t) {
 aff3ct::runtime::Socket& CCL::operator[](const ccl::sck::apply s) {
     return aff3ct::module::Module::operator[]((size_t)ccl::tsk::apply)[(size_t)s];
 }
+
+aff3ct::runtime::Socket& CCL::operator[](const std::string &tsk_sck) {
+    return aff3ct::module::Module::operator[](tsk_sck);
+}

@@ -37,3 +37,7 @@ aff3ct::runtime::Task& Video::operator[](const vid::tsk t) {
 aff3ct::runtime::Socket& Video::operator[](const vid::sck::generate s) {
     return aff3ct::module::Module::operator[]((size_t)vid::tsk::generate)[(size_t)s];
 }
+
+aff3ct::runtime::Socket& Video::operator[](const std::string &tsk_sck) {
+    return aff3ct::module::Module::operator[](tsk_sck);
+}

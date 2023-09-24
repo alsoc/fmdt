@@ -42,7 +42,7 @@ public:
     inline tracking_data_t* get_data();
     inline aff3ct::runtime::Task& operator[](const trk::tsk t);
     inline aff3ct::runtime::Socket& operator[](const trk::sck::perform s) ;
-
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
 };
 
 #include "fmdt/aff3ct_wrapper/Tracking/Tracking.hxx"

@@ -26,6 +26,7 @@ public:
     virtual Motion* clone() const;
     inline aff3ct::runtime::Task& operator[](const mtn::tsk t);
     inline aff3ct::runtime::Socket& operator[](const mtn::sck::compute s);
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
 
 protected:
     using Module::deep_copy;

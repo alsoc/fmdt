@@ -39,6 +39,7 @@ public:
     inline uint32_t** get_out_labels();
     inline aff3ct::runtime::Task& operator[](const ccl_tf::tsk t);
     inline aff3ct::runtime::Socket& operator[](const ccl_tf::sck::apply s);
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
 
 protected:
     void init_data(const enum ccl_impl_e impl);

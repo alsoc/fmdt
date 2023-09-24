@@ -13,3 +13,7 @@ aff3ct::runtime::Task& Features_merger_CCL_HI_v2::operator[](const ftr_mrg2::tsk
 aff3ct::runtime::Socket& Features_merger_CCL_HI_v2::operator[](const ftr_mrg2::sck::merge s) {
     return aff3ct::module::Module::operator[]((size_t)ftr_mrg2::tsk::merge)[(size_t)s];
 }
+
+aff3ct::runtime::Socket& Features_merger_CCL_HI_v2::operator[](const std::string &tsk_sck) {
+    return aff3ct::module::Module::operator[](tsk_sck);
+}

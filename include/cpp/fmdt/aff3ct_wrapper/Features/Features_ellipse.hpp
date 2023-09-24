@@ -25,6 +25,7 @@ public:
     virtual Features_ellipse* clone() const;
     inline aff3ct::runtime::Task& operator[](const ftr_ell::tsk t);
     inline aff3ct::runtime::Socket& operator[](const ftr_ell::sck::compute s);
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
 };
 
 #include "fmdt/aff3ct_wrapper/Features/Features_ellipse.hxx"

@@ -29,6 +29,8 @@ public:
     virtual Features_extractor* clone() const;
     inline aff3ct::runtime::Task& operator[](const ftr_ext::tsk t);
     inline aff3ct::runtime::Socket& operator[](const ftr_ext::sck::extract s);
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
+
 protected:
     void init_data();
     using Module::deep_copy;

@@ -27,6 +27,7 @@ public:
     virtual ~Logger_tracks();
     inline aff3ct::runtime::Task& operator[](const lgr_trk::tsk t);
     inline aff3ct::runtime::Socket& operator[](const lgr_trk::sck::write s);
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
 };
 
 #include "fmdt/aff3ct_wrapper/Logger/Logger_tracks.hxx"

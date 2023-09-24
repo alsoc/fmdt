@@ -29,6 +29,8 @@ public:
     virtual Features_magnitude* clone() const;
     inline aff3ct::runtime::Task& operator[](const ftr_mgn::tsk t);
     inline aff3ct::runtime::Socket& operator[](const ftr_mgn::sck::compute s);
+    inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
+
 protected:
     void init_data();
     using Module::deep_copy;
