@@ -17,7 +17,7 @@
  * @param i1 The last \f$y\f$ index in the image (included).
  * @param j0 The first \f$x\f$ index in the image (included).
  * @param j1 The last \f$x\f$ index in the image (included).
- * @return The allocated and initialized data.
+ * @return The allocated data.
  */
 CCL_data_t* CCL_LSL_alloc_data(int i0, int i1, int j0, int j1);
 

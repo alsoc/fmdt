@@ -30,6 +30,19 @@ visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t 
                              const uint8_t draw_legend, const int win_play, const size_t buff_size,
                              const size_t max_RoIs_size);
 
+/**
+ * Display a frame. If the buffer is not fully filled: display nothing and just copy the current frame to the buffer.
+ * @param visu A pointer of previously allocated inner visu data.
+ * @param img Input grayscale/RGB image (2D array \f$[\texttt{img\_height}][\texttt{img\_width}]\f$).
+ * @param RoIs_xmin Array of minimum \f$x\f$ coordinates of the bounding box.
+ * @param RoIs_xmax Array of maximum \f$x\f$ coordinates of the bounding box.
+ * @param RoIs_ymin Array of minimum \f$y\f$ coordinates of the bounding box.
+ * @param RoIs_ymax Array of maximum \f$y\f$ coordinates of the bounding box.
+ * @param RoIs_x Array of centroids abscissa.
+ * @param RoIs_y Array of centroids ordinate.
+ * @param n_RoIs Number of connected-components (= number of RoIs) in the 2D array of `labels`.
+ * @param tracks A vector of tracks.
+ */
 void _visu_display(visu_data_t* visu, const uint8_t** img, const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax,
                    const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax, const float* RoIs_x, const float* RoIs_y,
                    const size_t n_RoIs, const vec_track_t tracks);

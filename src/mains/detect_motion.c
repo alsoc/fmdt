@@ -1,20 +1,3 @@
-/*
-wget www-soc.lip6.fr/~lacas/ImageProcessing/MotionDetection/car3.zip
-unzip car3.zip
-mkdir cars_ccl
-./bin/fmdt-detect-motion --vid-in-path ./car3/car_3%03d.pgm --ccl-fra-path ./cars_ccl/%03d.png --log-path ./log_cars --vid-out-play
-
-wget www.potionmagic.eu/~adrien/data/traffic.zip
-unzip traffic.zip
-mkdir traffic_1080p_ccl
-mkdir traffic_2160p_ccl
-./bin/fmdt-detect-motion --vid-in-path ./traffic/1080p_day_street_side_view.mp4 --ccl-fra-path ./traffic_1080p_ccl/%03d.png --log-path ./log_traffic_1080p --vid-out-play --trk-obj-min 5 --mrp-s-min 2000 --knn-d 50
-./bin/fmdt-detect-motion --vid-in-path ./traffic/1080p_day_street_top_view_snow.mp4 --ccl-fra-path ./traffic_1080p_ccl/%03d.png --log-path ./log_traffic_1080p --vid-out-play --trk-obj-min 5 --mrp-s-min 2000 --knn-d 50
-./bin/fmdt-detect-motion --vid-in-path ./traffic/1080p_day_street_top_view.mp4 --ccl-fra-path ./traffic_1080p_ccl/%03d.png --log-path ./log_traffic_1080p --vid-out-play --trk-obj-min 25 --mrp-s-min 150 --knn-d 50
-./bin/fmdt-detect-motion --vid-in-path ./traffic/2160p_day_highway_car_tolls.mp4 --ccl-fra-path ./traffic_2160p_ccl/%03d.png --log-path ./log_traffic_2160p --vid-out-play --trk-obj-min 50 --mrp-s-min 500 --knn-d 50
-./bin/fmdt-detect-motion --vid-in-path ./traffic/2160p_night_street_top_view.mp4 --ccl-fra-path ./traffic_2160p_ccl/%03d.png --log-path ./log_traffic_2160p --vid-out-play --trk-obj-min 5 --mrp-s-min 500 --knn-d 50
-*/
-
 #include <stdio.h>
 #include <assert.h>
 #include <stdlib.h>

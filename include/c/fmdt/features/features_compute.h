@@ -167,12 +167,51 @@ void _features_extract(const uint32_t** labels, const int i0, const int i1, cons
 void features_extract(const uint32_t** labels, const int i0, const int i1, const int j0, const int j1,
                       const size_t n_RoIs, RoIs_basic_t* RoIs_basic);
 
+/**
+ * This function performs a surface thresholding as follow: if \f$ S_{min} > S \f$ or \f$ S > S_{max}\f$, then the
+ * corresponding `RoIs_id` is set to 0.
+ * @param in_labels Input 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
+ * @param out_labels Output 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$). \p out_labels can be NULL, this way
+ *                   only the features will be updated. \p out_labels can also be the same pointer as \p in_labels, this
+ *                   way the output labels will be computed in place.
+ * @param i0 First \f$y\f$ index in the labels (included).
+ * @param i1 Last \f$y\f$ index in the labels (included).
+ * @param j0 First \f$x\f$ index in the labels (included).
+ * @param j1 Last \f$x\f$ index in the labels (included).
+ * @param RoIs_id Source array of RoI unique identifiers.
+ * @param RoIs_xmin Source array of minimum \f$x\f$ coordinates of the bounding box.
+ * @param RoIs_xmax Source array of maximum \f$x\f$ coordinates of the bounding box.
+ * @param RoIs_ymin Source array of minimum \f$y\f$ coordinates of the bounding box.
+ * @param RoIs_ymax Source array of maximum \f$y\f$ coordinates of the bounding box.
+ * @param RoIs_S Source array of RoI surfaces.
+ * @param n_RoIs Number of RoIs in the previous arrays.
+ * @param S_min Minimum morphological threshold.
+ * @param S_max Maximum morphological threshold.
+ * @return Number of labels after filtering.
+ * @see RoIs_basic_t for more explanations about the features.
+ */
 uint32_t _features_filter_surface(const uint32_t** in_labels, uint32_t** out_labels, const int i0, const int i1,
                                   const int j0, const int j1, uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
                                   const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
                                   const uint32_t* RoIs_S, const size_t n_RoIs, const uint32_t S_min,
                                   const uint32_t S_max);
 
+/**
+ * @param in_labels Input 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
+ * @param out_labels Output 2D array of labels (\f$[i1 - i0 + 1][j1 - j0 + 1]\f$). \p out_labels can be NULL, this way
+ *                   only the features will be updated. \p out_labels can also be the same pointer as \p in_labels, this
+ *                   way the output labels will be computed in place.
+ * @param i0 First \f$y\f$ index in the labels (included).
+ * @param i1 Last \f$y\f$ index in the labels (included).
+ * @param j0 First \f$x\f$ index in the labels (included).
+ * @param j1 Last \f$x\f$ index in the labels (included).
+ * @param RoIs_basic Features.
+ * @param S_min Minimum morphological threshold.
+ * @param S_max Maximum morphological threshold.
+ * @return Number of labels after filtering.
+ * @see _features_filter_surface for the explanations about the nature of the processing.
+ * @see RoIs_basic_t for more explanations about the features.
+ */
 uint32_t features_filter_surface(const uint32_t** in_labels, uint32_t** out_labels, const int i0, const int i1,
                                  const int j0, const int j1, RoIs_basic_t* RoIs_basic, const uint32_t S_min,
                                  const uint32_t S_max);
