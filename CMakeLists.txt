@@ -210,7 +210,6 @@ if(FMDT_DETECT_EXE)
 
 	if (FMDT_AFF3CT_RUNTIME)
 		set(src_detectrt_common_files
-		    ${src_dir}/common/tools.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Video/Video.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Video/Video2.cpp
 		    ${src_dir}/common/aff3ct_wrapper/CCL/CCL.cpp
@@ -230,7 +229,9 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_tracks.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Threshold/Threshold.cpp
 		    ${src_dir}/common/aff3ct_wrapper/Tracking/Tracking.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Visu/Visu.cpp)
+		    ${src_dir}/common/aff3ct_wrapper/Visu/Visu.cpp
+		    ${src_dir}/common/args.cpp
+		    ${src_dir}/common/tools.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt_common_files})
 		add_library(fmdt-detect-rt-common-obj OBJECT ${src_detectrt_common_files})
 		list(APPEND fmdt_targets_list fmdt-detect-rt-common-obj)
