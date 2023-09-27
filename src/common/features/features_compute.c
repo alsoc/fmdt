@@ -324,26 +324,20 @@ uint32_t _features_filter_surface(const uint32_t** in_labels, uint32_t** out_lab
                 }
                 continue;
             }
-            for (uint32_t k = x0; k <= x1; k++) {
-                for (uint32_t l = y0; l <= y1; l++) {
-                    if (in_labels[k][l] == id) {
-                        if (out_labels != NULL) {
-                            for (k = x0; k <= x1; k++) {
-                                for (l = y0; l <= y1; l++) {
-                                    if (in_labels[k][l] == id) {
-                                        out_labels[k][l] = cur_label;
-                                    }
-                                }
-                            }
+            if (out_labels != NULL) {
+                for (uint32_t k = x0; k <= x1; k++) {
+                    for (uint32_t l = y0; l <= y1; l++) {
+                        if (in_labels[k][l] == id) {
+                            out_labels[k][l] = cur_label;
                         }
-                        cur_label++;
                     }
                 }
             }
+            cur_label++;
         }
     }
 
-    return cur_label;
+    return cur_label - 1;
 }
 
 uint32_t features_filter_surface(const uint32_t** in_labels, uint32_t** out_labels, const int i0, const int i1,
@@ -353,11 +347,6 @@ uint32_t features_filter_surface(const uint32_t** in_labels, uint32_t** out_labe
                                     RoIs_basic->xmax, RoIs_basic->ymin, RoIs_basic->ymax, RoIs_basic->S,
                                     *RoIs_basic->_size, S_min, S_max);
 }
-
-
-
-
-
 
 uint32_t _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels,
                                    const int i0, const int i1, const int j0, const int j1, uint32_t* RoIs_id,
@@ -419,7 +408,7 @@ uint32_t _features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** i
         }
     }
 
-    return cur_label;
+    return cur_label - 1;
 }
 
 uint32_t features_merge_CCL_HI_v2(const uint32_t** in_labels, const uint8_t** img_HI, uint32_t** out_labels,
@@ -491,7 +480,7 @@ uint32_t _features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** i
         }
     }
 
-    return cur_label;
+    return cur_label - 1;
 }
 
 uint32_t features_merge_CCL_HI_v3(const uint32_t** in_labels, const uint8_t** img, uint32_t** out_labels, const int i0,
