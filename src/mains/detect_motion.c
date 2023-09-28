@@ -283,7 +283,7 @@ int main(int argc, char** argv) {
         const uint8_t n_threads = 1;
         visu_data = visu_alloc_init(p_vid_out_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
                                     PIXFMT_RGB24, VCDC_FFMPEG_IO, p_vid_out_id, draw_legend, p_vid_out_play,
-                                    p_trk_obj_min, p_cca_roi_max);
+                                    p_trk_obj_min, p_cca_roi_max, p_vid_in_skip);
     }
 
     // --------------------- //
@@ -407,10 +407,8 @@ int main(int argc, char** argv) {
         }
 
         // display the result to the screen or write it into a video file
-        if (visu_data) {
-            assert(cur_fra == (int)n_frames);
-            visu_display(visu_data, (const uint8_t**)IG, RoIs1->basic, tracking_data->tracks);
-        }
+        if (visu_data)
+            visu_display(visu_data, (const uint8_t**)IG, RoIs1->basic, tracking_data->tracks, cur_fra);
 
         // swap RoIs0 <-> RoIs1 for the next frame
         RoIs_t* tmp = RoIs0;

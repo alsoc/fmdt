@@ -22,12 +22,14 @@ typedef struct {
     img_data_t *img_data; /*!< Proxy data to draw bounding boxes. */
     uint8_t ***I; /*!< Array of images (= buffer). */
     RoIs_basic_t **RoIs; /*!< Array of RoIs (= buffer). */
+    uint32_t *frame_ids; /*!< RoIs corresponding frame ids. */
     size_t buff_size; /*!< Size of the bufferization. */
     size_t buff_id_read; /*!< Index of the current buffer to read. */
     size_t buff_id_write; /*!< Index of the current buffer to write. */
     size_t n_filled_buff; /*!< Number of filled buffers. */
     uint8_t draw_track_id; /*!< If 1, draw the track id corresponding to the bounding box. */
     uint8_t draw_legend; /*!< If 1, draw the legend on images. */
+    uint8_t skip_fra; /*!< Number of skipped frames between two 'visu_display' calls (generally this is 0). */
 
     vec_BB_t BBs;
     vec_color_e BBs_color;

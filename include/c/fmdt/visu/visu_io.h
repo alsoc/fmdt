@@ -22,13 +22,14 @@
  * @param win_play Boolean, if 0 write into a file, if 1 play in a SDL window.
  * @param buff_size Number of frames to buffer.
  * @param max_RoIs_size Max number of RoIs to allocate per frame.
+ * @param Number of skipped frames between two 'visu_display' calls (generally this is 0).
  * @return The allocated data.
  */
 visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
                              const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt,
                              const enum video_codec_e codec_type, const uint8_t draw_track_id,
                              const uint8_t draw_legend, const int win_play, const size_t buff_size,
-                             const size_t max_RoIs_size);
+                             const size_t max_RoIs_size, const uint8_t skip_fra);
 
 /**
  * Display a frame. If the buffer is not fully filled: display nothing and just copy the current frame to the buffer.
@@ -42,10 +43,11 @@ visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t 
  * @param RoIs_y Array of centroids ordinate.
  * @param n_RoIs Number of connected-components (= number of RoIs) in the 2D array of `labels`.
  * @param tracks A vector of tracks.
+ * @param frame_id the current frame id.
  */
 void _visu_display(visu_data_t* visu, const uint8_t** img, const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax,
                    const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax, const float* RoIs_x, const float* RoIs_y,
-                   const size_t n_RoIs, const vec_track_t tracks);
+                   const size_t n_RoIs, const vec_track_t tracks, const uint32_t frame_id);
 
 /**
  * Display a frame. If the buffer is not fully filled: display nothing and just copy the current frame to the buffer.
@@ -53,8 +55,10 @@ void _visu_display(visu_data_t* visu, const uint8_t** img, const uint32_t* RoIs_
  * @param img Input grayscale/RGB image (2D array \f$[\texttt{img\_height}][\texttt{img\_width}]\f$).
  * @param RoIs Last RoIs to bufferize.
  * @param tracks A vector of tracks.
+ * @param frame_id the current frame id.
  */
-void visu_display(visu_data_t* visu, const uint8_t** img, const RoIs_basic_t* RoIs, const vec_track_t tracks);
+void visu_display(visu_data_t* visu, const uint8_t** img, const RoIs_basic_t* RoIs, const vec_track_t tracks,
+                  const uint32_t frame_id);
 
 /**
  * Display all the remaining frames (= flush the the buffer).

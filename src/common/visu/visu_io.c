@@ -15,7 +15,7 @@ visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t 
                              const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt,
                              const enum video_codec_e codec_type, const uint8_t draw_track_id,
                              const uint8_t draw_legend, const int win_play, const size_t buff_size,
-                             const size_t max_RoIs_size) {
+                             const size_t max_RoIs_size, const uint8_t skip_fra) {
     assert(buff_size > 0);
     visu_data_t* visu = (visu_data_t*)malloc(sizeof(visu_data_t));
     visu->img_height = img_height;
@@ -23,11 +23,13 @@ visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t 
     visu->video_writer = video_writer_alloc_init(path, start, n_ffmpeg_threads, visu->img_height, visu->img_width,
                                                  pixfmt, codec_type, win_play);
     visu->buff_size = buff_size;
+    visu->skip_fra = skip_fra;
     visu->buff_id_read = 0;
     visu->buff_id_write = 0;
     visu->n_filled_buff = 0;
     visu->I = (uint8_t***)malloc(visu->buff_size * sizeof(uint8_t**));
     visu->RoIs = (RoIs_basic_t**)malloc(visu->buff_size * sizeof(RoIs_basic_t**));
+    visu->frame_ids = (uint32_t*)malloc(visu->buff_size * sizeof(uint32_t));
     for (size_t i = 0; i < visu->buff_size; i++) {
         visu->I[i] = ui8matrix(0, visu->img_height + 1, 0, visu->img_width + 1);
         visu->RoIs[i] = features_alloc_RoIs_basic(max_RoIs_size, NULL);
@@ -60,8 +62,8 @@ void _add_to_BB_coord_list(vec_BB_t* BBs, vec_color_e* BBs_color, size_t elem, i
 }
 
 void _visu_write_or_play(visu_data_t* visu, const vec_track_t tracks) {
-    const size_t frame_id = visu->buff_id_read;
     const size_t real_buff_id_read = visu->buff_id_read % visu->buff_size;
+    const size_t frame_id = visu->frame_ids[real_buff_id_read];
     int cpt = 0;
     size_t n_tracks = vector_size(tracks);
     for (size_t i = 0; i < n_tracks; i++) {
@@ -69,7 +71,7 @@ void _visu_write_or_play(visu_data_t* visu, const vec_track_t tracks) {
         if (track_id && (tracks[i].end  .frame >= frame_id && tracks[i].begin.frame <= frame_id)) {
             enum color_e color = g_obj_to_color[tracks[i].obj_type];
 
-            const size_t offset = tracks[i].end.frame - frame_id;
+            const size_t offset = (tracks[i].end.frame - frame_id) / (visu->skip_fra + 1);
             assert(tracks[i].RoIs_id != NULL);
             const size_t RoIs_id_size = vector_size(tracks[i].RoIs_id);
             assert(RoIs_id_size > offset);
@@ -103,7 +105,7 @@ void _visu_write_or_play(visu_data_t* visu, const vec_track_t tracks) {
 
 void _visu_display(visu_data_t* visu, const uint8_t** img, const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax,
                    const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax, const float* RoIs_x, const float* RoIs_y,
-                   const size_t n_RoIs, const vec_track_t tracks) {
+                   const size_t n_RoIs, const vec_track_t tracks, const uint32_t frame_id) {
     // ------------------------
     // write or play image ----
     // ------------------------
@@ -131,13 +133,16 @@ void _visu_display(visu_data_t* visu, const uint8_t** img, const uint32_t* RoIs_
     memcpy(visu->RoIs[real_buff_id_write]->ymax, RoIs_ymax, n_RoIs * sizeof(uint32_t));
     memcpy(visu->RoIs[real_buff_id_write]->x,    RoIs_x,    n_RoIs * sizeof(float));
     memcpy(visu->RoIs[real_buff_id_write]->y,    RoIs_y,    n_RoIs * sizeof(float));
+    visu->frame_ids[real_buff_id_write] = frame_id;
 
     visu->n_filled_buff++;
     visu->buff_id_write++;
 }
 
-void visu_display(visu_data_t* visu, const uint8_t** img, const RoIs_basic_t* RoIs, const vec_track_t tracks) {
-    _visu_display(visu, img, RoIs->xmin, RoIs->xmax, RoIs->ymin, RoIs->ymax, RoIs->x, RoIs->y, *RoIs->_size, tracks);
+void visu_display(visu_data_t* visu, const uint8_t** img, const RoIs_basic_t* RoIs, const vec_track_t tracks,
+                  const uint32_t frame_id) {
+    _visu_display(visu, img, RoIs->xmin, RoIs->xmax, RoIs->ymin, RoIs->ymax, RoIs->x, RoIs->y, *RoIs->_size, tracks,
+                  frame_id);
 }
 
 void visu_flush(visu_data_t* visu, const vec_track_t tracks) {
@@ -157,6 +162,7 @@ void visu_free(visu_data_t* visu) {
     }
     free(visu->I);
     free(visu->RoIs);
+    free(visu->frame_ids);
     image_color_free(visu->img_data);
     vector_free(visu->BBs);
     vector_free(visu->BBs_color);

@@ -487,7 +487,7 @@ int main(int argc, char** argv) {
         const uint8_t n_threads = 1;
         visu.reset(new Visu(p_vid_out_path, p_vid_in_start, n_threads, i0, i1, j0, j1, b, PIXFMT_RGB24, VCDC_FFMPEG_IO,
                             p_vid_out_id, draw_legend, p_vid_out_play,
-                            MAX(p_trk_star_min, p_trk_meteor_min + p_trk_meteor_max), def_p_cca_roi_max2,
+                            MAX(p_trk_star_min, p_trk_meteor_min + p_trk_meteor_max), p_cca_roi_max2, p_vid_in_skip,
                             tracking.get_data()));
     }
 
@@ -802,6 +802,7 @@ int main(int argc, char** argv) {
     }
 
     if (visu) {
+        (*visu)[vis::sck::display::in_frame] = video[vid::sck::generate::out_frame];
         (*visu)[vis::sck::display::in_img] = video[vid::sck::generate::out_img];
         (*visu)[vis::sck::display::in_RoIs_xmin] = merger[ftr_mrg2::sck::merge::out_RoIs_xmin];
         (*visu)[vis::sck::display::in_RoIs_xmax] = merger[ftr_mrg2::sck::merge::out_RoIs_xmax];
