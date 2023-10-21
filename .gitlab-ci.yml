@@ -50,6 +50,7 @@ build-linux-gcc-c:
     - export CC="gcc"
     - export CXX="g++"
     - export CFLAGS="-Wall -funroll-loops"
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lip6.fr/sog/lsl-lib lib/lsl
     - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=OFF -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
     - export NAME="build_linux_gcc_c"
     - source ./ci/tools/threads.sh
@@ -75,6 +76,7 @@ build-linux-gcc:
     - export CC="gcc"
     - export CXX="g++"
     - export CFLAGS="-Wall -funroll-loops -msse4.2"
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lip6.fr/sog/lsl-lib lib/lsl
     - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
     - export NAME="build_linux_gcc"
     - source ./ci/tools/threads.sh
@@ -99,6 +101,7 @@ build-linux-gcc-coverage:
     - export CXX="g++"
     - export CFLAGS="-Wall -funroll-loops -msse4.2 --coverage"
     - export LFLAGS="--coverage"
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lip6.fr/sog/lsl-lib lib/lsl
     - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_OPENCV_LINK=ON -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
@@ -124,6 +127,7 @@ build-linux-clang:
     - export CC="clang"
     - export CXX="clang++"
     - export CFLAGS="-Wall -funroll-loops"
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lip6.fr/sog/lsl-lib lib/lsl
     - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
     - export NAME="build_linux_clang"
     - source ./ci/tools/threads.sh
@@ -174,6 +178,7 @@ build-linux-clang-c:
     - export CC="clang"
     - export CXX="clang++"
     - export CFLAGS="-Wall -funroll-loops"
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lip6.fr/sog/lsl-lib lib/lsl
     - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=OFF -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
     - export NAME="build_linux_clang_c"
     - source ./ci/tools/threads.sh
@@ -199,6 +204,7 @@ build-linux-icpc:
     - export CC="icc"
     - export CXX="icpc"
     - export CFLAGS="-Wall -funroll-loops -march=native -std=c++11"
+    - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lip6.fr/sog/lsl-lib lib/lsl
     - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
     - export NAME="build_linux_icpc"
     - source ./ci/tools/threads.sh
