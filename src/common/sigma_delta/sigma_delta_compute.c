@@ -5,49 +5,6 @@
 #include "fmdt/macros.h"
 #include "fmdt/sigma_delta/sigma_delta_compute.h"
 
-// void sigma_delta_compute(const uint8_t** img_in, uint8_t** img_out, const int i0, const int i1, const int j0,
-//                          const int j1) {
-//     uint8_t **M0, **M1;
-//     uint8_t **V0, **V1;
-
-//     uint8_t vmin = 1;
-//     uint8_t vmax = 254;
-
-//     for (i = i0; i <= i1; i++) {
-//         for (j = j0; j <= j1; j++) {
-//             uint8_t new_m = M0[i][j];
-//             if (M0[i][j] < img_in[i][j])
-//                 new_m += 1;
-//             else if (M0[i][j] > img_in[i][j])
-//                 new_m -= 1;
-//             M1[i][j] = new_m
-//         }
-//     }
-
-//     for (i = i0; i <= i1; i++) {
-//         for (j = j0; j <= j1; j++) {
-//             O[i][j] = fabs(M1[i][j] - img_in[i][j]);
-//         }
-//     }
-
-//     for (i = i0; i <= i1; i++) {
-//         for (j = j0; j <= j1; j++) {
-//             uint8_t new_v = V0[i][j];
-//             if (V0[i][j] < N * O[i][j])
-//                 new_v += 1;
-//             else if (V0[i][j] > N * O[i][j])
-//                 new_v -= 1;
-//             V1[i][j] = max(min(new_v, vmax), vmin);
-//         }
-//     }
-
-//     for (i = i0; i <= i1; i++) {
-//         for (j = j0; j <= j1; j++) {
-//             img_out[i][j] = O[i][j] < V1[i][j] ? 0 : 1;
-//         }
-//     }
-// }
-
 sigma_delta_data_t* sigma_delta_alloc_data(const int i0, const int i1, const int j0, const int j1, const uint8_t vmin,
                                            const uint8_t vmax) {
     sigma_delta_data_t* sd_data = (sigma_delta_data_t*)malloc(sizeof(sigma_delta_data_t));

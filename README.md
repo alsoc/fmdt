@@ -22,10 +22,7 @@ This project uses `ffmpeg-io`, `nrc2`, `c-vector` and `aff3ct-core` projects as
 Git submodules, **you need to download them with the following command**:
 
 ```bash
-git submodule update --init --recursive -- lib/ffmpeg-io
-git submodule update --init --recursive -- lib/nrc2
-git submodule update --init --recursive -- lib/c-vector
-git submodule update --init --recursive -- lib/aff3ct-core
+git submodule update --init --recursive
 ```
 
 Note that `ffmpeg-io` requires the `ffmpeg` executable: **you need to install 

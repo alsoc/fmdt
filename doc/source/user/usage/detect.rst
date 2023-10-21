@@ -76,6 +76,12 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--log-path``       | STRING  | See :numref:`detect_log-path`.                     |
 +----------------------+---------+----------------------------------------------------+
+| ``--vid-out-path``   | STRING  | See :numref:`detect_vid-out-path`.                 |
++----------------------+---------+----------------------------------------------------+
+| ``--vid-out-play``   | BOOLEAN | See :numref:`detect_vid-out-play`.                 |
++----------------------+---------+----------------------------------------------------+
+| ``--vid-out-id``     | BOOLEAN | See :numref:`detect_vid-out-id`.                   |
++----------------------+---------+----------------------------------------------------+
 
 .. _detect_stdout:
 
@@ -717,3 +723,39 @@ Most of the columns of this table have been described in the
   state is ``updated``. Then, ``updated`` can become ``lost``. ``lost`` can
   become either ``finished`` or ``updated``. ``finished`` is a final state.
 - ``{reason}``: reason of the classification from ``meteor`` to ``noise``.
+
+.. _detect_vid-out-path:
+
+``--vid-out-path``
+------------------
+
+   :Type: STRING
+   :Default: [empty]
+   :Example: ``--vid-out-path ~/Videos/out_video.mp4``
+
+Output video path with the bounding boxes around the detected tracks (supports
+also a path to a sequence of images ``path/basename_%05d.jpg``).
+
+.. _detect_vid-out-play:
+
+``--vid-out-play``
+-----------------
+
+   :Type: BOOLEAN
+   :Example: ``--vid-out-play``
+
+Open an SDL window to show the output video of the detected tracks (shows the
+bounding boxes around the detected tracks)
+
+.. _detect_vid-out-id:
+
+``--vid-out-id``
+----------------
+
+   :Type: BOOLEAN
+   :Example: ``--vid-out-id``
+
+Work only if :ref:`detect_vid-out-path` or :ref:`detect_vid-out-play` is set.
+Display the track ids corresponding to the bounding boxes. Requires to link with
+OpenCV library (``-DFMDT_OPENCV_LINK`` CMake option,
+see :numref:`user_installation_cmake`).

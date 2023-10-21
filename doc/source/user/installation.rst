@@ -13,10 +13,7 @@ command**:
 
 .. code-block:: bash
 
-	git submodule update --init --recursive -- lib/ffmpeg-io
-	git submodule update --init --recursive -- lib/nrc2
-	git submodule update --init --recursive -- lib/c-vector
-	git submodule update --init --recursive -- lib/aff3ct-core
+	git submodule update --init --recursive
 
 .. note:: ``ffmpeg-io`` requires the ``ffmpeg`` executable: **you need to
           install ffmpeg on your system** if you want to be able to read video
