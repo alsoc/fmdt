@@ -29,7 +29,7 @@ void morpho_compute_erosion3(const uint8_t** img_in, uint8_t** img_out, const in
                              const int j1) {
     assert(img_in != NULL);
     assert(img_out != NULL);
-    assert(img_in != img_out);
+    assert(img_in != (const uint8_t**)img_out);
     for (int i = i0 + 1; i <= i1 - 1; i++) {
         for (int j = j0 + 1; j <= j1 - 1; j++) {
             uint8_t c0 = img_in[i - 1][j - 1] & img_in[i - 1][j] & img_in[i - 1][j + 1];
@@ -44,7 +44,7 @@ void morpho_compute_dilatation3(const uint8_t** img_in, uint8_t** img_out, const
                                 const int j1) {
     assert(img_in != NULL);
     assert(img_out != NULL);
-    assert(img_in != img_out);
+    assert(img_in != (const uint8_t**)img_out);
     for (int i = i0 + 1; i <= i1 - 1; i++) {
         for (int j = j0 + 1; j <= j1 - 1; j++) {
             uint8_t c0 = img_in[i - 1][j - 1] | img_in[i - 1][j] | img_in[i - 1][j + 1];
