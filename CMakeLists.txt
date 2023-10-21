@@ -3,6 +3,8 @@ cmake_minimum_required(VERSION 3.11)
 
 project(fmdt)
 
+set(CMAKE_WARN_DEPRECATED OFF CACHE BOOL "" FORCE)
+
 # CMake options ---------------------------------------------------------------
 # -----------------------------------------------------------------------------
 option(FMDT_DETECT_EXE "compile the detection chain executable." ON)
