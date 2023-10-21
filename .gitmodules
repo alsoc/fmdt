@@ -10,9 +10,3 @@
 [submodule "lib/c-vector"]
 	path = lib/c-vector
 	url = https://github.com/Mashpoe/c-vector.git
-[submodule "lib/lsl"]
-	path = lib/lsl
-	url = ../lsl-lib
-[submodule "lib/vcodecs-io"]
-	path = lib/vcodecs-io
-	url = ../vcodecs-io.git
