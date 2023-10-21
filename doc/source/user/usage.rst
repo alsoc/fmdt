@@ -27,7 +27,9 @@ additional detection binaries are produced:
   (depending on the CPU target).
 
 Both ``fmdt-detect-rt-seq`` and ``fmdt-detect-rt-pip`` have the same level of
-features than the standard ``fmdt-detect`` executable.
+features than the standard ``fmdt-detect`` executable. The ``*-rt-*`` binaries
+are based on the `AFF3CT DSEL <https://github.com/aff3ct/aff3ct-core>`_
+:cite:`Cassagne2023`.
 
 ``fmdt-log-parser`` is a Python script used to convert ``fmdt-detect`` log
 output into text files used by ``fmdt-visu`` and ``fmdt-check``.

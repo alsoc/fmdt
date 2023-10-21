@@ -64,6 +64,9 @@ estimation and a more robust classification. Finally **a piece-wise tracking**
 is done by extending the :math:`(t+0,t+1)` matching with :math:`(t+1,t+2)`
 matching (and so on) to reduce the amount of false positive detection.
 
+For more information, the detection chain has been detailed in an article of the
+GRETSI conference :cite:`Ciocan2023` (*in french*).
+
 Scientific Results
 """"""""""""""""""
 
@@ -77,9 +80,9 @@ detection (by human eyes). From 28 to 34 meteors thanks to |FMDT| automated
 detection. Detailed results are available in an article published in the
 *Astronomy & Astrophysics* journal :cite:`Vaubaillon2023`.
 
-Some preliminary results about the parallel implementation of the detection
-chain (see :numref:`fig_detection_chain`) have been presented in a poster
-:cite:`Kandeepan2022` of the workshop |AFF3CT|. The poster shows results in
-terms of throughput (|FPS|), latency and energy consumption. The selected
+Some results about the parallel implementation of the detection chain
+(see :numref:`fig_detection_chain`) have been presented in an article of the
+COMPAS conference :cite:`Kandeepan2023` (*in french*). The paper shows results
+in terms of throughput (|FPS|), latency and energy consumption. The selected
 hardware targets match embedded systems constraints (e.g.
 :math:`\mathcal{T} \ge 30` |FPS| and :math:`\mathcal{P} \leq 10` Watts).
