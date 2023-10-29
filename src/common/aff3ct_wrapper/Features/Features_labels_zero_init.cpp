@@ -20,8 +20,6 @@ Features_labels_zero_init::Features_labels_zero_init(const int i0, const int i1,
     auto ps_in_RoIs_ymin = this->template create_socket_in<uint32_t>(p, "in_RoIs_ymin", max_in_RoIs_size);
     auto ps_in_RoIs_ymax = this->template create_socket_in<uint32_t>(p, "in_RoIs_ymax", max_in_RoIs_size);
     auto ps_in_n_RoIs = this->template create_socket_in<uint32_t>(p, "in_n_RoIs", 1);
-    // this is a hack to lauch this task after the tracking (zinit[in_fake] = mergev3[status])
-    /* auto ps_in_fake = */ this->template create_socket_in<int32_t>(p, "in_fake", 1);
 
     this->create_codelet(p, [ps_fwd_labels, ps_in_RoIs_xmin, ps_in_RoIs_xmax, ps_in_RoIs_ymin, ps_in_RoIs_ymax,
                              ps_in_n_RoIs]

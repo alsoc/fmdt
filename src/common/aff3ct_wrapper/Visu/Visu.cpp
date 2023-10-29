@@ -30,8 +30,6 @@ Visu::Visu(const char* path, const size_t start, const size_t n_ffmpeg_threads, 
     auto ps_in_RoIs_x = this->template create_socket_in<float>(p, "in_RoIs_x", max_RoIs_size);
     auto ps_in_RoIs_y = this->template create_socket_in<float>(p, "in_RoIs_y", max_RoIs_size);
     auto ps_in_n_RoIs = this->template create_socket_in<uint32_t>(p, "in_n_RoIs", 1);
-    // this is a hack to lauch this task after the tracking (visu[in_fake] = tracking[status])
-    /* auto ps_in_fake = */ this->template create_socket_in<int32_t>(p, "in_fake", 1);
 
     this->create_codelet(p, [ps_in_frame, ps_in_img, ps_in_RoIs_xmin, ps_in_RoIs_xmax, ps_in_RoIs_ymin,
                              ps_in_RoIs_ymax, ps_in_RoIs_x, ps_in_RoIs_y, ps_in_n_RoIs]

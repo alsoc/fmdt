@@ -782,7 +782,7 @@ int main(int argc, char** argv) {
         (*visu)[vis::sck::display::in_RoIs_x] = merger1[ftr_mrg2::sck::merge::out_RoIs_x];
         (*visu)[vis::sck::display::in_RoIs_y] = merger1[ftr_mrg2::sck::merge::out_RoIs_y];
         (*visu)[vis::sck::display::in_n_RoIs] = merger1[ftr_mrg2::sck::merge::out_n_RoIs];
-        (*visu)[vis::sck::display::in_fake] = tracking[trk::sck::perform::status];
+        (*visu)[vis::tsk::display] = tracking[trk::tsk::perform];
     }
 
     // --------------------------------- //

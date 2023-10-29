@@ -14,7 +14,7 @@ namespace vis {
     enum class tsk : size_t { display, SIZE };
     namespace sck {
         enum class display : size_t { in_frame, in_img, in_RoIs_xmin, in_RoIs_xmax, in_RoIs_ymin, in_RoIs_ymax,
-                                      in_RoIs_x, in_RoIs_y, in_n_RoIs, in_fake, status };
+                                      in_RoIs_x, in_RoIs_y, in_n_RoIs, status };
     }
 }
 

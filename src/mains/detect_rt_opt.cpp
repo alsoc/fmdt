@@ -582,7 +582,7 @@ int main(int argc, char** argv) {
     labels0[ftr_lzi::sck::zinit::in_RoIs_ymin] = lsl[ccl_tf::sck::apply::out_RoIs_ymin];
     labels0[ftr_lzi::sck::zinit::in_RoIs_ymax] = lsl[ccl_tf::sck::apply::out_RoIs_ymax];
     labels0[ftr_lzi::sck::zinit::in_n_RoIs] = lsl[ccl_tf::sck::apply::out_n_RoIs];
-    labels0[ftr_lzi::sck::zinit::in_fake] = merger[ftr_mrg3::sck::merge::status];
+    labels0[ftr_lzi::tsk::zinit] = merger[ftr_mrg3::tsk::merge];
 
     // step 3.5 : compute magnitude / ellipse for each RoI
     if (p_cca_mag) {
@@ -815,7 +815,7 @@ int main(int argc, char** argv) {
         (*visu)[vis::sck::display::in_RoIs_x] = merger[ftr_mrg3::sck::merge::out_RoIs_x];
         (*visu)[vis::sck::display::in_RoIs_y] = merger[ftr_mrg3::sck::merge::out_RoIs_y];
         (*visu)[vis::sck::display::in_n_RoIs] = merger[ftr_mrg3::sck::merge::out_n_RoIs];
-        (*visu)[vis::sck::display::in_fake] = tracking[trk::sck::perform::status];
+        (*visu)[vis::tsk::display] = tracking[trk::tsk::perform];
     }
 
     // --------------------------------- //
