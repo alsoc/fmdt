@@ -3,7 +3,7 @@
 #include "fmdt/aff3ct_wrapper/Threshold/Threshold.hpp"
 
 uint8_t** Threshold::get_out_img() {
-    return this->out_img;
+    return (*this)[thr::sck::apply::out_img].get_2d_dataptr<uint8_t>(this->b, this->b);
 }
 
 aff3ct::runtime::Task& Threshold::operator[](const thr::tsk t) {

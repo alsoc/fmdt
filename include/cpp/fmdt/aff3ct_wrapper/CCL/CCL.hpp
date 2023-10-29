@@ -22,8 +22,6 @@ protected:
     const int i0, i1, j0, j1;
     const int b;
     CCL_gen_data_t *data;
-    const uint8_t** in_img;
-    uint32_t** out_labels;
 
 public:
     CCL(const int i0, const int i1, const int j0, const int j1, const int b, const enum ccl_impl_e impl = LSLH);

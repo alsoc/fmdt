@@ -7,18 +7,19 @@ CCL_threshold_features::CCL_threshold_features(const int i0, const int i1, const
                                                const uint8_t threshold, const size_t max_RoIs_size,
                                                const enum ccl_impl_e impl, const bool no_init_labels)
 : Module(), i0(i0), i1(i1), j0(j0), j1(j1), b(b), threshold(threshold), max_RoIs_size(max_RoIs_size), data(nullptr),
-  in_img(nullptr), no_init_labels(no_init_labels) {
+  no_init_labels(no_init_labels) {
     const std::string name = "CCL_threshold_features";
     this->set_name(name);
     this->set_short_name(name);
 
     this->init_data(impl);
 
-    const size_t i_socket_size = ((i1 - i0) + 1 + 2 * b) * ((j1 - j0) + 1 + 2 * b);
+    const size_t img_n_rows = (i1 - i0) + 1 + 2 * b;
+    const size_t img_n_cols = (j1 - j0) + 1 + 2 * b;
 
     auto &p = this->create_task("apply");
-    auto ps_in_img = this->template create_socket_in<uint8_t>(p, "in_img", i_socket_size);
-    auto ps_out_labels = this->template create_socket_out<uint32_t>(p, "out_labels", i_socket_size);
+    auto ps_in_img = this->template create_2d_socket_in<uint8_t>(p, "in_img", img_n_rows, img_n_cols);
+    auto ps_out_labels = this->template create_2d_socket_out<uint32_t>(p, "out_labels", img_n_rows, img_n_cols);
     auto ps_out_n_RoIs = this->template create_socket_out<uint32_t>(p, "out_n_RoIs", 1);
     auto ps_out_RoIs_id = this->template create_socket_out<uint32_t>(p, "out_RoIs_id", max_RoIs_size);
     auto ps_out_RoIs_xmin = this->template create_socket_out<uint32_t>(p, "out_RoIs_xmin", max_RoIs_size);
@@ -37,7 +38,7 @@ CCL_threshold_features::CCL_threshold_features(const int i0, const int i1, const
     // if the CCL does not initialize the output img of labels, we need to do it the first time ;-)
     if (no_init_labels) {
         uint32_t* out_labels = static_cast<uint32_t*>(p[ps_out_labels].get_dataptr());
-        std::fill(out_labels, out_labels + i_socket_size, 0);
+        std::fill(out_labels, out_labels + img_n_rows * img_n_cols, 0);
     }
 
     this->create_codelet(p, [ps_in_img, ps_out_labels, ps_out_n_RoIs, ps_out_RoIs_id, ps_out_RoIs_xmin,
@@ -46,16 +47,13 @@ CCL_threshold_features::CCL_threshold_features(const int i0, const int i1, const
                              ps_out_RoIs_y]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lsl = static_cast<CCL_threshold_features&>(m);
-        const uint8_t* m_in_img = static_cast<const uint8_t*>(t[ps_in_img].get_dataptr());
-        uint32_t* m_out_labels = static_cast<uint32_t*>(t[ps_out_labels].get_dataptr());
 
-        tools_linear_2d_nrc_ui8matrix(m_in_img, lsl.i0 - lsl.b, lsl.i1 + lsl.b, lsl.j0 - lsl.b, lsl.j1 + lsl.b, 
-                                      lsl.in_img);
-        tools_linear_2d_nrc_ui32matrix((const uint32_t*)m_out_labels, lsl.i0 - lsl.b, lsl.i1 + lsl.b, lsl.j0 - lsl.b,
-                                       lsl.j1 + lsl.b, (const uint32_t**)lsl.out_labels);
+        // calling get_2d_dataptr() has a small overhead (it performs the 1D to 2D conversion)
+        const uint8_t** in_img = t[ps_in_img].get_2d_dataptr<const uint8_t>(lsl.b, lsl.b);
+        uint32_t** out_labels = t[ps_out_labels].get_2d_dataptr<uint32_t>(lsl.b, lsl.b);
 
         uint32_t* m_out_n_ROI = static_cast<uint32_t*>(t[ps_out_n_RoIs].get_dataptr());
-        *m_out_n_ROI = _CCL_threshold_features_apply(lsl.data, lsl.in_img, lsl.out_labels, lsl.threshold,
+        *m_out_n_ROI = _CCL_threshold_features_apply(lsl.data, in_img, out_labels, lsl.threshold,
                                                      static_cast<uint32_t*>(t[ps_out_RoIs_id].get_dataptr()),
                                                      static_cast<uint32_t*>(t[ps_out_RoIs_xmin].get_dataptr()),
                                                      static_cast<uint32_t*>(t[ps_out_RoIs_xmax].get_dataptr()),
@@ -78,15 +76,9 @@ CCL_threshold_features::CCL_threshold_features(const int i0, const int i1, const
 void CCL_threshold_features::init_data(const enum ccl_impl_e impl) {
     this->data = CCL_alloc_data(impl, i0, i1, j0, j1);
     CCL_init_data(this->data);
-    this->in_img = (const uint8_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint8_t*)));
-    this->out_labels = (uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(uint32_t*)));
-    this->in_img -= i0 - b;
-    this->out_labels -= i0 - b;
 }
 
 CCL_threshold_features::~CCL_threshold_features() {
-    free(this->in_img + (this->i0 - this->b));
-    free(this->out_labels + (this->i0 - this->b));
     CCL_free_data(this->data);
 }
 

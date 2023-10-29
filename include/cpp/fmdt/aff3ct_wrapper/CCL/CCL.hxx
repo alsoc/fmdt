@@ -3,7 +3,7 @@
 #include "fmdt/aff3ct_wrapper/CCL/CCL.hpp"
 
 uint32_t** CCL::get_out_labels() {
-    return this->out_labels;
+    return (*this)[ccl::sck::apply::out_labels].get_2d_dataptr<uint32_t>(this->b, this->b);
 }
 
 aff3ct::runtime::Task& CCL::operator[](const ccl::tsk t) {

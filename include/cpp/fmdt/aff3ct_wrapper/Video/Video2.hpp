@@ -22,7 +22,6 @@ protected:
     int i0, i1, j0, j1;
     int b;
     video_reader_t* video;
-    uint8_t** out_img0;
     uint8_t* img_buf;
     int size_image;
     bool done;
@@ -32,8 +31,6 @@ public:
            const enum video_codec_e codec_type = VCDC_FFMPEG_IO, const enum video_codec_hwaccel_e hwaccel = VCDC_HWACCEL_NONE);
     virtual ~Video2();
     virtual bool is_done() const;
-    inline uint8_t** get_out_img0();
-    inline uint8_t* get_img_buf();
     inline int get_i0();
     inline int get_i1();
     inline int get_j0();

@@ -21,8 +21,6 @@ protected:
     const int i0, i1, j0, j1;
     const int b;
     const size_t max_RoIs_size;
-    const uint8_t** in_img;
-    const uint32_t** in_labels;
 public:
     Features_magnitude(const int i0, const int i1, const int j0, const int j1, const int b, const size_t max_RoIs_size);
     virtual ~Features_magnitude();
@@ -30,11 +28,6 @@ public:
     inline aff3ct::runtime::Task& operator[](const ftr_mgn::tsk t);
     inline aff3ct::runtime::Socket& operator[](const ftr_mgn::sck::compute s);
     inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
-
-protected:
-    void init_data();
-    using Module::deep_copy;
-    void deep_copy(const Features_magnitude &m);
 };
 
 #include "fmdt/aff3ct_wrapper/Features/Features_magnitude.hxx"

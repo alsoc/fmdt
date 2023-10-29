@@ -576,7 +576,7 @@ int main(int argc, char** argv) {
     merger[ftr_mrg3::sck::merge::in_n_RoIs] = lsl[ccl_tf::sck::apply::out_n_RoIs];
 
     // put zeros in the first image of labels, this way the CCL doen not need to do it and it is 2x faster!
-    labels0[ftr_lzi::sck::zinit::in_out_labels] = lsl[ccl_tf::sck::apply::out_labels];
+    labels0[ftr_lzi::sck::zinit::fwd_labels] = lsl[ccl_tf::sck::apply::out_labels];
     labels0[ftr_lzi::sck::zinit::in_RoIs_xmin] = lsl[ccl_tf::sck::apply::out_RoIs_xmin];
     labels0[ftr_lzi::sck::zinit::in_RoIs_xmax] = lsl[ccl_tf::sck::apply::out_RoIs_xmax];
     labels0[ftr_lzi::sck::zinit::in_RoIs_ymin] = lsl[ccl_tf::sck::apply::out_RoIs_ymin];

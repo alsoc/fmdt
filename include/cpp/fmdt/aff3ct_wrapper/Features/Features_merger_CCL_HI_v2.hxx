@@ -3,7 +3,7 @@
 #include "fmdt/aff3ct_wrapper/Features/Features_merger_CCL_HI_v2.hpp"
 
 uint32_t** Features_merger_CCL_HI_v2::get_out_labels() {
-    return this->out_labels;
+    return (*this)[ftr_mrg2::sck::merge::out_labels].get_2d_dataptr<uint32_t>(this->b, this->b);
 }
 
 aff3ct::runtime::Task& Features_merger_CCL_HI_v2::operator[](const ftr_mrg2::tsk t) {

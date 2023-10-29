@@ -544,11 +544,11 @@ int main(int argc, char** argv) {
     
     // Step 2 : ECC/ACC
     ccl0[ccl::sck::apply::in_img] = threshold_min0[thr::sck::apply::out_img];
-    extractor0[ftr_ext::sck::extract::in_img] = ccl0[ccl::sck::apply::out_labels];
+    extractor0[ftr_ext::sck::extract::in_labels] = ccl0[ccl::sck::apply::out_labels];
     extractor0[ftr_ext::sck::extract::in_n_RoIs] = ccl0[ccl::sck::apply::out_n_RoIs];
 
     ccl1[ccl::sck::apply::in_img] = threshold_min1[thr::sck::apply::out_img];
-    extractor1[ftr_ext::sck::extract::in_img] = ccl1[ccl::sck::apply::out_labels];
+    extractor1[ftr_ext::sck::extract::in_labels] = ccl1[ccl::sck::apply::out_labels];
     extractor1[ftr_ext::sck::extract::in_n_RoIs] = ccl1[ccl::sck::apply::out_n_RoIs];
 
     // Step 3 : seuillage hysteresis && filter surface

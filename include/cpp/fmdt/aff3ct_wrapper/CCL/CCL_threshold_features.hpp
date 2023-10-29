@@ -26,8 +26,6 @@ protected:
     const uint8_t threshold;
     const size_t max_RoIs_size;
     CCL_gen_data_t *data;
-    const uint8_t** in_img;
-    uint32_t** out_labels;
     const bool no_init_labels;
 
 public:

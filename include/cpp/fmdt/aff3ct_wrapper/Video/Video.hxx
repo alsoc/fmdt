@@ -3,7 +3,7 @@
 #include "fmdt/aff3ct_wrapper/Video/Video.hpp"
 
 uint8_t** Video::get_out_img() {
-    return this->out_img;
+    return (*this)[vid::sck::generate::out_img].get_2d_dataptr<uint8_t>(this->b, this->b);
 }
 
 int Video::get_i0() {

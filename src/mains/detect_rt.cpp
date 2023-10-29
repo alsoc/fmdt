@@ -558,7 +558,7 @@ int main(int argc, char** argv) {
 
     // step 2: CCL/CCA
     ccl[ccl::sck::apply::in_img] = threshold_min[thr::sck::apply::out_img];
-    extractor[ftr_ext::sck::extract::in_img] = ccl[ccl::sck::apply::out_labels];
+    extractor[ftr_ext::sck::extract::in_labels] = ccl[ccl::sck::apply::out_labels];
     extractor[ftr_ext::sck::extract::in_n_RoIs] = ccl[ccl::sck::apply::out_n_RoIs];
 
     // step 3: hysteresis threshold & surface filtering

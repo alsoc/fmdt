@@ -8,24 +8,22 @@
 
 Logger_frame::Logger_frame(const std::string frames_path, const size_t fra_start, const int show_id, const int i0,
                            const int i1, const int j0, const int j1, const int b, const size_t max_RoIs_size)
-: Module(), i0(i0), i1(i1), j0(j0), j1(j1), b(b), show_id(show_id), in_labels(nullptr), img_data(nullptr),
+: Module(), i0(i0), i1(i1), j0(j0), j1(j1), b(b), show_id(show_id), img_data(nullptr),
   video_writer(nullptr) {
     const std::string name = "Logger_frame";
     this->set_name(name);
     this->set_short_name(name);
-
-    this->in_labels = (const uint32_t**)malloc((size_t)(((i1 - i0) + 1 + 2 * b) * sizeof(const uint32_t*)));
-    this->in_labels -= i0 - b;
 
     this->img_data = image_gs_alloc((i1 - i0) + 1, (j1 - j0) + 1);
     const size_t n_threads = 1;
     this->video_writer = video_writer_alloc_init(frames_path.c_str(), fra_start, n_threads, (i1 - i0) + 1,
                                                  (j1 - j0) + 1, PIXFMT_GRAY, VCDC_FFMPEG_IO, 0);
 
-    auto socket_img_size = ((i1 - i0) + 1 + 2 * b) * ((j1 - j0) + 1 + 2 * b);
+    const size_t img_n_rows = (i1 - i0) + 1 + 2 * b;
+    const size_t img_n_cols = (j1 - j0) + 1 + 2 * b;
 
     auto &p = this->create_task("write");
-    auto ps_in_labels = this->template create_socket_in<uint32_t>(p, "in_labels", socket_img_size);
+    auto ps_in_labels = this->template create_2d_socket_in<uint32_t>(p, "in_labels", img_n_rows, img_n_cols);
 
     auto ps_in_RoIs_id = this->template create_socket_in<uint32_t>(p, "in_RoIs_id", max_RoIs_size);
     auto ps_in_RoIs_xmin = this->template create_socket_in<uint32_t>(p, "in_RoIs_xmin", max_RoIs_size);
@@ -38,13 +36,12 @@ Logger_frame::Logger_frame(const std::string frames_path, const size_t fra_start
                              ps_in_RoIs_ymax, ps_in_n_RoIs]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_fra = static_cast<Logger_frame&>(m);
-        const uint32_t* m_in_labels = static_cast<const uint32_t*>(t[ps_in_labels].get_dataptr());
 
-        tools_linear_2d_nrc_ui32matrix(m_in_labels, lgr_fra.i0 - lgr_fra.b, lgr_fra.i1 + lgr_fra.b,
-                                       lgr_fra.j0 - lgr_fra.b, lgr_fra.j1 + lgr_fra.b, lgr_fra.in_labels);
+        // calling get_2d_dataptr() has a small overhead (it performs the 1D to 2D conversion)
+        const uint32_t** in_labels = t[ps_in_labels].get_2d_dataptr<const uint32_t>(lgr_fra.b, lgr_fra.b);
 
         _image_gs_draw_labels(lgr_fra.img_data,
-                              lgr_fra.in_labels,
+                              in_labels,
                               static_cast<const uint32_t*>(t[ps_in_RoIs_id].get_dataptr()),
                               static_cast<const uint32_t*>(t[ps_in_RoIs_xmin].get_dataptr()),
                               static_cast<const uint32_t*>(t[ps_in_RoIs_xmax].get_dataptr()),
@@ -59,7 +56,6 @@ Logger_frame::Logger_frame(const std::string frames_path, const size_t fra_start
 }
 
 Logger_frame::~Logger_frame() {
-    free(this->in_labels + this->i0 - this->b);
     image_gs_free(this->img_data);
     video_writer_free(this->video_writer);
 }

@@ -25,7 +25,6 @@ protected:
     const int j0;
     const int j1;
     const int b;
-    const uint8_t** in_img;
     const tracking_data_t* tracking_data;
     visu_data_t* visu_data;
 public:

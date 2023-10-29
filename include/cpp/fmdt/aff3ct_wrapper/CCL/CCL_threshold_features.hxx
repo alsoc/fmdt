@@ -3,7 +3,7 @@
 #include "fmdt/aff3ct_wrapper/CCL/CCL_threshold_features.hpp"
 
 uint32_t** CCL_threshold_features::get_out_labels() {
-    return this->out_labels;
+    return (*this)[ccl_tf::sck::apply::out_labels].get_2d_dataptr<uint32_t>(this->b, this->b);
 }
 
 aff3ct::runtime::Task& CCL_threshold_features::operator[](const ccl_tf::tsk t) {

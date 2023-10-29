@@ -2,14 +2,6 @@
 
 #include "fmdt/aff3ct_wrapper/Video/Video2.hpp"
 
-uint8_t** Video2::get_out_img0() {
-    return this->out_img0;
-}
-
-uint8_t* Video2::get_img_buf() {
-    return this->img_buf;
-}
-
 int Video2::get_i0() {
     return this->i0;
 }

@@ -20,8 +20,6 @@ protected:
     const int i0, i1, j0, j1;
     const int b;
     const uint8_t thr_val;
-    const uint8_t** in_img;
-    uint8_t** out_img;
 public:
     Threshold(const int i0, const int i1, const int j0, const int j1, const int b, const uint8_t thr_val);
     virtual ~Threshold();
@@ -30,11 +28,6 @@ public:
     inline aff3ct::runtime::Task& operator[](const thr::tsk t);
     inline aff3ct::runtime::Socket& operator[](const thr::sck::apply s);
     inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
-
-protected:
-    void init_data();
-    using Module::deep_copy;
-    void deep_copy(const Threshold &m);
 };
 
 #include "fmdt/aff3ct_wrapper/Threshold/Threshold.hxx"
