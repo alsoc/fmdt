@@ -118,7 +118,7 @@ void version_print(const char* bin_name) {
     printf("  - FLSL new interface:   %s\n", opt_flsl_new_interface);
     printf("  - Link with ffmpeg-io:  %s\n", opt_ffio_io);
     printf("  - Link with vcodecs-io: %s\n", opt_vcio_io);
-    printf("Copyright (c) 2022-2023 - MIT license.\n");
+    printf("Copyright (c) 2022-2024 - MIT license.\n");
     printf("This is free software; see the source for copying conditions.  There is NO\n");
     printf("warranty; not even for MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.\n");
 }
