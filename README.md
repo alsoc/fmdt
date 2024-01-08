@@ -91,8 +91,6 @@ are also developed by the [IMCCE](https://www.imcce.fr/) institute
 (*l'Observatoire de Paris*). Any external contributions are more than welcome.
 
 **Active contributors:**
- * Clara CIOCAN, *Master student*
- * Mathuran KANDEEPAN, *Master student*
  * Maxime MILLET, *PhD student*
  * Nathan MAURICE, *PhD student*
  * [Adrien CASSAGNE](https://lip6.fr/adrien.cassagne/), *Associate professor*
@@ -103,3 +101,5 @@ are also developed by the [IMCCE](https://www.imcce.fr/) institute
 **Former contributors:**
  * Florian LEMAÎTRE, *PhD*
  * Arthur HENNEQUIN, *PhD*
+ * Clara CIOCAN, *Master student*
+ * Mathuran KANDEEPAN, *Master student*

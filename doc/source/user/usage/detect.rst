@@ -739,7 +739,7 @@ also a path to a sequence of images ``path/basename_%05d.jpg``).
 .. _detect_vid-out-play:
 
 ``--vid-out-play``
------------------
+------------------
 
    :Type: BOOLEAN
    :Example: ``--vid-out-play``

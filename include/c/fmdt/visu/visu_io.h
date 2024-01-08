@@ -22,7 +22,7 @@
  * @param win_play Boolean, if 0 write into a file, if 1 play in a SDL window.
  * @param buff_size Number of frames to buffer.
  * @param max_RoIs_size Max number of RoIs to allocate per frame.
- * @param Number of skipped frames between two 'visu_display' calls (generally this is 0).
+ * @param skip_fra Number of skipped frames between two 'visu_display' calls (generally this is 0).
  * @return The allocated data.
  */
 visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
@@ -69,6 +69,6 @@ void visu_flush(visu_data_t* visu, const vec_track_t tracks);
 
 /**
  * Deallocation of inner visu data.
- * @param video A pointer of video writer inner data.
+ * @param visu A pointer of video writer inner data.
  */
 void visu_free(visu_data_t* visu);

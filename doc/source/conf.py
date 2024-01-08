@@ -36,7 +36,7 @@ read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
 # -- Project information -----------------------------------------------------
 
 project = 'FMDT'
-copyright = '2023, FMDT team'
+copyright = '2024, FMDT team'
 author = 'FMDT team'
 
 if os.environ.get('SKIP_VERSION', 'NO') == 'YES':
@@ -64,6 +64,7 @@ else:
 # extensions coming with Sphinx (named 'sphinx.ext.*') or your custom
 # ones.
 extensions = [
+    'sphinx_rtd_theme',
     'sphinx.ext.autodoc',
     'sphinx.ext.mathjax',
     'sphinxcontrib.bibtex',
@@ -111,13 +112,11 @@ pygments_style = None
 
 # -- Options for HTML output -------------------------------------------------
 
-if not read_the_docs_build:  # only import and set the theme if we're building docs locally
-    import sphinx_rtd_theme
-    # The theme to use for HTML and HTML Help pages.  See the documentation for
-    # a list of builtin themes.
-    html_theme = 'sphinx_rtd_theme'
-    html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
-
+import sphinx_rtd_theme
+# The theme to use for HTML and HTML Help pages.  See the documentation for
+# a list of builtin themes.
+html_theme = 'sphinx_rtd_theme'
+html_theme_path = [sphinx_rtd_theme.get_html_theme_path()]
 
 # Theme options are theme-specific and customize the look and feel of a theme
 # further.  For a list of options available for each theme, see the
