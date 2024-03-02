@@ -11,6 +11,7 @@
 
 /**
  * Print a table of global motion estimation.
+ *
  * @param f File descriptor (in write mode).
  * @param motion_est1 First global motion estimation.
  * @param motion_est2 Last global motion estimation.

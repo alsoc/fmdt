@@ -132,6 +132,7 @@ typedef struct {
 
 /**
  * Compute the duration of a track.
+ *
  * @param track_begin First RoI of the track.
  * @param track_end Last RoI of the track.
  * @return The elapsed time (in number of frames).
@@ -140,6 +141,7 @@ size_t _tracking_get_track_time(const RoI_t track_begin, const RoI_t track_end);
 
 /**
  * Compute the duration of a track.
+ *
  * @param tracks A vector of tracks.
  * @param t The position of one track in the tracks array.
  * @return The elapsed time (in number of frames).
@@ -148,6 +150,7 @@ size_t tracking_get_track_time(const vec_track_t tracks, const size_t t);
 
 /**
  * Counts the number of tracks in a vector of tracks.
+ *
  * @param tracks A vector of tracks.
  * @param n_stars Write the number of tracks that have been classified as star (can be NULL).
  * @param n_meteors Write the number of tracks that have been classified as meteor (can be NULL).

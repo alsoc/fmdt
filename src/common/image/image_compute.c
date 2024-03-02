@@ -259,25 +259,24 @@ void image_draw_text(img_data_t* img_data, const BB_t* BBs, const enum color_e* 
         image_draw_legend_text(*cv_mat, box_size, h_space, v_space, validation);
 }
 
-void _image_draw_RoIs_id(cv::Mat& cv_img, const uint32_t* RoIs_id, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
-                         const uint32_t* RoIs_ymax, const size_t n_RoIs) {
+void _image_draw_RoIs_id(cv::Mat& cv_img, const RoI_basic_t* RoIs_basic, const size_t n_RoIs) {
     //                       x    y  list of ids
     std::vector<std::tuple<int, int, std::vector<int>>> list_of_ids_grouped_by_pos;
     for (size_t i = 0; i < n_RoIs; i++) {
-        int x = RoIs_xmax[i] + 3;
-        int y = RoIs_ymin[i] + (RoIs_ymax[i] - RoIs_ymin[i]) / 2;
+        int x = RoIs_basic[i].xmax + 3;
+        int y = RoIs_basic[i].ymin + (RoIs_basic[i].ymax - RoIs_basic[i].ymin) / 2;
 
         bool found = false;
         for (auto& l : list_of_ids_grouped_by_pos) {
             if (std::get<0>(l) == x && std::get<1>(l) == y) {
-                std::get<2>(l).push_back(RoIs_id[i]);
+                std::get<2>(l).push_back(RoIs_basic[i].id);
                 found = true;
             }
         }
 
         if (!found) {
             std::vector<int> v;
-            v.push_back(RoIs_id[i]);
+            v.push_back(RoIs_basic[i].id);
             list_of_ids_grouped_by_pos.push_back(std::make_tuple(x, y, v));
         }
     }
@@ -359,9 +358,8 @@ img_data_t* image_gs_alloc(const size_t img_height, const size_t img_width) {
     return img_data;
 }
 
-void _image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const uint32_t* RoIs_id,
-                           const uint32_t* RoIs_xmin, const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin,
-                           const uint32_t* RoIs_ymax, const size_t n_RoIs, const uint8_t show_id) {
+void image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const RoI_basic_t* RoIs_basic,
+                          const size_t n_RoIs, const uint8_t show_id) {
 #ifdef FMDT_OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
     // convert labels to black & white image: white if there is a CC, black otherwise
@@ -374,11 +372,11 @@ void _image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const 
             pixels->at<uint8_t>(i, j) = 0;
 
     for (size_t i = 0; i < n_RoIs; i++) {
-        uint32_t id = RoIs_id[i];
-        uint32_t x0 = RoIs_ymin[i];
-        uint32_t x1 = RoIs_ymax[i];
-        uint32_t y0 = RoIs_xmin[i];
-        uint32_t y1 = RoIs_xmax[i];
+        uint32_t id = RoIs_basic[i].id;
+        uint32_t x0 = RoIs_basic[i].ymin;
+        uint32_t x1 = RoIs_basic[i].ymax;
+        uint32_t y0 = RoIs_basic[i].xmin;
+        uint32_t y1 = RoIs_basic[i].xmax;
         for (uint32_t k = x0; k <= x1; k++)
             for (uint32_t l = y0; l <= y1; l++)
                 if (labels[k][l] == id)
@@ -386,7 +384,7 @@ void _image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const 
     }
 
     if (show_id)
-        _image_draw_RoIs_id(*pixels, RoIs_id, RoIs_xmax, RoIs_ymin, RoIs_ymax, n_RoIs);
+        _image_draw_RoIs_id(*pixels, RoIs_basic, n_RoIs);
 #else
     uint8_t** pixels = (uint8_t**)img_data->pixels;
     // convert labels to black & white image: white if there is a CC, black otherwise
@@ -398,23 +396,17 @@ void _image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const 
         memset(pixels[i], 0, img_data->width * sizeof(uint8_t));
 
     for (size_t i = 0; i < n_RoIs; i++) {
-        uint32_t id = RoIs_id[i];
-        uint32_t x0 = RoIs_ymin[i];
-        uint32_t x1 = RoIs_ymax[i];
-        uint32_t y0 = RoIs_xmin[i];
-        uint32_t y1 = RoIs_xmax[i];
+        uint32_t id = RoIs_basic[i].id;
+        uint32_t x0 = RoIs_basic[i].ymin;
+        uint32_t x1 = RoIs_basic[i].ymax;
+        uint32_t y0 = RoIs_basic[i].xmin;
+        uint32_t y1 = RoIs_basic[i].xmax;
         for (uint32_t k = x0; k <= x1; k++)
             for (uint32_t l = y0; l <= y1; l++)
                 if (labels[k][l] == id)
                     pixels[k][l] = 255;
     }
 #endif
-}
-
-void image_gs_draw_labels(img_data_t* img_data, const uint32_t** labels, const RoIs_basic_t* RoIs_basic,
-                          const uint8_t show_id) {
-    _image_gs_draw_labels(img_data, labels, RoIs_basic->id, RoIs_basic->xmin, RoIs_basic->xmax, RoIs_basic->ymin,
-                          RoIs_basic->ymax, *RoIs_basic->_size, show_id);
 }
 
 uint8_t* image_gs_get_pixels(img_data_t* img_data) {

@@ -208,8 +208,8 @@ int main(int argc, char** argv) {
     // -- DATA ALLOCATION -- //
     // --------------------- //
 
-    RoIs_t* RoIs_tmp = features_alloc_RoIs(false, false, true, p_cca_roi_max1);
-    RoIs_t* RoIs = features_alloc_RoIs(false, false, true, p_cca_roi_max2);
+    RoIs_t* RoIs_tmp = features_alloc_RoIs(p_cca_roi_max1, true, true, false, true);
+    RoIs_t* RoIs = features_alloc_RoIs(p_cca_roi_max2, true, true, false, true);
     CCL_data_t* ccl_data = CCL_LSL_alloc_data(i0, i1, j0, j1);
 
     int b = 1; // image border
@@ -262,18 +262,19 @@ int main(int argc, char** argv) {
         threshold((const uint8_t**)Max, IL, i0, i1, j0, j1, p_ccl_hyst_lo);
 
         // step 3: CCL/CCA
-        const uint32_t n_RoIs = CCL_LSL_apply(ccl_data, (const uint8_t**)IL, L1, 0);
-        assert(n_RoIs <= RoIs_tmp->_max_size);
-        features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoIs, RoIs_tmp->basic);
+        RoIs_tmp->_size = CCL_LSL_apply(ccl_data, (const uint8_t**)IL, L1, 0);
+        assert(RoIs_tmp->_size <= RoIs_tmp->_max_size);
+        features_extract((const uint32_t**)L1, i0, i1, j0, j1, RoIs_tmp->basic, RoIs_tmp->_size);
 
         // step 4: hysteresis threshold & surface filtering
         threshold((const uint8_t**)Max, IH, i0, i1, j0, j1, p_ccl_hyst_hi);
-        features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, RoIs_tmp->basic,
-                                 p_mrp_s_min, p_mrp_s_max);
-        features_shrink_basic(RoIs_tmp->basic, RoIs->basic);
+        RoIs->_size = features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1,
+                                               RoIs_tmp->basic, RoIs_tmp->_size, p_mrp_s_min, p_mrp_s_max);
+        assert(RoIs->_size <= RoIs->_max_size);
+        features_shrink(RoIs_tmp->basic, NULL, NULL, RoIs_tmp->_size, RoIs->basic, NULL, NULL);
 
         // step 5: ellipse feature computation
-        features_compute_ellipse(RoIs->basic, RoIs->misc);
+        features_compute_ellipse(RoIs->basic, RoIs->elli, RoIs->_size);
 
         // save stats (first part)
         FILE* f = NULL;
@@ -287,24 +288,25 @@ int main(int argc, char** argv) {
                 exit(1);
             }
             fprintf(f, "# Frame n°%05d (BEFORE ellipse ratio threshold) -- ", cur_fra);
-            features_RoIs_write(f, cur_fra, RoIs->basic, RoIs->misc, NULL, 0);
+            features_RoIs_write(f, cur_fra, RoIs->basic, NULL, RoIs->elli, RoIs->_size , NULL, 0);
             fprintf(f, "#\n");
         }
 
         // save frames (CCs)
         if (img_data) {
-            image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs->basic, p_ccl_fra_id);
+            image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs->basic, RoIs->_size, p_ccl_fra_id);
             video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
 
         // step 6: filter on ellipse ratio
-        threshold_ellipse_ratio(RoIs->misc, p_ellipse);
-        features_shrink_basic_misc(RoIs->basic, RoIs->misc, RoIs->basic, RoIs->misc);
+        uint32_t n_RoIs_new = threshold_ellipse_ratio(RoIs->basic, RoIs->elli, RoIs->_size, p_ellipse);
+        features_shrink(RoIs->basic, NULL, RoIs->elli, RoIs->_size, RoIs->basic, NULL, RoIs->elli);
+        RoIs->_size = n_RoIs_new;
 
         // save stats (second part)
         if (p_log_path) {
             fprintf(f, "# Frame n°%05d (AFTER ellipse ratio threshold) -- ", cur_fra);
-            features_RoIs_write(f, cur_fra, RoIs->basic, RoIs->misc, NULL, 0);
+            features_RoIs_write(f, cur_fra, RoIs->basic, NULL, RoIs->elli, RoIs->_size, NULL, 0);
             fclose(f);
         }
 

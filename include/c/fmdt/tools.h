@@ -22,6 +22,7 @@ typedef vec_int_t* vec2D_int_t;
 
 /**
  * Copy a 2D array.
+ *
  * @param X Input matrix (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
  * @param i0 First \f$y\f$ index in the 2D array (included).
  * @param i1 Last \f$y\f$ index in the 2D array (included).
@@ -34,6 +35,7 @@ void tools_copy_ui8matrix_ui8matrix(const uint8_t** X, const int i0, const int i
 
 /**
  * Convert a 8-bit 2D array in a 32-bit 2D array.
+ *
  * @param X Input 8-bit matrix (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
  * @param nrl First \f$y\f$ index in the 2D array (included).
  * @param nrh Last \f$y\f$ index in the 2D array (included).
@@ -46,6 +48,7 @@ void tools_convert_ui8matrix_ui32matrix(const uint8_t** X, const int nrl, const 
 
 /**
  * Convert a 1D (linear) array into a 2D array (8-bit integers).
+ *
  * @param X Input 1D array (1D array \f$[(i1 - i0 + 1) \times (j1 - j0 + 1)]\f$).
  * @param i0 First \f$y\f$ index in the 2D array (included).
  * @param i1 Last \f$y\f$ index in the 2D array (included).
@@ -58,6 +61,7 @@ void tools_linear_2d_nrc_ui8matrix(const uint8_t* X, const int i0, const int i1,
 
 /**
  * Convert a 1D (linear) array into a 2D array (32-bit integers).
+ *
  * @param X Input 1D array (1D array \f$[(i1 - i0 + 1) \times (j1 - j0 + 1)]\f$).
  * @param i0 First \f$y\f$ index in the 2D array (included).
  * @param i1 Last \f$y\f$ index in the 2D array (included).
@@ -70,6 +74,7 @@ void tools_linear_2d_nrc_ui32matrix(const uint32_t* X, const int i0, const int i
 
 /**
  * Convert a 1D (linear) array into a 2D array (32-bit float).
+ *
  * @param X Input 1D array (1D array \f$[(i1 - i0 + 1) \times (j1 - j0 + 1)]\f$).
  * @param i0 First \f$y\f$ index in the 2D array (included).
  * @param i1 Last \f$y\f$ index in the 2D array (included).
@@ -82,6 +87,7 @@ void tools_linear_2d_nrc_f32matrix(const float* X, const int i0, const int i1, c
 
 /**
  * Convert a 1D (linear) array into a 2D array (24-bit RGB).
+ *
  * @param X Input 1D array (1D array \f$[(i1 - i0 + 1) \times (j1 - j0 + 1)]\f$).
  * @param i0 First \f$y\f$ index in the 2D array (included).
  * @param i1 Last \f$y\f$ index in the 2D array (included).
@@ -94,12 +100,14 @@ void tools_linear_2d_nrc_rgb8matrix(const rgb8_t* X, const int i0, const int i1,
 
 /**
  * System function to create a folder.
+ *
  * @param folder_path Path to the folder to create.
  */
 void tools_create_folder(const char* folder_path);
 
 /**
  * System function to check if a path is a directory.
+ *
  * @param path Path.
  * @return `1` if the given path is a folder, `0` otherwise.
  */

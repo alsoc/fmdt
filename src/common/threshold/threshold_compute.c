@@ -26,24 +26,22 @@ void threshold(const uint8_t** img_in, uint8_t** img_out, const int i0, const in
     }
 }
 
-void _threshold_ellipse_ratio(const float* RoIs_a, const float* RoIs_b, const size_t n_RoIs, uint32_t* RoIs_id,
-                              const float min_ratio) {
-    assert(RoIs_a != NULL);
-    assert(RoIs_b != NULL);
+uint32_t threshold_ellipse_ratio(RoI_basic_t* RoIs_basic, const RoI_elli_t* RoIs_elli, const size_t n_RoIs,
+                                 const float min_ratio) {
+    uint32_t cnt = 0;
     for (size_t e = 0; e < n_RoIs; e++) {
-        if (RoIs_id[e]) {
-            float a = RoIs_a[e];
-            float b = RoIs_b[e];
+        if (RoIs_basic[e].id) {
+            float a = RoIs_elli[e].a;
+            float b = RoIs_elli[e].b;
             float ratio = (b == 0.0f) ? a : (a / b);
             if (ratio < min_ratio) {
-                RoIs_id[e] = 0;
+                RoIs_basic[e].id = 0;
+            } else {
+                cnt++;
             }
         }
     }
-}
-
-void threshold_ellipse_ratio(RoIs_misc_t* RoIs_misc, const float min_ratio) {
-    _threshold_ellipse_ratio(RoIs_misc->a, RoIs_misc->b, *RoIs_misc->_size, RoIs_misc->id, min_ratio);
+    return cnt;
 }
 
 // void threshold_high(const uint8_t** m_in, uint8_t** m_out, const int i0, const int i1, const int j0, const int j1,

@@ -339,9 +339,9 @@ int main(int argc, char** argv) {
     // -- DATA ALLOCATION -- //
     // --------------------- //
 
-    RoIs_t* RoIs_tmp = features_alloc_RoIs(p_cca_mag, p_cca_mag, p_cca_ell, p_cca_roi_max1);
-    RoIs_t* RoIs0 = features_alloc_RoIs(p_cca_mag, p_cca_mag, p_cca_ell, p_cca_roi_max2);
-    RoIs_t* RoIs1 = features_alloc_RoIs(p_cca_mag, p_cca_mag, p_cca_ell, p_cca_roi_max2);
+    RoIs_t* RoIs_tmp = features_alloc_RoIs(p_cca_roi_max1, 1, 1, p_cca_mag, p_cca_ell);
+    RoIs_t* RoIs0 = features_alloc_RoIs(p_cca_roi_max2, 1, 1, p_cca_mag, p_cca_ell);
+    RoIs_t* RoIs1 = features_alloc_RoIs(p_cca_roi_max2, 1, 1, p_cca_mag, p_cca_ell);
     CCL_gen_data_t* ccl_data = CCL_alloc_data(CCL_str_to_enum(p_ccl_impl), i0, i1, j0, j1);
     kNN_data_t* knn_data = kNN_alloc_data(p_cca_roi_max2);
     tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_star_min, p_trk_meteor_min), p_cca_roi_max2);
@@ -390,27 +390,30 @@ int main(int argc, char** argv) {
         threshold((const uint8_t**)I, IL, i0, i1, j0, j1, p_ccl_hyst_lo);
 
         // step 2: CCL/CCA
-        const uint32_t n_RoIs = CCL_apply(ccl_data, (const uint8_t**)IL, L1, 0);
-        assert(n_RoIs <= RoIs_tmp->_max_size);
-        features_extract((const uint32_t**)L1, i0, i1, j0, j1, n_RoIs, RoIs_tmp->basic);
+        RoIs_tmp->_size = CCL_apply(ccl_data, (const uint8_t**)IL, L1, 0);
+        assert(RoIs_tmp->_size <= RoIs_tmp->_max_size);
+        features_extract((const uint32_t**)L1, i0, i1, j0, j1, RoIs_tmp->basic, RoIs_tmp->_size);
 
         // step 3: hysteresis threshold & surface filtering (+ magnitude computations)
         threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_ccl_hyst_hi);
-        features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1, RoIs_tmp->basic,
-                                 p_mrp_s_min, p_mrp_s_max);
-        features_shrink_basic(RoIs_tmp->basic, RoIs1->basic);
+        RoIs1->_size = features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1,
+                                                RoIs_tmp->basic, RoIs_tmp->_size, p_mrp_s_min, p_mrp_s_max);
+        assert(RoIs1->_size <= RoIs1->_max_size);
+        features_shrink(RoIs_tmp->basic, NULL, NULL, RoIs_tmp->_size, RoIs1->basic, NULL, NULL);
         if (p_cca_mag)
             features_compute_magnitude((const uint8_t**)I, i0, i1, j0, j1, (const uint32_t**)L2, RoIs1->basic,
-                                       RoIs1->misc);
+                                       RoIs1->magn, RoIs1->_size);
         if (p_cca_ell)
-            features_compute_ellipse(RoIs1->basic, RoIs1->misc);
+            features_compute_ellipse(RoIs1->basic, RoIs1->elli, RoIs1->_size);
 
         // step 4: k-NN matching
-        kNN_match(knn_data, RoIs0->basic, RoIs1->basic, RoIs0->asso, RoIs1->asso, p_knn_k, p_knn_d, p_knn_s);
+        kNN_match(knn_data, RoIs0->basic, RoIs0->asso, RoIs0->_size, RoIs1->basic, RoIs1->asso, RoIs1->_size, p_knn_k,
+                  p_knn_d, p_knn_s);
 
         // step 5: motion estimation
         motion_t motion_est1, motion_est2;
-        motion_compute(RoIs0->basic, RoIs1->basic, RoIs1->asso, RoIs1->motion, &motion_est1, &motion_est2);
+        motion_compute(RoIs0->basic, RoIs0->_size, RoIs1->basic, RoIs1->asso, RoIs1->motion, RoIs1->_size, &motion_est1,
+                       &motion_est2);
 
         // step 6: tracking
         tracking_perform(tracking_data, RoIs1, cur_fra, &motion_est2, p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all,
@@ -419,7 +422,7 @@ int main(int argc, char** argv) {
 
         // save frames (CCs)
         if (img_data) {
-            image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs1->basic, p_ccl_fra_id);
+            image_gs_draw_labels(img_data, (const uint32_t**)L2, RoIs1->basic, RoIs1->_size, p_ccl_fra_id);
             video_writer_save_frame(video_writer, (const uint8_t**)image_gs_get_pixels_2d(img_data));
         }
 
@@ -434,11 +437,12 @@ int main(int argc, char** argv) {
                 exit(1);
             }
             int prev_fra = cur_fra > p_vid_in_start ? cur_fra - (p_vid_in_skip + 1) : -1;
-            features_RoIs0_RoIs1_write(f, prev_fra, cur_fra, RoIs0->basic, RoIs0->misc, RoIs1->basic, RoIs1->misc,
-                                       tracking_data->tracks);
+            features_RoIs0_RoIs1_write(f, prev_fra, cur_fra, RoIs0->basic, RoIs0->magn, RoIs0->elli, RoIs0->_size,
+                                       RoIs1->basic, RoIs1->magn, RoIs1->elli, RoIs1->_size, tracking_data->tracks);
             if (cur_fra > p_vid_in_start) {
                 fprintf(f, "#\n");
-                kNN_asso_conflicts_write(f, knn_data, RoIs0->asso, RoIs1->asso, RoIs1->motion);
+                kNN_asso_conflicts_write(f, knn_data, RoIs0->basic, RoIs0->asso, RoIs0->_size, RoIs1->basic,
+                                         RoIs1->asso, RoIs1->motion, RoIs1->_size);
                 fprintf(f, "#\n");
                 motion_write(f, &motion_est1, &motion_est2);
                 fprintf(f, "#\n");
@@ -449,7 +453,7 @@ int main(int argc, char** argv) {
 
         // display the result to the screen or write it into a video file
         if (visu_data)
-            visu_display(visu_data, (const uint8_t**)I, RoIs1->basic, tracking_data->tracks, cur_fra);
+            visu_display(visu_data, (const uint8_t**)I, RoIs1->basic, RoIs1->_size, tracking_data->tracks, cur_fra);
 
         // swap RoIs0 <-> RoIs1 for the next frame
         RoIs_t* tmp = RoIs0;

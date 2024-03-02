@@ -13,8 +13,8 @@ Threshold::Threshold(const int i0, const int i1, const int j0, const int j1, con
     const size_t img_n_cols = (j1 - j0) + 1 + 2 * b;
 
     auto &p = this->create_task("apply");
-    auto ps_in_img = this->template create_2d_socket_in<uint8_t>(p, "in", img_n_rows, img_n_cols);
-    auto ps_out_img = this->template create_2d_socket_out<uint8_t>(p, "out", img_n_rows, img_n_cols);
+    auto ps_in_img = this->template create_2d_socket_in<uint8_t>(p, "in_img", img_n_rows, img_n_cols);
+    auto ps_out_img = this->template create_2d_socket_out<uint8_t>(p, "out_img", img_n_rows, img_n_cols);
 
     this->create_codelet(p, [ps_in_img, ps_out_img](aff3ct::module::Module &m, aff3ct::runtime::Task &t,
                          const size_t frame_id) -> int {

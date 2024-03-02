@@ -469,60 +469,51 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
     }
 }
 
-void _light_copy_RoIs(const uint32_t* RoIs_src_id, const uint32_t frame, const uint32_t* RoIs_src_xmin,
-                      const uint32_t* RoIs_src_xmax, const uint32_t* RoIs_src_ymin, const uint32_t* RoIs_src_ymax,
-                      const uint32_t* RoIs_src_S, const float* RoIs_src_x, const float* RoIs_src_y,
-                      const float* RoIs_src_error, const uint32_t* RoIs_src_prev_id, const float* RoIs_src_a,
-                      const float* RoIs_src_b, const size_t n_RoIs_src, RoI_t* RoIs_dst) {
+void _light_copy_RoIs(const uint32_t frame, const RoIs_t* RoIs_src, const size_t n_RoIs_src, RoI_t* RoIs_dst) {
     for (size_t i = 0; i < n_RoIs_src; i++) {
-        RoIs_dst[i].id = RoIs_src_id[i];
+        RoIs_dst[i].id = RoIs_src->basic[i].id;
         RoIs_dst[i].frame = frame;
-        RoIs_dst[i].xmin = RoIs_src_xmin[i];
-        RoIs_dst[i].xmax = RoIs_src_xmax[i];
-        RoIs_dst[i].ymin = RoIs_src_ymin[i];
-        RoIs_dst[i].ymax = RoIs_src_ymax[i];
-        RoIs_dst[i].S = RoIs_src_S[i];
-        RoIs_dst[i].x = RoIs_src_x[i];
-        RoIs_dst[i].y = RoIs_src_y[i];
-        RoIs_dst[i].error = RoIs_src_error ? RoIs_src_error[i] : NAN;
+        RoIs_dst[i].xmin = RoIs_src->basic[i].xmin;
+        RoIs_dst[i].xmax = RoIs_src->basic[i].xmax;
+        RoIs_dst[i].ymin = RoIs_src->basic[i].ymin;
+        RoIs_dst[i].ymax = RoIs_src->basic[i].ymax;
+        RoIs_dst[i].S = RoIs_src->basic[i].S;
+        RoIs_dst[i].x = RoIs_src->basic[i].x;
+        RoIs_dst[i].y = RoIs_src->basic[i].y;
+        RoIs_dst[i].error = RoIs_src->motion ? RoIs_src->motion[i].error : NAN;
         RoIs_dst[i].time = 0;
         RoIs_dst[i].time_motion = 0;
-        RoIs_dst[i].prev_id = RoIs_src_prev_id[i];
+        RoIs_dst[i].prev_id = RoIs_src->asso[i].prev_id;
         RoIs_dst[i].next_id = 0;
         RoIs_dst[i].is_extrapolated = 0;
-        RoIs_dst[i].a = RoIs_src_a ? RoIs_src_a[i] : NAN;
-        RoIs_dst[i].b = RoIs_src_b ? RoIs_src_b[i] : NAN;
+        RoIs_dst[i].a = RoIs_src->elli ? RoIs_src->elli[i].a : NAN;
+        RoIs_dst[i].b = RoIs_src->elli ? RoIs_src->elli[i].b : NAN;
     }
 }
 
-void _update_RoIs_next_id(const uint32_t* RoIs_prev_id, RoI_t* RoIs_dst, const size_t n_RoIs) {
+void _update_RoIs_next_id(const RoI_asso_t* RoIs_asso, RoI_t* RoIs_dst, const size_t n_RoIs) {
     for (size_t i = 0; i < n_RoIs; i++)
-        if (RoIs_prev_id[i])
-            RoIs_dst[RoIs_prev_id[i] - 1].next_id = i + 1;
+        if (RoIs_asso[i].prev_id)
+            RoIs_dst[RoIs_asso[i].prev_id - 1].next_id = i + 1;
 }
 
-void _tracking_perform(tracking_data_t* tracking_data, const uint32_t* RoIs_id, const uint32_t* RoIs_xmin,
-                       const uint32_t* RoIs_xmax, const uint32_t* RoIs_ymin, const uint32_t* RoIs_ymax,
-                       const uint32_t* RoIs_S, const float* RoIs_x, const float* RoIs_y, const float* RoIs_error,
-                       const uint32_t* RoIs_prev_id, const float* RoIs_a, const float* RoIs_b, const size_t n_RoIs,
-                       const size_t frame, const motion_t* motion_est, const size_t r_extrapol, const float angle_max,
-                       const float diff_dev, const int track_all, const size_t fra_star_min,
-                       const size_t fra_meteor_min, const size_t fra_meteor_max, const uint8_t save_RoIs_id,
-                       const uint8_t extrapol_order_max, const float min_extrapol_ratio_S,
-                       const float min_ellipse_ratio) {
+void tracking_perform(tracking_data_t* tracking_data, const RoIs_t* RoIs, size_t frame, const motion_t* motion_est,
+                      const size_t r_extrapol, const float angle_max, const float diff_dev, const int track_all,
+                      const size_t fra_star_min, const size_t fra_meteor_min, const size_t fra_meteor_max,
+                      const uint8_t save_RoIs_id, const uint8_t extrapol_order_max, const float min_extrapol_ratio_S,
+                      const float min_ellipse_ratio) {
     assert(extrapol_order_max < tracking_data->history->_max_size);
     assert(min_extrapol_ratio_S >= 0.f && min_extrapol_ratio_S <= 1.f);
 
     // 'simple_tracking' is a hack to disable complex tracking (METEOR -> NOISE detection)
-    const uint8_t simple_tracking = RoIs_error == NULL;
+    const uint8_t simple_tracking = RoIs->motion == NULL;
 
-    tracking_data->history->n_RoIs[0] = n_RoIs;
-    _light_copy_RoIs(RoIs_id, frame, RoIs_xmin, RoIs_xmax, RoIs_ymin, RoIs_ymax, RoIs_S, RoIs_x, RoIs_y, RoIs_error,
-                     RoIs_prev_id, RoIs_a, RoIs_b, n_RoIs, tracking_data->history->RoIs[0]);
+    tracking_data->history->n_RoIs[0] = RoIs->_size;
+    _light_copy_RoIs(frame, RoIs, RoIs->_size, tracking_data->history->RoIs[0]);
     if (motion_est)
         tracking_data->history->motion[0] = *motion_est;
     if (tracking_data->history->_size > 0)
-        _update_RoIs_next_id(RoIs_prev_id, tracking_data->history->RoIs[1], n_RoIs);
+        _update_RoIs_next_id(RoIs->asso, tracking_data->history->RoIs[1], RoIs->_size);
     if (tracking_data->history->_size < tracking_data->history->_max_size)
         tracking_data->history->_size++;
 
@@ -538,17 +529,4 @@ void _tracking_perform(tracking_data_t* tracking_data, const uint32_t* RoIs_id, 
     rotate_history(tracking_data->history);
     memset(tracking_data->history->RoIs[0], 0, tracking_data->history->n_RoIs[0] * sizeof(RoI_t));
     tracking_data->history->n_RoIs[0] = 0;
-}
-
-void tracking_perform(tracking_data_t* tracking_data, const RoIs_t* RoIs, const size_t frame,
-                      const motion_t* motion_est, const size_t r_extrapol, const float angle_max, const float diff_dev,
-                      const int track_all, const size_t fra_star_min, const size_t fra_meteor_min,
-                      const size_t fra_meteor_max, const uint8_t save_RoIs_id, const uint8_t extrapol_order_max,
-                      const float min_extrapol_ratio_S, const float min_ellipse_ratio) {
-    _tracking_perform(tracking_data, RoIs->id, RoIs->basic->xmin, RoIs->basic->xmax, RoIs->basic->ymin,
-                      RoIs->basic->ymax, RoIs->basic->S, RoIs->basic->x, RoIs->basic->y,
-                      RoIs->motion ? RoIs->motion->error : NULL, RoIs->asso->prev_id, RoIs->misc ? RoIs->misc->a : NULL,
-                      RoIs->misc ? RoIs->misc->b : NULL, RoIs->_size, frame, motion_est, r_extrapol, angle_max,
-                      diff_dev, track_all, fra_star_min, fra_meteor_min, fra_meteor_max, save_RoIs_id,
-                      extrapol_order_max, min_extrapol_ratio_S, min_ellipse_ratio);
 }

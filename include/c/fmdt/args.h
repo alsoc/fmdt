@@ -17,6 +17,7 @@ void args_del(int argc, char** argv, int index);
 
 /**
  * Find if an argument exists in program command line.
+ *
  * @param argc Number of arguments in \p argv array of arguments.
  * @param argv Array of arguments.
  * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
@@ -27,6 +28,7 @@ int args_find(int argc, char** argv, const char* arg);
 
 /**
  * Find an argument and return its corresponding value as an integer value.
+ *
  * @param argc Number of arguments in \p argv array of arguments.
  * @param argv Array of arguments.
  * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
@@ -40,6 +42,7 @@ int args_find_int(int argc, char** argv, const char* arg, int def);
  * Find an argument and return its corresponding value as an integer value.
  * This function also tests that the returned value is between the \f$[min;max]\f$ range. If it is not the case,
  * it prints an error message and exits the program with `-1` value.
+ *
  * @param argc Number of arguments in \p argv array of arguments.
  * @param argv Array of arguments.
  * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
@@ -55,6 +58,7 @@ int args_find_int_min_max(int argc, char** argv, const char* arg, int def, int m
  * Find an argument and return its corresponding value as an integer value.
  * This function also tests that the returned value is higher (or equal) than a minimum value. If it is not the case,
  * it prints an error message and exits the program with `-1` value.
+ *
  * @param argc Number of arguments in \p argv array of arguments.
  * @param argv Array of arguments.
  * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
@@ -69,6 +73,7 @@ int args_find_int_min(int argc, char** argv, const char* arg, int def, int min);
  * Find an argument and return its corresponding value as an integer value.
  * This function also tests that the returned value is lower (or equal) than a maximum value. If it is not the case,
  * it prints an error message and exits the program with `-1` value.
+ *
  * @param argc Number of arguments in \p argv array of arguments.
  * @param argv Array of arguments.
  * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
@@ -81,6 +86,7 @@ int args_find_int_max(int argc, char** argv, const char* arg, int def, int max);
 
 /**
  * Find an argument and return its corresponding value as a floating-point value.
+ *
  * @param argc Number of arguments in \p argv array of arguments.
  * @param argv Array of arguments.
  * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
@@ -94,6 +100,7 @@ float args_find_float(int argc, char** argv, const char* arg, float def);
  * Find an argument and return its corresponding value as a floating-point value.
  * This function also tests that the returned value is between the \f$[min;max]\f$ range. If it is not the case,
  * it prints an error message and exits the program with `-1` value.
+ *
  * @param argc Number of arguments in \p argv array of arguments.
  * @param argv Array of arguments.
  * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
@@ -109,6 +116,7 @@ float args_find_float_min_max(int argc, char** argv, const char* arg, float def,
  * Find an argument and return its corresponding value as a floating-point value.
  * This function also tests that the returned value is higher (or equal) than a minimum value. If it is not the case,
  * it prints an error message and exits the program with `-1` value.
+ *
  * @param argc Number of arguments in \p argv array of arguments.
  * @param argv Array of arguments.
  * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
@@ -123,6 +131,7 @@ float args_find_float_min(int argc, char** argv, const char* arg, float def, flo
  * Find an argument and return its corresponding value as a floating-point value.
  * This function also tests that the returned value is lower (or equal) than a maximum value. If it is not the case,
  * it prints an error message and exits the program with `-1` value.
+ *
  * @param argc Number of arguments in \p argv array of arguments.
  * @param argv Array of arguments.
  * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
@@ -135,6 +144,7 @@ float args_find_float_max(int argc, char** argv, const char* arg, float def, flo
 
 /**
  * Find an argument and return its corresponding value as string (array of characters).
+ *
  * @param argc Number of arguments in \p argv array of arguments.
  * @param argv Array of arguments.
  * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
@@ -147,6 +157,7 @@ char* args_find_char(int argc, char** argv, const char* arg, char* def);
 
 /**
  * Find an argument and return its corresponding value as a vector of int.
+ *
  * @param argc Number of arguments in \p argv array of arguments.
  * @param argv Array of arguments.
  * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
@@ -159,6 +170,7 @@ vec_int_t args_find_vector_int(int argc, char** argv, const char* arg, const cha
 
 /**
  * Find an argument and return its corresponding value as a vector 2D of int.
+ *
  * @param argc Number of arguments in \p argv array of arguments.
  * @param argv Array of arguments.
  * @param arg Argument to look for. Note that a list of arguments can be provided: arguments have to be separated by a
@@ -171,6 +183,7 @@ vec2D_int_t args_find_vector2D_int(int argc, char** argv, const char* arg, const
 
 /**
  * Convert a string of int into 1D (linear) array.
+ *
  * @param arg Input string (ex: \f$[1, 5, 1]\f$).
  * @param res Output 1D (linear) array.
  */
@@ -178,6 +191,7 @@ void args_convert_string_to_int_vector(const char* arg, vec_int_t *res);
 
 /**
  * Convert a string of int into 2D (linear) array.
+ *
  * @param arg Input string (ex: \f$[1, 5, 1]\f$).
  * @param res Output 2D (linear) array.
  */
@@ -185,6 +199,7 @@ void args_convert_string_to_int_vector2D(const char* arg, vec2D_int_t *res);
 
 /**
  * Convert a int 1D (linear) array to string.
+ *
  * @param vec Input 1D (linear) array.
  * @param res Output string (ex: \f$[1, 5, 1]\f$).
  * @param sizeof_res Number of bytes in \p res.
@@ -193,6 +208,7 @@ void args_convert_int_vector_to_string(vec_int_t vec, char *res, size_t sizeof_r
 
 /**
  * Convert a int 2D (linear) array to string.
+ *
  * @param tab Input 2D (linear) array.
  * @param res Output string (ex: \f$[1, 5, 1]\f$).
  * @param sizeof_res Number of bytes in \p res.

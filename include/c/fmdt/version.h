@@ -25,6 +25,7 @@ extern unsigned g_fmdt_build;
 
 /**
  * Print the FMDT version in the standard output.
+ *
  * @param bin_name Name of the current executable.
  */
 void version_print(const char* bin_name);

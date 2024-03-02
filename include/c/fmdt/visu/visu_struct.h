@@ -21,7 +21,8 @@ typedef struct {
     size_t img_width; /*!< Images width. */
     img_data_t *img_data; /*!< Proxy data to draw bounding boxes. */
     uint8_t ***I; /*!< Array of images (= buffer). */
-    RoIs_basic_t **RoIs; /*!< Array of RoIs (= buffer). */
+    RoI_basic_t **RoIs; /*!< Array of RoIs (= buffer). */
+    size_t max_RoIs_size; /*!< Maximum capacity of the RoIs arrays. */
     uint32_t *frame_ids; /*!< RoIs corresponding frame ids. */
     size_t buff_size; /*!< Size of the bufferization. */
     size_t buff_id_read; /*!< Index of the current buffer to read. */

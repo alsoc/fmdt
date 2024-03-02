@@ -9,6 +9,7 @@
 
 /**
  * Allocation and initialization of inner data required for a video reader.
+ *
  * @param path Path to the video or images.
  * @param start Start frame number (first frame is frame 0).
  * @param end Last frame number (if 0 then the video sequence is entirely read).
@@ -32,6 +33,7 @@ video_reader_t* video_reader_alloc_init(const char* path, const size_t start, co
 
 /**
  * Write grayscale image in a given 2D array.
+ *
  * @param video A pointer of previously allocated inner video reader data.
  * @param img Output grayscale image (2D array \f$[i1 - i0 + 1][j1 - j0 + 1]\f$).
  * @return The frame id (positive integer) or -1 if there is no more frame to read.
@@ -40,12 +42,14 @@ int video_reader_get_frame(video_reader_t* video, uint8_t** img);
 
 /**
  * Deallocation of inner video reader data.
+ *
  * @param video A pointer of video reader inner data.
  */
 void video_reader_free(video_reader_t* video);
 
 /**
  * Allocation and initialization of inner data required for a video writer.
+ *
  * @param path Path to the video or images.
  * @param start Start frame number (first frame is frame 0).
  * @param n_ffmpeg_threads Number of threads used in FFMPEG to encode the video sequence (0 means FFMPEG will decide).
@@ -62,6 +66,7 @@ video_writer_t* video_writer_alloc_init(const char* path, const size_t start, co
 
 /**
  * Allocation of inner data required for a video writer.
+ *
  * @param video A pointer of previously allocated inner video writer data.
  * @param img Input grayscale/RGB image (2D array \f$[\texttt{img\_height}][\texttt{img\_width}]\f$).
  */
@@ -69,6 +74,7 @@ void video_writer_save_frame(video_writer_t* video, const uint8_t** img);
 
 /**
  * Deallocation of inner video writer data.
+ *
  * @param video A pointer of video writer inner data.
  */
 void video_writer_free(video_writer_t* video);
