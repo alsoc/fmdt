@@ -579,7 +579,7 @@ int main(int argc, char** argv) {
     motion["compute::in_RoIs1_asso"] = matcher["match::out_RoIs1_asso"];
     motion["compute::in_n_RoIs1"] = merger["merge::out_n_RoIs"];
 
-    // step 6 : tracking
+    // step 6: tracking
     std::string perform_tsk = p_cca_ell ? "perform_elli" : "perform";
     tracking[perform_tsk + "::in_frame"] = video["generate::out_frame"];
     tracking[perform_tsk + "::in_RoIs_basic"] = merger["merge::out_RoIs_basic"];
