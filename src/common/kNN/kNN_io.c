@@ -41,8 +41,8 @@ void _kNN_conflicts_write(FILE* f, const uint32_t* kNN_data_conflicts, const flo
 }
 
 void kNN_asso_conflicts_write(FILE* f, const kNN_data_t* kNN_data, const RoI_basic_t* RoIs0_basic,
-                              const RoI_asso_t* RoIs0_asso, const size_t n_RoIs0, const RoI_basic_t* RoIs1_basic,
-                              const RoI_asso_t* RoIs1_asso, const RoI_motion_t* RoIs1_motion, const size_t n_RoIs1) {
+                              const RoI_asso_t* RoIs0_asso, const size_t n_RoIs0, const RoI_motion_t* RoIs1_motion,
+                              const size_t n_RoIs1) {
     // Asso
     int cpt = 0;
     for (size_t i = 0; i < n_RoIs0; i++) {

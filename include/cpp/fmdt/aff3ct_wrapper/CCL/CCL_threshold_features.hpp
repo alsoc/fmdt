@@ -13,9 +13,7 @@
 namespace ccl_tf {
     enum class tsk : size_t { apply, SIZE };
     namespace sck {
-        enum class apply : size_t { in_img, out_labels, out_n_RoIs, out_RoIs_id, out_RoIs_xmin, out_RoIs_xmax,
-                                    out_RoIs_ymin, out_RoIs_ymax, out_RoIs_S, out_RoIs_Sx, out_RoIs_Sy, out_RoIs_Sx2,
-                                    out_RoIs_Sy2, out_RoIs_Sxy, out_RoIs_x, out_RoIs_y, status };
+        enum class apply : size_t { in_img, out_labels, out_RoIs_basic, out_n_RoIs, status };
     }
 }
 

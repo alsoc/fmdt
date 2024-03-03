@@ -20,20 +20,9 @@ CCL_threshold_features::CCL_threshold_features(const int i0, const int i1, const
     auto &p = this->create_task("apply");
     auto ps_in_img = this->template create_2d_socket_in<uint8_t>(p, "in_img", img_n_rows, img_n_cols);
     auto ps_out_labels = this->template create_2d_socket_out<uint32_t>(p, "out_labels", img_n_rows, img_n_cols);
+    auto ps_out_RoIs_basic = this->template create_socket_out<uint8_t>(p, "out_RoIs_basic",
+                                                                       max_RoIs_size * sizeof(RoI_basic_t));
     auto ps_out_n_RoIs = this->template create_socket_out<uint32_t>(p, "out_n_RoIs", 1);
-    auto ps_out_RoIs_id = this->template create_socket_out<uint32_t>(p, "out_RoIs_id", max_RoIs_size);
-    auto ps_out_RoIs_xmin = this->template create_socket_out<uint32_t>(p, "out_RoIs_xmin", max_RoIs_size);
-    auto ps_out_RoIs_xmax = this->template create_socket_out<uint32_t>(p, "out_RoIs_xmax", max_RoIs_size);
-    auto ps_out_RoIs_ymin = this->template create_socket_out<uint32_t>(p, "out_RoIs_ymin", max_RoIs_size);
-    auto ps_out_RoIs_ymax = this->template create_socket_out<uint32_t>(p, "out_RoIs_ymax", max_RoIs_size);
-    auto ps_out_RoIs_S = this->template create_socket_out<uint32_t>(p, "out_RoIs_S", max_RoIs_size);
-    auto ps_out_RoIs_Sx = this->template create_socket_out<uint32_t>(p, "out_RoIs_Sx", max_RoIs_size);
-    auto ps_out_RoIs_Sy = this->template create_socket_out<uint32_t>(p, "out_RoIs_Sy", max_RoIs_size);
-    auto ps_out_RoIs_Sx2 = this->template create_socket_out<uint64_t>(p, "out_RoIs_Sx2", max_RoIs_size);
-    auto ps_out_RoIs_Sy2 = this->template create_socket_out<uint64_t>(p, "out_RoIs_Sy2", max_RoIs_size);
-    auto ps_out_RoIs_Sxy = this->template create_socket_out<uint64_t>(p, "out_RoIs_Sxy", max_RoIs_size);
-    auto ps_out_RoIs_x = this->template create_socket_out<float>(p, "out_RoIs_x", max_RoIs_size);
-    auto ps_out_RoIs_y = this->template create_socket_out<float>(p, "out_RoIs_y", max_RoIs_size);
 
     // if the CCL does not initialize the output img of labels, we need to do it the first time ;-)
     if (no_init_labels) {
@@ -41,34 +30,19 @@ CCL_threshold_features::CCL_threshold_features(const int i0, const int i1, const
         std::fill(out_labels, out_labels + img_n_rows * img_n_cols, 0);
     }
 
-    this->create_codelet(p, [ps_in_img, ps_out_labels, ps_out_n_RoIs, ps_out_RoIs_id, ps_out_RoIs_xmin,
-                             ps_out_RoIs_xmax, ps_out_RoIs_ymin, ps_out_RoIs_ymax, ps_out_RoIs_S, ps_out_RoIs_Sx,
-                             ps_out_RoIs_Sy, ps_out_RoIs_Sx2, ps_out_RoIs_Sy2, ps_out_RoIs_Sxy, ps_out_RoIs_x,
-                             ps_out_RoIs_y]
+    this->create_codelet(p, [ps_in_img, ps_out_labels, ps_out_RoIs_basic, ps_out_n_RoIs]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lsl = static_cast<CCL_threshold_features&>(m);
 
         // calling get_2d_dataptr() has a small overhead (it performs the 1D to 2D conversion)
-        const uint8_t** in_img = t[ps_in_img].get_2d_dataptr<const uint8_t>(lsl.b, lsl.b);
-        uint32_t** out_labels = t[ps_out_labels].get_2d_dataptr<uint32_t>(lsl.b, lsl.b);
+        const uint8_t**    in_img         = t[ps_in_img        ].get_2d_dataptr<const uint8_t    >(lsl.b, lsl.b);
+              uint32_t**   out_labels     = t[ps_out_labels    ].get_2d_dataptr<      uint32_t   >(lsl.b, lsl.b);
+              RoI_basic_t* out_RoIs_basic = t[ps_out_RoIs_basic].get_dataptr   <      RoI_basic_t>();
+              uint32_t*    out_n_RoIs     = t[ps_out_n_RoIs    ].get_dataptr   <      uint32_t   >();
 
-        uint32_t* m_out_n_ROI = static_cast<uint32_t*>(t[ps_out_n_RoIs].get_dataptr());
-        *m_out_n_ROI = _CCL_threshold_features_apply(lsl.data, in_img, out_labels, lsl.threshold,
-                                                     static_cast<uint32_t*>(t[ps_out_RoIs_id].get_dataptr()),
-                                                     static_cast<uint32_t*>(t[ps_out_RoIs_xmin].get_dataptr()),
-                                                     static_cast<uint32_t*>(t[ps_out_RoIs_xmax].get_dataptr()),
-                                                     static_cast<uint32_t*>(t[ps_out_RoIs_ymin].get_dataptr()),
-                                                     static_cast<uint32_t*>(t[ps_out_RoIs_ymax].get_dataptr()),
-                                                     static_cast<uint32_t*>(t[ps_out_RoIs_S].get_dataptr()),
-                                                     static_cast<uint32_t*>(t[ps_out_RoIs_Sx].get_dataptr()),
-                                                     static_cast<uint32_t*>(t[ps_out_RoIs_Sy].get_dataptr()),
-                                                     static_cast<uint64_t*>(t[ps_out_RoIs_Sx2].get_dataptr()),
-                                                     static_cast<uint64_t*>(t[ps_out_RoIs_Sy2].get_dataptr()),
-                                                     static_cast<uint64_t*>(t[ps_out_RoIs_Sxy].get_dataptr()),
-                                                     static_cast<float*>(t[ps_out_RoIs_x].get_dataptr()),
-                                                     static_cast<float*>(t[ps_out_RoIs_y].get_dataptr()),
-                                                     lsl.max_RoIs_size, lsl.no_init_labels);
-        assert(*m_out_n_ROI <= lsl.max_RoIs_size);
+        *out_n_RoIs = CCL_threshold_features_apply(lsl.data, in_img, out_labels, lsl.threshold, out_RoIs_basic,
+                                                   lsl.max_RoIs_size, lsl.no_init_labels);
+        assert(*out_n_RoIs <= lsl.max_RoIs_size);
         return aff3ct::runtime::status_t::SUCCESS;
     });
 }

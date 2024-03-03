@@ -11,8 +11,7 @@
 namespace ftr_lzi {
     enum class tsk : size_t { zinit, SIZE };
     namespace sck {
-        enum class zinit : size_t { fwd_labels, in_RoIs_xmin, in_RoIs_xmax, in_RoIs_ymin, in_RoIs_ymax, in_n_RoIs,
-                                    status };
+        enum class zinit : size_t { in_RoIs_basic, in_n_RoIs, fwd_labels, status };
     }
 }
 

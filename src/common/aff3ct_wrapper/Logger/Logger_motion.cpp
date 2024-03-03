@@ -26,9 +26,8 @@ Logger_motion::Logger_motion(const std::string motion_path, const size_t fra_sta
             snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_mtn.motion_path.c_str(), frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
-            motion_write(file,
-                         static_cast<const motion_t*>(t[ps_in_motion_est1].get_dataptr()),
-                         static_cast<const motion_t*>(t[ps_in_motion_est2].get_dataptr()));
+            motion_write(file, t[ps_in_motion_est1].get_dataptr<const motion_t>(),
+                               t[ps_in_motion_est2].get_dataptr<const motion_t>());
             fclose(file);
         }
         return aff3ct::runtime::status_t::SUCCESS;

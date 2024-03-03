@@ -11,9 +11,8 @@
 namespace mtn {
     enum class tsk : size_t { compute, SIZE };
     namespace sck {
-        enum class compute : size_t { in_RoIs0_x, in_RoIs0_y, in_RoIs1_x, in_RoIs1_y, in_RoIs1_prev_id, in_n_RoIs1,
-                                      out_RoIs1_dx, out_RoIs1_dy, out_RoIs1_error, out_RoIs1_is_moving, out_motion_est1,
-                                      out_motion_est2, status };
+        enum class compute : size_t { in_RoIs0_basic, in_RoIs1_basic, in_RoIs1_asso, in_n_RoIs1, out_RoIs1_motion,
+                                      out_motion_est1, out_motion_est2, status };
     }
 }
 
@@ -27,10 +26,6 @@ public:
     inline aff3ct::runtime::Task& operator[](const mtn::tsk t);
     inline aff3ct::runtime::Socket& operator[](const mtn::sck::compute s);
     inline aff3ct::runtime::Socket& operator[](const std::string &tsk_sck);
-
-protected:
-    using Module::deep_copy;
-    void deep_copy(const Motion &m);
 };
 
 #include "fmdt/aff3ct_wrapper/Motion/Motion.hxx"

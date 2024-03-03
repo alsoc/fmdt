@@ -11,9 +11,7 @@
 namespace ftr_ext {
     enum class tsk : size_t { extract, SIZE };
     namespace sck {
-        enum class extract : size_t { in_labels, in_n_RoIs, out_RoIs_id, out_RoIs_xmin, out_RoIs_xmax, out_RoIs_ymin,
-                                      out_RoIs_ymax, out_RoIs_S, out_RoIs_Sx, out_RoIs_Sy, out_RoIs_Sx2, out_RoIs_Sy2,
-                                      out_RoIs_Sxy, out_RoIs_x, out_RoIs_y, status };
+        enum class extract : size_t { in_labels, in_n_RoIs, out_RoIs_basic, status };
     }
 }
 

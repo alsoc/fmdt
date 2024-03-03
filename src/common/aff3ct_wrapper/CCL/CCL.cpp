@@ -24,11 +24,12 @@ CCL::CCL(const int i0, const int i1, const int j0, const int j1, const int b, co
         auto &lsl = static_cast<CCL&>(m);
 
         // calling get_2d_dataptr() has a small overhead (it performs the 1D to 2D conversion)
-        const uint8_t** in_img = t[ps_in_img].get_2d_dataptr<const uint8_t>(lsl.b, lsl.b);
-        uint32_t** out_labels = t[ps_out_labels].get_2d_dataptr<uint32_t>(lsl.b, lsl.b);
+        const uint8_t**  in_img     = t[ps_in_img    ].get_2d_dataptr<const uint8_t >(lsl.b, lsl.b);
+              uint32_t** out_labels = t[ps_out_labels].get_2d_dataptr<      uint32_t>(lsl.b, lsl.b);
+              uint32_t*  out_n_RoIs = t[ps_out_n_RoIs].get_dataptr   <      uint32_t>();
 
-        uint32_t* m_out_n_ROI = static_cast<uint32_t*>(t[ps_out_n_RoIs].get_dataptr());
-        *m_out_n_ROI = CCL_apply(lsl.data, in_img, out_labels, 0);
+        *out_n_RoIs = CCL_apply(lsl.data, in_img, out_labels, 0);
+
         return aff3ct::runtime::status_t::SUCCESS;
     });
 }

@@ -11,8 +11,7 @@
 namespace ftr_ell {
     enum class tsk : size_t { compute, SIZE };
     namespace sck {
-        enum class compute : size_t { in_RoIs_S, in_RoIs_Sx, in_RoIs_Sy, in_RoIs_Sx2, in_RoIs_Sy2, in_RoIs_Sxy,
-                                      in_n_RoIs, out_RoIs_a, out_RoIs_b, status };
+        enum class compute : size_t { in_RoIs_basic, in_n_RoIs, out_RoIs_elli, status };
     }
 }
 

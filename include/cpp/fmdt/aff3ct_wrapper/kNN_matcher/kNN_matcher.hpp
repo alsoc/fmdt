@@ -11,9 +11,8 @@
 namespace knn {
     enum class tsk : size_t { match, SIZE };
     namespace sck {
-        enum class match : size_t { in_RoIs0_id, in_RoIs0_S, in_RoIs0_x, in_RoIs0_y, in_n_RoIs0, in_RoIs1_id,
-                                    in_RoIs1_S, in_RoIs1_x, in_RoIs1_y, in_n_RoIs1, out_RoIs0_next_id,
-                                    out_RoIs1_prev_id, out_data_distances, out_data_nearest, out_data_conflicts,
+        enum class match : size_t { in_RoIs0_basic, in_n_RoIs0, in_RoIs1_basic, in_n_RoIs1, out_RoIs0_asso,
+                                    out_RoIs1_asso, out_data_distances, out_data_nearest, out_data_conflicts,
                                     status };
     }
 }

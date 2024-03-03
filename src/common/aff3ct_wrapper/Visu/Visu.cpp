@@ -23,34 +23,21 @@ Visu::Visu(const char* path, const size_t start, const size_t n_ffmpeg_threads, 
     auto &p = this->create_task("display");
     auto ps_in_frame = this->template create_socket_in<uint32_t>(p, "in_frame", 1);
     auto ps_in_img = this->template create_2d_socket_in<uint8_t>(p, "in_img", img_n_rows, img_n_cols);
-    auto ps_in_RoIs_xmin = this->template create_socket_in<uint32_t>(p, "in_RoIs_xmin", max_RoIs_size);
-    auto ps_in_RoIs_xmax = this->template create_socket_in<uint32_t>(p, "in_RoIs_xmax", max_RoIs_size);
-    auto ps_in_RoIs_ymin = this->template create_socket_in<uint32_t>(p, "in_RoIs_ymin", max_RoIs_size);
-    auto ps_in_RoIs_ymax = this->template create_socket_in<uint32_t>(p, "in_RoIs_ymax", max_RoIs_size);
-    auto ps_in_RoIs_x = this->template create_socket_in<float>(p, "in_RoIs_x", max_RoIs_size);
-    auto ps_in_RoIs_y = this->template create_socket_in<float>(p, "in_RoIs_y", max_RoIs_size);
+    auto ps_in_RoIs_basic = this->template create_socket_in<uint8_t>(p, "in_RoIs_basic",
+                                                                     max_RoIs_size * sizeof(RoI_basic_t));
     auto ps_in_n_RoIs = this->template create_socket_in<uint32_t>(p, "in_n_RoIs", 1);
 
-    this->create_codelet(p, [ps_in_frame, ps_in_img, ps_in_RoIs_xmin, ps_in_RoIs_xmax, ps_in_RoIs_ymin,
-                             ps_in_RoIs_ymax, ps_in_RoIs_x, ps_in_RoIs_y, ps_in_n_RoIs]
+    this->create_codelet(p, [ps_in_frame, ps_in_img, ps_in_RoIs_basic, ps_in_n_RoIs]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &vis = static_cast<Visu&>(m);
 
-        const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
-
+        const uint32_t     in_frame      = *t[ps_in_frame     ].get_dataptr   <const uint32_t   >();
         // calling get_2d_dataptr() has a small overhead (it performs the 1D to 2D conversion)
-        const uint8_t** in_img = t[ps_in_img].get_2d_dataptr<const uint8_t>(vis.b, vis.b);
+        const uint8_t**    in_img        =  t[ps_in_img       ].get_2d_dataptr<const uint8_t    >(vis.b, vis.b);
+        const RoI_basic_t* in_RoIs_basic =  t[ps_in_RoIs_basic].get_dataptr   <const RoI_basic_t>();
+        const uint32_t     in_n_RoIs     = *t[ps_in_n_RoIs    ].get_dataptr   <const uint32_t   >();
 
-        _visu_display(vis.visu_data,
-                      in_img,
-                      static_cast<const uint32_t*>(t[ps_in_RoIs_xmin].get_dataptr()),
-                      static_cast<const uint32_t*>(t[ps_in_RoIs_xmax].get_dataptr()),
-                      static_cast<const uint32_t*>(t[ps_in_RoIs_ymin].get_dataptr()),
-                      static_cast<const uint32_t*>(t[ps_in_RoIs_ymax].get_dataptr()),
-                      static_cast<const float*>(t[ps_in_RoIs_x].get_dataptr()),
-                      static_cast<const float*>(t[ps_in_RoIs_y].get_dataptr()),
-                      *static_cast<const uint32_t*>(t[ps_in_n_RoIs].get_dataptr()),
-                      vis.tracking_data->tracks, frame);
+        visu_display(vis.visu_data, in_img, in_RoIs_basic, in_n_RoIs, vis.tracking_data->tracks, in_frame);
 
         return aff3ct::runtime::status_t::SUCCESS;
     });

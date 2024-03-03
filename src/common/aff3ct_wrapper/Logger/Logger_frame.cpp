@@ -24,31 +24,20 @@ Logger_frame::Logger_frame(const std::string frames_path, const size_t fra_start
 
     auto &p = this->create_task("write");
     auto ps_in_labels = this->template create_2d_socket_in<uint32_t>(p, "in_labels", img_n_rows, img_n_cols);
-
-    auto ps_in_RoIs_id = this->template create_socket_in<uint32_t>(p, "in_RoIs_id", max_RoIs_size);
-    auto ps_in_RoIs_xmin = this->template create_socket_in<uint32_t>(p, "in_RoIs_xmin", max_RoIs_size);
-    auto ps_in_RoIs_xmax = this->template create_socket_in<uint32_t>(p, "in_RoIs_xmax", max_RoIs_size);
-    auto ps_in_RoIs_ymin = this->template create_socket_in<uint32_t>(p, "in_RoIs_ymin", max_RoIs_size);
-    auto ps_in_RoIs_ymax = this->template create_socket_in<uint32_t>(p, "in_RoIs_ymax", max_RoIs_size);
+    auto ps_in_RoIs_basic = this->template create_socket_in<uint8_t>(p, "in_RoIs_basic",
+                                                                     max_RoIs_size * sizeof(RoI_basic_t));
     auto ps_in_n_RoIs = this->template create_socket_in<uint32_t>(p, "in_n_RoIs", 1);
 
-    this->create_codelet(p, [ps_in_labels, ps_in_RoIs_id, ps_in_RoIs_xmax, ps_in_RoIs_ymin, ps_in_RoIs_xmin,
-                             ps_in_RoIs_ymax, ps_in_n_RoIs]
+    this->create_codelet(p, [ps_in_labels, ps_in_RoIs_basic, ps_in_n_RoIs]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_fra = static_cast<Logger_frame&>(m);
 
         // calling get_2d_dataptr() has a small overhead (it performs the 1D to 2D conversion)
-        const uint32_t** in_labels = t[ps_in_labels].get_2d_dataptr<const uint32_t>(lgr_fra.b, lgr_fra.b);
+        const uint32_t**   in_labels      =  t[ps_in_labels    ].get_2d_dataptr<const uint32_t   >(lgr_fra.b, lgr_fra.b);
+        const RoI_basic_t* in_RoIs_basic  =  t[ps_in_RoIs_basic].get_dataptr   <const RoI_basic_t>();
+        const uint32_t     in_n_RoIs      = *t[ps_in_n_RoIs    ].get_dataptr   <const uint32_t   >();
 
-        _image_gs_draw_labels(lgr_fra.img_data,
-                              in_labels,
-                              static_cast<const uint32_t*>(t[ps_in_RoIs_id].get_dataptr()),
-                              static_cast<const uint32_t*>(t[ps_in_RoIs_xmin].get_dataptr()),
-                              static_cast<const uint32_t*>(t[ps_in_RoIs_xmax].get_dataptr()),
-                              static_cast<const uint32_t*>(t[ps_in_RoIs_ymin].get_dataptr()),
-                              static_cast<const uint32_t*>(t[ps_in_RoIs_ymax].get_dataptr()),
-                              *static_cast<const uint32_t*>(t[ps_in_n_RoIs].get_dataptr()),
-                              lgr_fra.show_id);
+        image_gs_draw_labels(lgr_fra.img_data, in_labels, in_RoIs_basic, in_n_RoIs, lgr_fra.show_id);
         video_writer_save_frame(lgr_fra.video_writer, (const uint8_t**)image_gs_get_pixels_2d(lgr_fra.img_data));
 
         return aff3ct::runtime::status_t::SUCCESS;

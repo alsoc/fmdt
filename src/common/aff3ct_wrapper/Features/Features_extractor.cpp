@@ -16,46 +16,20 @@ Features_extractor::Features_extractor(const int i0, const int i1, const int j0,
     auto &p = this->create_task("extract");
     auto ps_in_labels = this->template create_2d_socket_in<uint32_t>(p, "in_labels", img_n_rows, img_n_cols);
     auto ps_in_n_RoIs = this->template create_socket_in<uint32_t>(p, "in_n_RoIs", 1);
-    auto ps_out_RoIs_id = this->template create_socket_out<uint32_t>(p, "out_RoIs_id", max_RoIs_size);
-    auto ps_out_RoIs_xmin = this->template create_socket_out<uint32_t>(p, "out_RoIs_xmin", max_RoIs_size);
-    auto ps_out_RoIs_xmax = this->template create_socket_out<uint32_t>(p, "out_RoIs_xmax", max_RoIs_size);
-    auto ps_out_RoIs_ymin = this->template create_socket_out<uint32_t>(p, "out_RoIs_ymin", max_RoIs_size);
-    auto ps_out_RoIs_ymax = this->template create_socket_out<uint32_t>(p, "out_RoIs_ymax", max_RoIs_size);
-    auto ps_out_RoIs_S = this->template create_socket_out<uint32_t>(p, "out_RoIs_S", max_RoIs_size);
-    auto ps_out_RoIs_Sx = this->template create_socket_out<uint32_t>(p, "out_RoIs_Sx", max_RoIs_size);
-    auto ps_out_RoIs_Sy = this->template create_socket_out<uint32_t>(p, "out_RoIs_Sy", max_RoIs_size);
-    auto ps_out_RoIs_Sx2 = this->template create_socket_out<uint64_t>(p, "out_RoIs_Sx2", max_RoIs_size);
-    auto ps_out_RoIs_Sy2 = this->template create_socket_out<uint64_t>(p, "out_RoIs_Sy2", max_RoIs_size);
-    auto ps_out_RoIs_Sxy = this->template create_socket_out<uint64_t>(p, "out_RoIs_Sxy", max_RoIs_size);
-    auto ps_out_RoIs_x = this->template create_socket_out<float>(p, "out_RoIs_x", max_RoIs_size);
-    auto ps_out_RoIs_y = this->template create_socket_out<float>(p, "out_RoIs_y", max_RoIs_size);
+    auto ps_out_RoIs_basic = this->template create_socket_out<uint8_t>(p, "out_RoIs_basic",
+                                                                       max_RoIs_size * sizeof(RoI_basic_t));
 
-    this->create_codelet(p, [ps_in_labels, ps_in_n_RoIs, ps_out_RoIs_id, ps_out_RoIs_xmin, ps_out_RoIs_xmax,
-                             ps_out_RoIs_ymin, ps_out_RoIs_ymax, ps_out_RoIs_S, ps_out_RoIs_Sx, ps_out_RoIs_Sy,
-                             ps_out_RoIs_Sx2, ps_out_RoIs_Sy2, ps_out_RoIs_Sxy, ps_out_RoIs_x, ps_out_RoIs_y]
+    this->create_codelet(p, [ps_in_labels, ps_in_n_RoIs, ps_out_RoIs_basic]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &ext = static_cast<Features_extractor&>(m);
         
         // calling get_2d_dataptr() has a small overhead (it performs the 1D to 2D conversion)
-        const uint32_t** in_labels = t[ps_in_labels].get_2d_dataptr<const uint32_t>(ext.b, ext.b);
+        const uint32_t**   in_labels      =  t[ps_in_labels     ].get_2d_dataptr<const uint32_t   >(ext.b, ext.b);
+        const uint32_t     in_n_RoIs      = *t[ps_in_n_RoIs     ].get_dataptr   <const uint32_t   >();
+              RoI_basic_t* out_RoIs_basic =  t[ps_out_RoIs_basic].get_dataptr   <      RoI_basic_t>();
+        assert(in_n_RoIs <= ext.max_RoIs_size);
 
-        uint32_t n_RoIs = *static_cast<uint32_t*>(t[ps_in_n_RoIs].get_dataptr());
-        assert(n_RoIs <= ext.max_RoIs_size);
-        _features_extract(in_labels, ext.i0, ext.i1, ext.j0, ext.j1,
-                          static_cast<uint32_t*>(t[ps_out_RoIs_id].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_RoIs_xmin].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_RoIs_xmax].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_RoIs_ymin].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_RoIs_ymax].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_RoIs_S].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_RoIs_Sx].get_dataptr()),
-                          static_cast<uint32_t*>(t[ps_out_RoIs_Sy].get_dataptr()),
-                          static_cast<uint64_t*>(t[ps_out_RoIs_Sx2].get_dataptr()),
-                          static_cast<uint64_t*>(t[ps_out_RoIs_Sy2].get_dataptr()),
-                          static_cast<uint64_t*>(t[ps_out_RoIs_Sxy].get_dataptr()),
-                          static_cast<float*>(t[ps_out_RoIs_x].get_dataptr()),
-                          static_cast<float*>(t[ps_out_RoIs_y].get_dataptr()),
-                          n_RoIs);
+        features_extract(in_labels, ext.i0, ext.i1, ext.j0, ext.j1, out_RoIs_basic, in_n_RoIs);
 
         return aff3ct::runtime::status_t::SUCCESS;
     });

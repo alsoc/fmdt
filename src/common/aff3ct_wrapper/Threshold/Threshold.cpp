@@ -21,8 +21,8 @@ Threshold::Threshold(const int i0, const int i1, const int j0, const int j1, con
         auto &thr = static_cast<Threshold&>(m);
         
         // calling get_2d_dataptr() has a small overhead (it performs the 1D to 2D conversion)
-        const uint8_t** in_img = t[ps_in_img].get_2d_dataptr<const uint8_t>(thr.b, thr.b);
-        uint8_t** out_img = t[ps_out_img].get_2d_dataptr<uint8_t>(thr.b, thr.b);
+        const uint8_t** in_img  = t[ps_in_img ].get_2d_dataptr<const uint8_t>(thr.b, thr.b);
+              uint8_t** out_img = t[ps_out_img].get_2d_dataptr<      uint8_t>(thr.b, thr.b);
 
         threshold(in_img, out_img, thr.i0, thr.i1, thr.j0, thr.j1, thr.thr_val);
         return aff3ct::runtime::status_t::SUCCESS;

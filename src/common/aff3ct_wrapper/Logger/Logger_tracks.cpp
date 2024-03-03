@@ -22,11 +22,11 @@ Logger_tracks::Logger_tracks(const std::string tracks_path, const size_t fra_sta
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lgr_trk = static_cast<Logger_tracks&>(m);
 
-        const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
+        const uint32_t in_frame = *t[ps_in_frame].get_dataptr<const uint32_t>();
 
-        if (frame > (uint32_t)lgr_trk.fra_start && !lgr_trk.tracks_path.empty()) {
+        if (in_frame > (uint32_t)lgr_trk.fra_start && !lgr_trk.tracks_path.empty()) {
             char file_path[256];
-            snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_trk.tracks_path.c_str(), frame);
+            snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_trk.tracks_path.c_str(), in_frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
             tracking_tracks_write_full(file, lgr_trk.tracking_data->tracks);

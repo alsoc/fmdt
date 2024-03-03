@@ -8,10 +8,10 @@
 
 #include "fmdt/motion/motion_compute.h"
 
-void _motion_rigid_registration_corrected(const RoI_basic_t* RoIs0_basic, const size_t n_RoIs0,
-                                          const RoI_basic_t* RoIs1_basic, const RoI_asso_t* RoIs1_asso,
-                                          RoI_motion_t* RoIs1_motion, const size_t n_RoIs1, float* theta, float* tx,
-                                          float* ty, float mean_error, float std_deviation) {
+void _motion_rigid_registration_corrected(const RoI_basic_t* RoIs0_basic, const RoI_basic_t* RoIs1_basic,
+                                          const RoI_asso_t* RoIs1_asso, RoI_motion_t* RoIs1_motion,
+                                          const size_t n_RoIs1, float* theta, float* tx, float* ty, float mean_error,
+                                          float std_deviation) {
     float Sx = 0, Sxp = 0, Sy = 0, Syp = 0, Sx_xp = 0, Sxp_y = 0, Sx_yp = 0, Sy_yp = 0;
     int cpt = 0, asso;
 
@@ -71,11 +71,10 @@ void _motion_rigid_registration_corrected(const RoI_basic_t* RoIs0_basic, const 
     *ty = ypg - sinf(*theta) * xg - cosf(*theta) * yg;
 }
 
-void _motion_rigid_registration(const RoI_basic_t* RoIs0_basic, const size_t n_RoIs0, const RoI_basic_t* RoIs1_basic,
+void _motion_rigid_registration(const RoI_basic_t* RoIs0_basic, const RoI_basic_t* RoIs1_basic,
                                 const RoI_asso_t* RoIs1_asso, const size_t n_RoIs1, float* theta, float* tx,
                                 float* ty) {
-    _motion_rigid_registration_corrected(RoIs0_basic, n_RoIs0, RoIs1_basic, RoIs1_asso, NULL, n_RoIs1, theta, tx, ty,
-                                         0.f, 0.f);
+    _motion_rigid_registration_corrected(RoIs0_basic, RoIs1_basic, RoIs1_asso, NULL, n_RoIs1, theta, tx, ty, 0.f, 0.f);
 }
 
 // TODO: Pour l'optimisation : faire une version errorMoy_corrected()
@@ -135,20 +134,19 @@ void _motion_extraction(const RoI_basic_t* RoIs0_basic, const RoI_basic_t* RoIs1
     }
 }
 
-void motion_compute(const RoI_basic_t* RoIs0_basic, const size_t n_RoIs0, const RoI_basic_t* RoIs1_basic,
-                    const RoI_asso_t* RoIs1_asso, RoI_motion_t* RoIs1_motion, const size_t n_RoIs1,
-                    motion_t* motion_est1, motion_t* motion_est2) {
+void motion_compute(const RoI_basic_t* RoIs0_basic, const RoI_basic_t* RoIs1_basic, const RoI_asso_t* RoIs1_asso,
+                    RoI_motion_t* RoIs1_motion, const size_t n_RoIs1, motion_t* motion_est1, motion_t* motion_est2) {
     for (size_t r = 0; r < n_RoIs1; r++)
         RoIs1_motion[r].is_moving = 0;
 
-    _motion_rigid_registration(RoIs0_basic, n_RoIs0, RoIs1_basic, RoIs1_asso, n_RoIs1, &motion_est1->theta,
-                               &motion_est1->tx, &motion_est1->ty);
+    _motion_rigid_registration(RoIs0_basic, RoIs1_basic, RoIs1_asso, n_RoIs1, &motion_est1->theta, &motion_est1->tx,
+                               &motion_est1->ty);
     _motion_extraction(RoIs0_basic, RoIs1_basic, RoIs1_asso, RoIs1_motion, n_RoIs1, motion_est1->theta, motion_est1->tx,
                        motion_est1->ty);
     motion_est1->mean_error = _motion_compute_mean_error(RoIs1_asso, RoIs1_motion, n_RoIs1);
     motion_est1->std_deviation = _motion_compute_std_deviation(RoIs1_asso, RoIs1_motion, n_RoIs1,
                                                                motion_est1->mean_error);
-    _motion_rigid_registration_corrected(RoIs0_basic, n_RoIs0, RoIs1_basic, RoIs1_asso, RoIs1_motion, n_RoIs1,
+    _motion_rigid_registration_corrected(RoIs0_basic, RoIs1_basic, RoIs1_asso, RoIs1_motion, n_RoIs1,
                                          &motion_est2->theta, &motion_est2->tx, &motion_est2->ty,
                                          motion_est1->mean_error, motion_est1->std_deviation);
     _motion_extraction(RoIs0_basic, RoIs1_basic, RoIs1_asso, RoIs1_motion, n_RoIs1, motion_est2->theta, motion_est2->tx,

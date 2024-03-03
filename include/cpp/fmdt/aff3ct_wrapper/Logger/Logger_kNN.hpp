@@ -11,9 +11,8 @@
 namespace lgr_knn {
     enum class tsk : size_t { write, SIZE };
     namespace sck {
-        enum class write : size_t { in_data_nearest, in_data_distances, in_data_conflicts, in_RoIs0_id,
-                                    in_RoIs0_next_id, in_n_RoIs0, in_RoIs1_dx, in_RoIs1_dy, in_RoIs1_error,
-                                    in_RoIs1_is_moving, in_n_RoIs1, in_frame, status };
+        enum class write : size_t { in_data_nearest, in_data_distances, in_data_conflicts, in_RoIs0_basic,
+                                    in_RoIs0_asso, in_n_RoIs0, in_RoIs1_error, in_n_RoIs1, in_frame, status };
     }
 }
 

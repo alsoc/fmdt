@@ -412,7 +412,7 @@ int main(int argc, char** argv) {
 
         // step 5: motion estimation
         motion_t motion_est1, motion_est2;
-        motion_compute(RoIs0->basic, RoIs0->_size, RoIs1->basic, RoIs1->asso, RoIs1->motion, RoIs1->_size, &motion_est1,
+        motion_compute(RoIs0->basic, RoIs1->basic, RoIs1->asso, RoIs1->motion, RoIs1->_size, &motion_est1,
                        &motion_est2);
 
         // step 6: tracking
@@ -441,8 +441,8 @@ int main(int argc, char** argv) {
                                        RoIs1->basic, RoIs1->magn, RoIs1->elli, RoIs1->_size, tracking_data->tracks);
             if (cur_fra > p_vid_in_start) {
                 fprintf(f, "#\n");
-                kNN_asso_conflicts_write(f, knn_data, RoIs0->basic, RoIs0->asso, RoIs0->_size, RoIs1->basic,
-                                         RoIs1->asso, RoIs1->motion, RoIs1->_size);
+                kNN_asso_conflicts_write(f, knn_data, RoIs0->basic, RoIs0->asso, RoIs0->_size, RoIs1->motion,
+                                         RoIs1->_size);
                 fprintf(f, "#\n");
                 motion_write(f, &motion_est1, &motion_est2);
                 fprintf(f, "#\n");

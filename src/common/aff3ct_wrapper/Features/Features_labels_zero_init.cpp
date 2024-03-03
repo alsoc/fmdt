@@ -14,27 +14,21 @@ Features_labels_zero_init::Features_labels_zero_init(const int i0, const int i1,
     const size_t img_n_cols = (j1 - j0) + 1 + 2 * b;
 
     auto &p = this->create_task("zinit");
-    auto ps_fwd_labels = this->template create_2d_socket_fwd<uint32_t>(p, "in_out_labels", img_n_rows, img_n_cols);
-    auto ps_in_RoIs_xmin = this->template create_socket_in<uint32_t>(p, "in_RoIs_xmin", max_in_RoIs_size);
-    auto ps_in_RoIs_xmax = this->template create_socket_in<uint32_t>(p, "in_RoIs_xmax", max_in_RoIs_size);
-    auto ps_in_RoIs_ymin = this->template create_socket_in<uint32_t>(p, "in_RoIs_ymin", max_in_RoIs_size);
-    auto ps_in_RoIs_ymax = this->template create_socket_in<uint32_t>(p, "in_RoIs_ymax", max_in_RoIs_size);
+    auto ps_in_RoIs_basic = this->template create_socket_in<uint8_t>(p, "in_RoIs_basic",
+                                                                     max_in_RoIs_size * sizeof(RoI_basic_t));
     auto ps_in_n_RoIs = this->template create_socket_in<uint32_t>(p, "in_n_RoIs", 1);
+    auto ps_fwd_labels = this->template create_2d_socket_fwd<uint32_t>(p, "fwd_labels", img_n_rows, img_n_cols);
 
-    this->create_codelet(p, [ps_fwd_labels, ps_in_RoIs_xmin, ps_in_RoIs_xmax, ps_in_RoIs_ymin, ps_in_RoIs_ymax,
-                             ps_in_n_RoIs]
+    this->create_codelet(p, [ps_in_RoIs_basic, ps_in_n_RoIs, ps_fwd_labels]
                          (aff3ct::module::Module &m, aff3ct::runtime::Task &t, const size_t frame_id) -> int {
         auto &lzi = static_cast<Features_labels_zero_init&>(m);
 
+        const RoI_basic_t* in_RoIs_basic =  t[ps_in_RoIs_basic].get_dataptr   <const RoI_basic_t>();
+        const uint32_t     in_n_RoIs     = *t[ps_in_n_RoIs    ].get_dataptr   <const uint32_t   >();
         // calling get_2d_dataptr() has a small overhead (it performs the 1D to 2D conversion)
-        uint32_t** fwd_labels = t[ps_fwd_labels].get_2d_dataptr<uint32_t>(lzi.b, lzi.b);
+              uint32_t**   fwd_labels    =  t[ps_fwd_labels   ].get_2d_dataptr<      uint32_t   >(lzi.b, lzi.b);
 
-        _features_labels_zero_init(static_cast<const uint32_t*>(t[ps_in_RoIs_xmin].get_dataptr()),
-                                   static_cast<const uint32_t*>(t[ps_in_RoIs_xmax].get_dataptr()),
-                                   static_cast<const uint32_t*>(t[ps_in_RoIs_ymin].get_dataptr()),
-                                   static_cast<const uint32_t*>(t[ps_in_RoIs_ymax].get_dataptr()),
-                                   *static_cast<const uint32_t*>(t[ps_in_n_RoIs].get_dataptr()),
-                                   fwd_labels);
+        features_labels_zero_init(in_RoIs_basic, in_n_RoIs, fwd_labels);
 
         return aff3ct::runtime::status_t::SUCCESS;
     });

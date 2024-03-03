@@ -19,11 +19,9 @@
  * @param RoIs0_basic Basic features (at \f$t -1\f$).
  * @param RoIs0_asso Association features at \f$t - 1\f$.
  * @param n_RoIs0 Number of connected-components (= number of RoIs) (at \f$t - 1\f$).
- * @param RoIs1_basic Basic features (at \f$t\f$).
- * @param RoIs1_asso Association features at \f$t\f$.
  * @param RoIs1_motion Motion features at \f$t\f$ (can be NULL).
  * @param n_RoIs1 Number of connected-components (= number of RoIs) (at \f$t\f$).
  */
 void kNN_asso_conflicts_write(FILE* f, const kNN_data_t* kNN_data, const RoI_basic_t* RoIs0_basic,
-                              const RoI_asso_t* RoIs0_asso, const size_t n_RoIs0, const RoI_basic_t* RoIs1_basic,
-                              const RoI_asso_t* RoIs1_asso, const RoI_motion_t* RoIs1_motion, const size_t n_RoIs1);
+                              const RoI_asso_t* RoIs0_asso, const size_t n_RoIs0, const RoI_motion_t* RoIs1_motion,
+                              const size_t n_RoIs1);
