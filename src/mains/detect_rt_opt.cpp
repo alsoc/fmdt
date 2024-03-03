@@ -554,7 +554,7 @@ int main(int argc, char** argv) {
     }
 
     if (p_out_probes) {
-        (*ts_s2e)("exec") = merger("merge");
+        (*ts_s2e)("exec") = labels0("zinit");
         (*prb_ts_s2e)["probe::in"] = (*ts_s2e)["exec::out"];
         (*prb_ts_s3b)("probe") = (*prb_ts_s2e)("probe");
     }
@@ -739,8 +739,7 @@ int main(int argc, char** argv) {
               &lsl("apply"),
               &merger("merge"),
               &magnitude("compute"),
-              &ellipse("compute"),
-              &(*ts_s2e)("exec") },
+              &ellipse("compute") },
             { &merger("merge"),
               &magnitude("compute"),
               &ellipse("compute") },
