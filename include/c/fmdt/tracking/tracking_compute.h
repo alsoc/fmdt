@@ -56,7 +56,6 @@ void tracking_free_data(tracking_data_t* tracking_data);
  *                             \f$r_S < r_S^{min}\f$ then the association for the extrapolation is not made.
  * @param min_ellipse_ratio Minimum ellipse ratio of a meteor (for classification). If `0` then this parameter is
  *                          ignored. `RoIs->misc->a` and `RoIs->misc->b` can't be NULL.
- * @see _tracking_perform for the explanations about the nature of the processing.
  */
 void tracking_perform(tracking_data_t* tracking_data, const RoIs_t* RoIs, size_t frame, const motion_t* motion_est,
                       const size_t r_extrapol, const float angle_max, const float diff_dev, const int track_all,

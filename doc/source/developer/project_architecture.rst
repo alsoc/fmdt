@@ -48,30 +48,14 @@ directory. Each file corresponds to a final executable and thus contains a
 Public Interfaces
 """""""""""""""""
 
-Generally there are two levels to call a processing function. For instance, in
-the |k-NN| module and in the ``kNN_compute.h`` header, the two following
-functions are defined:
-
 .. code-block:: c
 
-	void _kNN_match(float** data_distances, uint32_t** data_nearest, uint32_t* data_conflicts, const uint32_t* RoIs0_id,
-	                const uint32_t* RoIs0_S, const float* RoIs0_x, const float* RoIs0_y, uint32_t* RoIs0_next_id,
-	                const size_t n_RoIs0, const uint32_t* RoIs1_id, const uint32_t* RoIs1_S, const float* RoIs1_x,
-	                const float* RoIs1_y, uint32_t* RoIs1_prev_id, const size_t n_RoIs1, const int k,
-	                const uint32_t max_dist, const float min_ratio_S);
+	void kNN_match(kNN_data_t* kNN_data, const RoI_basic_t* RoIs0_basic, RoI_asso_t* RoIs0_asso, const size_t n_RoIs0,
+	               const RoI_basic_t* RoIs1_basic, RoI_asso_t* RoIs1_asso, const size_t n_RoIs1, const int k,
+	               const uint32_t max_dist, const float min_ratio_S);
 
-.. code-block:: c
-
-	void kNN_match(kNN_data_t* kNN_data, const RoIs_basic_t* RoIs0_basic, const RoIs_basic_t* RoIs1_basic,
-	               RoIs_asso_t* RoIs0_asso, RoIs_asso_t* RoIs1_asso, const int k, const uint32_t max_dist,
-	               const float min_ratio_S);
-
-Both functions compute the |k-NN| matching. The function prefixed with an
-underscore (``_kNN_match``) requires only buffers of native types (``float`` and
-``uint32_t`` here) while the other function (``kNN_match``) requires structure
-types (``kNN_data_t``, ``RoIs_basic_t`` and ``RoIs_asso_t``). In the
-implementation, the ``kNN_match`` function simply call the ``_kNN_match``
-function.
+Here is an example of an interface: the ``kNN_match`` fonction requires
+structure types (``kNN_data_t``, ``RoI_basic_t`` and ``RoI_asso_t``).
 
 Compute functions often use inner data. This data is NOT input or output data.
 This is data required to store intermediate results during the computation.
@@ -133,10 +117,10 @@ For instance, in |FMDT|, a C Vector is used to store the final tracks.
 |AFF3CT|-core
 -------------
 
-|AFF3CT|-core is a library that includes a multi-threaded runtime. In |FMDT|,
-this multi-threaded runtime is used to speed the restitution time of the
-final executables. For instance, the ``./src/detect_rt.cpp`` is feature
-compliant with ``./src/detect.cpp``. The main difference is that
+|AFF3CT|-core :cite:`Cassagne2023` is a library that includes a multi-threaded
+runtime. In |FMDT|, this multi-threaded runtime is used to speed the restitution
+time of the final executables. For instance, the ``./src/detect_rt.cpp`` is
+feature compliant with ``./src/detect.cpp``. The main difference is that
 ``./src/detect_rt.cpp`` is multi-threaded with the |AFF3CT|-core library.
 
 .. note:: |AFF3CT|-core is a C++ library. When |FMDT| is linked with
