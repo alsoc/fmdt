@@ -106,7 +106,7 @@ build-linux-gcc-coverage-test-regression:
     - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_OPENCV_LINK=ON -DFMDT_LSL_NEW_INTERFACE=ON -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
-    - ./ci/test-regression.sh
+    - LSLM=ON ./ci/test-regression.sh
     - rm -rf build/bin
     - rm -rf build/lib
     - tar -zcvf build.tar.gz build

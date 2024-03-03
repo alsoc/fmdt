@@ -46,12 +46,15 @@ rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
              --refs-path ${WD}/scripts/regression/refs_detect
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
-./compare.py --build-path ${WD}/${build_root}/bin/ \
-             --list-exe "${list_exe_detect}" \
-             --exe-args "--vid-in-path ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --ccl-impl \"LSLM\" --trk-all --cca-mag --cca-ell --ccl-fra-path ${out_root_dir}/%05d.pgm --log-path ${out_root_dir}" \
-             --out-path "${out_root_dir}" \
-             --refs-path ${WD}/scripts/regression/refs_detect
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+if [ "$LSLM" == "ON" ]
+then
+    ./compare.py --build-path ${WD}/${build_root}/bin/ \
+                 --list-exe "${list_exe_detect}" \
+                 --exe-args "--vid-in-path ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --ccl-impl \"LSLM\" --trk-all --cca-mag --cca-ell --ccl-fra-path ${out_root_dir}/%05d.pgm --log-path ${out_root_dir}" \
+                 --out-path "${out_root_dir}" \
+                 --refs-path ${WD}/scripts/regression/refs_detect
+    rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
+fi
 
 # -----------------------------------------------------------------------------
 # ---------------------------------------------------------------- fmdt-ellipse
