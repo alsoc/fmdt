@@ -27,6 +27,3 @@ done
 mkdir code_coverage_report || true
 genhtml code_coverage_files/*_clean.info --output-directory ./code_coverage_report/
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
-
-lcov_cobertura.py code_coverage_files/*_clean.info --output code_coverage_report/fmdt.xml
-rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
