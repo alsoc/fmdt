@@ -240,10 +240,10 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-linux-gcc-coverage-test-regression
-          path: build/
+          path: build-linux-gcc-coverage-test-regression/
       - name: Generate Code Coverage Report Files
         run: |
-          mv build/build build
+          mv build-linux-gcc-coverage-test-regression/build build
           ./ci/coverage-linux.sh
         shell: bash
       - name: Upload Artifacts
