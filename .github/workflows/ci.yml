@@ -154,10 +154,9 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-linux-gcc-c
-          path: build_linux_gcc_c.tar.gz
+          path: build_linux_gcc_c/
       - name: Run Regression Tests
         run: |
-          tar -xvvf build_linux_gcc_c.tar.gz
           mkdir build
           mkdir build/bin
           mv build_linux_gcc_c/* build/bin
@@ -174,6 +173,8 @@ jobs:
     needs: [build-linux-gcc-c, build-linux-clang-c]
     container: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_valgrind
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
       - name: Download Artifacts GCC
         uses: actions/download-artifact@v4
         with:
@@ -199,6 +200,8 @@ jobs:
     needs: [build-linux-gcc, build-linux-clang]
     container: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_valgrind
     steps:
+      - name: Checkout Code
+        uses: actions/checkout@v4
       - name: Download Artifacts GCC
         uses: actions/download-artifact@v4
         with:
