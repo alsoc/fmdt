@@ -38,13 +38,12 @@ jobs:
           export NAME="build_linux_gcc_c"
           source ./ci/tools/threads.sh
           ./ci/build-linux-macos.sh
-          tar -zcvf build_linux_gcc_c.tar.gz build_linux_gcc_c
         shell: bash
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-linux-gcc-c
-          path: build_linux_gcc_c.tar.gz
+          path: build_linux_gcc_c/
   build-linux-gcc:
     runs-on: ubuntu-latest
     container: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_gcc:v9.3.0
@@ -62,14 +61,13 @@ jobs:
           export NAME="build_linux_gcc"
           source ./ci/tools/threads.sh
           ./ci/build-linux-macos.sh
-          tar -zcvf build_linux_gcc.tar.gz build_linux_gcc
         shell: bash
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-linux-gcc
-          path: build_linux_gcc.tar.gz
-  build-linux-gcc-coverage-test-regression:
+          path: build_linux_gcc/
+  build-linux-gcc-test-regression-coverage:
     runs-on: ubuntu-latest
     container: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_coverage
     steps:
@@ -87,6 +85,7 @@ jobs:
           source ./ci/tools/threads.sh
           ./ci/build-linux-macos.sh
           LSLM=OFF ./ci/test-regression.sh
+          ./ci/coverage-linux.sh
           rm -rf build/bin
           rm -rf build/lib
           tar -zcvf fmdt_outputs.tar.gz scripts/regression/output*
@@ -94,9 +93,9 @@ jobs:
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
-          name: build-linux-gcc-coverage-test-regression
+          name: build-linux-gcc-test-regression-coverage
           path: |
-            build/
+            code_coverage_report/
             fmdt_outputs.tar.gz
   build-linux-clang:
     runs-on: ubuntu-latest
@@ -115,13 +114,12 @@ jobs:
           export NAME="build_linux_clang"
           source ./ci/tools/threads.sh
           ./ci/build-linux-macos.sh
-          tar -zcvf build_linux_clang.tar.gz build_linux_clang
         shell: bash
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-linux-clang
-          path: build_linux_clang.tar.gz
+          path: build_linux_clang/
   build-linux-clang-c:
     runs-on: ubuntu-latest
     container: registry.gitlab.com/aff3ct/aff3ct/x86_64_ubuntu_clang:v10.0.0
@@ -139,13 +137,12 @@ jobs:
           export NAME="build_linux_clang_c"
           source ./ci/tools/threads.sh
           ./ci/build-linux-macos.sh
-          tar -zcvf build_linux_clang_c.tar.gz build_linux_clang_c
         shell: bash
       - name: Upload Artifacts
         uses: actions/upload-artifact@v4
         with:
           name: build-linux-clang-c
-          path: build_linux_clang_c.tar.gz
+          path: build_linux_clang_c/
   test-regression-c:
     runs-on: ubuntu-latest
     needs: [build-linux-gcc-c]
@@ -181,19 +178,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-linux-gcc-c
-          path: build_linux_gcc_c.tar.gz
+          path: build_linux_gcc_c/
       - name: Download Artifacts Clang
         uses: actions/download-artifact@v4
         with:
           name: build-linux-clang-c
-          path: build_linux_clang_c.tar.gz
+          path: build_linux_clang_c/
       - name: Memcheck
         run: |
-          tar -xvvf build_linux_gcc_c.tar.gz
           mkdir build_gcc
           mkdir build_gcc/bin
           mv build_linux_gcc_c/* build_gcc/bin
-          tar -xvvf build_linux_clang_c.tar.gz
           mkdir build_clang
           mkdir build_clang/bin
           mv build_linux_clang_c/* build_clang/bin
@@ -208,19 +203,17 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: build-linux-gcc
-          path: build_linux_gcc.tar.gz
+          path: build_linux_gcc/
       - name: Download Artifacts Clang
         uses: actions/download-artifact@v4
         with:
           name: build-linux-clang
-          path: build_linux_clang.tar.gz
+          path: build_linux_clang/
       - name: Memcheck
         run: |
-          tar -xvvf build_linux_gcc.tar.gz
           mkdir build_gcc
           mkdir build_gcc/bin
           mv build_linux_gcc/* build_gcc/bin
-          tar -xvvf build_linux_clang.tar.gz
           mkdir build_clang
           mkdir build_clang/bin
           mv build_linux_clang/* build_clang/bin
@@ -228,14 +221,14 @@ jobs:
         shell: bash
   coverage:
     runs-on: ubuntu-latest
-    needs: [build-linux-gcc-coverage-test-regression]
+    needs: [build-linux-gcc-test-regression-coverage]
     steps:
       - name: Checkout Code
         uses: actions/checkout@v4
       - name: Download Artifacts
         uses: actions/download-artifact@v4
         with:
-          name: build-linux-gcc-coverage-test-regression
+          name: build-linux-gcc-test-regression-coverage
           path: build/
       - name: Produce the Coverage Report
         uses: insightsengineering/coverage-action@v2
