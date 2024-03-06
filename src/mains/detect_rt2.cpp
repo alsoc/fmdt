@@ -400,6 +400,7 @@ int main(int argc, char** argv) {
     // -- INITIALISATION GLOBAL DATA -- //
     // -------------------------------- //
 
+    aff3ct::tools::setup_signal_handler();
     std::chrono::time_point<std::chrono::steady_clock> t_start_alloc_init = std::chrono::steady_clock::now();
     tracking_init_global_data();
 
