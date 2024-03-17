@@ -36,6 +36,8 @@
 #include "fmdt/video/video_struct.h"
 
 int main(int argc, char** argv) {
+    aff3ct::tools::setup_signal_handler(); // catch "Ctrl+c" signal interruption
+
     // default values
     char* def_p_vid_in_path = NULL;
     int def_p_vid_in_start = 0;
@@ -867,7 +869,7 @@ int main(int argc, char** argv) {
                 if (rt_probes_file.is_open())
                     terminal_probes.temp_report(rt_probes_file);
             }
-            return aff3ct::tools::Terminal::is_interrupt(); // catch "Ctrl+c" signal interruption
+            return false;
         };
 
     std::chrono::time_point<std::chrono::steady_clock> t_stop_alloc_init = std::chrono::steady_clock::now();
