@@ -34,8 +34,6 @@
 #include "fmdt/aff3ct_wrapper/Visu/Visu.hpp"
 
 int main(int argc, char** argv) {
-    aff3ct::tools::setup_signal_handler(); // catch "Ctrl+c" signal interruption
-
     // default values
     char* def_p_vid_in_path = NULL;
     int def_p_vid_in_start = 0;
@@ -399,7 +397,7 @@ int main(int argc, char** argv) {
     // -- GLOBAL DATA INITIALISATION -- //
     // -------------------------------- //
 
-    aff3ct::tools::setup_signal_handler();
+    aff3ct::tools::Signal_handler::init(); // catch "Ctrl+c" signal interruption
     std::chrono::time_point<std::chrono::steady_clock> t_start_alloc_init = std::chrono::steady_clock::now();
     tracking_init_global_data();
 
@@ -468,27 +466,31 @@ int main(int argc, char** argv) {
     }
 
     // create reporters and probes for the real-time probes file
-    size_t inter_frame_lvl = 1;
-    aff3ct::tools::Reporter_probe rep_fra_stats("Frame Counter", inter_frame_lvl);
-    std::unique_ptr<aff3ct::module::Probe<>> prb_fra_id(rep_fra_stats.create_probe_occurrence("ID"));
+    aff3ct::tools::Reporter_probe rep_fra_stats("Frame Counter");
+    aff3ct::module::Probe_occurrence prb_fra_id("ID");
+    rep_fra_stats.register_probes({ &prb_fra_id });
 
-    aff3ct::tools::Reporter_probe rep_thr_stats("Throughput, latency", "and time", inter_frame_lvl);
-    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_thr  (rep_thr_stats.create_probe_throughput("FPS"));
-    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_lat  (rep_thr_stats.create_probe_latency   ("LAT")); // only valid for sequence, invalid for pipeline
-    std::unique_ptr<aff3ct::module::Probe<>> prb_thr_time (rep_thr_stats.create_probe_time      ("TIME"));
+    aff3ct::tools::Reporter_probe rep_thr_stats("Throughput, latency", "and time");
+    aff3ct::module::Probe_throughput prb_thr_thr("FPS"); // only valid for sequence, invalid for pipeline
+    aff3ct::module::Probe_latency prb_thr_lat("LAT"); // only valid for sequence, invalid for pipeline
+    aff3ct::module::Probe_time prb_thr_time("TIME");
+    rep_thr_stats.register_probes({ &prb_thr_thr, &prb_thr_lat, &prb_thr_time });
 
-    aff3ct::tools::Reporter_probe rep_timestamp_stats("Timestamps", "(in microseconds) [SX = stage X, B = begin, E = end]", inter_frame_lvl);
+    aff3ct::tools::Reporter_probe rep_timestamp_stats("Timestamps", "(in microseconds) [SX = stage X, B = begin, E = end]");
     const uint64_t mod = 1000000ul * 60ul * 10; // limit to 10 minutes timestamp
-    const size_t probe_buff = 200; // size of the buffer used by the probes to record values
-    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s1b(rep_timestamp_stats.create_probe_timestamp_mod  ("S1_B", mod,    probe_buff   )); // timestamp stage 1 begin
-    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s1e(rep_timestamp_stats.create_probe_timestamp_mod  ("S1_E", mod,    probe_buff   )); // timestamp stage 1 end
-    std::unique_ptr<aff3ct::module::Probe<uint64_t>> prb_ts_s2b(rep_timestamp_stats.create_probe_value<uint64_t>("S2_B", "(us)", probe_buff, 1)); // timestamp stage 2 begin
-    std::unique_ptr<aff3ct::module::Probe<uint64_t>> prb_ts_s2e(rep_timestamp_stats.create_probe_value<uint64_t>("S2_E", "(us)", probe_buff, 1)); // timestamp stage 2 end
-    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s3b(rep_timestamp_stats.create_probe_timestamp_mod  ("S3_B", mod,    probe_buff   )); // timestamp stage 3 begin
-    std::unique_ptr<aff3ct::module::Probe<>>         prb_ts_s3e(rep_timestamp_stats.create_probe_timestamp_mod  ("S3_E", mod,    probe_buff   )); // timestamp stage 3 end
+    aff3ct::module::Probe_timestamp prb_ts_s1b(mod, "S1_B");
+    aff3ct::module::Probe_timestamp prb_ts_s1e(mod, "S1_E");
+    aff3ct::module::Probe_value<uint64_t> prb_ts_s2b(1, "S2_B");
+    aff3ct::module::Probe_value<uint64_t> prb_ts_s2e(1, "S2_E");
+    aff3ct::module::Probe_timestamp prb_ts_s3b(mod, "S3_B");
+    aff3ct::module::Probe_timestamp prb_ts_s3e(mod, "S3_E");
+    rep_timestamp_stats.register_probes({ &prb_ts_s1b, &prb_ts_s1e, &prb_ts_s2b, &prb_ts_s2e, &prb_ts_s3b,
+                                          &prb_ts_s3e });
+    prb_ts_s2b.set_col_unit("(us)");
+    prb_ts_s2e.set_col_unit("(us)");
+    rep_timestamp_stats.set_cols_buff_size(200);
 
-    const std::vector<aff3ct::tools::Reporter*>& reporters = { &rep_fra_stats, &rep_thr_stats, &rep_timestamp_stats };
-    aff3ct::tools::Terminal_dump terminal_probes(reporters);
+    aff3ct::tools::Terminal_dump terminal_probes({ &rep_fra_stats, &rep_thr_stats, &rep_timestamp_stats });
 
     std::ofstream rt_probes_file;
     if (p_out_probes) {
@@ -510,7 +512,7 @@ int main(int argc, char** argv) {
         std::chrono::microseconds us = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now().time_since_epoch()
         );
-        static_cast<uint64_t*>(t[ts_out_val].get_dataptr())[frame_id] =
+        static_cast<uint64_t*>(t[ts_out_val].get_dataptr())[0] =
             mod ? (uint64_t)us.count() % mod : (uint64_t)us.count();
         return aff3ct::runtime::status_t::SUCCESS;
     });
@@ -523,10 +525,10 @@ int main(int argc, char** argv) {
     // ------------------- //
 
     if (p_out_probes) {
-        video("generate") = (*prb_ts_s1b)("probe");
-        (*prb_ts_s1e)("probe") = video("generate");
+        video("generate") = prb_ts_s1b("probe");
+        prb_ts_s1e("probe") = video("generate");
         (*ts_s2b)("exec") = video("generate");
-        (*prb_ts_s2b)["probe::in"] = (*ts_s2b)["exec::out"];
+        prb_ts_s2b["probe::in"] = (*ts_s2b)["exec::out"];
     }
 
     // step 1 + step 2: threshold low + CCL/CCA
@@ -558,8 +560,8 @@ int main(int argc, char** argv) {
 
     if (p_out_probes) {
         (*ts_s2e)("exec") = labels0("zinit");
-        (*prb_ts_s2e)["probe::in"] = (*ts_s2e)["exec::out"];
-        (*prb_ts_s3b)("probe") = (*prb_ts_s2e)("probe");
+        prb_ts_s2e["probe::in"] = (*ts_s2e)["exec::out"];
+        prb_ts_s3b("probe") = prb_ts_s2e("probe");
     }
 
     // step 3.5 : delayer => save t - 1 RoI statistics
@@ -653,16 +655,16 @@ int main(int argc, char** argv) {
     }
 
     if (p_out_probes) {
-        (*prb_fra_id  )("probe") = tracking(perform_tsk);
-        (*prb_thr_thr )("probe") = tracking(perform_tsk);
-        (*prb_thr_lat )("probe") = tracking(perform_tsk);
-        (*prb_thr_time)("probe") = tracking(perform_tsk);
+        prb_fra_id  ("probe") = tracking(perform_tsk);
+        prb_thr_thr ("probe") = tracking(perform_tsk);
+        prb_thr_lat ("probe") = tracking(perform_tsk);
+        prb_thr_time("probe") = tracking(perform_tsk);
         if (p_ccl_fra_path)
-            (*prb_ts_s3e)("probe") = (*log_frame)("write");
+            prb_ts_s3e("probe") = (*log_frame)("write");
         else if (p_log_path)
-            (*prb_ts_s3e)("probe") = log_track("write");
+            prb_ts_s3e("probe") = log_track("write");
         else
-            (*prb_ts_s3e)("probe") = (*prb_thr_time)("probe");
+            prb_ts_s3e("probe") = prb_thr_time("probe");
     }
 
     if (visu) {
@@ -680,7 +682,7 @@ int main(int argc, char** argv) {
     // determine the first task in the tasks graph
     aff3ct::runtime::Task* first_task = nullptr;
     if (p_out_probes)
-        first_task = &(*prb_ts_s1b)("probe");
+        first_task = &prb_ts_s1b("probe");
     else
         first_task = &video("generate");
 
@@ -731,8 +733,8 @@ int main(int argc, char** argv) {
         { // pipeline stage 1
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                           std::vector<aff3ct::runtime::Task*>>(
-            { &(*prb_ts_s1b)("probe"),
-              &(*prb_ts_s1e)("probe") },
+            { &prb_ts_s1b("probe"),
+              &prb_ts_s1e("probe") },
             { &video("generate"), },
             { /* no exclusions in this stage */ } ),
           // pipeline stage 2
@@ -746,13 +748,13 @@ int main(int argc, char** argv) {
             { &merger("merge"),
               &magnitude("compute"),
               &ellipse("compute") },
-            { &(*prb_ts_s2b)("probe"),
-              &(*prb_ts_s2e)("probe"), } ),
+            { &prb_ts_s2b("probe"),
+              &prb_ts_s2e("probe"), } ),
           // pipeline stage 3
           std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
                           std::vector<aff3ct::runtime::Task*>>(
-            { &(*prb_ts_s2b)("probe"),
-              &(*prb_ts_s2e)("probe"),
+            { &prb_ts_s2b("probe"),
+              &prb_ts_s2e("probe"),
               &delayer_RoIs_basic("produce"),
               &delayer_RoIs_magn("produce"),
               &delayer_RoIs_elli("produce"),
@@ -884,9 +886,9 @@ int main(int argc, char** argv) {
 
     if (p_out_probes) {
         // reset start time to NOW!
-        prb_thr_thr->reset();
-        prb_thr_lat->reset();
-        prb_thr_time->reset();
+        prb_thr_thr.reset();
+        prb_thr_lat.reset();
+        prb_thr_time.reset();
     }
 
     t_start = std::chrono::steady_clock::now();
