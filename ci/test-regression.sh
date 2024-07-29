@@ -8,8 +8,8 @@ out_root_dir="./output"
 # -----------------------------------------------------------------------------
 
 cd scripts/regression
-# curl https://lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4 --output 2022_05_31_tauh_34_meteors.mp4
-wget https://lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4 -O 2022_05_31_tauh_34_meteors.mp4
+# curl https://perso.lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4 --output 2022_05_31_tauh_34_meteors.mp4
+wget https://perso.lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4 -O 2022_05_31_tauh_34_meteors.mp4
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 # -----------------------------------------------------------------------------
@@ -33,8 +33,8 @@ else
                      fmdt-detect-opt-no-fail"
 fi
 
-# curl https://lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_3da41bc5.zip --output refs_detect.zip
-wget https://lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_3da41bc5.zip -O refs_detect.zip
+# curl https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_3da41bc5.zip --output refs_detect.zip
+wget https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_3da41bc5.zip -O refs_detect.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 unzip refs_detect.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
@@ -61,8 +61,8 @@ fi
 
 list_exe_ellipse="fmdt-ellipse"
 
-# curl https://lip6.fr/adrien.cassagne/data/fmdt/refs_ellipse_2022_05_31_tauh_34_meteors_3da41bc5.zip --output refs_ellipse.zip
-wget https://lip6.fr/adrien.cassagne/data/fmdt/refs_ellipse_2022_05_31_tauh_34_meteors_3da41bc5.zip -O refs_ellipse.zip
+# curl https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_ellipse_2022_05_31_tauh_34_meteors_3da41bc5.zip --output refs_ellipse.zip
+wget https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_ellipse_2022_05_31_tauh_34_meteors_3da41bc5.zip -O refs_ellipse.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 unzip refs_ellipse.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi

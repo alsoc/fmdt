@@ -19,7 +19,7 @@ list_of_cmds=(
     "fmdt-detect-rt-opt-pip  --vid-in-start 0 --vid-in-stop 20 --vid-in-path $vid_path --log-path $log_path --ccl-fra-path '$frame_dir/%05d.pgm' --trk-all --trk-star-min 15 --cca-mag"
 )
 
-wget https://lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4 .
+wget https://perso.lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4 .
 
 for build_name in "$@"
 do

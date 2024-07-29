@@ -6,7 +6,7 @@ Examples of Use
 
 .. only:: html
 
-	.. video:: https://lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4
+	.. video:: https://perso.lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4
 	   :width: 100%
 
 	2022 :math:`\tau`-Herculids video sequence, cluster of 34 meteors.
@@ -57,7 +57,7 @@ Visualization **WITH** ground truth:
 
 .. only:: html
 
-	.. video:: https://lip6.fr/adrien.cassagne/data/tauh/tracks.mp4
+	.. video:: https://perso.lip6.fr/adrien.cassagne/data/tauh/tracks.mp4
 	   :width: 100%
 
 	2022 :math:`\tau`-Herculids video sequence, cluster of 34 meteors **with
