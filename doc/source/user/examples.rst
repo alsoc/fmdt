@@ -13,7 +13,7 @@ Examples of Use
 
 
 Download `a video sequence containing meteors here
-<https://lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4>`_.
+<https://perso.lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4>`_.
 These video sequence comes from |IMCCE| (*Paris's Observatory*) and is the
 result of an airborne observation of the 2022 :math:`\tau`-Herculids. More
 information about the 2022 :math:`\tau`-Herculids is `available here
