@@ -48,7 +48,7 @@ make -j4
 ## Examples of Use
 
 Download a video sequence containing meteors here: 
-https://lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4.
+https://perso.lip6.fr/adrien.cassagne/data/tauh/in/2022_05_31_tauh_34_meteors.mp4.
 
 ### Meteors Detection
 
