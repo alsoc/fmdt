@@ -51,7 +51,7 @@ build-linux-gcc-c:
     - export CXX="g++"
     - export CFLAGS="-Wall -funroll-loops"
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lip6.fr/sog/lsl-lib lib/lsl && cd lib/lsl && git checkout c77abac1 && cd ../..
-    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=OFF -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
+    - export CMAKE_OPT="-DFMDT_SPU_RUNTIME=OFF -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
     - export NAME="build_linux_gcc_c"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
@@ -77,7 +77,7 @@ build-linux-gcc:
     - export CXX="g++"
     - export CFLAGS="-Wall -funroll-loops -msse4.2"
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lip6.fr/sog/lsl-lib lib/lsl && cd lib/lsl && git checkout c77abac1 && cd ../..
-    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_LSL_LINK=ON -DFMDT_LSL_NEW_INTERFACE=ON -DFMDT_USE_VCIO=OFF"
+    - export CMAKE_OPT="-DFMDT_SPU_RUNTIME=ON -DFMDT_LSL_LINK=ON -DFMDT_LSL_NEW_INTERFACE=ON -DFMDT_USE_VCIO=OFF"
     - export NAME="build_linux_gcc"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
@@ -103,7 +103,7 @@ build-linux-gcc-coverage-test-regression:
     - export CFLAGS="-Wall -funroll-loops -msse4.2 --coverage"
     - export LFLAGS="--coverage"
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lip6.fr/sog/lsl-lib lib/lsl && cd lib/lsl && git checkout c77abac1 && cd ../..
-    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_OPENCV_LINK=ON -DFMDT_LSL_NEW_INTERFACE=ON -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
+    - export CMAKE_OPT="-DFMDT_SPU_RUNTIME=ON -DFMDT_OPENCV_LINK=ON -DFMDT_LSL_NEW_INTERFACE=ON -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
     - LSLM=ON ./ci/test-regression.sh
@@ -132,7 +132,7 @@ build-linux-clang:
     - export CXX="clang++"
     - export CFLAGS="-Wall -funroll-loops"
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lip6.fr/sog/lsl-lib lib/lsl && cd lib/lsl && git checkout c77abac1 && cd ../..
-    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
+    - export CMAKE_OPT="-DFMDT_SPU_RUNTIME=ON -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
     - export NAME="build_linux_clang"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
@@ -157,7 +157,7 @@ build-linux-clang-debug:
     - export CC="clang"
     - export CXX="clang++"
     - export CFLAGS="-Wall -funroll-loops"
-    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_DEBUG=ON -DFMDT_LSL_LINK=OFF -DFMDT_USE_VCIO=OFF"
+    - export CMAKE_OPT="-DFMDT_SPU_RUNTIME=ON -DFMDT_DEBUG=ON -DFMDT_LSL_LINK=OFF -DFMDT_USE_VCIO=OFF"
     - export NAME="build_linux_clang_debug"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
@@ -183,7 +183,7 @@ build-linux-clang-c:
     - export CXX="clang++"
     - export CFLAGS="-Wall -funroll-loops"
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lip6.fr/sog/lsl-lib lib/lsl && cd lib/lsl && git checkout c77abac1 && cd ../..
-    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=OFF -DFMDT_LSL_LINK=ON -DFMDT_LSL_NEW_INTERFACE=ON -DFMDT_USE_VCIO=OFF"
+    - export CMAKE_OPT="-DFMDT_SPU_RUNTIME=OFF -DFMDT_LSL_LINK=ON -DFMDT_LSL_NEW_INTERFACE=ON -DFMDT_USE_VCIO=OFF"
     - export NAME="build_linux_clang_c"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh
@@ -209,7 +209,7 @@ build-linux-icpc:
     - export CXX="icpc"
     - export CFLAGS="-Wall -funroll-loops -march=native -std=c++11"
     - git clone https://gitlab-ci-token:${CI_JOB_TOKEN}@gitlab.lip6.fr/sog/lsl-lib lib/lsl && cd lib/lsl && git checkout c77abac1 && cd ../..
-    - export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
+    - export CMAKE_OPT="-DFMDT_SPU_RUNTIME=ON -DFMDT_LSL_LINK=ON -DFMDT_USE_VCIO=OFF"
     - export NAME="build_linux_icpc"
     - source ./ci/tools/threads.sh
     - ./ci/build-linux-macos.sh

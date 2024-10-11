@@ -34,7 +34,7 @@ jobs:
           export CC="gcc"
           export CXX="g++"
           export CFLAGS="-Wall -funroll-loops"
-          export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=OFF -DFMDT_LSL_LINK=OFF -DFMDT_USE_VCIO=OFF"
+          export CMAKE_OPT="-DFMDT_SPU_RUNTIME=OFF -DFMDT_LSL_LINK=OFF -DFMDT_USE_VCIO=OFF"
           export NAME="build_linux_gcc_c"
           source ./ci/tools/threads.sh
           ./ci/build-linux-macos.sh
@@ -57,7 +57,7 @@ jobs:
           export CC="gcc"
           export CXX="g++"
           export CFLAGS="-Wall -funroll-loops -msse4.2"
-          export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_LSL_LINK=OFF -DFMDT_USE_VCIO=OFF"
+          export CMAKE_OPT="-DFMDT_SPU_RUNTIME=ON -DFMDT_LSL_LINK=OFF -DFMDT_USE_VCIO=OFF"
           export NAME="build_linux_gcc"
           source ./ci/tools/threads.sh
           ./ci/build-linux-macos.sh
@@ -81,7 +81,7 @@ jobs:
           export CXX="g++"
           export CFLAGS="-Wall -funroll-loops -msse4.2 --coverage"
           export LFLAGS="--coverage"
-          export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_OPENCV_LINK=ON -DFMDT_LSL_LINK=OFF -DFMDT_USE_VCIO=OFF"
+          export CMAKE_OPT="-DFMDT_SPU_RUNTIME=ON -DFMDT_OPENCV_LINK=ON -DFMDT_LSL_LINK=OFF -DFMDT_USE_VCIO=OFF"
           source ./ci/tools/threads.sh
           ./ci/build-linux-macos.sh
         shell: bash
@@ -112,7 +112,7 @@ jobs:
           export CC="clang"
           export CXX="clang++"
           export CFLAGS="-Wall -funroll-loops"
-          export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=ON -DFMDT_LSL_LINK=OFF -DFMDT_USE_VCIO=OFF"
+          export CMAKE_OPT="-DFMDT_SPU_RUNTIME=ON -DFMDT_LSL_LINK=OFF -DFMDT_USE_VCIO=OFF"
           export NAME="build_linux_clang"
           source ./ci/tools/threads.sh
           ./ci/build-linux-macos.sh
@@ -135,7 +135,7 @@ jobs:
           export CC="clang"
           export CXX="clang++"
           export CFLAGS="-Wall -funroll-loops"
-          export CMAKE_OPT="-DFMDT_AFF3CT_RUNTIME=OFF -DFMDT_LSL_LINK=OFF -DFMDT_USE_VCIO=OFF"
+          export CMAKE_OPT="-DFMDT_SPU_RUNTIME=OFF -DFMDT_LSL_LINK=OFF -DFMDT_USE_VCIO=OFF"
           export NAME="build_linux_clang_c"
           source ./ci/tools/threads.sh
           ./ci/build-linux-macos.sh
