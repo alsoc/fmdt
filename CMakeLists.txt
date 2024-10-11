@@ -14,12 +14,12 @@ option(FMDT_CHECK_EXE "compile the checking executable." ON)
 option(FMDT_MAXRED_EXE "compile the max reduction executable." ON)
 option(FMDT_DEBUG "build the project using debugging code" OFF)
 option(FMDT_OPENCV_LINK "link with OpenCV library." OFF)
-option(FMDT_AFF3CT_RUNTIME "link with AFF3CT for execution runtime." OFF)
+option(FMDT_SPU_RUNTIME "link with StreamPU for execution runtime." OFF)
 option(FMDT_LSL_LINK "link with external LSL library." OFF)
 option(FMDT_LSL_NEW_INTERFACE "enable new LSL library interface." OFF)
 option(FMDT_USE_VCIO "load video sequences using vcodecs-io library rather than ffmpeg-io" OFF)
 
-if (FMDT_OPENCV_LINK OR FMDT_AFF3CT_RUNTIME)
+if (FMDT_OPENCV_LINK OR FMDT_SPU_RUNTIME)
 	set(FMDT_CPP ON)
 else()
 	set(FMDT_CPP OFF)
@@ -35,7 +35,7 @@ message(STATUS "  * FMDT_CHECK_EXE: '${FMDT_CHECK_EXE}'")
 message(STATUS "  * FMDT_MAXRED_EXE: '${FMDT_MAXRED_EXE}'")
 message(STATUS "  * FMDT_DEBUG: '${FMDT_DEBUG}'")
 message(STATUS "  * FMDT_OPENCV_LINK: '${FMDT_OPENCV_LINK}'")
-message(STATUS "  * FMDT_AFF3CT_RUNTIME: '${FMDT_AFF3CT_RUNTIME}'")
+message(STATUS "  * FMDT_SPU_RUNTIME: '${FMDT_SPU_RUNTIME}'")
 message(STATUS "  * FMDT_LSL_LINK: '${FMDT_LSL_LINK}'")
 message(STATUS "  * FMDT_LSL_NEW_INTERFACE: '${FMDT_LSL_NEW_INTERFACE}'")
 message(STATUS "  * FMDT_USE_VCIO: '${FMDT_USE_VCIO}'")
@@ -201,28 +201,28 @@ if(FMDT_DETECT_EXE)
 	list(APPEND fmdt_targets_list fmdt-detect-opt-no-fail-exe)
 	set_target_properties(fmdt-detect-opt-no-fail-exe PROPERTIES OUTPUT_NAME fmdt-detect-opt-no-fail)
 
-	if (FMDT_AFF3CT_RUNTIME)
+	if (FMDT_SPU_RUNTIME)
 		set(src_detectrt_common_files
-		    ${src_dir}/common/aff3ct_wrapper/Video/Video.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Video/Video2.cpp
-		    ${src_dir}/common/aff3ct_wrapper/CCL/CCL.cpp
-		    ${src_dir}/common/aff3ct_wrapper/CCL/CCL_threshold_features.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Features/Features_extractor.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Features/Features_labels_zero_init.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Features/Features_merger_CCL_HI_v2.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Features/Features_merger_CCL_HI_v3.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Features/Features_magnitude.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Features/Features_ellipse.cpp
-		    ${src_dir}/common/aff3ct_wrapper/kNN_matcher/kNN_matcher.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Motion/Motion.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_frame.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_kNN.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_motion.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_RoIs.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Logger/Logger_tracks.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Threshold/Threshold.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Tracking/Tracking.cpp
-		    ${src_dir}/common/aff3ct_wrapper/Visu/Visu.cpp
+		    ${src_dir}/spu/Video/Video.cpp
+		    ${src_dir}/spu/Video/Video2.cpp
+		    ${src_dir}/spu/CCL/CCL.cpp
+		    ${src_dir}/spu/CCL/CCL_threshold_features.cpp
+		    ${src_dir}/spu/Features/Features_extractor.cpp
+		    ${src_dir}/spu/Features/Features_labels_zero_init.cpp
+		    ${src_dir}/spu/Features/Features_merger_CCL_HI_v2.cpp
+		    ${src_dir}/spu/Features/Features_merger_CCL_HI_v3.cpp
+		    ${src_dir}/spu/Features/Features_magnitude.cpp
+		    ${src_dir}/spu/Features/Features_ellipse.cpp
+		    ${src_dir}/spu/kNN_matcher/kNN_matcher.cpp
+		    ${src_dir}/spu/Motion/Motion.cpp
+		    ${src_dir}/spu/Logger/Logger_frame.cpp
+		    ${src_dir}/spu/Logger/Logger_kNN.cpp
+		    ${src_dir}/spu/Logger/Logger_motion.cpp
+		    ${src_dir}/spu/Logger/Logger_RoIs.cpp
+		    ${src_dir}/spu/Logger/Logger_tracks.cpp
+		    ${src_dir}/spu/Threshold/Threshold.cpp
+		    ${src_dir}/spu/Tracking/Tracking.cpp
+		    ${src_dir}/spu/Visu/Visu.cpp
 		    ${src_dir}/common/args.cpp
 		    ${src_dir}/common/tools.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt_common_files})
@@ -329,7 +329,7 @@ macro(fmdt_set_source_files_properties files key value)
 	endforeach()
 endmacro()
 
-# force C++ language when linking with OpenCV and/or AFF3CT
+# force C++ language when linking with OpenCV and/or StreamPU
 if (FMDT_CPP)
 	fmdt_set_source_files_properties("${fmdt_src_list}" LANGUAGE CXX)
 endif()
@@ -357,16 +357,16 @@ if (NOT TARGET nrc-slib)
 	endif()
 endif()
 
-# aff3ct
-if (FMDT_AFF3CT_RUNTIME)
-	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct-core/include/aff3ct-core.hpp")
-		option(AFF3CT_CORE_COMPILE_STATIC_LIB "" ON)
-		option(AFF3CT_CORE_COMPILE_SHARED_LIB "" OFF)
-		option(AFF3CT_CORE_TESTS "" OFF)
-		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/aff3ct-core/)
+# StreamPU
+if (FMDT_SPU_RUNTIME)
+	if (EXISTS "${CMAKE_CURRENT_SOURCE_DIR}/lib/streampu/include/streampu.hpp")
+		option(SPU_COMPILE_STATIC_LIB "" ON)
+		option(SPU_COMPILE_SHARED_LIB "" OFF)
+		option(SPU_TESTS "" OFF)
+		add_subdirectory(${CMAKE_CURRENT_SOURCE_DIR}/lib/streampu/)
 	else()
-		message(FATAL_ERROR "'aff3ct-core' can't be found, try to init the submodule with the following cmd:\n"
-		                    "$ git submodule update --init --recursive -- ../lib/aff3ct-core/")
+		message(FATAL_ERROR "'StreamPU' can't be found, try to init the submodule with the following cmd:\n"
+		                    "$ git submodule update --init --recursive -- ../lib/streampu/")
 	endif()
 endif()
 
@@ -405,8 +405,8 @@ endif()
 if (FMDT_OPENCV_LINK)
 	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_OPENCV_LINK)
 endif()
-if (FMDT_AFF3CT_RUNTIME)
-	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_AFF3CT_LINK)
+if (FMDT_SPU_RUNTIME)
+	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_SPU_LINK)
 endif()
 if (FMDT_LSL_LINK)
 	fmdt_target_compile_definitions("${fmdt_targets_list}" PUBLIC FMDT_LSL_LINK)
@@ -434,7 +434,7 @@ fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SO
 if (FMDT_OPENCV_LINK)
 	fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${OpenCV_INCLUDE_DIRS})
 endif()
-if (FMDT_AFF3CT_RUNTIME)
+if (FMDT_SPU_RUNTIME)
 	fmdt_target_include_directories("${fmdt_targets_list}" PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/${inc_dir}/cpp)
 endif()
 
@@ -452,8 +452,8 @@ fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC nrc-slib)
 if (FMDT_OPENCV_LINK)
 	fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC "${OpenCV_LIBS}")
 endif()
-if (FMDT_AFF3CT_RUNTIME)
-	fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC aff3ct-core-static-lib)
+if (FMDT_SPU_RUNTIME)
+	fmdt_target_link_libraries("${fmdt_targets_list}" PUBLIC spu-static-lib)
 endif()
 if (FMDT_LSL_LINK)
 	if (TARGET lsl-simd-slib)

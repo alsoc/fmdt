@@ -7,7 +7,7 @@
 #include <vec.h>
 #include <algorithm>
 #include <memory>
-#include <aff3ct-core.hpp>
+#include <streampu.hpp>
 
 #include "fmdt/args.h"
 #include "fmdt/tools.h"
@@ -18,22 +18,22 @@
 #include "fmdt/tracking/tracking_io.h"
 #include "fmdt/version.h"
 
-#include "fmdt/aff3ct_wrapper/CCL/CCL.hpp"
-#include "fmdt/aff3ct_wrapper/Features/Features_extractor.hpp"
-#include "fmdt/aff3ct_wrapper/Features/Features_merger_CCL_HI_v2.hpp"
-#include "fmdt/aff3ct_wrapper/Motion/Motion.hpp"
-#include "fmdt/aff3ct_wrapper/Features/Features_magnitude.hpp"
-#include "fmdt/aff3ct_wrapper/Features/Features_ellipse.hpp"
-#include "fmdt/aff3ct_wrapper/kNN_matcher/kNN_matcher.hpp"
-#include "fmdt/aff3ct_wrapper/Threshold/Threshold.hpp"
-#include "fmdt/aff3ct_wrapper/Tracking/Tracking.hpp"
-#include "fmdt/aff3ct_wrapper/Video/Video2.hpp"
-#include "fmdt/aff3ct_wrapper/Logger/Logger_RoIs.hpp"
-#include "fmdt/aff3ct_wrapper/Logger/Logger_kNN.hpp"
-#include "fmdt/aff3ct_wrapper/Logger/Logger_motion.hpp"
-#include "fmdt/aff3ct_wrapper/Logger/Logger_tracks.hpp"
-#include "fmdt/aff3ct_wrapper/Logger/Logger_frame.hpp"
-#include "fmdt/aff3ct_wrapper/Visu/Visu.hpp"
+#include "fmdt/spu/CCL/CCL.hpp"
+#include "fmdt/spu/Features/Features_extractor.hpp"
+#include "fmdt/spu/Features/Features_merger_CCL_HI_v2.hpp"
+#include "fmdt/spu/Motion/Motion.hpp"
+#include "fmdt/spu/Features/Features_magnitude.hpp"
+#include "fmdt/spu/Features/Features_ellipse.hpp"
+#include "fmdt/spu/kNN_matcher/kNN_matcher.hpp"
+#include "fmdt/spu/Threshold/Threshold.hpp"
+#include "fmdt/spu/Tracking/Tracking.hpp"
+#include "fmdt/spu/Video/Video2.hpp"
+#include "fmdt/spu/Logger/Logger_RoIs.hpp"
+#include "fmdt/spu/Logger/Logger_kNN.hpp"
+#include "fmdt/spu/Logger/Logger_motion.hpp"
+#include "fmdt/spu/Logger/Logger_tracks.hpp"
+#include "fmdt/spu/Logger/Logger_frame.hpp"
+#include "fmdt/spu/Visu/Visu.hpp"
 
 int main(int argc, char** argv) {
     // default values
@@ -400,7 +400,7 @@ int main(int argc, char** argv) {
     // -- INITIALISATION GLOBAL DATA -- //
     // -------------------------------- //
 
-    aff3ct::tools::Signal_handler::init(); // catch "Ctrl+c" signal interruption
+    spu::tools::Signal_handler::init(); // catch "Ctrl+c" signal interruption
     std::chrono::time_point<std::chrono::steady_clock> t_start_alloc_init = std::chrono::steady_clock::now();
     tracking_init_global_data();
 
@@ -476,31 +476,31 @@ int main(int argc, char** argv) {
     }
 
     // create reporters and probes for the real-time probes file
-    aff3ct::tools::Reporter_probe rep_fra_stats("Frame Counter");
-    aff3ct::module::Probe_occurrence prb_fra_id("ID");
+    spu::tools::Reporter_probe rep_fra_stats("Frame Counter");
+    spu::module::Probe_occurrence prb_fra_id("ID");
     rep_fra_stats.register_probes({ &prb_fra_id });
 
-    aff3ct::tools::Reporter_probe rep_thr_stats("Throughput, latency", "and time");
-    aff3ct::module::Probe_throughput prb_thr_thr("FPS"); // only valid for sequence, invalid for pipeline
-    aff3ct::module::Probe_latency prb_thr_lat("LAT"); // only valid for sequence, invalid for pipeline
-    aff3ct::module::Probe_time prb_thr_time("TIME");
+    spu::tools::Reporter_probe rep_thr_stats("Throughput, latency", "and time");
+    spu::module::Probe_throughput prb_thr_thr("FPS"); // only valid for sequence, invalid for pipeline
+    spu::module::Probe_latency prb_thr_lat("LAT"); // only valid for sequence, invalid for pipeline
+    spu::module::Probe_time prb_thr_time("TIME");
     rep_thr_stats.register_probes({ &prb_thr_thr, &prb_thr_lat, &prb_thr_time });
 
-    aff3ct::tools::Reporter_probe rep_timestamp_stats("Timestamps", "(in microseconds) [SX = stage X, B = begin, E = end]");
+    spu::tools::Reporter_probe rep_timestamp_stats("Timestamps", "(in microseconds) [SX = stage X, B = begin, E = end]");
     const uint64_t mod = 1000000ul * 60ul * 10; // limit to 10 minutes timestamp
-    aff3ct::module::Probe_timestamp prb_ts_s1b(mod, "S1_B");
-    aff3ct::module::Probe_timestamp prb_ts_s1e(mod, "S1_E");
-    aff3ct::module::Probe_value<uint64_t> prb_ts_s2b(1, "S2_B");
-    aff3ct::module::Probe_value<uint64_t> prb_ts_s2e(1, "S2_E");
-    aff3ct::module::Probe_timestamp prb_ts_s3b(mod, "S3_B");
-    aff3ct::module::Probe_timestamp prb_ts_s3e(mod, "S3_E");
+    spu::module::Probe_timestamp prb_ts_s1b(mod, "S1_B");
+    spu::module::Probe_timestamp prb_ts_s1e(mod, "S1_E");
+    spu::module::Probe_value<uint64_t> prb_ts_s2b(1, "S2_B");
+    spu::module::Probe_value<uint64_t> prb_ts_s2e(1, "S2_E");
+    spu::module::Probe_timestamp prb_ts_s3b(mod, "S3_B");
+    spu::module::Probe_timestamp prb_ts_s3e(mod, "S3_E");
     rep_timestamp_stats.register_probes({ &prb_ts_s1b, &prb_ts_s1e, &prb_ts_s2b, &prb_ts_s2e, &prb_ts_s3b,
                                           &prb_ts_s3e });
     prb_ts_s2b.set_col_unit("(us)");
     prb_ts_s2e.set_col_unit("(us)");
     rep_timestamp_stats.set_cols_buff_size(200);
 
-    aff3ct::tools::Terminal_dump terminal_probes({ &rep_fra_stats, &rep_thr_stats, &rep_timestamp_stats });
+    spu::tools::Terminal_dump terminal_probes({ &rep_fra_stats, &rep_thr_stats, &rep_timestamp_stats });
 
     std::ofstream rt_probes_file;
     if (p_out_probes) {
@@ -512,21 +512,21 @@ int main(int argc, char** argv) {
     }
 
     // create on-the-fly stateless modules to collect timestamps in the stage 2 (parallel) of the pipeline
-    std::unique_ptr<aff3ct::module::Stateless> ts_s2b(new aff3ct::module::Stateless());
+    std::unique_ptr<spu::module::Stateless> ts_s2b(new spu::module::Stateless());
     ts_s2b->set_name("Timestamper");
     ts_s2b->set_short_name("Timestamper");
     auto &tsk = ts_s2b->create_task("exec");
     auto ts_out_val = ts_s2b->create_socket_out<uint64_t>(tsk, "out", 1);
-    ts_s2b->create_codelet(tsk, [ts_out_val](aff3ct::module::Module &m, aff3ct::runtime::Task &t,
+    ts_s2b->create_codelet(tsk, [ts_out_val](spu::module::Module &m, spu::runtime::Task &t,
         const size_t frame_id) -> int {
         std::chrono::microseconds us = std::chrono::duration_cast<std::chrono::microseconds>(
             std::chrono::steady_clock::now().time_since_epoch()
         );
         static_cast<uint64_t*>(t[ts_out_val].get_dataptr())[0] =
             mod ? (uint64_t)us.count() % mod : (uint64_t)us.count();
-        return aff3ct::runtime::status_t::SUCCESS;
+        return spu::runtime::status_t::SUCCESS;
     });
-    std::unique_ptr<aff3ct::module::Stateless> ts_s2e(ts_s2b->clone());
+    std::unique_ptr<spu::module::Stateless> ts_s2e(ts_s2b->clone());
     ts_s2b->set_custom_name("Tsta<S2_B>");
     ts_s2e->set_custom_name("Tsta<S2_E>");
 
@@ -688,7 +688,7 @@ int main(int argc, char** argv) {
     // --------------------------------- //
 
     // determine the first task in the tasks graph
-    aff3ct::runtime::Task* first_task = nullptr;
+    spu::runtime::Task* first_task = nullptr;
     if (p_out_probes)
         first_task = &prb_ts_s1b("probe");
     else
@@ -696,21 +696,21 @@ int main(int argc, char** argv) {
 
 #ifdef FMDT_ENABLE_PIPELINE
     // pipeline definition with separation stages
-    std::vector<std::tuple<std::vector<aff3ct::runtime::Task*>,
-                           std::vector<aff3ct::runtime::Task*>,
-                           std::vector<aff3ct::runtime::Task*>>> sep_stages;
+    std::vector<std::tuple<std::vector<spu::runtime::Task*>,
+                           std::vector<spu::runtime::Task*>,
+                           std::vector<spu::runtime::Task*>>> sep_stages;
 
     if (!p_out_probes) {
         sep_stages =
         { // pipeline stage 1
-          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                          std::vector<aff3ct::runtime::Task*>>(
+          std::make_tuple<std::vector<spu::runtime::Task*>, std::vector<spu::runtime::Task*>,
+                          std::vector<spu::runtime::Task*>>(
             { &video("generate"),},
             { &video("generate"),},
             { /* no exclusions in this stage */ } ),
           // pipeline stage 2
-          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                          std::vector<aff3ct::runtime::Task*>>(
+          std::make_tuple<std::vector<spu::runtime::Task*>, std::vector<spu::runtime::Task*>,
+                          std::vector<spu::runtime::Task*>>(
             { &threshold_min0("apply"),
               &threshold_max0("apply"),
               &magnitude0("compute"),
@@ -720,8 +720,8 @@ int main(int argc, char** argv) {
             { &motion("compute"), },
             { /* no exclusions in this stage */ } ),
           // pipeline stage 3
-          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                          std::vector<aff3ct::runtime::Task*>>(
+          std::make_tuple<std::vector<spu::runtime::Task*>, std::vector<spu::runtime::Task*>,
+                          std::vector<spu::runtime::Task*>>(
             { &tracking(perform_tsk),},
             { &tracking(perform_tsk),},
             { /* no exclusions in this stage */ } ),
@@ -729,15 +729,15 @@ int main(int argc, char** argv) {
     } else {
         sep_stages =
         { // pipeline stage 1
-          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                          std::vector<aff3ct::runtime::Task*>>(
+          std::make_tuple<std::vector<spu::runtime::Task*>, std::vector<spu::runtime::Task*>,
+                          std::vector<spu::runtime::Task*>>(
             { &prb_ts_s1b("probe"),
               &prb_ts_s1e("probe") },
             { &video("generate"),},
             { /* no exclusions in this stage */ } ),
           // pipeline stage 2
-          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                          std::vector<aff3ct::runtime::Task*>>(
+          std::make_tuple<std::vector<spu::runtime::Task*>, std::vector<spu::runtime::Task*>,
+                          std::vector<spu::runtime::Task*>>(
             { &(*ts_s2b)("exec"),
               &threshold_min0("apply"),
               &threshold_max0("apply"),
@@ -749,8 +749,8 @@ int main(int argc, char** argv) {
             { &motion("compute"), },
             { &prb_ts_s2b("probe"), &prb_ts_s2e("probe"), } ),
           // pipeline stage 3
-          std::make_tuple<std::vector<aff3ct::runtime::Task*>, std::vector<aff3ct::runtime::Task*>,
-                          std::vector<aff3ct::runtime::Task*>>(
+          std::make_tuple<std::vector<spu::runtime::Task*>, std::vector<spu::runtime::Task*>,
+                          std::vector<spu::runtime::Task*>>(
             { &prb_ts_s2b("probe"),
               &prb_ts_s2e("probe"),
               &tracking(perform_tsk), },
@@ -760,14 +760,14 @@ int main(int argc, char** argv) {
     }
 
     // this is a lambda funtion to delete a task from the stages
-    std::function<void(std::vector<std::tuple<std::vector<aff3ct::runtime::Task*>,
-                                              std::vector<aff3ct::runtime::Task*>,
-                                              std::vector<aff3ct::runtime::Task*>>>&,
-                       aff3ct::runtime::Task*)> rm_task_from_pipeline =
-        [](std::vector<std::tuple<std::vector<aff3ct::runtime::Task*>,
-                                  std::vector<aff3ct::runtime::Task*>,
-                                  std::vector<aff3ct::runtime::Task*>>>& pipeline_stages,
-                         aff3ct::runtime::Task* task_to_remove)
+    std::function<void(std::vector<std::tuple<std::vector<spu::runtime::Task*>,
+                                              std::vector<spu::runtime::Task*>,
+                                              std::vector<spu::runtime::Task*>>>&,
+                       spu::runtime::Task*)> rm_task_from_pipeline =
+        [](std::vector<std::tuple<std::vector<spu::runtime::Task*>,
+                                  std::vector<spu::runtime::Task*>,
+                                  std::vector<spu::runtime::Task*>>>& pipeline_stages,
+                         spu::runtime::Task* task_to_remove)
         {
             for (size_t s = 0; s < pipeline_stages.size(); s++)
             {
@@ -807,19 +807,19 @@ int main(int argc, char** argv) {
         std::get<0>(sep_stages[2]).push_back(&(*visu)("display"));
     }
 
-    aff3ct::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
-                                                   sep_stages,
-                                                   tools_convert_int_cvector_int_stdvector(p_pip_threads),
-                                                   tools_convert_int_cvector_int_stdvector(p_pip_sync),
-                                                   tools_convert_int_cvector_bool_stdvector(p_pip_wait),
-                                                   tools_convert_int_cvector_bool_stdvector(p_pip_pin),
-                                                   tools_convert_int_cvector2D_int_stdvector2D(p_pip_pin_vals));
+    spu::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
+                                                sep_stages,
+                                                tools_convert_int_cvector_int_stdvector(p_pip_threads),
+                                                tools_convert_int_cvector_int_stdvector(p_pip_sync),
+                                                tools_convert_int_cvector_bool_stdvector(p_pip_wait),
+                                                tools_convert_int_cvector_bool_stdvector(p_pip_pin),
+                                                tools_convert_int_cvector2D_int_stdvector2D(p_pip_pin_vals));
 #else
-    aff3ct::runtime::Sequence sequence_or_pipeline(*first_task, 1);
+    spu::runtime::Sequence sequence_or_pipeline(*first_task, 1);
 #endif
 
     // configuration of the sequence tasks
-    for (auto& mod : sequence_or_pipeline.get_modules<aff3ct::module::Module>(false))
+    for (auto& mod : sequence_or_pipeline.get_modules<spu::module::Module>(false))
         for (auto& tsk : mod->tasks) {
             tsk->set_debug(false); // disable the debug mode
             tsk->set_debug_limit(16); // display only the 16 first bits if the debug mode is enabled
@@ -925,11 +925,11 @@ int main(int argc, char** argv) {
             const int n_threads = stages[s]->get_n_threads();
             std::cout << "#" << std::endl << "# Pipeline stage " << (s + 1) << " (" << n_threads << " thread(s)): "
                       << std::endl;
-            aff3ct::tools::Stats::show(stages[s]->get_tasks_per_types(), true, false);
+            spu::tools::Stats::show(stages[s]->get_tasks_per_types(), true, false);
         }
 #else
         std::cout << "#" << std::endl;
-        aff3ct::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
+        spu::tools::Stats::show(sequence_or_pipeline.get_tasks_per_types(), true, false);
 #endif
     }
 

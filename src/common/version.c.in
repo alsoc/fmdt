@@ -71,10 +71,10 @@ void version_print(const char* bin_name) {
     char opt_opencv_link[256] = "off";
 #endif
 
-#if defined(FMDT_AFF3CT_LINK)
-    char opt_aff3ct[256] = "on";
+#if defined(FMDT_SPU_LINK)
+    char opt_spu[256] = "on";
 #else
-    char opt_aff3ct[256] = "off";
+    char opt_spu[256] = "off";
 #endif
 
 #if defined(FMDT_LSL_LINK)
@@ -113,7 +113,7 @@ void version_print(const char* bin_name) {
     printf("Compilation options:\n");
     printf("  - Debug mode:           %s\n", opt_debug);
     printf("  - Link with OpenCV:     %s\n", opt_opencv_link);
-    printf("  - Link with AFF3CT:     %s\n", opt_aff3ct);
+    printf("  - Link with StreamPU:   %s\n", opt_spu);
     printf("  - Link with FLSL:       %s\n", opt_flsl);
     printf("  - FLSL new interface:   %s\n", opt_flsl_new_interface);
     printf("  - Link with ffmpeg-io:  %s\n", opt_ffio_io);

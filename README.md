@@ -18,7 +18,7 @@ sequence while the instant power is only **around 4 Watts**.
 
 ## Dependencies
 
-This project uses `ffmpeg-io`, `nrc2`, `c-vector` and `aff3ct-core` projects as 
+This project uses `ffmpeg-io`, `nrc2`, `c-vector` and `streampu` projects as 
 Git submodules, **you need to download them with the following command**:
 
 ```bash
@@ -41,7 +41,7 @@ sudo apt install ffmpeg libopencv-dev
 ```bash
 mkdir build
 cd build
-cmake .. -DFMDT_OPENCV_LINK=ON -DFMDT_AFF3CT_RUNTIME=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O3 -g" -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O3 -g" -DCMAKE_CXX_FLAGS="-Wall -funroll-loops -fstrict-aliasing -march=native" -DCMAKE_C_FLAGS="-funroll-loops -fstrict-aliasing -march=native"
+cmake .. -DFMDT_OPENCV_LINK=ON -DFMDT_SPU_RUNTIME=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O3 -g" -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O3 -g" -DCMAKE_CXX_FLAGS="-Wall -funroll-loops -fstrict-aliasing -march=native" -DCMAKE_C_FLAGS="-funroll-loops -fstrict-aliasing -march=native"
 make -j4
 ```
 
