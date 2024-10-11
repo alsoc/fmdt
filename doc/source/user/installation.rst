@@ -7,7 +7,7 @@ Installation Guide
 Dependencies
 """"""""""""
 
-This project uses ``ffmpeg-io``, ``nrc2``, ``c-vector`` and ``aff3ct-core``
+This project uses ``ffmpeg-io``, ``nrc2``, ``c-vector`` and ``streampu``
 projects as Git submodules, **you need to download them with the following
 command**:
 
@@ -58,14 +58,14 @@ following CMake command line** instead:
 
 .. code-block:: bash
 
-	cmake .. -DFMDT_OPENCV_LINK=ON -DFMDT_AFF3CT_RUNTIME=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O3 -g" -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O3 -g" -DCMAKE_CXX_FLAGS="-Wall -funroll-loops -fstrict-aliasing -march=native" -DCMAKE_C_FLAGS="-funroll-loops -fstrict-aliasing -march=native"
+	cmake .. -DFMDT_OPENCV_LINK=ON -DFMDT_SPU_RUNTIME=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O3 -g" -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O3 -g" -DCMAKE_CXX_FLAGS="-Wall -funroll-loops -fstrict-aliasing -march=native" -DCMAKE_C_FLAGS="-funroll-loops -fstrict-aliasing -march=native"
 
 .. note::  On Apple Silicon M1 CPUs and with Apple Clang, use ``-mcpu=apple-m1``
            instead of ``-march=native``.
 
 The previous command line generates a Makefile in **release mode** (with
 debug information ``-g``). It will produce optimized and ready for debug
-binaries. Moreover, OpenCV and AFF3CT libraries will be used during the
+binaries. Moreover, OpenCV and StreamPU libraries will be used during the
 compilation. It enables advanced features
 (see the following :ref:`user_installation_cmake` section for more details about
 it).
@@ -127,13 +127,13 @@ Here is the list of the CMake available options:
    Link with OpenCV library (required to enable some options for improved
    visualization in ``fmdt-xxx`` executables).
 
-- ``FMDT_AFF3CT_RUNTIME``
+- ``FMDT_SPU_RUNTIME``
 
    :Type: BOOLEAN
    :Default: OFF
-   :Example: ``cmake .. -DFMDT_AFF3CT_RUNTIME=ON``
+   :Example: ``cmake .. -DFMDT_SPU_RUNTIME=ON``
 
-   Link with |AFF3CT| runtime and produce multi-threaded detection executable
+   Link with StreamPU runtime and produce multi-threaded detection executable
    (``fmdt-detect-rt``).
 
 - ``FMDT_LSL_LINK``

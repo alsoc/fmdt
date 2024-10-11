@@ -2334,7 +2334,7 @@ INCLUDE_FILE_PATTERNS  =
 
 PREDEFINED             = "FMDT_ENABLE_DEBUG" \
                          "FMDT_OPENCV_LINK" \
-                         "FMDT_AFF3CT_LINK" \
+                         "FMDT_SPU_LINK" \
                          "DOXYGEN_SHOULD_SKIP_THIS" \
                          "__cpp_aligned_new" \
                          "protected=private"

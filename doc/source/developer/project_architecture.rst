@@ -114,17 +114,17 @@ C Vector in a library that implements dynamic arrays like ``std::vector`` in
 C++. This is useful when we cannot predict in advance the size of a buffer.
 For instance, in |FMDT|, a C Vector is used to store the final tracks.
 
-|AFF3CT|-core
--------------
+StreamPU
+--------
 
-|AFF3CT|-core :cite:`Cassagne2023` is a library that includes a multi-threaded
+StreamPU :cite:`Cassagne2023` is a library that includes a multi-threaded
 runtime. In |FMDT|, this multi-threaded runtime is used to speed the restitution
 time of the final executables. For instance, the ``./src/detect_rt.cpp`` is
 feature compliant with ``./src/detect.cpp``. The main difference is that
-``./src/detect_rt.cpp`` is multi-threaded with the |AFF3CT|-core library.
+``./src/detect_rt.cpp`` is multi-threaded with the StreamPU library.
 
-.. note:: |AFF3CT|-core is a C++ library. When |FMDT| is linked with
-          |AFF3CT|-core, then the code requires a C++ compiler to be compiled.
+.. note:: StreamPU is a C++ library. When |FMDT| is linked with StreamPU, then
+          the code requires a C++ compiler to be compiled.
 
 |OpenCV|
 --------

@@ -16,7 +16,7 @@ This project generates the following **command line** executables:
 ``fmdt-detect`` is an optimized and efficient C/C++ code for meteors detection.
 It produces only text outputs. The main results are the detected tracks and they
 can be read on the standard output (in the terminal). If the CMake
-``-DFMDT_AFF3CT_RUNTIME=ON`` option is used to compile the project, then
+``-DFMDT_SPU_RUNTIME=ON`` option is used to compile the project, then
 additional detection binaries are produced:
 
 - ``fmdt-detect-rt-seq``: this version comes with new performance measurement
@@ -28,7 +28,7 @@ additional detection binaries are produced:
 
 Both ``fmdt-detect-rt-seq`` and ``fmdt-detect-rt-pip`` have the same level of
 features than the standard ``fmdt-detect`` executable. The ``*-rt-*`` binaries
-are based on the `AFF3CT DSEL <https://github.com/aff3ct/aff3ct-core>`_
+are based on the `StreamPU runtime <https://github.com/aff3ct/streampu>`_
 :cite:`Cassagne2023`.
 
 ``fmdt-log-parser`` is a Python script used to convert ``fmdt-detect`` log
