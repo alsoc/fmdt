@@ -93,10 +93,10 @@ are also developed by the [IMCCE](https://www.imcce.fr/) institute
 **Active contributors:**
  * Maxime MILLET, *PhD student*
  * Nathan MAURICE, *PhD student*
- * [Adrien CASSAGNE](https://lip6.fr/adrien.cassagne/), *Associate professor*
+ * [Adrien CASSAGNE](https://perso.lip6.fr/adrien.cassagne/), *Associate professor*
  * [Fabian ZANDER](https://staffprofile.usq.edu.au/profile/fabian-zander), *Associate professor*
  * [Jérémie VAUBAILLON](https://www.cnrs.fr/fr/personne/jeremie-vaubaillon), *Astronomer*
- * [Lionel LACASSAGNE](https://lip6.fr/Lionel.Lacassagne/), *Full professor*
+ * [Lionel LACASSAGNE](https://perso.lip6.fr/Lionel.Lacassagne/), *Full professor*
 
 **Former contributors:**
  * Florian LEMAÎTRE, *PhD*
