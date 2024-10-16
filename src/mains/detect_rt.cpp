@@ -386,10 +386,6 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--cca-mag' has to be combined with the '--log-path' parameter\n");
     if (p_cca_ell && !p_log_path && !p_trk_ell_min)
         fprintf(stderr, "(WW) '--cca-ell' has to be combined with the '--log-path' or the '--trk-ell-min' parameter\n");
-    if (p_trk_ell_min) {
-        fprintf(stderr, "(EE) '--trk-ell-min' is not supported yet in runtime versions of 'fmdt-detect-rt*'\n");
-        exit(1);
-    }
     if (p_vid_out_path && p_vid_out_play)
         fprintf(stderr, "(WW) '--vid-out-path' will be ignore because '--vid-out-play' is set\n");
 

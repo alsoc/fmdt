@@ -93,11 +93,10 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
                             in_n_RoIs,
                             trk.max_RoIs_size };
 
-        float min_ellipse_ratio = 0.f;
         tracking_perform(trk.tracking_data, &the_RoIs, in_frame, in_motion_est,
                          trk.r_extrapol, trk.angle_max, trk.diff_dev, trk.track_all, trk.fra_star_min,
                          trk.fra_meteor_min, trk.fra_meteor_max, trk.save_RoIs_id, trk.extrapol_order_max,
-                         trk.min_extrapol_ratio_S, min_ellipse_ratio);
+                         trk.min_extrapol_ratio_S, trk.min_ellipse_ratio);
 
         return spu::runtime::status_t::SUCCESS;
     });
