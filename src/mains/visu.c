@@ -202,7 +202,8 @@ int main(int argc, char** argv) {
     int b = 1;
     int i0, i1, j0, j1; // image dimension (y_min, y_max, x_min, x_max)
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, 0, 0,
-                                                    p_vid_in_threads, VCDC_FFMPEG_IO, VCDC_HWACCEL_NONE, &i0, &i1, &j0, &j1);
+                                                    p_vid_in_threads, VCDC_FFMPEG_IO, VCDC_HWACCEL_NONE, PIXFMT_GRAY8,
+                                                    0, NULL, &i0, &i1, &j0, &j1);
     uint8_t** I0 = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b);
     img_data_t* img_data = image_color_alloc((i1 - i0) + 1, (j1 - j0) - 1);
 
@@ -225,7 +226,7 @@ int main(int argc, char** argv) {
 
     size_t n_threads = 4;
     video_writer_t* video_writer = video_writer_alloc_init(p_vid_out_path, p_vid_in_start, n_threads, i1 - i0 + 1,
-                                                           j1 - j0 + 1, PIXFMT_RGB24, VCDC_FFMPEG_IO, 0);
+                                                           j1 - j0 + 1, PIXFMT_RGB24, VCDC_FFMPEG_IO, 0, 0, NULL);
 
     // parcours de la video
     enum color_e color = COLOR_MISC;
@@ -233,7 +234,7 @@ int main(int argc, char** argv) {
     char lines[1000];
     int frame_bb = -1, rx, ry, bb_x, bb_y, track_id, is_extrapolated;
     int is_first_read = 1;
-    while ((frame = video_reader_get_frame(video, I0)) != -1) {
+    while ((frame = video_reader_get_frame(video, I0, NULL)) != -1) {
         fprintf(stderr, "(II) Frame n°%-4d\r", frame);
         fflush(stderr);
         int cpt = 0;
@@ -287,8 +288,8 @@ int main(int argc, char** argv) {
             sscanf(lines, "%d %d %d %d %d %d %d ", &frame_bb, &rx, &ry, &bb_x, &bb_y, &track_id, &is_extrapolated);
         }
 
-        image_color_draw_BBs(img_data, (const uint8_t**)I0, (const BB_t*)BBs, (const enum color_e*)BBs_color,
-                             cpt, p_trk_id, p_gt_path ? 1 : 0, 1);
+        image_color_draw_BBs(img_data, (const uint8_t**)I0, PIXFMT_GRAY8, (const BB_t*)BBs,
+                             (const enum color_e*)BBs_color, cpt, p_trk_id, p_gt_path ? 1 : 0, 1);
 #ifdef FMDT_OPENCV_LINK
         if (p_vid_out_id)
             image_color_draw_frame_id(img_data, frame);

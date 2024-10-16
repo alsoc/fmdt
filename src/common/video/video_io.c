@@ -23,8 +23,9 @@ typedef struct {
 
 video_reader_t* video_reader_ffio_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
                                              const int bufferize, const size_t n_ffmpeg_threads,
-                                             const enum video_codec_hwaccel_e hwaccel, int* i0, int* i1, int* j0,
-                                             int* j1) {
+                                             const enum video_codec_hwaccel_e hwaccel, const enum pixfmt_e pixfmt,
+                                             const uint8_t ffmpeg_debug, const char* ffmpeg_in_extra_opts, int* i0,
+                                             int* i1, int* j0, int* j1) {
     assert(!end || start <= end);
     video_reader_t* video = (video_reader_t*)malloc(sizeof(video_reader_t));
     if (!video) {
@@ -39,6 +40,9 @@ video_reader_t* video_reader_ffio_alloc_init(const char* path, const size_t star
     video->metadata = (void*)metadata;
 
     ffmpeg_options_init(&metadata->ffmpeg_opts);
+    metadata->ffmpeg_opts.debug = ffmpeg_debug;
+    if (ffmpeg_in_extra_opts)
+        metadata->ffmpeg_opts.extra_input_options = ffmpeg_in_extra_opts;
     if (n_ffmpeg_threads)
         metadata->ffmpeg_opts.threads_input = n_ffmpeg_threads;
     if (start)
@@ -68,10 +72,25 @@ video_reader_t* video_reader_ffio_alloc_init(const char* path, const size_t star
     video->frame_end = end;
     video->frame_skip = skip;
     video->frame_current = 0;
-    metadata->ffmpeg.output.pixfmt = ffmpeg_str2pixfmt("gray");
+
+    uint8_t enable_color;
+    switch (pixfmt) {
+        case PIXFMT_RGB24:
+            metadata->ffmpeg.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
+            enable_color = 1;
+            break;
+        case PIXFMT_GRAY8:
+            metadata->ffmpeg.input.pixfmt = ffmpeg_str2pixfmt("gray");
+            enable_color = 0;
+            break;
+        default:
+            fprintf(stderr, "(EE) Unsupported pixel format.\n");
+            exit(1);
+    }
+    int pixsize = ffmpeg_pixel_size(metadata->ffmpeg.input.pixfmt);
 
     if (!ffmpeg_start_reader(&metadata->ffmpeg, video->path, &metadata->ffmpeg_opts)) {
-        fprintf(stderr, "(EE) can't open file %s\n", video->path);
+        fprintf(stderr, "(EE) can't read file %s\n", video->path);
         free(video);
         exit(1);
     }
@@ -98,12 +117,12 @@ video_reader_t* video_reader_ffio_alloc_init(const char* path, const size_t star
                                 (int)MAX_BUFF_SIZE);
                 exit(-1);
             }
-            uint8_t **I = ui8matrix(*i0, *i1, *j0, *j1);
-            frame_id = video_reader_get_frame(video, I);
+            uint8_t **I = ui8matrix(*i0, *i1, *j0, *j1 * pixsize);
+            frame_id = video_reader_get_frame(video, enable_color ? NULL : I, enable_color ? I : NULL);
             if (frame_id != -1) {
                 fra_buffer_tmp[video->fra_count -1] = I;
             } else
-                free_ui8matrix(I, *i0, *i1, *j0, *j1);
+                free_ui8matrix(I, *i0, *i1, *j0, *j1 * pixsize);
         } while (frame_id != -1);
 
         video->fra_buffer = fra_buffer_tmp;
@@ -114,13 +133,13 @@ video_reader_t* video_reader_ffio_alloc_init(const char* path, const size_t star
     return video;
 }
 
-static int _video_reader_ffio_get_frame(video_reader_t* video, uint8_t** img) {
+static int _video_reader_ffio_get_frame(video_reader_t* video, uint8_t** img_gray8_or_rgb24) {
     video_metadata_ffio_t* metadata = (video_metadata_ffio_t*)video->metadata;
 
     if (video->frame_end && video->frame_start + video->frame_current > video->frame_end)
         return -1;
 
-    if (!ffmpeg_read2d(&metadata->ffmpeg, img)) {
+    if (!ffmpeg_read2d(&metadata->ffmpeg, img_gray8_or_rgb24)) {
         if (metadata->ffmpeg.error != 22) // 22 == EOF
             fprintf(stderr, "(EE) %s\n", ffmpeg_error2str(metadata->ffmpeg.error));
         return -1;
@@ -131,15 +150,35 @@ static int _video_reader_ffio_get_frame(video_reader_t* video, uint8_t** img) {
     return cur_fra;
 }
 
-int video_reader_ffio_get_frame(video_reader_t* video, uint8_t** img) {
+void _video_convert_rgb24_to_gray8(const uint8_t** img_rgb24, uint8_t** img_gray8, const size_t img_height,
+                                   const size_t img_width)
+{
+    for (unsigned h = 0; h < img_height; h++)
+        for (unsigned w = 0; w < img_width; w++)
+            img_gray8[h][w] = (uint8_t)(0.2126f * (float)img_rgb24[h][w * 3 + 0] +
+                                        0.7152f * (float)img_rgb24[h][w * 3 + 1] +
+                                        0.0722f * (float)img_rgb24[h][w * 3 + 2]);
+}
+
+int video_reader_ffio_get_frame(video_reader_t* video, uint8_t** img_gray8, uint8_t** img_rgb24) {
     assert(video->codec_type == VCDC_FFMPEG_IO);
     video_metadata_ffio_t* metadata = (video_metadata_ffio_t*)video->metadata;
+    uint8_t is_rgb = !strncmp(metadata->ffmpeg.input.pixfmt.s, "rgb24", sizeof(metadata->ffmpeg.input.pixfmt.s));
+
+    if (is_rgb && img_rgb24 == NULL) {
+        fprintf(stderr, "(EE) In RGB mode, 'img_rgb24' cannot be NULL\n");
+        exit(1);
+    } else if (!is_rgb && img_gray8 == NULL) {
+        fprintf(stderr, "(EE) In GRAY8 mode, 'img_gray8' cannot be NULL\n");
+        exit(1);
+    }
+
 retry:
     if (video->fra_buffer == NULL) {
         int r;
         size_t skip = video->frame_current == 0 ? 0 : video->frame_skip;
         do {
-            r = _video_reader_ffio_get_frame(video, img);
+            r = _video_reader_ffio_get_frame(video, is_rgb ? img_rgb24 : img_gray8);
             // restart reader
             if (r == -1 && video->cur_loop < video->loop_size) {
                 video->cur_loop++;
@@ -154,6 +193,11 @@ retry:
         } while ((r != -1) && skip--);
         if (video->cur_loop == 1 && r != -1)
             video->fra_count++;
+
+        if (is_rgb && img_gray8)
+            _video_convert_rgb24_to_gray8((const uint8_t**)img_rgb24, img_gray8, metadata->ffmpeg.input.height,
+                                          metadata->ffmpeg.input.width);
+
         return (r == -1) ? r : video->frame_start + r + (video->cur_loop -1) * video->fra_count *
                                (1 + video->frame_skip);
     } else {
@@ -162,11 +206,19 @@ retry:
                 video->cur_loop++;
                 video->frame_current = 0;
             }
+            size_t pixsize = ffmpeg_pixel_size(metadata->ffmpeg.input.pixfmt);
             for (unsigned l = 0; l < metadata->ffmpeg.input.height; l++)
-                memcpy(img[l], video->fra_buffer[video->frame_current][l], metadata->ffmpeg.input.width);
+                memcpy(is_rgb ? img_rgb24[l] : img_gray8[l],
+                       video->fra_buffer[video->frame_current][l],
+                       metadata->ffmpeg.input.width * pixsize);
             int cur_fra = video->frame_start + (video->frame_current + (video->cur_loop -1) * video->fra_count) *
                           (1 + video->frame_skip);
             video->frame_current++;
+
+            if (is_rgb && img_gray8)
+                _video_convert_rgb24_to_gray8((const uint8_t**)img_rgb24, img_gray8, metadata->ffmpeg.input.height,
+                                              metadata->ffmpeg.input.width);
+
             return cur_fra;
         } else
             return -1;
@@ -177,10 +229,11 @@ void video_reader_ffio_free(video_reader_t* video) {
     assert(video->codec_type == VCDC_FFMPEG_IO);
     video_metadata_ffio_t* metadata = (video_metadata_ffio_t*)video->metadata;
     ffmpeg_stop_reader(&metadata->ffmpeg);
+    size_t pixsize = ffmpeg_pixel_size(metadata->ffmpeg.input.pixfmt);
     if (video->fra_buffer) {
         for (size_t i = 0; i < video->fra_count; i++)
             free_ui8matrix(video->fra_buffer[i], 0, metadata->ffmpeg.input.height - 1, 0,
-                           metadata->ffmpeg.input.width - 1);
+                           (metadata->ffmpeg.input.width - 1) * pixsize);
         free(video->fra_buffer);
     }
     free(metadata);
@@ -212,7 +265,8 @@ static int ffmpeg_stop_writer_or_player(ffmpeg_handle* handle, const int win_pla
 
 video_writer_t* video_writer_ffio_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
                                              const size_t img_height, const size_t img_width,
-                                             const enum pixfmt_e pixfmt, const int win_play) {
+                                             const enum pixfmt_e pixfmt, const int win_play, const uint8_t ffmpeg_debug,
+                                             const char* ffmpeg_out_extra_opts) {
     video_writer_t* video = (video_writer_t*)malloc(sizeof(video_writer_t));
     if (!video) {
         fprintf(stderr, "(EE) can't allocate video structure\n");
@@ -227,6 +281,9 @@ video_writer_t* video_writer_ffio_alloc_init(const char* path, const size_t star
     video->metadata = (void*)metadata;
 
     ffmpeg_options_init(&metadata->ffmpeg_opts);
+    metadata->ffmpeg_opts.debug = ffmpeg_debug;
+    if (ffmpeg_out_extra_opts)
+        metadata->ffmpeg_opts.extra_output_options = ffmpeg_out_extra_opts;
     if (start)
         metadata->ffmpeg_opts.start_number = start;
     if (n_ffmpeg_threads)
@@ -241,11 +298,11 @@ video_writer_t* video_writer_ffio_alloc_init(const char* path, const size_t star
         case PIXFMT_RGB24:
             metadata->ffmpeg.input.pixfmt = ffmpeg_str2pixfmt("rgb24");
             break;
-        case PIXFMT_GRAY:
+        case PIXFMT_GRAY8:
             metadata->ffmpeg.input.pixfmt = ffmpeg_str2pixfmt("gray");
             break;
         default:
-            fprintf(stderr, "(EE) Unsupported pixel format\n");
+            fprintf(stderr, "(EE) Unsupported pixel format.\n");
             exit(1);
     }
 
@@ -304,20 +361,6 @@ video_reader_t* video_reader_vcio_alloc_init(const char* path, const size_t star
         fprintf(stderr, "(EE) Only 'VCDC_HWACCEL_NONE' is supported at this time.\n");
         exit(1);
     }
-
-    // Dead code...
-    // enum AVHWDeviceType av_hwaccel;
-    // switch (hwaccel) {
-    //     case VCDC_HWACCEL_NVDEC:
-    //         av_hwaccel = AV_HWDEVICE_TYPE_CUDA;
-    //         break;
-    //     case VCDC_HWACCEL_VIDEOTOOLBOX:
-    //         av_hwaccel = AV_HWDEVICE_TYPE_VIDEOTOOLBOX;
-    //         break;
-    //     default: // VCDC_HWACCEL_NONE
-    //         av_hwaccel = AV_HWDEVICE_TYPE_NONE;
-    //         break;
-    // }
     
     snprintf(video->path, sizeof(video->path), "%s", path);
 
@@ -471,11 +514,13 @@ void video_reader_vcio_free(video_reader_t* video) {
 video_reader_t* video_reader_alloc_init(const char* path, const size_t start, const size_t end, const size_t skip,
                                         const int bufferize, const size_t n_ffmpeg_threads,
                                         const enum video_codec_e codec_type, const enum video_codec_hwaccel_e hwaccel,
-                                        int* i0, int* i1, int* j0, int* j1) {
+                                        const enum pixfmt_e pixfmt, const uint8_t ffmpeg_debug,
+                                        const char* ffmpeg_in_extra_opts, int* i0, int* i1, int* j0, int* j1) {
     switch (codec_type) {
         case VCDC_FFMPEG_IO: {
 #ifdef FMDT_USE_FFMPEG_IO
-            return video_reader_ffio_alloc_init(path, start, end, skip, bufferize, n_ffmpeg_threads, hwaccel, i0, i1, j0, j1);
+            return video_reader_ffio_alloc_init(path, start, end, skip, bufferize, n_ffmpeg_threads, hwaccel, pixfmt,
+                                                ffmpeg_debug, ffmpeg_in_extra_opts, i0, i1, j0, j1);
             break;
 #else
             fprintf(stderr, "(EE) Link with the ffmpeg-io library is required.\n");
@@ -484,7 +529,15 @@ video_reader_t* video_reader_alloc_init(const char* path, const size_t start, co
         }
         case VCDC_VCODECS_IO: {
 #ifdef FMDT_USE_VCODECS_IO
-            return video_reader_vcio_alloc_init(path, start, end, skip, bufferize, n_ffmpeg_threads, hwaccel, i0, i1, j0, j1);
+            switch (pixfmt) {
+                case PIXFMT_GRAY8:
+                    return video_reader_vcio_alloc_init(path, start, end, skip, bufferize, n_ffmpeg_threads, hwaccel,
+                                                        i0, i1, j0, j1);
+                    break;
+                default:
+                    fprintf(stderr, "(EE) Unsupported pixel format.\n");
+                    exit(1);
+            }
             break;
 #else
             fprintf(stderr, "(EE) Link with the vcodecs-io library is required.\n");
@@ -498,11 +551,11 @@ video_reader_t* video_reader_alloc_init(const char* path, const size_t start, co
     }
 }
 
-int video_reader_get_frame(video_reader_t* video, uint8_t** img) {
+int video_reader_get_frame(video_reader_t* video, uint8_t** img_gray8, uint8_t** img_rgb24) {
     switch (video->codec_type) {
         case VCDC_FFMPEG_IO: {
 #ifdef FMDT_USE_FFMPEG_IO
-            return video_reader_ffio_get_frame(video, img);
+            return video_reader_ffio_get_frame(video, img_gray8, img_rgb24);
             break;
 #else
             fprintf(stderr, "(EE) Link with the ffmpeg-io library is required.\n");
@@ -511,7 +564,7 @@ int video_reader_get_frame(video_reader_t* video, uint8_t** img) {
         }
         case VCDC_VCODECS_IO: {
 #ifdef FMDT_USE_VCODECS_IO
-            return video_reader_vcio_get_frame(video, img);
+            return video_reader_vcio_get_frame(video, img_gray8);
             break;
 #else
             fprintf(stderr, "(EE) Link with the vcodecs-io library is required.\n");
@@ -554,11 +607,13 @@ void video_reader_free(video_reader_t* video) {
 
 video_writer_t* video_writer_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
                                         const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt,
-                                        const enum video_codec_e codec_type, const int win_play) {
+                                        const enum video_codec_e codec_type, const int win_play,
+                                        const uint8_t ffmpeg_debug, const char* ffmpeg_out_extra_opts) {
     switch (codec_type) {
         case VCDC_FFMPEG_IO: {
 #ifdef FMDT_USE_FFMPEG_IO
-            return video_writer_ffio_alloc_init(path, start, n_ffmpeg_threads, img_height, img_width, pixfmt, win_play);
+            return video_writer_ffio_alloc_init(path, start, n_ffmpeg_threads, img_height, img_width, pixfmt, win_play,
+                                                ffmpeg_debug, ffmpeg_out_extra_opts);
             break;
 #else
             fprintf(stderr, "(EE) Link with the ffmpeg-io library is required.\n");

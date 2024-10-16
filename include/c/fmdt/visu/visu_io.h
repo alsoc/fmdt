@@ -16,20 +16,24 @@
  * @param n_ffmpeg_threads Number of threads used in FFMPEG to encode the video sequence (0 means FFMPEG will decide).
  * @param img_height Images height.
  * @param img_width Images width.
- * @param pixfmt Pixels format (grayscale or RGB).
+ * @param pixfmt_in Pixels format (grayscale or RGB) of the input.
+ * @param pixfmt_out Pixels format (grayscale or RGB) of the output.
  * @param codec_type Select the API to use for video codec (`VCDC_FFMPEG_IO` or `VCDC_VCODECS_IO`).
  * @param draw_track_id If 1, draw the track id corresponding to the bounding box.
  * @param draw_legend If 1, draw the legend on images.
  * @param win_play Boolean, if 0 write into a file, if 1 play in a SDL window.
+ * @param ffmpeg_debug Print the ffmpeg command line.
+ * @param ffmpeg_out_extra_opts Pass extra arguments to ffmpeg (can be NULL).
  * @param buff_size Number of frames to buffer.
  * @param max_RoIs_size Max number of RoIs to allocate per frame.
  * @param skip_fra Number of skipped frames between two 'visu_display' calls (generally this is 0).
  * @return The allocated data.
  */
 visu_data_t* visu_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
-                             const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt,
-                             const enum video_codec_e codec_type, const uint8_t draw_track_id,
-                             const uint8_t draw_legend, const int win_play, const size_t buff_size,
+                             const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt_in,
+                             const enum pixfmt_e pixfmt_out, const enum video_codec_e codec_type,
+                             const uint8_t draw_track_id, const uint8_t draw_legend, const int win_play,
+                             const uint8_t ffmpeg_debug, const char* ffmpeg_out_extra_opts, const size_t buff_size,
                              const size_t max_RoIs_size, const uint8_t skip_fra);
 
 /**

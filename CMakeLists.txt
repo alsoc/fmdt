@@ -139,6 +139,7 @@ set(src_common_files
     ${src_dir}/common/features/features_io.c
     ${src_dir}/common/image/image_compute.c
     ${src_dir}/common/image/image_io.c
+    ${src_dir}/common/image/image_struct.c
     ${src_dir}/common/kNN/kNN_compute.c
     ${src_dir}/common/kNN/kNN_io.c
     ${src_dir}/common/motion/motion_compute.c

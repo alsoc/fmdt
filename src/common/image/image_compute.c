@@ -454,26 +454,52 @@ img_data_t* image_color_alloc(const size_t img_height, const size_t img_width) {
     return img_data;
 }
 
-void image_color_draw_BBs(img_data_t* img_data, const uint8_t** img, const BB_t* BBs,
+void image_color_draw_BBs(img_data_t* img_data, const uint8_t** img, const enum pixfmt_e pixfmt, const BB_t* BBs,
                           const enum color_e* BBs_color, const size_t n_BBs, const uint8_t show_id,
                           const uint8_t is_gt, const uint8_t draw_legend) {
 #ifdef FMDT_OPENCV_LINK
     cv::Mat* pixels = (cv::Mat*)img_data->pixels;
-    for (size_t i = 0; i < (size_t)pixels->rows; i++) {
-        for (size_t j = 0; j < (size_t)pixels->cols; j++) {
-            pixels->at<cv::Vec3b>(i, j)[2] = img[i][j];
-            pixels->at<cv::Vec3b>(i, j)[1] = img[i][j];
-            pixels->at<cv::Vec3b>(i, j)[0] = img[i][j];
+    if (pixfmt == PIXFMT_RGB24) {
+        for (size_t i = 0; i < (size_t)pixels->rows; i++) {
+            for (size_t j = 0; j < (size_t)pixels->cols; j++) {
+                pixels->at<cv::Vec3b>(i, j)[0] = img[i][j * 3 + 0];
+                pixels->at<cv::Vec3b>(i, j)[1] = img[i][j * 3 + 1];
+                pixels->at<cv::Vec3b>(i, j)[2] = img[i][j * 3 + 2];
+            }
         }
+    } else if (pixfmt == PIXFMT_GRAY8) {
+        for (size_t i = 0; i < (size_t)pixels->rows; i++) {
+            for (size_t j = 0; j < (size_t)pixels->cols; j++) {
+                pixels->at<cv::Vec3b>(i, j)[2] = img[i][j];
+                pixels->at<cv::Vec3b>(i, j)[1] = img[i][j];
+                pixels->at<cv::Vec3b>(i, j)[0] = img[i][j];
+            }
+        }
+    } else {
+        fprintf(stderr, "(EE) Image format is not supported.\n");
+        exit(-1);
     }
 #else
     rgb8_t** pixels = (rgb8_t**)img_data->pixels;
-    for (size_t i = 0; i < img_data->height; i++) {
-        for (size_t j = 0; j < img_data->width; j++) {
-            pixels[i][j].r = img[i][j];
-            pixels[i][j].g = img[i][j];
-            pixels[i][j].b = img[i][j];
+    if (pixfmt == PIXFMT_RGB24) {
+        for (size_t i = 0; i < img_data->height; i++) {
+            for (size_t j = 0; j < img_data->width; j++) {
+                pixels[i][j].r = img[i][j * 3 + 0];
+                pixels[i][j].g = img[i][j * 3 + 1];
+                pixels[i][j].b = img[i][j * 3 + 2];
+            }
         }
+    } else if (pixfmt == PIXFMT_GRAY8) {
+        for (size_t i = 0; i < img_data->height; i++) {
+            for (size_t j = 0; j < img_data->width; j++) {
+                pixels[i][j].r = img[i][j];
+                pixels[i][j].g = img[i][j];
+                pixels[i][j].b = img[i][j];
+            }
+        }
+    } else {
+        fprintf(stderr, "(EE) Image format is not supported.\n");
+        exit(-1);
     }
 #endif
     image_draw_BBs(image_color_get_pixels_2d(img_data), BBs, BBs_color, n_BBs, img_data->width,

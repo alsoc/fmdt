@@ -193,7 +193,7 @@ int main(int argc, char** argv) {
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
                                                     p_vid_in_buff, p_vid_in_threads, VCDC_FFMPEG_IO, VCDC_HWACCEL_NONE,
-                                                    &i0, &i1, &j0, &j1);
+                                                    PIXFMT_GRAY8, 0, NULL, &i0, &i1, &j0, &j1);
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;
     img_data_t* img_data = NULL;
@@ -201,7 +201,7 @@ int main(int argc, char** argv) {
         img_data = image_gs_alloc((i1 - i0) + 1, (j1 - j0) + 1);
         const size_t n_threads = 1;
         video_writer = video_writer_alloc_init(p_ccl_fra_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
-                                               PIXFMT_GRAY, VCDC_FFMPEG_IO, 0);
+                                               PIXFMT_GRAY8, VCDC_FFMPEG_IO, 0, 0, NULL);
     }
 
     // --------------------- //
@@ -247,7 +247,7 @@ int main(int argc, char** argv) {
 
     printf("# The program is running...\n");
     int cur_fra;
-    while ((cur_fra = video_reader_get_frame(video, I)) != -1) {
+    while ((cur_fra = video_reader_get_frame(video, I, NULL)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         // step 1: max-reduction

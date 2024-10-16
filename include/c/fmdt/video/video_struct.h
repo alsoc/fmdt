@@ -47,13 +47,6 @@ typedef struct {
 } video_reader_t;
 
 /**
- *  Pixel formats enumeration.
- */
-enum pixfmt_e { PIXFMT_RGB24 = 0, /*!< 24 bits Red-Green-Blue. */
-                PIXFMT_GRAY /*!< 8 bits grayscale. */
-};
-
-/**
  *  Video writer structure.
  */
 typedef struct {

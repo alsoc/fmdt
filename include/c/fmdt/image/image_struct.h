@@ -7,6 +7,21 @@
 
 #include <stdint.h>
 #include <stdlib.h>
+#include <stddef.h>
+
+/**
+ *  Pixel formats enumeration.
+ */
+enum pixfmt_e { PIXFMT_RGB24 = 0, /*!< 24 bits Red-Green-Blue. */
+                PIXFMT_GRAY8 /*!< 8 bits grayscale. */
+};
+
+/**
+ * Return the number of bytes to contain one pixel depending on the given pixel format.
+ * @param pixfmt The pixel format.
+ * @return The pixel size in bytes.
+ */
+size_t image_get_pixsize(const enum pixfmt_e pixfmt);
 
 /**
  *  Enumeration for colors.

@@ -4,8 +4,9 @@
 #include "fmdt/spu/Visu/Visu.hpp"
 
 Visu::Visu(const char* path, const size_t start, const size_t n_ffmpeg_threads, const int i0, const int i1,
-           const int j0, const int j1, const int b, const enum pixfmt_e pixfmt, const enum video_codec_e codec_type,
-           const uint8_t draw_track_id, const uint8_t draw_legend, const int win_play, const size_t buff_size,
+           const int j0, const int j1, const int b, const enum pixfmt_e pixfmt_in, const enum pixfmt_e pixfmt_out,
+           const enum video_codec_e codec_type, const uint8_t draw_track_id, const uint8_t draw_legend,
+           const int win_play, const bool ffmpeg_debug, const char* ffmpeg_out_extra_opts, const size_t buff_size,
            const size_t max_RoIs_size, const uint8_t skip_fra, const tracking_data_t* tracking_data)
 : spu::module::Stateful(), i0(i0), i1(i1), j0(j0), j1(j1), b(b), tracking_data(tracking_data), visu_data(nullptr) {
     assert(tracking_data != NULL);
@@ -14,15 +15,17 @@ Visu::Visu(const char* path, const size_t start, const size_t n_ffmpeg_threads, 
     this->set_name(name);
     this->set_short_name(name);
 
-    this->visu_data = visu_alloc_init(path, start, n_ffmpeg_threads, (i1 - i0) + 1, (j1 - j0) + 1, pixfmt, codec_type,
-                                      draw_track_id, draw_legend, win_play, buff_size, max_RoIs_size, skip_fra);
+    this->visu_data = visu_alloc_init(path, start, n_ffmpeg_threads, (i1 - i0) + 1, (j1 - j0) + 1, pixfmt_in,
+                                      pixfmt_out, codec_type, draw_track_id, draw_legend, win_play, ffmpeg_debug,
+                                      ffmpeg_out_extra_opts, buff_size, max_RoIs_size, skip_fra);
 
     const size_t img_n_rows = (i1 - i0) + 1 + 2 * b;
     const size_t img_n_cols = (j1 - j0) + 1 + 2 * b;
 
     auto &p = this->create_task("display");
     auto ps_in_frame = this->template create_socket_in<uint32_t>(p, "in_frame", 1);
-    auto ps_in_img = this->template create_2d_socket_in<uint8_t>(p, "in_img", img_n_rows, img_n_cols);
+    size_t pixsize = image_get_pixsize(pixfmt_in);
+    auto ps_in_img = this->template create_2d_socket_in<uint8_t>(p, "in_img", img_n_rows, img_n_cols * pixsize);
     auto ps_in_RoIs_basic = this->template create_socket_in<uint8_t>(p, "in_RoIs_basic",
                                                                      max_RoIs_size * sizeof(RoI_basic_t));
     auto ps_in_n_RoIs = this->template create_socket_in<uint32_t>(p, "in_n_RoIs", 1);
@@ -41,6 +44,16 @@ Visu::Visu(const char* path, const size_t start, const size_t n_ffmpeg_threads, 
 
         return spu::runtime::status_t::SUCCESS;
     });
+}
+
+Visu::Visu(const char* path, const size_t start, const size_t n_ffmpeg_threads, const int i0, const int i1,
+           const int j0, const int j1, const int b, const enum pixfmt_e pixfmt_in, const enum pixfmt_e pixfmt_out,
+           const enum video_codec_e codec_type, const uint8_t draw_track_id, const uint8_t draw_legend,
+           const int win_play, const size_t buff_size, const size_t max_RoIs_size, const uint8_t skip_fra,
+           const tracking_data_t* tracking_data)
+: Visu(path, start, n_ffmpeg_threads, i0, i1, j0, j1, b, pixfmt_in, pixfmt_out, codec_type, draw_track_id, draw_legend,
+       win_play, false, nullptr, buff_size, max_RoIs_size, skip_fra, tracking_data)
+{
 }
 
 Visu::~Visu() {

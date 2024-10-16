@@ -146,7 +146,8 @@ int main(int argc, char** argv) {
     int skip = 0;
     int i0, i1, j0, j1;
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, skip, 0,
-                                                    p_vid_in_threads, VCDC_FFMPEG_IO, VCDC_HWACCEL_NONE, &i0, &i1, &j0, &j1);
+                                                    p_vid_in_threads, VCDC_FFMPEG_IO, VCDC_HWACCEL_NONE, PIXFMT_GRAY8,
+                                                    0, NULL, &i0, &i1, &j0, &j1);
 
     // ---------------- //
     // -- ALLOCATION -- //
@@ -162,11 +163,11 @@ int main(int argc, char** argv) {
     if (p_trk_path) {
         img_data = image_color_alloc((i1 - i0) + 1, (j1 - j0) + 1);
         video_writer = video_writer_alloc_init(p_fra_out_path, p_vid_in_start, n_threads, i1 - i0 + 1, j1 - j0 + 1,
-                                               PIXFMT_RGB24, VCDC_FFMPEG_IO, 0);
+                                               PIXFMT_RGB24, VCDC_FFMPEG_IO, 0, 0, NULL);
     } else {
         img_data = image_gs_alloc((i1 - i0) + 1, (j1 - j0) + 1);
         video_writer = video_writer_alloc_init(p_fra_out_path, p_vid_in_start, n_threads, i1 - i0 + 1, j1 - j0 + 1,
-                                               PIXFMT_GRAY, VCDC_FFMPEG_IO, 0);
+                                               PIXFMT_GRAY8, VCDC_FFMPEG_IO, 0, 0, NULL);
     }
 
     // ----------------//
@@ -175,7 +176,7 @@ int main(int argc, char** argv) {
 
     PUTS("LOOP");
     int frame;
-    while ((frame = video_reader_get_frame(video, I)) != -1) {
+    while ((frame = video_reader_get_frame(video, I, NULL)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d\r", frame);
         max_reduce(M, i0, i1, j0, j1, (const uint8_t**)I);
     }
@@ -235,8 +236,8 @@ int main(int argc, char** argv) {
         }
 
         int n_BB = m;
-        image_color_draw_BBs(img_data, (const uint8_t**)M, (const BB_t*)BBs, (const enum color_e*)BBs_color,
-                             n_BB, p_trk_id, p_gt_path ? 1 : 0, 1);
+        image_color_draw_BBs(img_data, (const uint8_t**)M, PIXFMT_GRAY8, (const BB_t*)BBs,
+                             (const enum color_e*)BBs_color, n_BB, p_trk_id, p_gt_path ? 1 : 0, 1);
         video_writer_save_frame(video_writer, (const uint8_t**)image_color_get_pixels_2d(img_data));
         vector_free(tracks);
         free(BBs);

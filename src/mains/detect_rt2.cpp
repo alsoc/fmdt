@@ -45,6 +45,7 @@ int main(int argc, char** argv) {
     int def_p_vid_in_threads = 0;
     char def_p_vid_in_dec[16] = "FFMPEG-IO";
     char def_p_vid_in_dec_hw[16] = "NONE";
+    char* def_p_vid_in_opt = NULL;
     char def_p_ccl_impl[16] = "LSLH";
     int def_p_ccl_hyst_lo = 55;
     int def_p_ccl_hyst_hi = 80;
@@ -75,6 +76,7 @@ int main(int argc, char** argv) {
     int def_p_cca_roi_max1 = 65535; // Maximum number of RoIs before `features_merge_CCL_HI` selection.
     int def_p_cca_roi_max2 = 400; // Maximum number of RoIs after `features_merge_CCL_HI` selection.
     char* def_p_vid_out_path = NULL;
+    char* def_p_vid_out_opt = NULL;
 
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -104,6 +106,11 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --vid-in-dec-hw     Select video decoder hardware acceleration ('NONE', 'NVDEC', 'VIDTB')  [%s]\n",
                 def_p_vid_in_dec_hw);
+        fprintf(stderr,
+                "  --vid-in-dbg        Print ffmpeg command line                                                  \n");
+        fprintf(stderr,
+                "  --vid-in-opt        Add ffmpeg options to decode input video sequence                      [%s]\n",
+                def_p_vid_in_opt ? def_p_vid_in_opt : "NULL");
         fprintf(stderr,
                 "  --ccl-impl          Select the CCL implementation to use ('LSLH' or 'LSLM')                [%s]\n",
                 def_p_ccl_impl);
@@ -189,6 +196,11 @@ int main(int argc, char** argv) {
                 "  --vid-out-id        Draw the track ids on the ouptut video                                     \n");
 #endif
         fprintf(stderr,
+                "  --vid-out-dbg       Print ffmpeg command line                                                  \n");
+        fprintf(stderr,
+                "  --vid-out-opt       Add ffmpeg options to encode output video sequence                     [%s]\n",
+                def_p_vid_out_opt ? def_p_vid_out_opt : "NULL");
+        fprintf(stderr,
                 "  --rt-stats          Display runtime statistics (executed tasks report)                         \n");
         fprintf(stderr,
                 "  --rt-prb-path       Path of the output probe vales, only required for benchmarking purpose [%s]\n",
@@ -237,6 +249,8 @@ int main(int argc, char** argv) {
     const int p_vid_in_threads = args_find_int_min(argc, argv, "--vid-in-threads,--ffmpeg-threads", def_p_vid_in_threads, 0);
     const char* p_vid_in_dec = args_find_char(argc, argv, "--vid-in-dec", def_p_vid_in_dec);
     const char* p_vid_in_dec_hw = args_find_char(argc, argv, "--vid-in-dec-hw", def_p_vid_in_dec_hw);
+    const int p_vid_in_dbg = args_find(argc, argv, "--vid-in-dbg");
+    const char* p_vid_in_opt = args_find_char(argc, argv, "--vid-in-opt", def_p_vid_in_opt);
     const char* p_ccl_impl = args_find_char(argc, argv, "--ccl-impl", def_p_ccl_impl);
     const int p_ccl_hyst_lo = args_find_int_min_max(argc, argv, "--ccl-hyst-lo,--light-min", def_p_ccl_hyst_lo, 0, 255);
     const int p_ccl_hyst_hi = args_find_int_min_max(argc, argv, "--ccl-hyst-hi,--light-max", def_p_ccl_hyst_hi, 0, 255);
@@ -272,6 +286,8 @@ int main(int argc, char** argv) {
 #else
     const int p_vid_out_id = 0;
 #endif
+    const int p_vid_out_dbg = args_find(argc, argv, "--vid-out-dbg");
+    const char* p_vid_out_opt = args_find_char(argc, argv, "--vid-out-opt", def_p_vid_out_opt);
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const int p_task_stats = args_find(argc, argv, "--rt-stats,--task-stats");
     const char* p_out_probes = args_find_char(argc, argv, "--rt-prb-path,--out-probes", def_p_out_probes);
@@ -301,6 +317,8 @@ int main(int argc, char** argv) {
     printf("#  * vid-in-threads = %d\n", p_vid_in_threads);
     printf("#  * vid-in-dec     = %s\n", p_vid_in_dec);
     printf("#  * vid-in-dec-hw  = %s\n", p_vid_in_dec_hw);
+    printf("#  * vid-in-dbg     = %d\n", p_vid_in_dbg);
+    printf("#  * vid-in-opt     = %s\n", p_vid_in_opt);
     printf("#  * ccl-impl       = %s\n", p_ccl_impl);
     printf("#  * ccl-hyst-lo    = %d\n", p_ccl_hyst_lo);
     printf("#  * ccl-hyst-hi    = %d\n", p_ccl_hyst_hi);
@@ -333,6 +351,8 @@ int main(int argc, char** argv) {
 #ifdef FMDT_OPENCV_LINK
     printf("#  * vid-out-id     = %d\n", p_vid_out_id);
 #endif
+    printf("#  * vid-out-dbg    = %d\n", p_vid_out_dbg);
+    printf("#  * vid-out-opt    = %s\n", p_vid_out_opt);
     printf("#  * rt-stats       = %d\n", p_task_stats);
     printf("#  * rt-prb-path    = %s\n", p_out_probes);
 #ifdef FMDT_ENABLE_PIPELINE
@@ -391,6 +411,8 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--cca-ell' has to be combined with the '--log-path' or the '--trk-ell-min' parameter\n");
     if (p_vid_out_path && p_vid_out_play)
         fprintf(stderr, "(WW) '--vid-out-path' will be ignore because '--vid-out-play' is set\n");
+    if (!p_vid_out_path && p_vid_out_opt && p_vid_out_play)
+        fprintf(stderr, "(WW) '--vid-out-opt' has no effect when '--vid-out-play' is set\n");
 
     // -------------------------------- //
     // -- INITIALISATION GLOBAL DATA -- //
@@ -407,7 +429,8 @@ int main(int argc, char** argv) {
     // objects allocation
     const size_t b = 1; // image border
     Video2 video(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip, p_vid_in_buff, p_vid_in_threads, b,
-                 video_str_to_enum(p_vid_in_dec), video_hwaccel_str_to_enum(p_vid_in_dec_hw));
+                 video_str_to_enum(p_vid_in_dec), video_hwaccel_str_to_enum(p_vid_in_dec_hw), p_vid_in_dbg,
+                 p_vid_in_opt);
     const size_t i0 = video.get_i0();
     const size_t i1 = video.get_i1();
     const size_t j0 = video.get_j0();
@@ -465,8 +488,8 @@ int main(int argc, char** argv) {
     if (p_vid_out_play || p_vid_out_path) {
         const uint8_t draw_legend = 1;
         const uint8_t n_threads = 1;
-        visu.reset(new Visu(p_vid_out_path, p_vid_in_start, n_threads, i0, i1, j0, j1, b, PIXFMT_RGB24, VCDC_FFMPEG_IO,
-                            p_vid_out_id, draw_legend, p_vid_out_play,
+        visu.reset(new Visu(p_vid_out_path, p_vid_in_start, n_threads, i0, i1, j0, j1, b, PIXFMT_GRAY8, PIXFMT_RGB24,
+                            VCDC_FFMPEG_IO, p_vid_out_id, draw_legend, p_vid_out_play, p_vid_out_dbg, p_vid_out_opt,
                             MAX(p_trk_star_min, p_trk_meteor_min + p_trk_meteor_max), p_cca_roi_max2, p_vid_in_skip,
                             tracking.get_data()));
     }
@@ -538,10 +561,10 @@ int main(int argc, char** argv) {
     }
 
     // Step 1: seuillage low/high
-    threshold_min0["apply::in_img"] = video["generate::out_img0"];
-    threshold_max0["apply::in_img"] = video["generate::out_img0"];
-    threshold_min1["apply::in_img"] = video["generate::out_img1"];
-    threshold_max1["apply::in_img"] = video["generate::out_img1"];
+    threshold_min0["apply::in_img"] = video["generate::out_img0_gray8"];
+    threshold_max0["apply::in_img"] = video["generate::out_img0_gray8"];
+    threshold_min1["apply::in_img"] = video["generate::out_img1_gray8"];
+    threshold_max1["apply::in_img"] = video["generate::out_img1_gray8"];
     
     // Step 2: ECC/ACC
     ccl0["apply::in_img"] = threshold_min0["apply::out_img"];
@@ -565,12 +588,12 @@ int main(int argc, char** argv) {
 
     // Step 3.5: calcul de la magnitude pour chaque RoI
     if (p_cca_mag) {
-        magnitude0["compute::in_img"] = video["generate::out_img0"];
+        magnitude0["compute::in_img"] = video["generate::out_img0_gray8"];
         magnitude0["compute::in_labels"] = merger0["merge::out_labels"];
         magnitude0["compute::in_RoIs_basic"] = merger0["merge::out_RoIs_basic"];
         magnitude0["compute::in_n_RoIs"] = merger0["merge::out_n_RoIs"];
 
-        magnitude1["compute::in_img"] = video["generate::out_img1"];
+        magnitude1["compute::in_img"] = video["generate::out_img1_gray8"];
         magnitude1["compute::in_labels"] = merger1["merge::out_labels"];
         magnitude1["compute::in_RoIs_basic"] = merger1["merge::out_RoIs_basic"];
         magnitude1["compute::in_n_RoIs"] = merger1["merge::out_n_RoIs"];
@@ -673,7 +696,7 @@ int main(int argc, char** argv) {
 
     if (visu) {
         (*visu)["display::in_frame"] = video["generate::out_frame"];
-        (*visu)["display::in_img"] = video["generate::out_img1"];
+        (*visu)["display::in_img"] = video["generate::out_img1_gray8"];
         (*visu)["display::in_RoIs_basic"] = merger1["merge::out_RoIs_basic"];
         (*visu)["display::in_n_RoIs"] = merger1["merge::out_n_RoIs"];
         (*visu)("display") = tracking(perform_tsk);
