@@ -82,6 +82,17 @@ The documentation of this project is hosted by Read the Docs:
 To compile the documentation from the sources, refer to the readme file in the 
 `./doc/` folder.
 
+## Derivative Projects
+
+### `pyFMDT`
+
+`pyFMDT` has been created to exploit the results provided by FMDT. It performs 
+astrophotometry computations and outputs the position and magnitude of each 
+detected meteor as a function of time.
+
+If you are interested, please visit the following repository: 
+- https://gitlab.com/vaubaill/pyfmdt
+
 ## List of Contributors
 
 This toolbox is mainly developed by the [LIP6](https://www.lip6.fr/) laboratory 
