@@ -54,6 +54,8 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--knn-s``          | FLOAT   | See :numref:`detect_knn-s`.                        |
 +----------------------+---------+----------------------------------------------------+
+| ``--mtn-no-reg``     | BOOLEAN | See :numref:`mtn-no-reg`.                          |
++----------------------+---------+----------------------------------------------------+
 | ``--trk-ext-d``      | INTEGER | See :numref:`detect_trk-ext-d`.                    |
 +----------------------+---------+----------------------------------------------------+
 | ``--trk-ext-o``      | INTEGER | See :numref:`detect_trk-ext-o`.                    |
@@ -396,6 +398,16 @@ Maximum distance in pixels between two images (|k-NN| algorithm).
 
 Minimum surface ratio to match two |CCs| in |k-NN| (``0`` matches alls, ``1``
 matches nothing). This parameter is also used for extrapolation in the tracking.
+
+.. _detect_mtn-no-reg:
+
+``--mtn-no-reg``
+----------------
+
+   :Type: BOOLEAN
+   :Example: ``--mtn-no-reg``
+
+Disable image registration for ground detection.
 
 .. _detect_trk-ext-d:
 

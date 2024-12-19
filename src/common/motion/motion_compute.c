@@ -155,3 +155,41 @@ void motion_compute(const RoI_basic_t* RoIs0_basic, const RoI_basic_t* RoIs1_bas
     motion_est2->std_deviation = _motion_compute_std_deviation(RoIs1_asso, RoIs1_motion, n_RoIs1,
                                                                motion_est2->mean_error);
 }
+
+void motion_compute_without_registration(const RoI_basic_t* RoIs0_basic, const RoI_basic_t* RoIs1_basic,
+                                         const RoI_asso_t* RoIs1_asso, RoI_motion_t* RoIs1_motion, 
+                                         const size_t n_RoIs1, motion_t* motion_est1, motion_t* motion_est2) {
+    motion_est1->tx            = 0;
+    motion_est1->ty            = 0;
+    motion_est1->theta         = 0;
+    motion_est1->std_deviation = 0;
+    motion_est1->mean_error    = 0;
+
+    motion_est2->tx            = 0;
+    motion_est2->ty            = 0;
+    motion_est2->theta         = 0;
+    motion_est2->std_deviation = 0;
+    motion_est2->mean_error    = 0;
+
+    for (size_t i = 0; i < n_RoIs1; i++) {
+        float x, y, dx, dy, e;
+        size_t cc0 = RoIs1_asso[i].prev_id;
+        if (cc0) {
+            x = RoIs1_basic[i].x;
+            y = RoIs1_basic[i].y;
+
+            dx = x - RoIs0_basic[cc0 - 1].x;
+            dy = y - RoIs0_basic[cc0 - 1].y;
+
+            RoIs1_motion[i].dx = dx;
+            RoIs1_motion[i].dy = dy;
+
+            e = sqrtf(dx * dx + dy * dy);
+            RoIs1_motion[i].error = e;
+
+            RoIs1_motion[i].is_moving = e > 0.001f;
+        } else {
+            RoIs1_motion[i].is_moving = 0;
+        }
+    }
+}

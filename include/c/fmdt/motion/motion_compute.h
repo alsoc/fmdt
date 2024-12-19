@@ -37,3 +37,20 @@
  */
 void motion_compute(const RoI_basic_t* RoIs0_basic, const RoI_basic_t* RoIs1_basic, const RoI_asso_t* RoIs1_asso,
                     RoI_motion_t* RoIs1_motion, const size_t n_RoIs1, motion_t* motion_est1, motion_t* motion_est2);
+
+
+/**
+ * Compute the movement of each RoI without image registration (i.e. without global motion compensation) for ground detection.
+ * To be considered in movement the motion norm of the RoI has to be higher than 0.001.
+ *
+ * @param RoIs0_basic Basic features (at \f$t -1\f$).
+ * @param RoIs1_basic Basic features (at \f$t\f$).
+ * @param RoIs1_asso Association features (at \f$t\f$).
+ * @param RoIs1_motion Motion features (at \f$t\f$).
+ * @param n_RoIs1 Number of connected-components (= number of RoIs) (at \f$t\f$).
+ * @param motion_est1 First global motion estimation.
+ * @param motion_est2 Second global motion estimation.
+ */
+void motion_compute_without_registration(const RoI_basic_t* RoIs0_basic, const RoI_basic_t* RoIs1_basic,
+                                         const RoI_asso_t* RoIs1_asso, RoI_motion_t* RoIs1_motion, 
+                                         const size_t n_RoIs1, motion_t* motion_est1, motion_t* motion_est2);
