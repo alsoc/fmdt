@@ -56,6 +56,8 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--mtn-no-reg``     | BOOLEAN | See :numref:`mtn-no-reg`.                          |
 +----------------------+---------+----------------------------------------------------+
+| ``--gnd-detect``     | BOOLEAN | Alias of ``--mtn-no-reg`` (numref:`mtn-no-reg`)    |
++----------------------+---------+----------------------------------------------------+
 | ``--trk-ext-d``      | INTEGER | See :numref:`detect_trk-ext-d`.                    |
 +----------------------+---------+----------------------------------------------------+
 | ``--trk-ext-o``      | INTEGER | See :numref:`detect_trk-ext-o`.                    |
