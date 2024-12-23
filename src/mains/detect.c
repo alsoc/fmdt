@@ -130,7 +130,7 @@ int main(int argc, char** argv) {
                 "  --knn-s             Minimum surface ratio to match two CCs in k-NN                         [%f]\n",
                 def_p_knn_s);
         fprintf(stderr,
-                "  --mtn-no-reg        Disable image registration (for ground detection)                        \n");
+                "  --mtn-no-reg        Disable image registration (for ground detection)                         \n");
         fprintf(stderr,
                 "  --trk-ext-d         Search radius in pixels for CC extrapolation (piece-wise tracking)     [%d]\n",
                 def_p_trk_ext_d);
