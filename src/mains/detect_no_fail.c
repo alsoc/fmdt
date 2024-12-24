@@ -222,7 +222,7 @@ int main(int argc, char** argv) {
     const int p_knn_k = args_find_int_min(argc, argv, "--knn-k,-k", def_p_knn_k, 0);
     const int p_knn_d = args_find_int_min(argc, argv, "--knn-d,--max-dist", def_p_knn_d, 0);
     const float p_knn_s = args_find_float_min_max(argc, argv, "--knn-s,--min-ratio-s", def_p_knn_s, 0.f, 1.f);
-    const int p_mtn_no_reg = args_find(argc, argv, "--mtn-no-reg,--mtn-no-registration,--gnd-detect");
+    const int p_mtn_no_reg = args_find(argc, argv, "--mtn-no-reg,--gnd-detect");
     const int p_trk_ext_d = args_find_int_min(argc, argv, "--trk-ext-d,--r-extrapol", def_p_trk_ext_d, 0);
     const int p_trk_ext_o = args_find_int_min_max(argc, argv, "--trk-ext-o,--extrapol-order", def_p_trk_ext_o, 0, 255);
     const float p_trk_angle = args_find_float_min_max(argc, argv, "--trk-angle,--angle-max", def_p_trk_angle, 0.f, 360.f);
@@ -428,7 +428,7 @@ int main(int argc, char** argv) {
             // step 3: hysteresis threshold & surface filtering (+ magnitude computations)
             threshold((const uint8_t**)I, IH, i0, i1, j0, j1, p_ccl_hyst_hi);
             RoIs1->_size = features_merge_CCL_HI_v2((const uint32_t**)L1, (const uint8_t**)IH, L2, i0, i1, j0, j1,
-                                                   RoIs_tmp->basic, RoIs_tmp->_size, p_mrp_s_min, p_mrp_s_max);
+                                                    RoIs_tmp->basic, RoIs_tmp->_size, p_mrp_s_min, p_mrp_s_max);
             if (RoIs1->_size <= RoIs1->_max_size) {
                 features_shrink(RoIs_tmp->basic, NULL, NULL, RoIs_tmp->_size, RoIs1->basic, NULL, NULL);
                 if (p_cca_mag)
@@ -443,9 +443,9 @@ int main(int argc, char** argv) {
 
                 if (n_assocs) {
                     // step 5: motion estimation
-                    if(p_mtn_no_reg)
+                    if (p_mtn_no_reg)
                         motion_compute_without_registration(RoIs0->basic, RoIs1->basic, RoIs1->asso, RoIs1->motion,
-                                                             RoIs1->_size, &motion_est1, &motion_est2);
+                                                            RoIs1->_size, &motion_est1, &motion_est2);
                     else
                         motion_compute(RoIs0->basic, RoIs1->basic, RoIs1->asso, RoIs1->motion, RoIs1->_size,
                                        &motion_est1, &motion_est2);
