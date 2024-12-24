@@ -409,7 +409,11 @@ matches nothing). This parameter is also used for extrapolation in the tracking.
    :Type: BOOLEAN
    :Example: ``--mtn-no-reg``
 
-Disable image registration for ground detection.
+Disable image registration for **ground detection**. For now this parameter is
+only available for the `fmdt-detect` and `fmdt-detect-no-fail` executable
+binaries.
+
+Note that the ``--gnd-detect`` parameter is an alias of ``--mtn-no-reg``.
 
 .. _detect_trk-ext-d:
 
