@@ -90,56 +90,32 @@ void tracking_free_data(tracking_data_t* tracking_data) {
     free(tracking_data);
 }
 
-// Return 1 if the current motion is valid, return 0 if not (because of NaNs)
-uint8_t _get_motion(const motion_t motion, float* theta, float* tx, float* ty) {
-    if (!isnan(motion.tx) && !isnan(motion.ty)) {
-        *theta = motion.theta;
-        *tx = motion.tx;
-        *ty = motion.ty;
-        return 1;
-    } else {
-        *theta = 0.f;
-        *tx = 0.f;
-        *ty = 0.f;
-        return 0;
-    }
-}
-
 // (xA_B, yA_B) = position of RoI `A` at `t - B`
 void __compute_angle_and_norms(const motion_t* motion, const size_t motion_id, const float x0_0, const float y0_0,
                                const float x1_1, const float y1_1, const float x2_2, const float y2_2,
                                float *angle_degree, float *norm_u, float *norm_v) {
-    float theta0, tx0, ty0;
-    _get_motion(motion[motion_id + 0], &theta0, &tx0, &ty0);
+    hcoord_t pos0_0 = {x0_0, y0_0, 1.f};
+    hcoord_t pos1_0 = motion_update_pos(&motion[motion_id + 0].tmat, x1_1, y1_1);
+    hcoord_t pos2_0 = motion_update_pos(&motion[motion_id + 1].tmat, x2_2, y2_2);
 
-    float theta1, tx1, ty1;
-    _get_motion(motion[motion_id + 1], &theta1, &tx1, &ty1);
-
-    float x0_2 = cosf(theta0 + theta1) * (x0_0 - (tx1 + tx0)) + sinf(theta0 + theta1) * (y0_0 - (ty1 + ty0));
-    float y0_2 = cosf(theta0 + theta1) * (y0_0 - (ty1 + ty0)) - sinf(theta0 + theta1) * (x0_0 - (tx1 + tx0));
-
-    float x1_2 = cosf(theta1) * (x1_1 - tx1) + sinf(theta1) * (y1_1 - ty1);
-    float y1_2 = cosf(theta1) * (y1_1 - ty1) - sinf(theta1) * (x1_1 - tx1);
-
-    float u_x = x1_2 - x2_2;
-    float u_y = y1_2 - y2_2;
-    float v_x = x0_2 - x2_2;
-    float v_y = y0_2 - y2_2;
-
-    float scalar_prod_uv = u_x * v_x + u_y * v_y;
+    float u_x = pos2_0.x - pos1_0.x;
+    float u_y = pos2_0.y - pos1_0.y;
+    float v_x = pos2_0.x - pos0_0.x;
+    float v_y = pos2_0.y - pos0_0.y;
 
     *norm_u = sqrtf(u_x * u_x + u_y * u_y);
     *norm_v = sqrtf(v_x * v_x + v_y * v_y);
+
+    float scalar_prod_uv = u_x * v_x + u_y * v_y;
 
     float cos_uv = scalar_prod_uv / (*norm_u * *norm_v);
 
     float angle_rad = acosf(cos_uv >= 1 ? 0.99999f : cos_uv);
     *angle_degree = angle_rad * (180.f / (float)M_PI);
-    // *angle_degree = fmodf(angle_degree, 360.f);
 }
 
-void _compute_angle_and_norms(const History_t* history, const track_t* cur_track, float *angle_degree,
-                              float *norm_u, float *norm_v) {
+void _compute_angle_and_norms(const History_t* history, const track_t* cur_track, float *angle_degree, float *norm_u,
+                              float *norm_v) {
     int next_id = history->RoIs[1][cur_track->end.id - 1].next_id;
 
     float x0_0 = history->RoIs[0][next_id - 1].x;
@@ -177,18 +153,16 @@ size_t _find_matching_RoI(const History_t* history, const track_t* cur_track, co
                           const float min_extrapol_ratio_S) {
     for (size_t j = 0; j < history->n_RoIs[0]; j++) {
         if (!history->RoIs[0][j].prev_id && !history->RoIs[0][j].is_extrapolated) {
-            float theta, tx, ty;
-            _get_motion(history->motion[0], &theta, &tx, &ty);
-
             float x0_0 = history->RoIs[0][j].x;
             float y0_0 = history->RoIs[0][j].y;
 
             // motion compensation from t - 1 to t
-            float x1_0 = tx + cur_track->extrapol_x1 * cosf(theta) - cur_track->extrapol_y1 * sinf(theta);
-            float y1_0 = ty + cur_track->extrapol_x1 * sinf(theta) + cur_track->extrapol_y1 * cosf(theta);
+            float x1_1 = cur_track->extrapol_x1;
+            float y1_1 = cur_track->extrapol_y1;
+            hcoord_t pos1_0 = motion_update_pos(&history->motion[0].tmat, x1_1, y1_1);
 
-            float x_diff = x0_0 - (x1_0 + cur_track->extrapol_dx);
-            float y_diff = y0_0 - (y1_0 + cur_track->extrapol_dy);
+            float x_diff = x0_0 - (pos1_0.x + cur_track->extrapol_dx);
+            float y_diff = y0_0 - (pos1_0.y + cur_track->extrapol_dy);
             float dist = sqrtf(x_diff * x_diff + y_diff * y_diff);
 
             float ratio_S_ij = cur_track->end.S < history->RoIs[0][j].S ?
@@ -206,40 +180,30 @@ size_t _find_matching_RoI(const History_t* history, const track_t* cur_track, co
 }
 
 void _track_extrapolate(const History_t* history, track_t* cur_track) {
-    float theta, tx, ty;
-    _get_motion(history->motion[0], &theta, &tx, &ty);
-
+    // motion compensation from t - 1 to t
     float x1_1 = cur_track->extrapol_x1;
     float y1_1 = cur_track->extrapol_y1;
-
-    // motion compensation from t - 1 to t
-    float x1_0 = tx + x1_1 * cosf(theta) - y1_1 * sinf(theta);
-    float y1_0 = ty + x1_1 * sinf(theta) + y1_1 * cosf(theta);
+    hcoord_t pos1_0 = motion_update_pos(&history->motion[0].tmat, x1_1, y1_1);
 
     cur_track->extrapol_x2 = x1_1;
     cur_track->extrapol_y2 = y1_1;
 
     // extrapolate x0 and y0 @ t
-    cur_track->extrapol_x1 = x1_0 + cur_track->extrapol_dx;
-    cur_track->extrapol_y1 = y1_0 + cur_track->extrapol_dy;
+    cur_track->extrapol_x1 = pos1_0.x + cur_track->extrapol_dx;
+    cur_track->extrapol_y1 = pos1_0.y + cur_track->extrapol_dy;
 }
 
 void _update_extrapol_vars(const History_t* history, track_t* cur_track) {
-    float theta, tx, ty;
-    _get_motion(history->motion[0], &theta, &tx, &ty);
-
+    // motion compensation from t - 1 to t
     float x2_1 = cur_track->extrapol_x1;
     float y2_1 = cur_track->extrapol_y1;
-
-    // motion compensation from t - 1 to t
-    float x2_0 = tx + x2_1 * cosf(theta) - y2_1 * sinf(theta);
-    float y2_0 = ty + x2_1 * sinf(theta) + y2_1 * cosf(theta);
+    hcoord_t pos2_0 = motion_update_pos(&history->motion[0].tmat, x2_1, y2_1);
 
     float x1_0 = cur_track->end.x;
     float y1_0 = cur_track->end.y;
 
-    cur_track->extrapol_dx = x1_0 - x2_0;
-    cur_track->extrapol_dy = y1_0 - y2_0;
+    cur_track->extrapol_dx = x1_0 - pos2_0.x;
+    cur_track->extrapol_dy = y1_0 - pos2_0.y;
 
     // for tracking @ t + 1
     cur_track->extrapol_x2 = cur_track->extrapol_x1;
@@ -510,19 +474,28 @@ void tracking_perform(tracking_data_t* tracking_data, const RoIs_t* RoIs, size_t
 
     tracking_data->history->n_RoIs[0] = RoIs->_size;
     _light_copy_RoIs(frame, RoIs, RoIs->_size, tracking_data->history->RoIs[0]);
-    if (motion_est)
-        tracking_data->history->motion[0] = *motion_est;
     if (tracking_data->history->_size > 0)
         _update_RoIs_next_id(RoIs->asso, tracking_data->history->RoIs[1], RoIs->_size);
     if (tracking_data->history->_size < tracking_data->history->_max_size)
         tracking_data->history->_size++;
+    if (motion_est) {
+        tracking_data->history->motion[0] = *motion_est;
+        // update previous transformation matrices
+        for (size_t m = 1; m < tracking_data->history->_size; m++) {
+            tmat3x3_t new_tmat;
+            motion_combine_tmat3x3_opt((const tmat3x3_t*)&tracking_data->history->motion[0].tmat,
+                                       (const tmat3x3_t*)&tracking_data->history->motion[m].tmat,
+                                       &new_tmat);
+            tracking_data->history->motion[m].tmat = new_tmat;
+        }
+    }
 
     if (tracking_data->history->_size >= 2) {
-        _create_new_tracks(tracking_data->history, tracking_data->RoIs_list, &tracking_data->tracks, frame,
-                           diff_dev, angle_max, track_all, fra_star_min, fra_meteor_min, min_ellipse_ratio,
-                           save_RoIs_id, simple_tracking);
-        _update_existing_tracks(tracking_data->history, tracking_data->tracks, frame, r_extrapol, angle_max,
-                                track_all, fra_meteor_max, extrapol_order_max, min_extrapol_ratio_S, min_ellipse_ratio,
+        _create_new_tracks(tracking_data->history, tracking_data->RoIs_list, &tracking_data->tracks, frame, diff_dev,
+                           angle_max, track_all, fra_star_min, fra_meteor_min, min_ellipse_ratio, save_RoIs_id,
+                           simple_tracking);
+        _update_existing_tracks(tracking_data->history, tracking_data->tracks, frame, r_extrapol, angle_max, track_all,
+                                fra_meteor_max, extrapol_order_max, min_extrapol_ratio_S, min_ellipse_ratio,
                                 simple_tracking);
     }
 

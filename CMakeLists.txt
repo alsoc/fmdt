@@ -144,6 +144,7 @@ set(src_common_files
     ${src_dir}/common/kNN/kNN_io.c
     ${src_dir}/common/motion/motion_compute.c
     ${src_dir}/common/motion/motion_io.c
+    ${src_dir}/common/motion/motion_struct.c
     ${src_dir}/common/threshold/threshold_compute.c
     ${src_dir}/common/tracking/tracking_compute.c
     ${src_dir}/common/tracking/tracking_global.c
