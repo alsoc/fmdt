@@ -33,8 +33,8 @@ else
                      fmdt-detect-opt-no-fail"
 fi
 
-# curl https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_e8ed3efd.zip --output refs_detect.zip
-wget https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_e8ed3efd.zip -O refs_detect.zip
+# curl https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_f0ef597a.zip --output refs_detect.zip
+wget https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_f0ef597a.zip -O refs_detect.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 unzip refs_detect.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
