@@ -12,7 +12,7 @@ void motion_write(FILE* f, const motion_t* motion_est1, const motion_t* motion_e
     fprintf(f, "# ----------|---------|---------|----------|---------||----------|---------|---------|----------|---------\n");
     fprintf(f, "#     theta |      tx |      ty | mean err | std dev ||    theta |      tx |      ty | mean err | std dev \n");
     fprintf(f, "# ----------|---------|---------|----------|---------||----------|---------|---------|----------|---------\n");
-    fprintf(f, "   %8.5f | %7.4f | %7.4f | %8.4f | %7.4f || %8.5f | %7.4f | %7.4f | %8.4f | %7.4f \n",
+    fprintf(f, "   %8.5f | %7.3f | %7.3f | %8.3f | %7.3f || %8.5f | %7.3f | %7.3f | %8.3f | %7.3f \n",
             motion_get_theta(&motion_est1->tmat), motion_est1->tmat.tx, motion_est1->tmat.ty, motion_est1->mean_error, motion_est1->std_deviation,
             motion_get_theta(&motion_est2->tmat), motion_est2->tmat.tx, motion_est2->tmat.ty, motion_est2->mean_error, motion_est2->std_deviation);
 }

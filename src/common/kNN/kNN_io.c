@@ -81,7 +81,7 @@ void kNN_asso_conflicts_write(FILE* f, const kNN_data_t* kNN_data, const RoI_bas
                     snprintf(moving_str, sizeof(moving_str), "      yes");
                 else
                     snprintf(moving_str, sizeof(moving_str), "       no");
-                fprintf(f, "  %4u | %4u || %6.3f | %4d || %8.4f | %8.4f | %8.4f || %s \n", RoIs0_basic[i].id,
+                fprintf(f, "  %4u | %4u || %6.3f | %4d || %8.3f | %8.3f | %8.3f || %s \n", RoIs0_basic[i].id,
                         RoIs0_asso[i].next_id, dist_ij, kNN_data->nearest[i][j], RoIs1_motion[j].dx, RoIs1_motion[j].dy,
                         RoIs1_motion[j].error, moving_str);
             }
