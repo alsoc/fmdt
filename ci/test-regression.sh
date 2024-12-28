@@ -33,8 +33,8 @@ else
                      fmdt-detect-opt-no-fail"
 fi
 
-# curl https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_f0ef597a.zip --output refs_detect.zip
-wget https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_f0ef597a.zip -O refs_detect.zip
+# curl https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_3da41bc5.zip --output refs_detect.zip
+wget https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_detect_2022_05_31_tauh_34_meteors_3da41bc5.zip -O refs_detect.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 unzip refs_detect.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
@@ -43,7 +43,8 @@ rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
              --list-exe "${list_exe_detect}" \
              --exe-args "--vid-in-path ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --ccl-impl \"LSLH\" --trk-all --cca-mag --cca-ell --ccl-fra-path ${out_root_dir}/%05d.pgm --log-path ${out_root_dir}" \
              --out-path "${out_root_dir}" \
-             --refs-path ${WD}/scripts/regression/refs_detect
+             --refs-path ${WD}/scripts/regression/refs_detect \
+             --error 0.15
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 if [ "$LSLM" == "ON" ]
@@ -52,7 +53,8 @@ then
                  --list-exe "${list_exe_detect}" \
                  --exe-args "--vid-in-path ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --ccl-impl \"LSLM\" --trk-all --cca-mag --cca-ell --ccl-fra-path ${out_root_dir}/%05d.pgm --log-path ${out_root_dir}" \
                  --out-path "${out_root_dir}" \
-                 --refs-path ${WD}/scripts/regression/refs_detect
+                 --refs-path ${WD}/scripts/regression/refs_detect \
+                 --error 0.15
     rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 fi
 

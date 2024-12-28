@@ -8,13 +8,27 @@ import argparse
 import re
 import shutil
 
+# list of columns for whom there is a tolerated percentage of error
+colsError = ["error (or velocity)_dx",
+             "error (or velocity)_dy",
+             "error (or velocity)_e",
+             "first motion estimation (with all associated rois)_tx",
+             "first motion estimation (with all associated rois)_ty",
+             "first motion estimation (with all associated rois)_mean err",
+             "first motion estimation (with all associated rois)_std dev",
+             "second motion estimation (exclude moving rois)_tx",
+             "second motion estimation (exclude moving rois)_ty",
+             "second motion estimation (exclude moving rois)_mean err",
+             "second motion estimation (exclude moving rois)_std dev"]
+
 parser = argparse.ArgumentParser(prog='compare.py', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--exe-args',    action='store', dest='exeArgs',    type=str, default="", required=True, help='String of exe-argurments.')
-parser.add_argument('--list-exe',    action='store', dest='strListExe', type=str, default="", required=True, help='List of executables to compare (format: "exe0, exe1, ... , exeN").')
-parser.add_argument('--refs-path',   action='store', dest='refsPath',   type=str, default="refs",            help='Path of the references to compare.')
-parser.add_argument('--new-ref-exe', action='store', dest='newRefExe',  type=str, default="",                help='Executable considered for ref.')
-parser.add_argument('--out-path',    action='store', dest='outPath',    type=str, default="output",          help='Output folder of the tested binaries.')
-parser.add_argument('--build-path',  action='store', dest='buildPath',  type=str, default="",                help='Path to the directory containing the binaries.')
+parser.add_argument('--exe-args',    action='store', dest='exeArgs',    type=str,   default="", required=True, help='String of exe-argurments.')
+parser.add_argument('--list-exe',    action='store', dest='strListExe', type=str,   default="", required=True, help='List of executables to compare (format: "exe0, exe1, ... , exeN").')
+parser.add_argument('--refs-path',   action='store', dest='refsPath',   type=str,   default="refs",            help='Path of the references to compare.')
+parser.add_argument('--new-ref-exe', action='store', dest='newRefExe',  type=str,   default="",                help='Executable considered for ref.')
+parser.add_argument('--out-path',    action='store', dest='outPath',    type=str,   default="output",          help='Output folder of the tested binaries.')
+parser.add_argument('--build-path',  action='store', dest='buildPath',  type=str,   default="",                help='Path to the directory containing the binaries.')
+parser.add_argument('--error',       action='store', dest='error',      type=float, default=0,                 help='Tolerated error ratio between numbers (between 0 and 1, 0 means no error tolerated, 1 means everything is tolerated).')
 
 def strListExe_to_listExe():
     return args.strListExe.replace(' ', '').split(',')
@@ -93,14 +107,37 @@ def diff_stats(filename, p_v1, p_v2):
         if stats1[i][0] != stats2[i][0] :
             return [(filename, stats1[i][1]+1, stats1[i][0], stats2[i][0])]
         
-        for col1, data1 in  stats1[i][2] :
+        for col1, data1 in stats1[i][2] :
             for col2, data2 in stats2[i][2]:
                 if col1 == col2 :
                     if data1 != data2: 
                         size = len(data1)
                         for k in range(size):
-                            if data1[k].strip() != data2[k].strip(): 
-                                return [(filename, stats1[i][1]+8+k, col1 + " : " + data1[k], col2 + " : " +data2[k])]
+                            val1 = data1[k].strip()
+                            val2 = data2[k].strip()
+                            if val1 != val2:
+                                if col1 in colsError:
+                                    if args.error > 0:
+                                        # delta error management
+                                        try:
+                                            val1f = float(val1)
+                                            val2f = float(val2)
+                                            if val1f == 0:
+                                                val1f = 0.00000001;
+                                            if val2f == 0:
+                                                val2f = 0.00000001;
+
+                                            if val1f > val2f:
+                                                ratio = val2f / val1f
+                                            else:
+                                                ratio = val1f / val2f
+                                            delta = 1 - abs(ratio);
+
+                                            if (delta < args.error):
+                                                break;
+                                        except:
+                                            pass
+                                return [(filename, stats1[i][1]+8+k, col1 + ": " + val1, col2 + ": " + val2)]
                     break
 
     return []
