@@ -294,7 +294,7 @@ int main(int argc, char** argv) {
                 exit(1);
             }
             fprintf(f, "# Frame n°%05d (BEFORE ellipse ratio threshold) -- ", cur_fra);
-            features_RoIs_write(f, cur_fra, RoIs->basic, NULL, RoIs->elli, RoIs->_size , NULL, 0, p_log_hexa);
+            features_RoIs_write(f, cur_fra, RoIs->basic, NULL, RoIs->elli, RoIs->_size , NULL, p_log_hexa, 0);
             fprintf(f, "#\n");
         }
 
@@ -312,7 +312,7 @@ int main(int argc, char** argv) {
         // save stats (second part)
         if (p_log_path) {
             fprintf(f, "# Frame n°%05d (AFTER ellipse ratio threshold) -- ", cur_fra);
-            features_RoIs_write(f, cur_fra, RoIs->basic, NULL, RoIs->elli, RoIs->_size, NULL, 0, p_log_hexa);
+            features_RoIs_write(f, cur_fra, RoIs->basic, NULL, RoIs->elli, RoIs->_size, NULL, p_log_hexa, 0);
             fclose(f);
         }
 
