@@ -43,7 +43,8 @@ rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
              --list-exe "${list_exe_detect}" \
              --exe-args "--vid-in-path ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --ccl-impl \"LSLH\" --trk-all --cca-mag --cca-ell --ccl-fra-path ${out_root_dir}/%05d.pgm --log-path ${out_root_dir} --log-hexa" \
              --out-path "${out_root_dir}" \
-             --refs-path ${WD}/scripts/regression/refs_detect
+             --refs-path ${WD}/scripts/regression/refs_detect \
+             --hexa-float
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 if [ "$LSLM" == "ON" ]
@@ -52,7 +53,8 @@ then
                  --list-exe "${list_exe_detect}" \
                  --exe-args "--vid-in-path ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --ccl-impl \"LSLM\" --trk-all --cca-mag --cca-ell --ccl-fra-path ${out_root_dir}/%05d.pgm --log-path ${out_root_dir} --log-hexa" \
                  --out-path "${out_root_dir}" \
-                 --refs-path ${WD}/scripts/regression/refs_detect
+                 --refs-path ${WD}/scripts/regression/refs_detect \
+                 --hexa-float
     rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 fi
 

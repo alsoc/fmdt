@@ -90,7 +90,7 @@ def diff_pgm(filename, p_v1, p_v2):
     key2 = md5_hash2.hexdigest()
 
     if key1 != key2 :
-        res.append((filename, "-", "-", key1, key2))
+        res.append((filename, "-", "MD5 file hash (8 first hex digits)", key1[:8], key2[:8]))
     return res
 
 def diff_bb(filename, p_v1, p_v2):

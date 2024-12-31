@@ -284,7 +284,10 @@ int main(int argc, char** argv) {
         if (p_log_path) {
             tools_create_folder(p_log_path);
             char filename[1024];
-            snprintf(filename, sizeof(filename), "%s/%05d.txt", p_log_path, cur_fra);
+            if (p_log_hexa)
+                snprintf(filename, sizeof(filename), "%s/%05d_hexa.txt", p_log_path, cur_fra);
+            else
+                snprintf(filename, sizeof(filename), "%s/%05d.txt", p_log_path, cur_fra);
             f = fopen(filename, "w");
             if (f == NULL) {
                 fprintf(stderr, "(EE) error while opening '%s'\n", filename);
