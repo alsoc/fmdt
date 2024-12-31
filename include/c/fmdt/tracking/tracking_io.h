@@ -22,8 +22,9 @@ void tracking_tracks_write(FILE* f, const vec_track_t tracks);
  *
  * @param f File descriptor (in write mode).
  * @param tracks A vector of tracks.
+ * @param hexa_float A boolean to print float numbers in hexadecimal.
  */
-void tracking_tracks_write_full(FILE* f, const vec_track_t tracks);
+void tracking_tracks_write_full(FILE* f, const vec_track_t tracks, uint8_t hexa_float);
 
 /**
  * Print a list of magnitudes per track. Each line corresponds to a track.

@@ -96,6 +96,8 @@ int main(int argc, char** argv) {
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
         fprintf(stderr,
+                "  --log-hexa          Print float values in hexadecimal in the logs                              \n");
+        fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
         fprintf(stderr,
                 "  --version, -v       Print the version                                                          \n");
@@ -132,6 +134,7 @@ int main(int argc, char** argv) {
     const float p_ellipse = args_find_float_min(argc, argv, "--eli-r", def_p_ellipse, 0);
 
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
+    const int p_log_hexa = args_find(argc, argv, "--log-hexa");
 
     // heading display
     printf("#  ----------------------\n");
@@ -162,7 +165,7 @@ int main(int argc, char** argv) {
     printf("#  * mrp-s-max      = %d\n", p_mrp_s_max);
     printf("#  * eli-r          = %.2f\n", p_ellipse);
     printf("#  * log-path       = %s\n", p_log_path);
-
+    printf("#  * log-hexa       = %d\n", p_log_hexa);
     printf("#\n");
 
     // arguments checking
@@ -288,7 +291,7 @@ int main(int argc, char** argv) {
                 exit(1);
             }
             fprintf(f, "# Frame n°%05d (BEFORE ellipse ratio threshold) -- ", cur_fra);
-            features_RoIs_write(f, cur_fra, RoIs->basic, NULL, RoIs->elli, RoIs->_size , NULL, 0);
+            features_RoIs_write(f, cur_fra, RoIs->basic, NULL, RoIs->elli, RoIs->_size , NULL, 0, p_log_hexa);
             fprintf(f, "#\n");
         }
 
@@ -306,7 +309,7 @@ int main(int argc, char** argv) {
         // save stats (second part)
         if (p_log_path) {
             fprintf(f, "# Frame n°%05d (AFTER ellipse ratio threshold) -- ", cur_fra);
-            features_RoIs_write(f, cur_fra, RoIs->basic, NULL, RoIs->elli, RoIs->_size, NULL, 0);
+            features_RoIs_write(f, cur_fra, RoIs->basic, NULL, RoIs->elli, RoIs->_size, NULL, 0, p_log_hexa);
             fclose(f);
         }
 

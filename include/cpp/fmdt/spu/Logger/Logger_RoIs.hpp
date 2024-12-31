@@ -27,10 +27,11 @@ protected:
     const bool enable_magnitude;
     const bool enable_sat_count;
     const bool enable_ellipse;
+    const bool hexa_float;
 public:
     Logger_RoIs(const std::string RoIs_path, const size_t fra_start, const size_t frame_skip,
                 const size_t max_RoIs_size, const tracking_data_t* tracking_data, const bool enable_magnitude = false,
-                const bool enable_sat_count = false, const bool enable_ellipse = false);
+                const bool enable_sat_count = false, const bool enable_ellipse = false, const bool hexa_float = false);
     virtual ~Logger_RoIs();
     inline spu::runtime::Task& operator[](const lgr_roi::tsk t);
     inline spu::runtime::Socket& operator[](const lgr_roi::sck::write s);

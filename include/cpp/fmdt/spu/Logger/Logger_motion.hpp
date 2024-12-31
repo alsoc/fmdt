@@ -19,8 +19,9 @@ class Logger_motion : public spu::module::Stateful {
 protected:
     const std::string motion_path;
     const size_t fra_start;
+    const bool hexa_float;
 public:
-    Logger_motion(const std::string motion_path, const size_t fra_start);
+    Logger_motion(const std::string motion_path, const size_t fra_start, const bool hexa_float = false);
     virtual ~Logger_motion();
     inline spu::runtime::Task& operator[](const lgr_mtn::tsk t);
     inline spu::runtime::Socket& operator[](const lgr_mtn::sck::write s);

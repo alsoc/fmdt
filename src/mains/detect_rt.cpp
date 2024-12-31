@@ -184,6 +184,8 @@ int main(int argc, char** argv) {
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
         fprintf(stderr,
+                "  --log-hexa          Print float values in hexadecimal in the logs                              \n");
+        fprintf(stderr,
                 "  --vid-out-path      Path to video file or to an images sequence to write the output        [%s]\n",
                 def_p_vid_out_path ? def_p_vid_out_path : "NULL");
         fprintf(stderr,
@@ -277,6 +279,7 @@ int main(int argc, char** argv) {
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
+    const int p_log_hexa = args_find(argc, argv, "--log-hexa");
     const char* p_vid_out_path = args_find_char(argc, argv, "--vid-out-path", def_p_vid_out_path);
     const int p_vid_out_play = args_find(argc, argv, "--vid-out-play");
 #ifdef FMDT_OPENCV_LINK
@@ -343,6 +346,7 @@ int main(int argc, char** argv) {
     printf("#  * trk-all        = %d\n", p_trk_all);
     printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * log-path       = %s\n", p_log_path);
+    printf("#  * log-hexa       = %d\n", p_log_hexa);
     printf("#  * vid-out-path   = %s\n", p_vid_out_path);
     printf("#  * vid-out-play   = %d\n", p_vid_out_play);
 #ifdef FMDT_OPENCV_LINK
@@ -463,11 +467,11 @@ int main(int argc, char** argv) {
     delayer_RoIs_elli.set_custom_name("D<RoIs_ell>");
     delayer_n_RoIs.set_custom_name("D<n_RoIs>");
     Logger_RoIs log_RoIs(p_log_path ? p_log_path : "", p_vid_in_start, p_vid_in_skip, p_cca_roi_max2,
-                         tracking.get_data(), p_cca_mag, p_cca_mag, p_cca_ell);
-    Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, p_cca_roi_max2);
-    Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start);
+                         tracking.get_data(), p_cca_mag, p_cca_mag, p_cca_ell, p_log_hexa);
+    Logger_kNN log_kNN(p_log_path ? p_log_path : "", p_vid_in_start, p_cca_roi_max2, p_log_hexa);
+    Logger_motion log_motion(p_log_path ? p_log_path : "", p_vid_in_start, p_log_hexa);
     log_motion.set_custom_name("Logger_motio");
-    Logger_tracks log_track(p_log_path ? p_log_path : "", p_vid_in_start, tracking.get_data());
+    Logger_tracks log_track(p_log_path ? p_log_path : "", p_vid_in_start, tracking.get_data(), p_log_hexa);
     log_track.set_custom_name("Logger_trk");
     std::unique_ptr<Logger_frame> log_frame;
     if (p_ccl_fra_path)

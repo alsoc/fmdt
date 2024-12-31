@@ -22,8 +22,10 @@ protected:
     const std::string tracks_path;
     const size_t fra_start;
     const tracking_data_t* tracking_data;
+    const bool hexa_float;
 public:
-    Logger_tracks(const std::string tracks_path, const size_t fra_start, const tracking_data_t* tracking_data);
+    Logger_tracks(const std::string tracks_path, const size_t fra_start, const tracking_data_t* tracking_data,
+                  const bool hexa_float = false);
     virtual ~Logger_tracks();
     inline spu::runtime::Task& operator[](const lgr_trk::tsk t);
     inline spu::runtime::Socket& operator[](const lgr_trk::sck::write s);

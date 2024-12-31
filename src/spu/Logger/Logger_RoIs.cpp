@@ -5,9 +5,10 @@
 
 Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, const size_t fra_skip,
                          const size_t max_RoIs_size, const tracking_data_t* tracking_data, const bool enable_magnitude,
-                         const bool enable_sat_count, const bool enable_ellipse)
+                         const bool enable_sat_count, const bool enable_ellipse, const bool hexa_float)
 : spu::module::Stateful(), RoIs_path(RoIs_path), fra_start(fra_start), fra_skip(fra_skip), tracking_data(tracking_data),
-  enable_magnitude(enable_magnitude), enable_sat_count(enable_sat_count), enable_ellipse(enable_ellipse)  {
+  enable_magnitude(enable_magnitude), enable_sat_count(enable_sat_count), enable_ellipse(enable_ellipse),
+  hexa_float(hexa_float)  {
     assert(tracking_data != NULL);
 
     const std::string name = "Logger_RoIs";
@@ -52,7 +53,10 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
 
         if (!lgr_roi.RoIs_path.empty()) {
             char file_path[256];
-            snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_roi.RoIs_path.c_str(), in_frame);
+            if (lgr_roi.hexa_float)
+                snprintf(file_path, sizeof(file_path), "%s/%05u_hexa.txt", lgr_roi.RoIs_path.c_str(), in_frame);
+            else
+                snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_roi.RoIs_path.c_str(), in_frame);
             FILE* file = fopen(file_path, "w");
 
             int prev_frame = in_frame > lgr_roi.fra_start ? (int)in_frame - (lgr_roi.fra_skip + 1) : -1;
@@ -66,7 +70,8 @@ Logger_RoIs::Logger_RoIs(const std::string RoIs_path, const size_t fra_start, co
                                        lgr_roi.enable_magnitude ? in_RoIs1_magn : nullptr,
                                        lgr_roi.enable_ellipse ? in_RoIs1_elli : nullptr,
                                        in_n_RoIs1,
-                                       lgr_roi.tracking_data->tracks);
+                                       lgr_roi.tracking_data->tracks,
+                                       lgr_roi.hexa_float);
             fclose(file);
         }
         return spu::runtime::status_t::SUCCESS;

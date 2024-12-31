@@ -163,6 +163,8 @@ int main(int argc, char** argv) {
                 "  --log-path          Path of the output statistics, only required for debugging purpose     [%s]\n",
                 def_p_log_path ? def_p_log_path : "NULL");
         fprintf(stderr,
+                "  --log-hexa          Print float values in hexadecimal in the logs                              \n");
+        fprintf(stderr,
                 "  --vid-out-path      Path to video file or to an images sequence to write the output        [%s]\n",
                 def_p_vid_out_path ? def_p_vid_out_path : "NULL");
         fprintf(stderr,
@@ -230,6 +232,7 @@ int main(int argc, char** argv) {
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
+    const int p_log_hexa = args_find(argc, argv, "--log-hexa");
     const char* p_vid_out_path = args_find_char(argc, argv, "--vid-out-path", def_p_vid_out_path);
     const int p_vid_out_play = args_find(argc, argv, "--vid-out-play");
 #ifdef FMDT_OPENCV_LINK
@@ -287,6 +290,7 @@ int main(int argc, char** argv) {
     printf("#  * trk-all        = %d\n", p_trk_all);
     printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
     printf("#  * log-path       = %s\n", p_log_path);
+    printf("#  * log-hexa       = %d\n", p_log_hexa);
     printf("#  * vid-out-path   = %s\n", p_vid_out_path);
     printf("#  * vid-out-play   = %d\n", p_vid_out_play);
 #ifdef FMDT_OPENCV_LINK
@@ -467,7 +471,10 @@ int main(int argc, char** argv) {
         if (p_log_path) {
             tools_create_folder(p_log_path);
             char filename[1024];
-            snprintf(filename, sizeof(filename), "%s/%05d.txt", p_log_path, cur_fra);
+            if (p_log_hexa)
+                snprintf(filename, sizeof(filename), "%s/%05d_hexa.txt", p_log_path, cur_fra);
+            else
+                snprintf(filename, sizeof(filename), "%s/%05d.txt", p_log_path, cur_fra);
             FILE* f = fopen(filename, "w");
             if (f == NULL) {
                 fprintf(stderr, "(EE) error while opening '%s'\n", filename);
@@ -476,18 +483,19 @@ int main(int argc, char** argv) {
             if (RoIs_tmp->_size <= RoIs_tmp->_max_size && RoIs1->_size <= RoIs1->_max_size) {
                 int prev_fra = cur_fra > p_vid_in_start ? cur_fra - (p_vid_in_skip + 1) : -1;
                 features_RoIs0_RoIs1_write(f, prev_fra, cur_fra, RoIs0->basic, RoIs0->magn, RoIs0->elli, RoIs0->_size,
-                                           RoIs1->basic, RoIs1->magn, RoIs1->elli, RoIs1->_size, tracking_data->tracks);
+                                           RoIs1->basic, RoIs1->magn, RoIs1->elli, RoIs1->_size, tracking_data->tracks,
+                                           p_log_hexa);
                 if (n_assocs && cur_fra > p_vid_in_start) {
                     fprintf(f, "#\n");
                     kNN_asso_conflicts_write(f, knn_data, RoIs0->basic, RoIs0->asso, RoIs0->_size, RoIs1->motion,
-                                             RoIs1->_size);
+                                             RoIs1->_size, p_log_hexa);
                     fprintf(f, "#\n");
-                    motion_write(f, &motion_est1, &motion_est2);
+                    motion_write(f, &motion_est1, &motion_est2, p_log_hexa);
                 }
             }
             if (cur_fra > p_vid_in_start) {
                 fprintf(f, "#\n");
-                tracking_tracks_write_full(f, tracking_data->tracks);
+                tracking_tracks_write_full(f, tracking_data->tracks, p_log_hexa);
             }
             fclose(f);
         }

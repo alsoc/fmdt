@@ -3,8 +3,8 @@
 
 #include "fmdt/spu/Logger/Logger_motion.hpp"
 
-Logger_motion::Logger_motion(const std::string motion_path, const size_t fra_start)
-: spu::module::Stateful(), motion_path(motion_path), fra_start(fra_start) {
+Logger_motion::Logger_motion(const std::string motion_path, const size_t fra_start, const bool hexa_float)
+: spu::module::Stateful(), motion_path(motion_path), fra_start(fra_start), hexa_float(hexa_float) {
     const std::string name = "Logger_motion";
     this->set_name(name);
     this->set_short_name(name);
@@ -23,11 +23,14 @@ Logger_motion::Logger_motion(const std::string motion_path, const size_t fra_sta
         const uint32_t frame = *static_cast<const size_t*>(t[ps_in_frame].get_dataptr());
         if (frame > (uint32_t)lgr_mtn.fra_start && !lgr_mtn.motion_path.empty()) {
             char file_path[256];
-            snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_mtn.motion_path.c_str(), frame);
+            if (lgr_mtn.hexa_float)
+                snprintf(file_path, sizeof(file_path), "%s/%05u_hexa.txt", lgr_mtn.motion_path.c_str(), frame);
+            else
+                snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_mtn.motion_path.c_str(), frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
             motion_write(file, t[ps_in_motion_est1].get_dataptr<const motion_t>(),
-                               t[ps_in_motion_est2].get_dataptr<const motion_t>());
+                               t[ps_in_motion_est2].get_dataptr<const motion_t>(), lgr_mtn.hexa_float);
             fclose(file);
         }
         return spu::runtime::status_t::SUCCESS;

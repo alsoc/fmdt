@@ -3,8 +3,8 @@
 
 #include "fmdt/spu/Logger/Logger_kNN.hpp"
 
-Logger_kNN::Logger_kNN(const std::string kNN_path, const size_t fra_start, const size_t max_size)
-: spu::module::Stateful(), kNN_path(kNN_path), fra_start(fra_start), max_size(max_size) {
+Logger_kNN::Logger_kNN(const std::string kNN_path, const size_t fra_start, const size_t max_size, const bool hexa_float)
+: spu::module::Stateful(), kNN_path(kNN_path), fra_start(fra_start), max_size(max_size), hexa_float(hexa_float) {
     const std::string name = "Logger_kNN";
     this->set_name(name);
     this->set_short_name(name);
@@ -61,13 +61,16 @@ Logger_kNN::Logger_kNN(const std::string kNN_path, const size_t fra_start, const
 
         if (in_frame > (uint32_t)lgr_knn.fra_start && !lgr_knn.kNN_path.empty()) {
             char file_path[256];
-            snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_knn.kNN_path.c_str(), in_frame);
+            if (lgr_knn.hexa_float)
+                snprintf(file_path, sizeof(file_path), "%s/%05u_hexa.txt", lgr_knn.kNN_path.c_str(), in_frame);
+            else
+                snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_knn.kNN_path.c_str(), in_frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
             kNN_data_t kNN_data = { (float**)in_data_distances, (uint32_t**)in_data_nearest,
                                     (uint32_t*)in_data_conflicts, lgr_knn.max_size };
             kNN_asso_conflicts_write(file, &kNN_data, in_RoIs0_basic, in_RoIs0_asso, in_n_RoIs0, in_RoIs1_motion,
-                                     in_n_RoIs1);
+                                     in_n_RoIs1, lgr_knn.hexa_float);
             fclose(file);
         }
         return spu::runtime::status_t::SUCCESS;

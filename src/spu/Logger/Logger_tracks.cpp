@@ -4,8 +4,9 @@
 #include "fmdt/spu/Logger/Logger_tracks.hpp"
 
 Logger_tracks::Logger_tracks(const std::string tracks_path, const size_t fra_start,
-                             const tracking_data_t* tracking_data)
-: spu::module::Stateful(), tracks_path(tracks_path), fra_start(fra_start), tracking_data(tracking_data) {
+                             const tracking_data_t* tracking_data, const bool hexa_float)
+: spu::module::Stateful(), tracks_path(tracks_path), fra_start(fra_start), tracking_data(tracking_data),
+  hexa_float(hexa_float) {
     assert(tracking_data != NULL);
 
     const std::string name = "Logger_tracks";
@@ -26,10 +27,13 @@ Logger_tracks::Logger_tracks(const std::string tracks_path, const size_t fra_sta
 
         if (in_frame > (uint32_t)lgr_trk.fra_start && !lgr_trk.tracks_path.empty()) {
             char file_path[256];
-            snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_trk.tracks_path.c_str(), in_frame);
+            if (lgr_trk.hexa_float)
+                snprintf(file_path, sizeof(file_path), "%s/%05u_hexa.txt", lgr_trk.tracks_path.c_str(), in_frame);
+            else
+                snprintf(file_path, sizeof(file_path), "%s/%05u.txt", lgr_trk.tracks_path.c_str(), in_frame);
             FILE* file = fopen(file_path, "a");
             fprintf(file, "#\n");
-            tracking_tracks_write_full(file, lgr_trk.tracking_data->tracks);
+            tracking_tracks_write_full(file, lgr_trk.tracking_data->tracks, lgr_trk.hexa_float);
             fclose(file);
         }
 

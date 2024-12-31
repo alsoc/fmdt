@@ -7,28 +7,53 @@ import hashlib
 import argparse
 import re
 import shutil
+import struct
 
-# list of columns for whom there is a tolerated percentage of error
-colsError = ["error (or velocity)_dx",
-             "error (or velocity)_dy",
-             "error (or velocity)_e",
-             "first motion estimation (with all associated rois)_tx",
-             "first motion estimation (with all associated rois)_ty",
-             "first motion estimation (with all associated rois)_mean err",
-             "first motion estimation (with all associated rois)_std dev",
-             "second motion estimation (exclude moving rois)_tx",
-             "second motion estimation (exclude moving rois)_ty",
-             "second motion estimation (exclude moving rois)_mean err",
-             "second motion estimation (exclude moving rois)_std dev"]
+# A dictionary where the keys are the columns for whom there is a tolerated
+# percentage of error and where the values are an array of two elements:
+#  1. The maximum tolerated percentage of error (ratio between 0 and 1)
+#  2. The minimum significant difference
+#
+#                 col name                               max ratio   min diff
+colsFloatErr = {                   "center ~ x":        [     0.05,   1.0e-05 ],
+                                   "center ~ y":        [     0.05,   1.0e-05 ],
+                                  "ellipse ~ a":        [     0.05,   1.0e-05 ],
+                                  "ellipse ~ b":        [     0.05,   1.0e-05 ],
+                                  "ellipse ~ ratio":    [     0.05,   1.0e-05 ],
+                                 "distance ~ pixels":   [     0.05,   1.0e-05 ],
+                                    "error ~ dx":       [     0.05,   1.0e-05 ],
+                                    "error ~ dy":       [     0.05,   1.0e-05 ],
+                                    "error ~ e":        [     0.05,   1.0e-05 ],
+                  "first motion estimation ~ theta":    [     0.05,   1.0e-05 ],
+                  "first motion estimation ~ tx":       [     0.05,   1.0e-05 ],
+                  "first motion estimation ~ ty":       [     0.05,   1.0e-05 ],
+                  "first motion estimation ~ mean err": [     0.05,   1.0e-05 ],
+                  "first motion estimation ~ std dev":  [     0.05,   1.0e-05 ],
+                 "second motion estimation ~ theta":    [     0.05,   1.0e-05 ],
+                 "second motion estimation ~ tx":       [     0.05,   1.0e-05 ],
+                 "second motion estimation ~ ty":       [     0.05,   1.0e-05 ],
+                 "second motion estimation ~ mean err": [     0.05,   1.0e-05 ],
+                 "second motion estimation ~ std dev":  [     0.05,   1.0e-05 ],
+                                    "begin ~ x":        [     0.05,   1.0e-05 ],
+                                    "begin ~ y":        [     0.05,   1.0e-05 ],
+                                      "end ~ x":        [     0.05,   1.0e-05 ],
+                                      "end ~ y":        [     0.05,   1.0e-05 ],
+               }
 
 parser = argparse.ArgumentParser(prog='compare.py', formatter_class=argparse.ArgumentDefaultsHelpFormatter)
-parser.add_argument('--exe-args',    action='store', dest='exeArgs',    type=str,   default="", required=True, help='String of exe-argurments.')
-parser.add_argument('--list-exe',    action='store', dest='strListExe', type=str,   default="", required=True, help='List of executables to compare (format: "exe0, exe1, ... , exeN").')
-parser.add_argument('--refs-path',   action='store', dest='refsPath',   type=str,   default="refs",            help='Path of the references to compare.')
-parser.add_argument('--new-ref-exe', action='store', dest='newRefExe',  type=str,   default="",                help='Executable considered for ref.')
-parser.add_argument('--out-path',    action='store', dest='outPath',    type=str,   default="output",          help='Output folder of the tested binaries.')
-parser.add_argument('--build-path',  action='store', dest='buildPath',  type=str,   default="",                help='Path to the directory containing the binaries.')
-parser.add_argument('--error',       action='store', dest='error',      type=float, default=0,                 help='Tolerated error ratio between numbers (between 0 and 1, 0 means no error tolerated, 1 means everything is tolerated).')
+parser.add_argument('--exe-args',    action='store',      dest='exeArgs',    type=str,   default="", required=True, help='String of exe-argurments.')
+parser.add_argument('--list-exe',    action='store',      dest='strListExe', type=str,   default="", required=True, help='List of executables to compare (format: "exe0, exe1, ... , exeN").')
+parser.add_argument('--refs-path',   action='store',      dest='refsPath',   type=str,   default="refs",            help='Path of the references to compare.')
+parser.add_argument('--new-ref-exe', action='store',      dest='newRefExe',  type=str,   default="",                help='Executable considered for ref.')
+parser.add_argument('--out-path',    action='store',      dest='outPath',    type=str,   default="output",          help='Output folder of the tested binaries.')
+parser.add_argument('--build-path',  action='store',      dest='buildPath',  type=str,   default="",                help='Path to the directory containing the binaries.')
+parser.add_argument('--hexa-float',  action='store_true', dest='hexaFloat',              default=False,             help='Enable hexadecimal float checking from "*_hexa.txt" log files.')
+
+def hex_to_float_struct(hex_str):
+    hex_str = hex_str.strip().replace("0x", "")
+    byte_array = bytes.fromhex(hex_str)
+    float_num = struct.unpack('!f', byte_array)[0]
+    return float_num
 
 def strListExe_to_listExe():
     return args.strListExe.replace(' ', '').split(',')
@@ -65,7 +90,7 @@ def diff_pgm(filename, p_v1, p_v2):
     key2 = md5_hash2.hexdigest()
 
     if key1 != key2 :
-        res.append((filename, "X", key1, key2))
+        res.append((filename, "-", "-", key1, key2))
     return res
 
 def diff_bb(filename, p_v1, p_v2):
@@ -100,7 +125,7 @@ def diff_stats(filename, p_v1, p_v2):
     nb_tabs1 = len(stats1)
     nb_tabs2 = len(stats2)
     if nb_tabs1 != nb_tabs2:
-        return [(filename, "X", "number of tabs = " + str(nb_tabs1),"number of tabs = "+ str(nb_tabs2))]
+        return [(filename, "-", "number of tabs", str(nb_tabs1), str(nb_tabs2))]
 
     for i in range (nb_tabs1):
         # if not the same tab name
@@ -115,31 +140,52 @@ def diff_stats(filename, p_v1, p_v2):
                         for k in range(size):
                             val1 = data1[k].strip()
                             val2 = data2[k].strip()
+
                             if val1 != val2:
-                                if col1 in colsError:
-                                    if args.error > 0:
-                                        # delta error management
-                                        try:
+                                # error management
+                                if col1 in colsFloatErr:
+                                    floatPattern = re.compile(r'^[-+]?(?:\d*\.*\d+)$')
+                                    hexaPattern = re.compile(r'^0x([0-9a-fA-F]{8})$')
+                                    m1 = re.search(hexaPattern, val1)
+                                    if m1:
+                                        val1f = hex_to_float_struct(m1.group(1))
+                                    else:
+                                        m1bis = re.search(floatPattern, val1)
+                                        if m1bis:
                                             val1f = float(val1)
+                                    m2 = re.search(hexaPattern, val2)
+                                    if m2:
+                                        val2f = hex_to_float_struct(m2.group(1))
+                                    else:
+                                        m2bis = re.search(floatPattern, val2)
+                                        if m2bis:
                                             val2f = float(val2)
-                                            if val1f == 0:
-                                                val1f = 0.00000001;
-                                            if val2f == 0:
-                                                val2f = 0.00000001;
 
-                                            if val1f > val2f:
-                                                ratio = val2f / val1f
-                                            else:
-                                                ratio = val1f / val2f
-                                            delta = 1 - abs(ratio);
+                                    if 'val1f' in locals() and 'val2f' in locals():
+                                        if val1f == 0:
+                                            val1f = 0.00000001;
+                                        if val2f == 0:
+                                            val2f = 0.00000001;
 
-                                            if (delta < args.error):
-                                                break;
-                                        except:
-                                            pass
-                                return [(filename, stats1[i][1]+8+k, col1 + ": " + val1, col2 + ": " + val2)]
+                                        if val1f > val2f:
+                                            ratio = val2f / val1f
+                                            diff = val1f - val2f
+                                        else:
+                                            ratio = val1f / val2f
+                                            diff = val2f - val1f
+                                        delta = 1 - abs(ratio);
+
+                                        if (diff < colsFloatErr[col1][1]):
+                                            continue
+
+                                        # if the error is smaller than 'colsFloatErr' then continue
+                                        if (delta < colsFloatErr[col1][0]):
+                                            continue
+
+                                        return [(filename, stats1[i][1]+8+k, col1, "{:.4e}".format(val1f), "{:.4e}".format(val2f))]
+
+                                return [(filename, stats1[i][1]+8+k, col1, val1, val2)]
                     break
-
     return []
 
 def parser_Tab(Lines, name, start, size_max):
@@ -150,6 +196,8 @@ def parser_Tab(Lines, name, start, size_max):
     # set up titles and subtitles
     List_title = (Lines[start+2][2:-1] ).split("||")
     List_title = [x.lower() for x in List_title]
+    regexRmParentheses = re.compile(r'(\(.*\))')
+    Shortened_list_title = [re.sub(regexRmParentheses, "", x) for x in List_title]
     List_title_size = [len(txt) for txt in List_title] 
     List_subtitle  = (Lines[start+5][2:-1]).replace("||","|").split("|")
     List_subtitle = [x.lower() for x in List_subtitle]
@@ -169,7 +217,7 @@ def parser_Tab(Lines, name, start, size_max):
                     sys.exit("(EE) Something went wrong when parsing the table named: '" + name.replace("\n", "") + "'.")
                 cpt += List_subtitle_size[len_subtitle_index] + 1 
 
-            List_columns += [(List_title[i].strip()+"_"+List_subtitle[len_subtitle_index].strip(),lenght,lenght + List_subtitle_size[len_subtitle_index], [])]
+            List_columns += [(Shortened_list_title[i].strip()+" ~ "+List_subtitle[len_subtitle_index].strip(),lenght,lenght + List_subtitle_size[len_subtitle_index], [])]
             lenght += List_subtitle_size[len_subtitle_index] + 1
             len_subtitle_index += 1
         lenght += 1
@@ -242,14 +290,14 @@ def display_res(res, exe_name):
         print("#")
         return 0
 
-    print("# ----------------|---------------------------||-----------|--------------------------------------------------------|--------------------------------------------------------")
-    print("#            FILE |                       EXE ||      LINE |                                                  refs  |                          diff for txt/checksum for pgm ")
-    print("# ----------------|---------------------------||-----------|--------------------------------------------------------|--------------------------------------------------------")
+    print("# -----------------|---------------------------||-----------|-------------------------------------|--------------|--------------")
+    print("#  FILE            | EXE                       ||      LINE | COLUMN NAME                         |          REF |          NEW ")
+    print("# -----------------|---------------------------||-----------|-------------------------------------|--------------|--------------")
 
     size = len(res)
     for i in range (size):
-        (file,line,txt0,txt1) = res[i] 
-        print("{:>18s}|{:>27s}||{:>11s}|{:>56s}|{:>56s}".format(file, exe_name, str(line), txt0, txt1))
+        (file,line,col,txt0,txt1) = res[i]
+        print("   {:<15s} | {:<25s} || {:>9s} | {:<35s} | {:>12s} | {:>12s} ".format(file, exe_name, str(line), col, txt0, txt1))
     print("#")
     return 1
 
@@ -282,9 +330,11 @@ def main_diff(path_ref, exe_name):
                     skip = True
                     continue
             if not skip and ".txt" in filename: # stats
-                r = diff_stats(filename, f_ref, f_tocmp)
-                if r != []:
-                    res += r
+                if (    args.hexaFloat and "_hexa"     in filename) or \
+                   (not args.hexaFloat and "_hexa" not in filename):
+                    r = diff_stats(filename, f_ref, f_tocmp)
+                    if r != []:
+                        res += r
 
     return display_res(res, exe_name)
 

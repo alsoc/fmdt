@@ -21,9 +21,10 @@ protected:
     const std::string kNN_path;
     const size_t fra_start;
     const size_t max_size;
-
+    const bool hexa_float;
 public:
-    Logger_kNN(const std::string kNN_path, const size_t fra_start, const size_t max_size);
+    Logger_kNN(const std::string kNN_path, const size_t fra_start, const size_t max_size,
+               const bool hexa_float = false);
     virtual ~Logger_kNN();
     inline spu::runtime::Task& operator[](const lgr_knn::tsk t);
     inline spu::runtime::Socket& operator[](const lgr_knn::sck::write s);
