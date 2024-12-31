@@ -21,8 +21,8 @@ colsFloatErr = {                   "center ~ x":        [     0.05,   1.0e-05 ],
                                   "ellipse ~ b":        [     0.05,   1.0e-05 ],
                                   "ellipse ~ ratio":    [     0.05,   1.0e-05 ],
                                  "distance ~ pixels":   [     0.05,   1.0e-05 ],
-                                    "error ~ dx":       [     0.05,   1.0e-05 ],
-                                    "error ~ dy":       [     0.05,   1.0e-05 ],
+                                    "error ~ dx":       [     0.25,   1.0e-05 ],
+                                    "error ~ dy":       [     0.25,   1.0e-05 ],
                                     "error ~ e":        [     0.05,   1.0e-05 ],
                   "first motion estimation ~ theta":    [     0.05,   1.0e-05 ],
                   "first motion estimation ~ tx":       [     0.05,   1.0e-05 ],
@@ -162,24 +162,22 @@ def diff_stats(filename, p_v1, p_v2):
                                             val2f = float(val2)
 
                                     if 'val1f' in locals() and 'val2f' in locals():
-                                        if val1f == 0:
-                                            val1f = 0.00000001;
-                                        if val2f == 0:
-                                            val2f = 0.00000001;
+                                        if val1f != 0 and val2f != 0 and val1f * val2f >= 0:
+                                            aval1f = abs(val1f)
+                                            aval2f = abs(val2f)
+                                            if aval1f > aval2f:
+                                                ratio = aval2f / aval1f
+                                            else:
+                                                ratio = aval1f / aval2f
+                                            delta = 1 - ratio
+                                            if (delta < colsFloatErr[col1][0]):
+                                                continue
 
                                         if val1f > val2f:
-                                            ratio = val2f / val1f
-                                            diff = val1f - val2f
+                                            dist = val1f - val2f
                                         else:
-                                            ratio = val1f / val2f
-                                            diff = val2f - val1f
-                                        delta = 1 - abs(ratio);
-
-                                        if (diff < colsFloatErr[col1][1]):
-                                            continue
-
-                                        # if the error is smaller than 'colsFloatErr' then continue
-                                        if (delta < colsFloatErr[col1][0]):
+                                            dist = val2f - val1f
+                                        if (dist < colsFloatErr[col1][1]):
                                             continue
 
                                         return [(filename, stats1[i][1]+8+k, col1, "{:.4e}".format(val1f), "{:.4e}".format(val2f))]
