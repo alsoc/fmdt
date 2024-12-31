@@ -63,17 +63,18 @@ fi
 
 list_exe_ellipse="fmdt-ellipse"
 
-# curl https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_ellipse_2022_05_31_tauh_34_meteors_3da41bc5.zip --output refs_ellipse.zip
-wget https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_ellipse_2022_05_31_tauh_34_meteors_3da41bc5.zip -O refs_ellipse.zip
+# curl https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_ellipse_2022_05_31_tauh_34_meteors_2ed774fc.zip --output refs_ellipse.zip
+wget https://perso.lip6.fr/adrien.cassagne/data/fmdt/refs_ellipse_2022_05_31_tauh_34_meteors_2ed774fc.zip -O refs_ellipse.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 unzip refs_ellipse.zip
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
 ./compare.py --build-path ${WD}/${build_root}/bin/ \
              --list-exe "${list_exe_ellipse}" \
-             --exe-args "--vid-in-path ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --ccl-fra-path ${out_root_dir}/%05d.pgm --log-path ${out_root_dir}" \
+             --exe-args "--vid-in-path ${WD}/scripts/regression/2022_05_31_tauh_34_meteors.mp4 --ccl-fra-path ${out_root_dir}/%05d.pgm --log-path ${out_root_dir} --log-hexa" \
              --out-path "${out_root_dir}" \
-             --refs-path ${WD}/scripts/regression/refs_ellipse
+             --refs-path ${WD}/scripts/regression/refs_ellipse \
+             --hexa-float
 
 rc=$?; if [[ $rc != 0 ]]; then exit $rc; fi
 
