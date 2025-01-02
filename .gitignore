@@ -73,3 +73,5 @@ doc/source/api/*
 
 lib/lsl/*
 lib/vcodecs-io/*
+doc/.venv/*
+scripts/regression/logs*

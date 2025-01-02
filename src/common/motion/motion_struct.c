@@ -17,19 +17,10 @@ void motion_init_tmat3x3(tmat3x3_t* tmat, const float cos_theta, const float sin
     tmat->one           = 1.f;
 }
 
-void motion_init_tmat3x3_v2(tmat3x3_t* tmat, const float theta, const float tx, const float ty) {
+void motion_init_tmat3x3_alt(tmat3x3_t* tmat, const float theta, const float tx, const float ty) {
     float cos_theta = cosf(theta);
     float sin_theta = sinf(theta);
-
-    tmat->cos_theta     = cos_theta;
-    tmat->neg_sin_theta = -sin_theta;
-    tmat->tx            = tx;
-    tmat->sin_theta     = sin_theta;
-    tmat->cos_theta2    = cos_theta;
-    tmat->ty            = ty;
-    tmat->zero1         = 0.f;
-    tmat->zero2         = 0.f;
-    tmat->one           = 1.f;
+    motion_init_tmat3x3(tmat, cos_theta, sin_theta, tx, ty);
 }
 
 void motion_init_tmat3x3_identity(tmat3x3_t* tmat) {
@@ -44,7 +35,6 @@ void motion_init_tmat3x3_identity(tmat3x3_t* tmat) {
     tmat->one           = 1.f;
 }
 
-// return theta angle in radian
 float motion_get_theta(const tmat3x3_t* tmat) {
     float angle_radian = atan2f(tmat->sin_theta, tmat->cos_theta);
     return angle_radian;
@@ -62,14 +52,14 @@ void motion_tmat3x3_to_2d_array(tmat3x3_t* tmat, float* tmat_2d_array[3]) {
     tmat_2d_array[2] = &tmat->zero1;
 }
 
-//                     [x ]
-//                     [y ]
-//   matrix * vector   [1 ]
+//                    [x ]
+//                    [y ]
+//  matrix * vector   [1 ]
 //
-// [cos(t) -sin(t) tx] [x'] = cos(t) * x - sin(t) * y + tx
-// [sin(t)  cos(t) ty] [y'] = sin(t) * x + cos(t) * y + ty
-// [     0       0  1] [1 ]
-hcoord_t motion_update_pos(const tmat3x3_t* tmat, const float x, const float y) {
+//          [a b c]   [x']
+//          [d e f]   [y']
+//          [g h 1]   [1 ]
+hcoord_t motion_update_pos_generic(const tmat3x3_t* tmat, const float x, const float y) {
     hcoord_t hpos = {x, y, 1};
 
     const float* tmat_2d[3];
@@ -100,7 +90,7 @@ hcoord_t motion_update_pos(const tmat3x3_t* tmat, const float x, const float y) 
 // [     0       0  1] [1 ]
 //
 // optimized version for translation & rotation transformations only
-hcoord_t motion_update_pos_opt(const tmat3x3_t* tmat, const float x, const float y) {
+hcoord_t motion_update_pos(const tmat3x3_t* tmat, const float x, const float y) {
     hcoord_t updated_hpos;
 
     // optimized 'mat' x 'vec' op
@@ -114,7 +104,7 @@ hcoord_t motion_update_pos_opt(const tmat3x3_t* tmat, const float x, const float
 // param: tmat0 (= transformation matix from t-2 to t-1),
 // param: tmat1 (= transformation matix from t-1 to t),
 // return: tmat0_1 (= transformation matrix from t-2 to t)
-void motion_combine_tmat3x3(const tmat3x3_t* tmat0, const tmat3x3_t* tmat1, tmat3x3_t* tmat0_1) {
+void motion_combine_tmat3x3_generic(const tmat3x3_t* tmat0, const tmat3x3_t* tmat1, tmat3x3_t* tmat0_1) {
     const float* tmat0_2d[3];
     const float* tmat1_2d[3];
     float* tmat0_1_2d[3];
@@ -145,7 +135,7 @@ void motion_combine_tmat3x3(const tmat3x3_t* tmat0, const tmat3x3_t* tmat1, tmat
 // a0 b0 c0   a2 b2 c2
 // d0 e0 f0   d2 e2 f2
 //  0 0   1    0  0  1
-void motion_combine_tmat3x3_opt(const tmat3x3_t* tmat0, const tmat3x3_t* tmat1, tmat3x3_t* tmat0_1) {
+void motion_combine_tmat3x3(const tmat3x3_t* tmat0, const tmat3x3_t* tmat1, tmat3x3_t* tmat0_1) {
     float cos_theta0_x_cos_theta1 = tmat0->cos_theta * tmat1->cos_theta;
     tmat0_1->cos_theta = cos_theta0_x_cos_theta1 + tmat0->neg_sin_theta * tmat1->sin_theta;
     tmat0_1->neg_sin_theta = tmat0->cos_theta * tmat1->neg_sin_theta + tmat0->neg_sin_theta * tmat1->cos_theta;

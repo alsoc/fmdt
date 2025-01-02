@@ -176,7 +176,7 @@ latex_elements = {
     #
     # 'figure_align': 'htbp',
 
-    'preamble': '\setcounter{tocdepth}{10}'
+    'preamble': '\\setcounter{tocdepth}{10}'
 }
 
 # Grouping the document tree into LaTeX files. List of tuples

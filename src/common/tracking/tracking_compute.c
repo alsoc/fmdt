@@ -483,9 +483,9 @@ void tracking_perform(tracking_data_t* tracking_data, const RoIs_t* RoIs, size_t
         // update previous transformation matrices
         for (size_t m = 1; m < tracking_data->history->_size; m++) {
             tmat3x3_t new_tmat;
-            motion_combine_tmat3x3_opt((const tmat3x3_t*)&tracking_data->history->motion[0].tmat,
-                                       (const tmat3x3_t*)&tracking_data->history->motion[m].tmat,
-                                       &new_tmat);
+            motion_combine_tmat3x3((const tmat3x3_t*)&tracking_data->history->motion[0].tmat,
+                                   (const tmat3x3_t*)&tracking_data->history->motion[m].tmat,
+                                   &new_tmat);
             tracking_data->history->motion[m].tmat = new_tmat;
         }
     }

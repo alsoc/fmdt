@@ -54,9 +54,9 @@ The following table summarizes the available parameters:
 +----------------------+---------+----------------------------------------------------+
 | ``--knn-s``          | FLOAT   | See :numref:`detect_knn-s`.                        |
 +----------------------+---------+----------------------------------------------------+
-| ``--mtn-no-reg``     | BOOLEAN | See :numref:`mtn-no-reg`.                          |
+| ``--mtn-no-reg``     | BOOLEAN | See :numref:`detect_mtn-no-reg`.                   |
 +----------------------+---------+----------------------------------------------------+
-| ``--gnd-detect``     | BOOLEAN | Alias of ``--mtn-no-reg`` (numref:`mtn-no-reg`)    |
+| ``--gnd-detect``     | BOOLEAN | Alias of :ref:`detect_mtn-no-reg`.                 |
 +----------------------+---------+----------------------------------------------------+
 | ``--trk-ext-d``      | INTEGER | See :numref:`detect_trk-ext-d`.                    |
 +----------------------+---------+----------------------------------------------------+
@@ -79,6 +79,8 @@ The following table summarizes the available parameters:
 | ``--trk-roi-path``   | STRING  | See :numref:`detect_trk-roi-path`.                 |
 +----------------------+---------+----------------------------------------------------+
 | ``--log-path``       | STRING  | See :numref:`detect_log-path`.                     |
++----------------------+---------+----------------------------------------------------+
+| ``--log-hexa``       | BOOLEAN | See :numref:`detect_log-hexa`.                     |
 +----------------------+---------+----------------------------------------------------+
 | ``--vid-out-path``   | STRING  | See :numref:`detect_vid-out-path`.                 |
 +----------------------+---------+----------------------------------------------------+
@@ -410,10 +412,11 @@ matches nothing). This parameter is also used for extrapolation in the tracking.
    :Example: ``--mtn-no-reg``
 
 Disable image registration for **ground detection**. For now this parameter is
-only available for the `fmdt-detect` and `fmdt-detect-no-fail` executable
+only available for the ``fmdt-detect`` and ``fmdt-detect-no-fail`` executable
 binaries.
 
-Note that the ``--gnd-detect`` parameter is an alias of ``--mtn-no-reg``.
+Note that the ``--gnd-detect`` parameter is an alias of
+:ref:`detect_mtn-no-reg`.
 
 .. _detect_trk-ext-d:
 
@@ -531,7 +534,7 @@ latest is not set, then this parameter is ignored.
 By default the program only tracks ``meteor`` object type. If ``--trk-all`` is
 set, all object types are tracked (``meteor``, ``star`` or ``noise``).
 
-This parameter is used in the :func:`_tracking_perform` function.
+This parameter is used in the :func:`tracking_perform` function.
 
 .. _detect_trk-roi-path:
 
@@ -639,13 +642,13 @@ Each line corresponds to one |RoI|:
 character is printed in the corresponding columns). To enable theses features
 you need to use the :ref:`detect_cca-mag` command line parameter. For more
 information about those features you can refer to the
-:func:`_features_compute_magnitude` function.
+:func:`features_compute_magnitude` function.
 
 ``{a}``, ``{b}`` and ``{r}`` features are are not enabled by default (and the
 ``-`` character is printed in the corresponding columns). To enable theses
 features you need to use the :ref:`detect_cca-ell` command line parameter. For
 more information about those features you can refer to the
-:func:`_features_compute_ellipse` function.
+:func:`features_compute_ellipse` function.
 
 Table 3: List of associations between |RoIs|
 ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
@@ -741,6 +744,18 @@ Most of the columns of this table have been described in the
   state is ``updated``. Then, ``updated`` can become ``lost``. ``lost`` can
   become either ``finished`` or ``updated``. ``finished`` is a final state.
 - ``{reason}``: reason of the classification from ``meteor`` to ``noise``.
+
+.. _detect_log-hexa:
+
+``--log-hexa``
+--------------
+
+   :Type: BOOLEAN
+   :Example: ``--log-hexa``
+
+Print 32-bit float values in hexadecimal in the logs (to be combined with the
+:ref:`detect_log-path` option). Required to have the best possible comparison
+when running the regression tests.
 
 .. _detect_vid-out-path:
 

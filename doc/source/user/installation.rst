@@ -60,9 +60,6 @@ following CMake command line** instead:
 
 	cmake .. -DFMDT_OPENCV_LINK=ON -DFMDT_SPU_RUNTIME=ON -DCMAKE_BUILD_TYPE=RelWithDebInfo -DCMAKE_CXX_FLAGS_RELWITHDEBINFO="-O3 -g" -DCMAKE_C_FLAGS_RELWITHDEBINFO="-O3 -g" -DCMAKE_CXX_FLAGS="-Wall -funroll-loops -fstrict-aliasing -march=native" -DCMAKE_C_FLAGS="-funroll-loops -fstrict-aliasing -march=native"
 
-.. note::  On Apple Silicon M1 CPUs and with Apple Clang, use ``-mcpu=apple-m1``
-           instead of ``-march=native``.
-
 The previous command line generates a Makefile in **release mode** (with
 debug information ``-g``). It will produce optimized and ready for debug
 binaries. Moreover, OpenCV and StreamPU libraries will be used during the

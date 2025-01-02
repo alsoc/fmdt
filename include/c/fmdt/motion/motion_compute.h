@@ -10,18 +10,18 @@
 
 /**
  * Compute the global motion estimation and, after global motion compensation, compute the movement of each RoI.
- * In order to compute the motion estimation, the translation vector \f$(Tx, Ty)\f$ and the angle of rotation \f$\theta\f$
- * must be calculated as follows:
+ * In order to compute the motion estimation, the translation vector \f$\vec{t}\f$ and the angle of rotation \f$\theta\f$
+ * is calculated as follows:
  * \f[
- * \theta = \tan^{-1}\left(\frac{ \sum_{i=1}^N [(y_i'-\bar{y})(x_i-\bar{x}) - (x_i'-\bar{x})(y_i-\bar{y})]}{\sum_{i=1}^N[(x_i'-\bar{x})(x_i-\bar{x}) + (y_i'-\bar{y})(y_i-\bar{y})]} \right),
+ * \theta = \arctan\left(\frac{ \sum_{i=1}^N [(y_i'-\bar{y})(x_i-\bar{x}) - (x_i'-\bar{x})(y_i-\bar{y})]}{\sum_{i=1}^N[(x_i'-\bar{x})(x_i-\bar{x}) + (y_i'-\bar{y})(y_i-\bar{y})]} \right),
  * \f]
  *
  * \f[
- * T = \begin{bmatrix} T_x \\ T_y \\ \end{bmatrix} =  \begin{bmatrix} x' - x \cdot cos(\theta) + y \cdot sin(\theta)\\ y' - x \cdot sin(\theta) - y \cdot cos(\theta) \end{bmatrix},
+ * \vec{t} = \begin{bmatrix} t_x \\ t_y \\ \end{bmatrix} =  \begin{bmatrix} x' - x \cdot cos(\theta) + y \cdot sin(\theta)\\ y' - x \cdot sin(\theta) - y \cdot cos(\theta) \end{bmatrix},
  * \f]
  * where \f$N\f$ is the number of RoIs,
  *        \f$(x,y)\f$ and \f$(x',y')\f$ are the centroids of RoIs at \f$t -1\f$ and \f$t\f$, respectively,  and\n
- *        \f[ \bar{x} = \sum_{i=1}^N x_i ~~~~~ \bar{y} = \sum_{i=1}^N y_i ~~~~~ \bar{x}' = \sum_{i=1}^N x'_i ~~~~~ \bar{y}' = \sum_{i=1}^N y'_i .
+ *        \f[ \bar{x} = \sum_{i=1}^N x_i, ~~~~~ \bar{y} = \sum_{i=1}^N y_i, ~~~~~ \bar{x}' = \sum_{i=1}^N x'_i, ~~~~~ \bar{y}' = \sum_{i=1}^N y'_i .
  *       \f]
  * For the first global motion estimation, all the associated RoIs are considered.
  * For the second global motion estimation, only the RoIs considered as "not moving" are considered.

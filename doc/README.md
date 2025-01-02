@@ -6,19 +6,26 @@ Install Sphinx, Doxygen and Sphinx extensions:
 
 ```bash
 sudo apt install python3 python3-pip librsvg2-bin doxygen
-pip3 install --user -r requirements.txt
+python3 -m venv .venv
+source .venv/bin/activate
+pip3 install -r requirements.txt
+deactivate
 ```
 
 Generate the HTML documentation:
 
 ```bash
+source .venv/bin/activate
 make html
+deactivate
 ```
 
 Generate the PDF documentation:
 
 ```bash
+source .venv/bin/activate
 make latexpdf
+deactivate
 ```
 
 The last command will create a new folder: `build/html`.

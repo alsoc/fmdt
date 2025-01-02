@@ -51,7 +51,11 @@ each blob of pixels. **A morphological threshold** is then done on the surface
 extract pairs of |CCs| from image :math:`I_{t+0}` and :math:`I_{t+1}` with
 :math:`t` the image number in the video sequence. These matches are used to
 perform **a first global motion estimation** (rigid registration). Note that
-|CCs| are sometimes refered as |RoIs| in this documentation.
+|CCs| are sometimes referred as |RoIs| in this documentation.
+
+.. note:: Global motion estimation is achieved by the :func:`motion_compute`
+          function and the transformation is stored in a 2-dimensional
+          transformation matrix (see the :struct:`tmat3x3_t` structure).
 
 This motion estimation is used to classify the |CCs| into two classes - still
 stars or moving meteors according to the following criterion:
