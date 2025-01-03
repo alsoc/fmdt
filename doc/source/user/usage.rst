@@ -11,7 +11,7 @@ This project generates the following **command line** executable binaries:
   - ``fmdt-log-parser``,
   - ``fmdt-visu``,
   - ``fmdt-check``,
-  - ``fmdt-maxred``.
+  - ``fmdt-reduce``.
 
 **fmdt-detect**
 
@@ -71,9 +71,9 @@ and bad detected tracks (*false positive*).
 ``fmdt-check`` compares detected tracks (``fmdt-detect``) with a given ground
 truth. The results are shown on the standard output.
 
-**fmdt-maxred**
+**fmdt-reduce**
 
-``fmdt-maxred`` performs a max-reduction from a video sequence into an image.
+``fmdt-reduce`` performs a reduction from a video sequence into an image.
 The produced image is in grayscale mode.
 
 The next sections describe the command line parameters of these tools.
@@ -86,4 +86,4 @@ The next sections describe the command line parameters of these tools.
    usage/log
    usage/visu
    usage/check
-   usage/maxred
+   usage/reduce

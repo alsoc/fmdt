@@ -136,14 +136,14 @@ Use ``fmdt-check`` with the following arguments:
 	  - tracking rate     = ['meteor': 0.95, 'star':  nan, 'noise':  nan, 'all': 0.95]
 	# End of the program, exiting.
 
-Max-reduction
-"""""""""""""
+Reduction
+"""""""""
 
-Use ``fmdt-maxred`` with the following arguments:
+Use ``fmdt-reduce`` with the following arguments:
 
 .. code-block:: bash
 
-	./bin/fmdt-maxred --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --fra-out-path out_maxred.pgm
+	./bin/fmdt-reduce --vid-in-path ./2022_05_31_tauh_34_meteors.mp4 --red-op MAX --fra-out-path out_maxred.pgm
 
 .. _fig_maxred_image:
 
