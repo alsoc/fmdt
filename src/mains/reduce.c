@@ -18,13 +18,13 @@
 #include "fmdt/video.h"
 #include "fmdt/version.h"
 
-enum reduction_e { NONE = 0,
-                   MAX,
-                   MIN,
-                   MAX_MIN,
+enum reduction_e { RED_OP_NONE = 0,
+                   RED_OP_MAX,
+                   RED_OP_MIN,
+                   RED_OP_MAX_MIN,
 };
 
-uint8_t g_frames_cnt = 0;
+uint32_t g_frames_cnt = 0;
 uint8_t g_pix_min = 255;
 uint8_t g_pix_max = 0;
 uint64_t g_pix_sum = 0;
@@ -255,13 +255,13 @@ int main(int argc, char** argv) {
 
     enum reduction_e red_op;
     if (strcmp(p_red_op, "NONE") == 0)
-        red_op = NONE;
+        red_op = RED_OP_NONE;
     else if (strcmp(p_red_op, "MAX") == 0)
-        red_op = MAX;
+        red_op = RED_OP_MAX;
     else if (strcmp(p_red_op, "MIN") == 0)
-        red_op = MIN;
+        red_op = RED_OP_MIN;
     else if (strcmp(p_red_op, "MAX-MIN") == 0)
-        red_op = MAX_MIN;
+        red_op = RED_OP_MAX_MIN;
     else {
         fprintf(stderr, "(EE) '--red-op' contains an unsupported string (cur str = \"%s\")\n", p_red_op);
         exit(1);
@@ -272,7 +272,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--vid-in-path' is missing\n");
         exit(1);
     }
-    if (p_fra_out_path && red_op == NONE) {
+    if (p_fra_out_path && red_op == RED_OP_NONE) {
         fprintf(stderr, "(EE) '--fra-out-path' is defined, a reduction operator is expected\n");
         exit(1);
     }
@@ -280,7 +280,7 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(EE) '--fra-out-path' is missing\n");
         exit(1);
     }
-    if (red_op == NONE && p_stats == 0) {
+    if (red_op == RED_OP_NONE && p_stats == 0) {
         fprintf(stderr, "(EE) You should at least specify a reduction operator or enable the statistics.\n");
         exit(1);
     }
@@ -319,12 +319,12 @@ int main(int argc, char** argv) {
     PUTS("ALLOC");
     uint8_t** I = (uint8_t**)ui8matrix(i0, i1, j0, j1);
     uint8_t** Max = NULL;
-    if (red_op == MAX || red_op == MAX_MIN) {
+    if (red_op == RED_OP_MAX || red_op == RED_OP_MAX_MIN) {
         Max = (uint8_t**)ui8matrix(i0, i1, j0, j1);
         zero_ui8matrix(Max, i0, i1, j0, j1);
     }
     uint8_t** Min = NULL;
-    if (red_op == MIN || red_op == MAX_MIN) {
+    if (red_op == RED_OP_MIN || red_op == RED_OP_MAX_MIN) {
         Min = (uint8_t**)ui8matrix(i0, i1, j0, j1);
         for (int i = i0; i <= i1; i++)
             for (int j = j0; j <= j1; j++)
@@ -367,15 +367,15 @@ int main(int argc, char** argv) {
 
     uint8_t** M = NULL;
     switch (red_op) {
-    case NONE:
+    case RED_OP_NONE:
         break;
-    case MAX:
+    case RED_OP_MAX:
         M = Max;
         break;
-    case MIN:
+    case RED_OP_MIN:
         M = Min;
         break;
-    case MAX_MIN:
+    case RED_OP_MAX_MIN:
         for (int i = i0; i <= i1; i++)
             for (int j = j0; j <= j1; j++)
                 Max[i][j] -= Min[i][j];
@@ -387,7 +387,7 @@ int main(int argc, char** argv) {
         break;
     }
 
-    if (red_op != NONE) {
+    if (red_op != RED_OP_NONE) {
         if (p_trk_path) {
             vec_track_t tracks;
             tracking_parse_tracks(p_trk_path, &tracks);
@@ -405,11 +405,11 @@ int main(int argc, char** argv) {
                 if ((!p_trk_only_meteor || tracks[t].obj_type == OBJ_METEOR) &&
                     (tracks[t].end.frame >= (size_t)p_vid_in_start)) {
                     BBs[m].frame_id = 0;
-    #ifdef FMDT_OPENCV_LINK
+#ifdef FMDT_OPENCV_LINK
                     BBs[m].track_id = p_trk_nat_num ? (m + 1) : tracks[t].id;
-    #else
+#else
                     BBs[m].track_id = tracks[t].id;
-    #endif
+#endif
                     int xmin =
                         tracks[t].begin.x < tracks[t].end.x ? tracks[t].begin.x : tracks[t].end.x;
                     int xmax =

@@ -113,7 +113,7 @@ void tracking_parse_tracks(const char* filename, vec_track_t* tracks) {
 
     while ((read = getline(&line, &len, fp)) != -1) {
         // printf("Retrieved line of length %zu:\n", read);
-        if (line[0] != '#') {
+        if (line[0] != '#' && line[0] != '\n' && line[0] != '\r') {
             sscanf(line, "%d || %d | %f | %f || %d | %f | %f || %s ", &tid, &t0, &x0, &y0, &t1, &x1, &y1, obj_type_str);
             track_t* tmp_track = vector_add_asg(tracks);
             tmp_track->id = tid;
