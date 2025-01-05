@@ -201,25 +201,28 @@ Display some statistics about the pixels in the video sequence.
 
 	# Pixel Statistics:
 	# -----------------
-	#  * frames_cnt          = {fra_cnt}
-	#  * pix_min             = {pix_min}
-	#  * pix_max             = {pix_max}
-	#  * pix_sum             = {pix_sum}
-	#  * pix_cnt             = {pix_cnt}
-	#  * pix_mean            = {pix_mean}
-	#  * pix_variance        = {pix_var}
-	#  * pix_sample_variance = {pix_svar}
-	#  * pix_std_dev         = {pix_sd}
+	#  * frames_cnt   = {fra_cnt}
+	#  * pix_min      = {px_min}
+	#  * pix_max      = {px_max}
+	#  * pix_sum      = {px_sum}
+	#  * pix_cnt      = {px_cnt}
+	#  * pix_mean     = {px_mean}
+	#  * pix_variance = {px_var}
+	#  * pix_std_dev  = {px_sd}
 
 - ``{fra_cnt}``: The number of parsed frames in the video sequence
-- ``{pix_min}``: The minimum pixel intensity in the video sequence
-- ``{pix_max}``: The maximum pixel intensity in the video sequence
-- ``{pix_sum}``: The sum of pixel intensities in the video sequence
-- ``{pix_cnt}``: The total number of pixels in the whole video sequence
-- ``{pix_mean}``: The total mean pixel intensity in the whole video sequence
-- ``{pix_var}``: The pixel variance :math:`Var` (computed according to the Welford's online algorithm)
-- ``{pix_svar}``: The pixel sample variance (computed according to the Welford's online algorithm)
-- ``{pix_sd}``: The pixel standard deviation (:math:`SD = \sqrt{Var}`)
+- ``{px_min}``: The minimum pixel intensity in the video sequence
+  (:math:`\min_{px}`)
+- ``{px_max}``: The maximum pixel intensity in the video sequence
+  (:math:`\max_{px}`)
+- ``{px_sum}``: The sum of pixel intensities in the video sequence
+- ``{px_cnt}``: The total number of pixels in the whole video sequence
+- ``{px_mean}``: The mean pixel intensity in the whole video sequence
+  (:math:`\bar{px}`)
+- ``{px_var}``: The pixel intensity variance :math:`Var_{px}` (computed
+  according to the Welford's online algorithm)
+- ``{px_sd}``: The pixel intensity standard deviation
+  (:math:`\sigma_{px} = \sqrt{Var_{px}}`)
 
 .. _reduce_stats-histo:
 

@@ -29,44 +29,36 @@ uint8_t g_pix_min = 255;
 uint8_t g_pix_max = 0;
 uint64_t g_pix_sum = 0;
 uint64_t g_pix_cnt = 0;
-float g_pix_mean = 0;
-float g_pix_M2 = 0;
-float g_pix_variance;
-float g_pix_sample_variance;
-float g_pix_std_dev;
+double g_pix_mean = 0;
+double g_pix_M2 = 0;
+double g_pix_variance;
+double g_pix_sample_variance;
+double g_pix_std_dev;
 uint32_t g_pix_histo[256]; // initialized to zeros
 
 // see https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
-static void update_stats(const uint8_t x, const uint8_t stats_histo) {
-    if (x < g_pix_min)
-        g_pix_min = x;
-    if (x > g_pix_max)
-        g_pix_max = x;
+static inline void update_stats(const uint8_t x, const uint8_t stats_histo) {
+    g_pix_min = (x < g_pix_min) ? x : g_pix_min;
+    g_pix_max = (x > g_pix_max) ? x : g_pix_max;
     g_pix_sum += x;
     g_pix_cnt++;
     if (stats_histo)
         g_pix_histo[x]++;
-
-    float delta = x - g_pix_mean;
-    g_pix_mean += delta / (g_pix_cnt * 1.f);
-    float delta2 = (x * 1.f) - g_pix_mean;
+    double delta = x - g_pix_mean;
+    g_pix_mean = (g_pix_sum * 1.) / (g_pix_cnt * 1.);
+    double delta2 = (x * 1.) - g_pix_mean;
     g_pix_M2 += delta * delta2;
 }
 
 // see https://en.wikipedia.org/wiki/Algorithms_for_calculating_variance#Welford's_online_algorithm
 static void finalize_stats(const uint8_t stats_histo) {
-    if (g_pix_cnt > 0)
-        g_pix_mean = (g_pix_sum * 1.f) / (g_pix_cnt * 1.f);
-    else
-        g_pix_mean = nanf("");
-
     if (g_pix_cnt < 2) {
         g_pix_variance = nanf("");
         g_pix_sample_variance = nanf("");
         g_pix_std_dev = nanf("");
     } else {
-        g_pix_variance        = g_pix_M2 / ( g_pix_cnt      * 1.f);
-        g_pix_sample_variance = g_pix_M2 / ((g_pix_cnt - 1) * 1.f);
+        g_pix_variance = g_pix_M2 / (g_pix_cnt * 1.);
+        g_pix_sample_variance = g_pix_M2 / ((g_pix_cnt - 1) * 1.);
         g_pix_std_dev = sqrtf(g_pix_variance);
     }
     g_frames_cnt++;
@@ -468,15 +460,14 @@ int main(int argc, char** argv) {
         printf("#\n");
         printf("# Pixel Statistics:\n");
         printf("# -----------------\n");
-        printf("#  * frames_cnt          = %u\n",   g_frames_cnt);
-        printf("#  * pix_min             = %u\n",   g_pix_min);
-        printf("#  * pix_max             = %u\n",   g_pix_max);
-        printf("#  * pix_sum             = %llu\n", g_pix_sum);
-        printf("#  * pix_cnt             = %llu\n", g_pix_cnt);
-        printf("#  * pix_mean            = %f\n",   g_pix_mean);
-        printf("#  * pix_variance        = %f\n",   g_pix_variance);
-        printf("#  * pix_sample_variance = %f\n",   g_pix_sample_variance);
-        printf("#  * pix_std_dev         = %f\n",   g_pix_std_dev);
+        printf("#  * frames_cnt   = %u\n",   g_frames_cnt);
+        printf("#  * pix_min      = %u\n",   g_pix_min);
+        printf("#  * pix_max      = %u\n",   g_pix_max);
+        printf("#  * pix_sum      = %llu\n", g_pix_sum);
+        printf("#  * pix_cnt      = %llu\n", g_pix_cnt);
+        printf("#  * pix_mean     = %f\n",   g_pix_mean);
+        printf("#  * pix_variance = %f\n",   g_pix_variance);
+        printf("#  * pix_std_dev  = %f\n",   g_pix_std_dev);
         printf("#\n");
 
         if (p_stats_histo) {
