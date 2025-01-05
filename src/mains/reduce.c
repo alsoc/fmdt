@@ -471,7 +471,6 @@ int main(int argc, char** argv) {
         printf("#\n");
 
         if (p_stats_histo) {
-            printf("#\n");
             printf("# Pixels histogram:\n");
             printf("# -----------------\n");
             for (uint16_t p = 0; p < 256; p++)
@@ -485,6 +484,7 @@ int main(int argc, char** argv) {
             printf("#    gnuplot -e \\\n");
             printf("#    \"set terminal dumb size 120, 30; set autoscale; set xrange [0:255]; set title 'pixel histogram';\n");
             printf("#     set ylabel 'count'; set xlabel 'pixel value'; plot '-'  with lines notitle\";\n");
+            printf("#\n");
         }
     }
 
