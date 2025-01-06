@@ -463,8 +463,8 @@ int main(int argc, char** argv) {
         printf("#  * frames_cnt   = %u\n",   g_frames_cnt);
         printf("#  * pix_min      = %u\n",   g_pix_min);
         printf("#  * pix_max      = %u\n",   g_pix_max);
-        printf("#  * pix_sum      = %llu\n", g_pix_sum);
-        printf("#  * pix_cnt      = %llu\n", g_pix_cnt);
+        printf("#  * pix_sum      = %llu\n", (unsigned long long int)g_pix_sum);
+        printf("#  * pix_cnt      = %llu\n", (unsigned long long int)g_pix_cnt);
         printf("#  * pix_mean     = %f\n",   g_pix_mean);
         printf("#  * pix_variance = %f\n",   g_pix_variance);
         printf("#  * pix_std_dev  = %f\n",   g_pix_std_dev);
