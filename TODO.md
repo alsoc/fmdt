@@ -1,4 +1,10 @@
 TODO list:
+- [ ] Add the `--gnd-detect` option to all of the `fmdt-detect*` exe binaries
+- [ ] Add a new criterion in k-NN: the distance between the bounding boxes (in 
+      addition to the distance between the centers of inertia)
+- [ ] Split tracking in two separated process: one for the tracking, the other
+      for the classification
+- [ ] Use the `--trk-ddev` criterion in k-NN
 - [ ] Write an interactive Python script to ease the human detection task 
       (= ground truth)
 - [ ] In `fmdt-log-parser`, find the RoIs without the "tracks to RoIs" file.
