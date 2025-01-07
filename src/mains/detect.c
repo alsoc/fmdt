@@ -19,6 +19,7 @@
 #include "fmdt/version.h"
 #include "fmdt/video/video_struct.h"
 #include "fmdt/visu.h"
+#include "fmdt/framebuffer.h"
 
 int main(int argc, char** argv) {
     // default values
@@ -345,7 +346,7 @@ int main(int argc, char** argv) {
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
                                                     p_vid_in_buff, p_vid_in_threads, video_str_to_enum(p_vid_in_dec),
-                                                    video_hwaccel_str_to_enum(p_vid_in_dec_hw), PIXFMT_GRAY8,
+                                                    video_hwaccel_str_to_enum(p_vid_in_dec_hw), PIXFMT_RGB24,
                                                     p_vid_in_dbg, p_vid_in_opt, &i0, &i1, &j0, &j1);
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;
@@ -367,6 +368,14 @@ int main(int argc, char** argv) {
                                     p_vid_in_skip);
     }
 
+    framebuffer_data_t* framebuffer = NULL;
+    video_writer_t* fb_writer = NULL;
+    if(1) {
+        framebuffer = framebuffer_alloc_init(30, (i1 - i0) + 1, (j1 - j0) + 1, PIXFMT_RGB24);
+        fb_writer = video_writer_alloc_init("framebuffer.mp4", p_vid_in_start, 1, (i1 - i0) + 1, (j1 - j0) + 1,
+                                                   PIXFMT_RGB24, VCDC_FFMPEG_IO, 0, 0, NULL);
+    }
+
     // --------------------- //
     // -- DATA ALLOCATION -- //
     // --------------------- //
@@ -379,6 +388,7 @@ int main(int argc, char** argv) {
     tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_star_min, p_trk_meteor_min), p_cca_roi_max2);
     int b = 1; // image border
     uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // grayscale input image
+    uint8_t **IC = (uint8_t**)rgb8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // RGB input image
     uint8_t **IL = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold low)
     uint8_t **IH = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold high)
     uint32_t **L1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL)
@@ -415,7 +425,7 @@ int main(int argc, char** argv) {
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     int cur_fra;
     TIME_POINT(start_compute);
-    while ((cur_fra = video_reader_get_frame(video, I, NULL)) != -1) {
+    while ((cur_fra = video_reader_get_frame(video, I, IC)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         // step 1: threshold low
@@ -496,6 +506,12 @@ int main(int argc, char** argv) {
         if (visu_data)
             visu_display(visu_data, (const uint8_t**)I, RoIs1->basic, RoIs1->_size, tracking_data->tracks, cur_fra);
 
+        if (framebuffer) {
+            framebuffer_bufferize(framebuffer, (const uint8_t**)IC);
+            framebuffer_draw_frame_id(framebuffer, cur_fra);
+            framebuffer_save(framebuffer, fb_writer);
+        }
+
         // swap RoIs0 <-> RoIs1 for the next frame
         RoIs_t* tmp = RoIs0;
         RoIs0 = RoIs1;
@@ -536,10 +552,18 @@ int main(int argc, char** argv) {
     if (visu_data)
         visu_flush(visu_data, tracking_data->tracks);
 
+    if (framebuffer) {
+        framebuffer_free(framebuffer);
+    }
+    if (fb_writer) {
+        video_writer_free(fb_writer);
+    }
+
     // ---------- //
     // -- FREE -- //
     // ---------- //
 
+    free_rgb8matrix((rgb8**)IC, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
