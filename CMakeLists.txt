@@ -137,6 +137,7 @@ set(src_common_files
     ${src_dir}/common/CCL/CCL_struct.c
     ${src_dir}/common/features/features_compute.c
     ${src_dir}/common/features/features_io.c
+    ${src_dir}/common/framebuffer/framebuffer_io.c
     ${src_dir}/common/image/image_compute.c
     ${src_dir}/common/image/image_io.c
     ${src_dir}/common/image/image_struct.c
