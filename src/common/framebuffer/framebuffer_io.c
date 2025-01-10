@@ -31,8 +31,8 @@ framebuffer_data_t* framebuffer_alloc_init(const size_t size, const size_t frame
     return fb;
 }
 
-void framebuffer_bufferize(framebuffer_data_t* fb, const int frame_id, const uint8_t** img_rgb24,
-                           const RoI_basic_t* RoIs, const size_t n_RoIs) {
+void framebuffer_push(framebuffer_data_t* fb, const int frame_id, const uint8_t** img_rgb24, const RoI_basic_t* RoIs,
+                      const size_t n_RoIs) {
     size_t buff_id = fb->id_write % fb->size;
 
     fb->frames[buff_id].id = frame_id;

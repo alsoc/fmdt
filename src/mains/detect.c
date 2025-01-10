@@ -507,7 +507,7 @@ int main(int argc, char** argv) {
             visu_display(visu_data, (const uint8_t**)I, RoIs1->basic, RoIs1->_size, tracking_data->tracks, cur_fra);
 
         if (framebuffer) {
-            framebuffer_bufferize(framebuffer, cur_fra, (const uint8_t**)IC, RoIs1->basic, RoIs1->_size);
+            framebuffer_push(framebuffer, cur_fra, (const uint8_t**)IC, RoIs1->basic, RoIs1->_size);
             framebuffer_draw_frame_id(framebuffer);
             framebuffer_save(framebuffer, fb_writer);
         }
