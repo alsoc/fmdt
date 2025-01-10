@@ -17,10 +17,11 @@
  * @return The allocated data.
  */
 framebuffer_data_t* framebuffer_alloc_init(const size_t size, const size_t frame_height, const size_t frame_width,
-                                           const enum pixfmt_e frame_pixfmt);
+                                           const enum pixfmt_e frame_pixfmt, const size_t max_RoIs_size);
 
-void framebuffer_bufferize(framebuffer_data_t* fb, const uint8_t** img_rgb24);
-void framebuffer_draw_frame_id(framebuffer_data_t* fb, int frame_id);
+void framebuffer_bufferize(framebuffer_data_t* fb, const int frame_id, const uint8_t** img_rgb24,
+                           const RoI_basic_t* RoIs, const size_t n_RoIs);
+void framebuffer_draw_frame_id(framebuffer_data_t* fb);
 void framebuffer_save(framebuffer_data_t* fb, video_writer_t* video_writer);
 
 /**

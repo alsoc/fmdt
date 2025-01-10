@@ -371,7 +371,7 @@ int main(int argc, char** argv) {
     framebuffer_data_t* framebuffer = NULL;
     video_writer_t* fb_writer = NULL;
     if(1) {
-        framebuffer = framebuffer_alloc_init(30, (i1 - i0) + 1, (j1 - j0) + 1, PIXFMT_RGB24);
+        framebuffer = framebuffer_alloc_init(30, (i1 - i0) + 1, (j1 - j0) + 1, PIXFMT_RGB24, p_cca_roi_max2);
         fb_writer = video_writer_alloc_init("framebuffer.mp4", p_vid_in_start, 1, (i1 - i0) + 1, (j1 - j0) + 1,
                                                    PIXFMT_RGB24, VCDC_FFMPEG_IO, 0, 0, NULL);
     }
@@ -507,8 +507,8 @@ int main(int argc, char** argv) {
             visu_display(visu_data, (const uint8_t**)I, RoIs1->basic, RoIs1->_size, tracking_data->tracks, cur_fra);
 
         if (framebuffer) {
-            framebuffer_bufferize(framebuffer, (const uint8_t**)IC);
-            framebuffer_draw_frame_id(framebuffer, cur_fra);
+            framebuffer_bufferize(framebuffer, cur_fra, (const uint8_t**)IC, RoIs1->basic, RoIs1->_size);
+            framebuffer_draw_frame_id(framebuffer);
             framebuffer_save(framebuffer, fb_writer);
         }
 
