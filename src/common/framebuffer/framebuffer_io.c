@@ -52,6 +52,19 @@ void framebuffer_push(framebuffer_data_t* fb, const int frame_id, const uint8_t*
         fb->n_filled++;
 }
 
+static inline frame_t* _pop(framebuffer_data_t* fb) {
+    fb->n_filled--;
+    return &fb->frames[(fb->id_read++) % fb->size];
+}
+
+frame_t* framebuffer_pop(framebuffer_data_t* fb) {
+    return (fb->n_filled == fb->size)?_pop(fb):NULL;
+}
+
+frame_t* framebuffer_flush(framebuffer_data_t* fb) {
+    return (fb->n_filled > 0)?_pop(fb):NULL;
+}
+
 void framebuffer_draw_frame_id(framebuffer_data_t* fb) {
 #ifdef FMDT_OPENCV_LINK
     size_t buff_id = (fb->id_write-1) % fb->size;

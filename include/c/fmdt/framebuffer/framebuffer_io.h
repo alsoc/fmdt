@@ -21,7 +21,12 @@ framebuffer_data_t* framebuffer_alloc_init(const size_t size, const size_t frame
 
 void framebuffer_push(framebuffer_data_t* fb, const int frame_id, const uint8_t** img_rgb24, const RoI_basic_t* RoIs,
                       const size_t n_RoIs);
+frame_t* framebuffer_pop(framebuffer_data_t* fb);
+
+frame_t* framebuffer_flush(framebuffer_data_t* fb);
+
 void framebuffer_draw_frame_id(framebuffer_data_t* fb);
+
 void framebuffer_save(framebuffer_data_t* fb, video_writer_t* video_writer);
 
 /**
