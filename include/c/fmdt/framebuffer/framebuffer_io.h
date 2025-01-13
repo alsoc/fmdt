@@ -7,6 +7,7 @@
 
 #include "fmdt/framebuffer/framebuffer_struct.h"
 #include "fmdt/video/video_struct.h"
+
 /**
  * Allocation and initialization of a frame buffer.
  *
@@ -24,10 +25,6 @@ void framebuffer_push(framebuffer_data_t* fb, const int frame_id, const uint8_t*
 frame_t* framebuffer_pop(framebuffer_data_t* fb);
 
 frame_t* framebuffer_flush(framebuffer_data_t* fb);
-
-void framebuffer_draw_frame_id(framebuffer_data_t* fb);
-
-void framebuffer_save(framebuffer_data_t* fb, video_writer_t* video_writer);
 
 /**
  * Deallocation of a frame buffer.

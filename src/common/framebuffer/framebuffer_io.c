@@ -4,7 +4,6 @@
 
 #include "fmdt/framebuffer/framebuffer_io.h"
 #include "fmdt/image/image_compute.h"
-#include "fmdt/video/video_io.h"
 #include "fmdt/features/features_compute.h"
 
 framebuffer_data_t* framebuffer_alloc_init(const size_t size, const size_t frame_height, const size_t frame_width,
@@ -65,18 +64,6 @@ frame_t* framebuffer_flush(framebuffer_data_t* fb) {
     return (fb->n_filled > 0)?_pop(fb):NULL;
 }
 
-void framebuffer_draw_frame_id(framebuffer_data_t* fb) {
-#ifdef FMDT_OPENCV_LINK
-    size_t buff_id = (fb->id_write-1) % fb->size;
-    image_color_draw_frame_id( fb->frames[buff_id].img , fb->frames[buff_id].id);
-#endif
-}
-
-void framebuffer_save(framebuffer_data_t* fb, video_writer_t* video_writer) {
-    assert(fb->id_write > 0);
-
-    video_writer_save_frame(video_writer, (const uint8_t**)image_color_get_pixels_2d(fb->frames[(fb->id_write-1) % fb->size].img));
-}
 
 void framebuffer_free(framebuffer_data_t* fb) {
     for (size_t i = 0; i < fb->size; i++) {

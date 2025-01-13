@@ -7,3 +7,4 @@
 
 #include "fmdt/framebuffer/framebuffer_struct.h"
 #include "fmdt/framebuffer/framebuffer_io.h"
+#include "fmdt/framebuffer/frame_compute.h"
