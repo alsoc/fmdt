@@ -13,6 +13,8 @@
 #include "fmdt/tracking/tracking_compute.h"
 #include "fmdt/tracking/tracking_global.h"
 
+#include "fmdt/macros.h"
+#include "vec.h"
 
 void frame_draw_id(frame_t* frame) {
 #ifdef FMDT_OPENCV_LINK
@@ -63,8 +65,38 @@ void frame_draw_legend(frame_t* frame, const int validation) {
 #endif
 }
 
-void frame_draw_boxes(frame_t* frame, const vec_track_t tracks) {
+void frame_draw_boxes(frame_t* frame, const framebuffer_data_t* fb, const vec_track_t tracks) {
+    const int border = 2;
+    const int delta_bb = 5;
 
+    const size_t n_tracks = vector_size(tracks);
+    for (size_t i = 0; i < n_tracks; i++) {
+        const uint32_t track_id = tracks[i].id;
+        if (track_id && (tracks[i].end.frame >= frame->id && tracks[i].begin.frame <= frame->id)) {
+            const rgb8_t color = image_get_color(g_obj_to_color[tracks[i].obj_type]);
+
+            const size_t offset = (tracks[i].end.frame - frame->id);
+            assert(tracks[i].RoIs_id != NULL);
+            const size_t RoIs_id_size = vector_size(tracks[i].RoIs_id);
+            assert(RoIs_id_size > offset);
+            const uint32_t RoI_id = tracks[i].RoIs_id[(RoIs_id_size - 1) - offset];
+
+            RoI_basic_t *RoIs_tmp = frame->RoIs;
+            if (RoI_id) {
+                const uint32_t track_x = (uint32_t)roundf(RoIs_tmp[RoI_id -1].x);
+                const uint32_t track_y = (uint32_t)roundf(RoIs_tmp[RoI_id -1].y);
+                const uint32_t track_rx = (RoIs_tmp[RoI_id -1].xmax - RoIs_tmp[RoI_id -1].xmin) / 2;
+                const uint32_t track_ry = (RoIs_tmp[RoI_id -1].ymax - RoIs_tmp[RoI_id -1].ymin) / 2;
+
+                const int ymin = CLAMP(track_y - (track_ry + delta_bb), border + 1, fb->frame_height - (border + 2));
+                const int ymax = CLAMP(track_y + (track_ry + delta_bb), border + 1, fb->frame_height - (border + 2));
+                const int xmin = CLAMP(track_x - (track_rx + delta_bb), border + 1, fb->frame_width  - (border + 2));
+                const int xmax = CLAMP(track_x + (track_rx + delta_bb), border + 1, fb->frame_width  - (border + 2));
+
+                image_color_draw_bounding_box(frame->img, ymin, ymax, xmin, xmax, border, color, 0);
+           }
+        }
+    }
 }
 
 void frame_write(frame_t* frame, video_writer_t* video_writer) {

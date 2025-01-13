@@ -16,7 +16,7 @@
  *  Frame structure.
  */
 typedef struct {
-    int id;
+    size_t id;
     img_data_t* img;
     RoI_basic_t* RoIs;
     size_t n_RoIs;
