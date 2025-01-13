@@ -88,7 +88,7 @@ rgb8_t image_get_color(enum color_e color) {
     return red;
 }
 
-void image_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8_t color,
+void _image_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xmax, int border, rgb8_t color,
                              int is_dashed) {
     for (int b = 0; b < border; b++) {
         ymin++;
@@ -134,6 +134,11 @@ void image_plot_bounding_box(rgb8_t** img, int ymin, int ymax, int xmin, int xma
     }
 }
 
+void image_color_draw_bounding_box(img_data_t* img_data, int ymin, int ymax, int xmin, int xmax, int border,
+                                   rgb8_t color, int is_dashed) {
+    _image_plot_bounding_box(image_color_get_pixels_2d(img_data), ymin, ymax, xmin, xmax, border, color, is_dashed);
+}
+
 void image_max_reduce(uint8_t** I, int i0, int i1, int j0, int j1, uint8_t** M) {
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
@@ -167,7 +172,7 @@ void image_draw_legend_squares(rgb8_t** img, unsigned box_size, unsigned h_space
                                            image_get_color(COLOR_RED)));                           // color
 
     for (auto& box : box_list)
-        image_plot_bounding_box(img, std::get<0>(box), std::get<1>(box), std::get<2>(box), std::get<3>(box), 2,
+        _image_plot_bounding_box(img, std::get<0>(box), std::get<1>(box), std::get<2>(box), std::get<3>(box), 2,
                                 std::get<4>(box), /* is_dashed = */ 0);
 }
 
@@ -309,7 +314,7 @@ void image_draw_BBs(rgb8_t** I_bb, const BB_t* BBs, const enum color_e* BBs_colo
         int xmin_fix = CLAMP(xmin, border + 1, w - (border + 2));
         int xmax_fix = CLAMP(xmax, border + 1, w - (border + 2));
 
-        image_plot_bounding_box(I_bb, ymin_fix, ymax_fix, xmin_fix, xmax_fix, border, image_get_color(BBs_color[i]),
+        _image_plot_bounding_box(I_bb, ymin_fix, ymax_fix, xmin_fix, xmax_fix, border, image_get_color(BBs_color[i]),
                                 BBs[i].is_extrapolated);
     }
 }

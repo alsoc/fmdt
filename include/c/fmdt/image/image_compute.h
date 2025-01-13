@@ -70,6 +70,21 @@ void image_gs_free(img_data_t* img_data);
 img_data_t* image_color_alloc(const size_t img_height, const size_t img_width);
 
 /**
+ * Draw a bounding box (BB) on a color image.
+ *
+ * @param img_data Image data.
+ * @param ymin First \f$y\f$ index of the bounding box (included).
+ * @param ymax Last \f$y\f$ index of the bounding box (included).
+ * @param xmin First \f$x\f$ index of the bounding box (included).
+ * @param xmax Last \f$x\f$ index of the bounding box (included).
+ * @param border Thickness of the bounding box.
+ * @param color Color of the bounding box.
+ * @param is_dashed Boolean to draw dashed lines.
+ */
+void image_color_draw_bounding_box(img_data_t* img_data, int ymin, int ymax, int xmin, int xmax, int border,
+                                   rgb8_t color, int is_dashed);
+
+/**
  * Draw bounding boxes (BBs) on a color image.
  * If the program is linked with the OpenCV library, then the `show_id` boolean can be used to draw the ids
  * corresponding to each BB on the color image. Moreover, if the program is linked with OpenCV, this routine add the
