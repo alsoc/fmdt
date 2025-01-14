@@ -75,7 +75,7 @@ void frame_draw_boxes(frame_t* frame, const framebuffer_data_t* fb, const vec_tr
         if (track_id && (tracks[i].end.frame >= frame->id && tracks[i].begin.frame <= frame->id)) {
             const rgb8_t color = image_get_color(g_obj_to_color[tracks[i].obj_type]);
 
-            const size_t offset = (tracks[i].end.frame - frame->id);
+            const size_t offset = (tracks[i].end.frame - frame->id)  / (fb->frame_skip + 1);
             assert(tracks[i].RoIs_id != NULL);
             const size_t RoIs_id_size = vector_size(tracks[i].RoIs_id);
             assert(RoIs_id_size > offset);

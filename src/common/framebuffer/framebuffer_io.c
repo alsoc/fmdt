@@ -7,7 +7,8 @@
 #include "fmdt/features/features_compute.h"
 
 framebuffer_data_t* framebuffer_alloc_init(const size_t size, const size_t frame_height, const size_t frame_width,
-                                           const enum pixfmt_e frame_pixfmt, const size_t max_RoIs_size) {
+                                           const size_t frame_skip, const enum pixfmt_e frame_pixfmt,
+                                           const size_t max_RoIs_size) {
     assert(size > 0);
     framebuffer_data_t* fb = (framebuffer_data_t*)malloc(sizeof(framebuffer_data_t));
 
@@ -17,6 +18,7 @@ framebuffer_data_t* framebuffer_alloc_init(const size_t size, const size_t frame
     fb->n_filled      = 0;
     fb->frame_height  = frame_height;
     fb->frame_width   = frame_width;
+    fb->frame_skip    = frame_skip;
     fb->max_RoIs_size = max_RoIs_size;
     fb->frames        = (frame_t*)malloc(sizeof(frame_t)*size);
 
@@ -63,7 +65,6 @@ frame_t* framebuffer_pop(framebuffer_data_t* fb) {
 frame_t* framebuffer_flush(framebuffer_data_t* fb) {
     return (fb->n_filled > 0)?_pop(fb):NULL;
 }
-
 
 void framebuffer_free(framebuffer_data_t* fb) {
     for (size_t i = 0; i < fb->size; i++) {

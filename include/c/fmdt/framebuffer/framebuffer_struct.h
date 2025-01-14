@@ -18,6 +18,7 @@ typedef struct {
     size_t id_read; /*!< Index of the current buffer to read. */
     size_t id_write; /*!< Index of the current buffer to write. */
     size_t n_filled; /*!< Number of filled buffers. */
+    size_t frame_skip; /*!< Number of skipped frames between two processings (generally 0). */
     size_t frame_height; /*!< Frames height. */
     size_t frame_width; /*!< Frames width. */
     enum pixfmt_e frame_pixfmt; /*!< Frames pixel format */

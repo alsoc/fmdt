@@ -18,7 +18,8 @@
  * @return The allocated data.
  */
 framebuffer_data_t* framebuffer_alloc_init(const size_t size, const size_t frame_height, const size_t frame_width,
-                                           const enum pixfmt_e frame_pixfmt, const size_t max_RoIs_size);
+                                           const size_t frame_skip, const enum pixfmt_e frame_pixfmt,
+                                           const size_t max_RoIs_size);
 
 void framebuffer_push(framebuffer_data_t* fb, const int frame_id, const uint8_t** img_rgb24, const RoI_basic_t* RoIs,
                       const size_t n_RoIs);
