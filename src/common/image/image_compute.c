@@ -151,6 +151,19 @@ void image_max_reduce(uint8_t** I, int i0, int i1, int j0, int j1, uint8_t** M) 
     }
 }
 
+void image_color_draw_text(img_data_t* img_data, char* text, rgb8_t color, int pos_y, int pos_x) {
+#ifdef FMDT_OPENCV_LINK
+    cv::putText(*(cv::Mat*)img_data->pixels,
+                std::string(text),
+                cv::Point(pos_x, pos_y),
+                cv::FONT_HERSHEY_DUPLEX,
+                0.7,
+                cv::Scalar(color.r, color.g, color.b),
+                1,
+                cv::LINE_AA);
+#endif
+}
+
 #ifdef FMDT_OPENCV_LINK // this is C++ code (because OpenCV API is C++ now)
 void image_draw_legend_squares(rgb8_t** img, unsigned box_size, unsigned h_space, unsigned v_space, int validation) {
     //                     ymin      ymax      xmin      xmax      color
@@ -252,7 +265,7 @@ void image_draw_track_id(cv::Mat& cv_img, const BB_t* BBs, const enum color_e* B
     }
 }
 
-void image_draw_text(img_data_t* img_data, const BB_t* BBs, const enum color_e* BBs_color, const int nBB,
+void _image_draw_text_BBs(img_data_t* img_data, const BB_t* BBs, const enum color_e* BBs_color, const int nBB,
                      int validation, int show_id, int draw_legend) {
     unsigned box_size = 20, h_space = 10, v_space = 10;
     if (draw_legend)
@@ -510,7 +523,7 @@ void image_color_draw_BBs(img_data_t* img_data, const uint8_t** img, const enum 
     image_draw_BBs(image_color_get_pixels_2d(img_data), BBs, BBs_color, n_BBs, img_data->width,
                    img_data->height);
 #ifdef FMDT_OPENCV_LINK
-    image_draw_text(img_data, BBs, BBs_color, n_BBs, is_gt, show_id, draw_legend);
+    _image_draw_text_BBs(img_data, BBs, BBs_color, n_BBs, is_gt, show_id, draw_legend);
 #endif
 }
 

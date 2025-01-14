@@ -85,6 +85,17 @@ void image_color_draw_bounding_box(img_data_t* img_data, int ymin, int ymax, int
                                    rgb8_t color, int is_dashed);
 
 /**
+ * Draw a text on a color image.
+ *
+ * @param img_data Image data.
+ * @param text Text to draw.
+ * @param color Color of the text.
+ * @param pos_y Text position on y-axis.
+ * @param pos_x Text position on x-axis.
+ */
+void image_color_draw_text(img_data_t* img_data, char* text, rgb8_t color, int pos_y, int pos_x);
+
+/**
  * Draw bounding boxes (BBs) on a color image.
  * If the program is linked with the OpenCV library, then the `show_id` boolean can be used to draw the ids
  * corresponding to each BB on the color image. Moreover, if the program is linked with OpenCV, this routine add the
