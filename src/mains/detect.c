@@ -400,7 +400,9 @@ int main(int argc, char** argv) {
     tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_star_min, p_trk_meteor_min), p_cca_roi_max2);
     int b = 1; // image border
     uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // grayscale input image
-    uint8_t **IC = (uint8_t**)rgb8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // RGB input image
+    uint8_t **IC = NULL; // RGB input image
+    if (framebuffer)
+        IC = (uint8_t**)rgb8matrix(i0, i1, j0, j1);
     uint8_t **IL = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold low)
     uint8_t **IH = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold high)
     uint32_t **L1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL)
@@ -585,7 +587,6 @@ int main(int argc, char** argv) {
     // -- FREE -- //
     // ---------- //
 
-    free_rgb8matrix((rgb8**)IC, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(I, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui8matrix(IL, i0 - b, i1 + b, j0 - b, j1 + b);
     free_ui32matrix(L1, i0 - b, i1 + b, j0 - b, j1 + b);
@@ -600,10 +601,14 @@ int main(int argc, char** argv) {
         image_gs_free(img_data);
         video_writer_free(video_writer);
     }
-    if (framebuffer)
+    if (framebuffer) {
         framebuffer_free(framebuffer);
-    if(p_vid_out_color)
-        video_reader_free(video_color);
+        free_rgb8matrix((rgb8**)IC, i0, i1, j0, j1);
+        if(video_color) {
+            video_reader_free(video_color);
+        }
+    }
+
     CCL_free_data(ccl_data);
     kNN_free_data(knn_data);
     tracking_free_data(tracking_data);
