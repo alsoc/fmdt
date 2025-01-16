@@ -25,7 +25,14 @@ void framebuffer_push(framebuffer_data_t* fb, const int frame_id, const uint8_t*
                       const size_t n_RoIs);
 frame_t* framebuffer_pop(framebuffer_data_t* fb);
 
-frame_t* framebuffer_flush(framebuffer_data_t* fb);
+void framebuffer_flush(framebuffer_data_t* fb);
+
+framebuffer_action* framebuffer_action_alloc(size_t n_args);
+
+void framebuffer_action_register(framebuffer_data_t* framebuffer, framebuffer_action* action);
+
+void framebuffer_action_free(framebuffer_action* action);
+
 
 /**
  * Deallocation of a frame buffer.
