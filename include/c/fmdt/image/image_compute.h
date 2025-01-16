@@ -139,6 +139,19 @@ void image_color_draw_frame_id(img_data_t* img_data, const size_t frame_id);
 void image_max_reduce(uint8_t** M, int i0, int i1, int j0, int j1, uint8_t** I);
 
 /**
+ * Convert a gray image into an RGB image.
+ * The gray value is duplicate on each RGB channel.
+ *
+ * @param gray8 Input gray8 image.
+ * @param i0 First \f$y\f$ index in the gray8 image (included).
+ * @param i1 Last \f$y\f$ index in the gray8 image (included).
+ * @param j0 First \f$x\f$ index in the gray8 image (included).
+ * @param j1 Last \f$x\f$ index in the gray8 image (included).
+ * @param rgb24 Output RGB24 image.
+ */
+void image_convert_gray8_to_rgb24(uint8_t** gray8, int i0, int i1, int j0, int j1, uint8_t** rgb24);
+
+/**
  * Return a pixels array of the color image.
  *
  * @param img_data Image data.

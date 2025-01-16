@@ -173,12 +173,6 @@ int main(int argc, char** argv) {
                 "  --vid-out-path      Path to video file or to an images sequence to write the output        [%s]\n",
                 def_p_vid_out_path ? def_p_vid_out_path : "NULL");
         fprintf(stderr,
-                "  --vid-ext_path  Path to video files or to image sequences to extract each meteor           [%s]\n",
-                def_p_vid_ext_path ? def_p_vid_ext_path : "NULL");
-        fprintf(stderr,
-                "  --vid-ext-path-end  End path to video files or to image sequences to extract each meteor   [%s]\n",
-                def_p_vid_ext_path_end ? def_p_vid_ext_path_end : "NULL");
-        fprintf(stderr,
                 "  --vid-out-play      Show the output video in a SDL window                                      \n");
 #ifdef FMDT_OPENCV_LINK
         fprintf(stderr,
@@ -189,6 +183,14 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --vid-out-opt       Add ffmpeg options to encode output video sequence                     [%s]\n",
                 def_p_vid_out_opt ? def_p_vid_out_opt : "NULL");
+        fprintf(stderr,
+                "  --vid-out-color     Write the output in color (if the input is)                                \n");
+        fprintf(stderr,
+                "  --vid-ext_path      Path to video files or to image sequences to extract each meteor       [%s]\n",
+                def_p_vid_ext_path ? def_p_vid_ext_path : "NULL");
+        fprintf(stderr,
+                "  --vid-ext-path-end  End path to video files or to image sequences to extract each meteor   [%s]\n",
+                def_p_vid_ext_path_end ? def_p_vid_ext_path_end : "NULL");
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
         fprintf(stderr,
@@ -254,6 +256,7 @@ int main(int argc, char** argv) {
 #endif
     const int p_vid_out_dbg = args_find(argc, argv, "--vid-out-dbg");
     const char* p_vid_out_opt = args_find_char(argc, argv, "--vid-out-opt", def_p_vid_out_opt);
+    const int p_vid_out_color = args_find(argc, argv, "--vid-out-color");
 
     const char* p_vid_ext_path     = args_find_char(argc, argv, "--vid-ext-path", def_p_vid_ext_path);
     const char* p_vid_ext_path_end = args_find_char(argc, argv, "--vid-ext-path-end", def_p_vid_ext_path_end);
@@ -314,6 +317,7 @@ int main(int argc, char** argv) {
 #endif
     printf("#  * vid-out-dbg      = %d\n", p_vid_out_dbg);
     printf("#  * vid-out-opt      = %s\n", p_vid_out_opt);
+    printf("#  * vid-out-color    = %d\n", p_vid_out_color);
     printf("#  * vid-ext-path     = %s\n", p_vid_ext_path);
     printf("#  * vid-ext-path-end = %s\n", p_vid_ext_path_end);
     printf("#\n");
@@ -358,7 +362,7 @@ int main(int argc, char** argv) {
     int i0, i1, j0, j1; // image dimension (i0 = y_min, i1 = y_max, j0 = x_min, j1 = x_max)
     video_reader_t* video = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
                                                     p_vid_in_buff, p_vid_in_threads, video_str_to_enum(p_vid_in_dec),
-                                                    video_hwaccel_str_to_enum(p_vid_in_dec_hw), PIXFMT_RGB24,
+                                                    video_hwaccel_str_to_enum(p_vid_in_dec_hw), PIXFMT_GRAY8,
                                                     p_vid_in_dbg, p_vid_in_opt, &i0, &i1, &j0, &j1);
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;
@@ -385,12 +389,20 @@ int main(int argc, char** argv) {
 
     frame_extractor_t* frame_extractor = NULL;
     if (p_vid_ext_path)
-        frame_extractor = frame_extractor_alloc_init(p_vid_ext_path, p_vid_ext_path_end, 15, (i1 - i0) + 1, (j1 - j0) + 1, n_threads, PIXFMT_RGB24, VCDC_FFMPEG_IO);
+        frame_extractor = frame_extractor_alloc_init(p_vid_ext_path, p_vid_ext_path_end, 15, (i1 - i0) + 1,
+                                                     (j1 - j0) + 1, n_threads, PIXFMT_RGB24, VCDC_FFMPEG_IO);
 
     framebuffer_data_t* framebuffer = NULL;
-    if (fb_writer || fb_player || frame_extractor)
+    video_reader_t* video_color = NULL;
+    if (fb_writer || fb_player || frame_extractor) {
         framebuffer = framebuffer_alloc_init(MAX(p_trk_star_min, p_trk_meteor_min + p_trk_meteor_max), (i1 - i0) + 1,
                                              (j1 - j0) + 1, p_vid_in_skip, PIXFMT_RGB24, p_cca_roi_max2);
+        if(p_vid_out_color)
+            video_color = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
+                                                  p_vid_in_buff, p_vid_in_threads, video_str_to_enum(p_vid_in_dec),
+                                                  video_hwaccel_str_to_enum(p_vid_in_dec_hw), PIXFMT_RGB24,
+                                                  p_vid_in_dbg, p_vid_in_opt, &i0, &i1, &j0, &j1);
+    }
 
 
     // --------------------- //
@@ -442,7 +454,7 @@ int main(int argc, char** argv) {
     unsigned n_frames = 0, n_stars = 0, n_meteors = 0, n_noise = 0;
     int cur_fra;
     TIME_POINT(start_compute);
-    while ((cur_fra = video_reader_get_frame(video, I, IC)) != -1) {
+    while ((cur_fra = video_reader_get_frame(video, I, NULL)) != -1) {
         fprintf(stderr, "(II) Frame n°%4d", cur_fra);
 
         // step 1: threshold low
@@ -529,6 +541,12 @@ int main(int argc, char** argv) {
                 if (fb_player) frame_write(frame,fb_player);
                 if (frame_extractor) frame_extract(frame, frame_extractor, tracking_data->tracks);
             }
+
+            if (video_color)
+                video_reader_get_frame(video_color, NULL, IC);
+            else
+                image_convert_gray8_to_rgb24(I, i0, i1, j0, j1, IC);
+
             framebuffer_push(framebuffer, cur_fra, (const uint8_t**)IC, RoIs1->basic, RoIs1->_size);
         }
 
@@ -608,6 +626,8 @@ int main(int argc, char** argv) {
         frame_extractor_free(frame_extractor);
     if (framebuffer)
         framebuffer_free(framebuffer);
+    if(p_vid_out_color)
+        video_reader_free(video_color);
     CCL_free_data(ccl_data);
     kNN_free_data(knn_data);
     tracking_free_data(tracking_data);

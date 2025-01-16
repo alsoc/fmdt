@@ -151,6 +151,16 @@ void image_max_reduce(uint8_t** I, int i0, int i1, int j0, int j1, uint8_t** M) 
     }
 }
 
+void image_convert_gray8_to_rgb24(uint8_t** gray8, int i0, int i1, int j0, int j1, uint8_t** rgb24) {
+    rgb8_t** out = (rgb8_t**)rgb24;
+    for (int i = i0; i <= i1; i++) {
+        for (int j = j0; j <= j1; j++) {
+            uint8_t gray = gray8[i][j];
+            out[i][j] = {gray, gray, gray};
+        }
+    }
+}
+
 void image_color_draw_text(img_data_t* img_data, char* text, rgb8_t color, int pos_y, int pos_x) {
 #ifdef FMDT_OPENCV_LINK
     cv::putText(*(cv::Mat*)img_data->pixels,
