@@ -183,6 +183,8 @@ int main(int argc, char** argv) {
                 "  --vid-out-legend    Draw the legend on the ouptut video                                        \n");
 #endif
         fprintf(stderr,
+                "  --vid-out-no-bb     Do not draw the bounding boxes on the ouptut video                         \n");
+        fprintf(stderr,
                 "  --vid-out-dbg       Print ffmpeg command line                                                  \n");
         fprintf(stderr,
                 "  --vid-out-opt       Add ffmpeg options to encode output video sequence                     [%s]\n",
@@ -262,6 +264,7 @@ int main(int argc, char** argv) {
     const int p_vid_out_frameid = 0;
     const int p_vid_out_legend = 0;
 #endif
+    const int p_vid_out_no_bb = args_find(argc, argv, "--vid-out-no-bb");
     const int p_vid_out_dbg = args_find(argc, argv, "--vid-out-dbg");
     const char* p_vid_out_opt = args_find_char(argc, argv, "--vid-out-opt", def_p_vid_out_opt);
     const int p_vid_out_color = args_find(argc, argv, "--vid-out-color");
@@ -325,6 +328,7 @@ int main(int argc, char** argv) {
     printf("#  * vid-out-frameid  = %d\n", p_vid_out_frameid);
     printf("#  * vid-out-legend   = %d\n", p_vid_out_legend);
 #endif
+    printf("#  * vid-out-no-bb    = %d\n", p_vid_out_no_bb);
     printf("#  * vid-out-dbg      = %d\n", p_vid_out_dbg);
     printf("#  * vid-out-opt      = %s\n", p_vid_out_opt);
     printf("#  * vid-out-color    = %d\n", p_vid_out_color);
@@ -452,7 +456,8 @@ int main(int argc, char** argv) {
             frame_draw_id_action_register(framebuffer);
         if (p_vid_out_legend)
             frame_draw_legend_action_register(framebuffer, &draw_validation);
-        frame_draw_boxes_action_register(framebuffer, tracking_data, &p_vid_out_id);
+        if (!p_vid_out_no_bb)
+            frame_draw_boxes_action_register(framebuffer, tracking_data, &p_vid_out_id);
     }
 
     // ---------------- //
