@@ -178,6 +178,8 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --vid-out-id        Draw the track ids on the ouptut video                                     \n");
         fprintf(stderr,
+                "  --vid-out-frameid   Draw the frame id on the ouptut video                                      \n");
+        fprintf(stderr,
                 "  --vid-out-legend    Draw the legend on the ouptut video                                        \n");
 #endif
         fprintf(stderr,
@@ -253,9 +255,11 @@ int main(int argc, char** argv) {
     const int p_vid_out_play = args_find(argc, argv, "--vid-out-play");
 #ifdef FMDT_OPENCV_LINK
     const int p_vid_out_id = args_find(argc, argv, "--vid-out-id");
+    const int p_vid_out_frameid = args_find(argc, argv, "--vid-out-frameid");
     const int p_vid_out_legend = args_find(argc, argv, "--vid-out-legend");
 #else
     const int p_vid_out_id = 0;
+    const int p_vid_out_frameid = 0;
     const int p_vid_out_legend = 0;
 #endif
     const int p_vid_out_dbg = args_find(argc, argv, "--vid-out-dbg");
@@ -318,6 +322,7 @@ int main(int argc, char** argv) {
     printf("#  * vid-out-play     = %d\n", p_vid_out_play);
 #ifdef FMDT_OPENCV_LINK
     printf("#  * vid-out-id       = %d\n", p_vid_out_id);
+    printf("#  * vid-out-frameid  = %d\n", p_vid_out_frameid);
     printf("#  * vid-out-legend   = %d\n", p_vid_out_legend);
 #endif
     printf("#  * vid-out-dbg      = %d\n", p_vid_out_dbg);
@@ -443,8 +448,8 @@ int main(int argc, char** argv) {
         if (p_vid_ext_path)
             frame_extract_action_register(framebuffer, p_vid_ext_path, p_vid_ext_path_end, 15, n_threads, VCDC_FFMPEG_IO,
                                           tracking_data);
-
-        frame_draw_id_action_register(framebuffer);
+        if (p_vid_out_frameid)
+            frame_draw_id_action_register(framebuffer);
         if (p_vid_out_legend)
             frame_draw_legend_action_register(framebuffer, &draw_validation);
         frame_draw_boxes_action_register(framebuffer, tracking_data, &p_vid_out_id);
