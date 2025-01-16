@@ -21,6 +21,17 @@ void frame_draw_id(frame_t* frame) {
 #endif
 }
 
+static void _frame_draw_id_action(frame_t* frame, void* args[]) {
+    frame_draw_id(frame);
+}
+
+void frame_draw_id_action_register(framebuffer_data_t* framebuffer) {
+    framebuffer_action* action = framebuffer_action_alloc(0);
+    action->apply = _frame_draw_id_action;
+    action->free = NULL;
+    framebuffer_action_register(framebuffer, action);
+}
+
 void frame_draw_legend(frame_t* frame, const int validation) {
 #ifdef FMDT_OPENCV_LINK
     const unsigned box_size = 20, h_space = 10, v_space = 10, border = 2, is_dashed = 0;
@@ -59,6 +70,19 @@ void frame_draw_legend(frame_t* frame, const int validation) {
     }
 #endif
 }
+
+static void _frame_draw_legend_action(frame_t* frame, void* args[]) {
+    frame_draw_legend(frame, *(const int*)args[0]);
+}
+
+void frame_draw_legend_action_register(framebuffer_data_t* framebuffer, const int* validation) {
+    framebuffer_action* action = framebuffer_action_alloc(1);
+    action->apply   = _frame_draw_legend_action;
+    action->free    = NULL;
+    action->args[0] = (void*)validation;
+    framebuffer_action_register(framebuffer, action);
+}
+
 
 void frame_draw_boxes(frame_t* frame, const framebuffer_data_t* fb, const vec_track_t tracks, const int draw_id) {
     const int border = 2;
@@ -104,9 +128,45 @@ void frame_draw_boxes(frame_t* frame, const framebuffer_data_t* fb, const vec_tr
     }
 }
 
+static void _frame_draw_boxes_action(frame_t* frame, void* args[]) {
+    frame_draw_boxes(frame, (const framebuffer_data_t*)args[0], ((const tracking_data_t*)args[1])->tracks, *(const int*)args[2]);
+}
+
+void frame_draw_boxes_action_register(framebuffer_data_t* framebuffer, const tracking_data_t* tracking_data, const int* draw_id) {
+    framebuffer_action* action = framebuffer_action_alloc(3);
+    action->apply   = _frame_draw_boxes_action;
+    action->free    = NULL;
+    action->args[0] = (void*)framebuffer;
+    action->args[1] = (void*)tracking_data;
+    action->args[2] = (void*)draw_id;
+    framebuffer_action_register(framebuffer, action);
+}
+
 void frame_write(frame_t* frame, video_writer_t* video_writer) {
     assert(frame != NULL && video_writer != NULL);
     video_writer_save_frame(video_writer, (const uint8_t**)image_color_get_pixels_2d(frame->img));
+}
+
+static void _frame_write_action(frame_t* frame, void* args[]) {
+    frame_write(frame, (video_writer_t*)args[0]);
+}
+
+static void _frame_write_action_free(void* args[]) {
+    video_writer_free((video_writer_t*)args[0]);
+}
+
+void frame_write_action_register(framebuffer_data_t* framebuffer, const char* path, const size_t start,
+                                 const size_t n_ffmpeg_threads, const int is_player,
+                                 const enum video_codec_e codec_type) {
+    video_writer_t* writer = video_writer_alloc_init(path, start, n_ffmpeg_threads, framebuffer->frame_height,
+                                                     framebuffer->frame_width, PIXFMT_RGB24, codec_type, is_player, 0, NULL);
+    if(!writer) return;
+
+    framebuffer_action* action = framebuffer_action_alloc(1);
+    action->apply   = _frame_write_action;
+    action->free    = _frame_write_action_free;
+    action->args[0] = (void*)writer;
+    framebuffer_action_register(framebuffer, action);
 }
 
 frame_extractor_t* frame_extractor_alloc_init(const char* path_begin, const char* path_end, const size_t n_writers,
@@ -137,6 +197,20 @@ frame_extractor_t* frame_extractor_alloc_init(const char* path_begin, const char
     return fe;
 }
 
+void frame_extractor_free(frame_extractor_t* frame_extractor)
+{
+    free(frame_extractor->path_begin);
+    free(frame_extractor->path_end);
+
+    for(size_t i=0; i<frame_extractor->n_writers; i++)
+        if(frame_extractor->writers[i])
+            video_writer_free(frame_extractor->writers[i]);
+
+    free(frame_extractor->track_ids);
+    free(frame_extractor->writers);
+
+    free(frame_extractor);
+}
 
 static inline int _find_frame_extractor(frame_extractor_t* frame_extractor, size_t track_id) {
     for(size_t i=0; i<frame_extractor->n_writers;i++)
@@ -196,17 +270,28 @@ void frame_extract(frame_t* frame, frame_extractor_t* frame_extractor, const vec
     }
 }
 
-void frame_extractor_free(frame_extractor_t* frame_extractor)
-{
-    free(frame_extractor->path_begin);
-    free(frame_extractor->path_end);
 
-    for(size_t i=0; i<frame_extractor->n_writers; i++)
-        if(frame_extractor->writers[i])
-            video_writer_free(frame_extractor->writers[i]);
+static void _frame_extract_action(frame_t* frame, void* args[]) {
+    frame_extract(frame,(frame_extractor_t*)args[0], ((const tracking_data_t*)args[1])->tracks);
+}
 
-    free(frame_extractor->track_ids);
-    free(frame_extractor->writers);
+static void _frame_extract_action_free(void* args[]) {
+    frame_extractor_free((frame_extractor_t*)args[0]);
+}
 
-    free(frame_extractor);
+void frame_extract_action_register(framebuffer_data_t* framebuffer, const char* path_begin, const char* path_end,
+                                   const size_t n_writers, const size_t n_threads, const enum video_codec_e codec,
+                                   const tracking_data_t* tracking_data) {
+
+    frame_extractor_t* extractor = frame_extractor_alloc_init(path_begin, path_end, n_writers,
+                                                              framebuffer->frame_height, framebuffer->frame_width,
+                                                              n_threads, PIXFMT_RGB24, codec);
+    if(!extractor) return;
+
+    framebuffer_action* action = framebuffer_action_alloc(2);
+    action->apply   = _frame_extract_action;
+    action->free    = _frame_extract_action_free;
+    action->args[0] = (void*)extractor;
+    action->args[1] = (void*)tracking_data;
+    framebuffer_action_register(framebuffer, action);
 }
