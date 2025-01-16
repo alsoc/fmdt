@@ -177,6 +177,8 @@ int main(int argc, char** argv) {
 #ifdef FMDT_OPENCV_LINK
         fprintf(stderr,
                 "  --vid-out-id        Draw the track ids on the ouptut video                                     \n");
+        fprintf(stderr,
+                "  --vid-out-legend    Draw the legend on the ouptut video                                        \n");
 #endif
         fprintf(stderr,
                 "  --vid-out-dbg       Print ffmpeg command line                                                  \n");
@@ -251,8 +253,10 @@ int main(int argc, char** argv) {
     const int p_vid_out_play = args_find(argc, argv, "--vid-out-play");
 #ifdef FMDT_OPENCV_LINK
     const int p_vid_out_id = args_find(argc, argv, "--vid-out-id");
+    const int p_vid_out_legend = args_find(argc, argv, "--vid-out-legend");
 #else
     const int p_vid_out_id = 0;
+    const int p_vid_out_legend = 0;
 #endif
     const int p_vid_out_dbg = args_find(argc, argv, "--vid-out-dbg");
     const char* p_vid_out_opt = args_find_char(argc, argv, "--vid-out-opt", def_p_vid_out_opt);
@@ -314,6 +318,7 @@ int main(int argc, char** argv) {
     printf("#  * vid-out-play     = %d\n", p_vid_out_play);
 #ifdef FMDT_OPENCV_LINK
     printf("#  * vid-out-id       = %d\n", p_vid_out_id);
+    printf("#  * vid-out-legend   = %d\n", p_vid_out_legend);
 #endif
     printf("#  * vid-out-dbg      = %d\n", p_vid_out_dbg);
     printf("#  * vid-out-opt      = %s\n", p_vid_out_opt);
@@ -440,7 +445,8 @@ int main(int argc, char** argv) {
                                           tracking_data);
 
         frame_draw_id_action_register(framebuffer);
-        frame_draw_legend_action_register(framebuffer, &draw_validation);
+        if (p_vid_out_legend)
+            frame_draw_legend_action_register(framebuffer, &draw_validation);
         frame_draw_boxes_action_register(framebuffer, tracking_data, &p_vid_out_id);
     }
 
