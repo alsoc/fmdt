@@ -367,34 +367,17 @@ int main(int argc, char** argv) {
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;
     img_data_t* img_data = NULL;
+    const int draw_validation = 0;
+    const size_t n_threads = 1;
     if (p_ccl_fra_path) {
         img_data = image_gs_alloc((i1 - i0) + 1, (j1 - j0) + 1);
-        const size_t n_threads = 1;
         video_writer = video_writer_alloc_init(p_ccl_fra_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
                                                PIXFMT_GRAY8, VCDC_FFMPEG_IO, 0, 0, NULL);
     }
 
-    const uint8_t draw_legend = 1;
-    const uint8_t n_threads = 1;
-
-    video_writer_t* fb_writer = NULL;
-    if (p_vid_out_path)
-        fb_writer = video_writer_alloc_init(p_vid_out_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
-                                            PIXFMT_RGB24, VCDC_FFMPEG_IO, 0, 0, NULL);
-
-    video_writer_t* fb_player = NULL;
-    if (p_vid_out_play)
-        fb_player = video_writer_alloc_init(NULL, 0, n_threads, (i1 - i0) + 1, (j1 - j0), PIXFMT_RGB24,
-                                            VCDC_FFMPEG_IO, 1, 0, NULL);
-
-    frame_extractor_t* frame_extractor = NULL;
-    if (p_vid_ext_path)
-        frame_extractor = frame_extractor_alloc_init(p_vid_ext_path, p_vid_ext_path_end, 15, (i1 - i0) + 1,
-                                                     (j1 - j0) + 1, n_threads, PIXFMT_RGB24, VCDC_FFMPEG_IO);
-
     framebuffer_data_t* framebuffer = NULL;
     video_reader_t* video_color = NULL;
-    if (fb_writer || fb_player || frame_extractor) {
+    if (p_vid_out_path || p_vid_out_play || p_vid_ext_path) {
         framebuffer = framebuffer_alloc_init(MAX(p_trk_star_min, p_trk_meteor_min + p_trk_meteor_max), (i1 - i0) + 1,
                                              (j1 - j0) + 1, p_vid_in_skip, PIXFMT_RGB24, p_cca_roi_max2);
         if(p_vid_out_color)
@@ -444,6 +427,20 @@ int main(int argc, char** argv) {
         zero_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
     TIME_POINT(stop_alloc_init);
     printf("# Allocations and initialisations took %6.3f sec\n", TIME_ELAPSED_SEC(start_alloc_init, stop_alloc_init));
+
+    if (framebuffer) {
+        if (p_vid_out_play)
+            frame_write_action_register(framebuffer, NULL, 0, n_threads, 1, VCDC_FFMPEG_IO);
+        if (p_vid_out_path)
+            frame_write_action_register(framebuffer, p_vid_out_path, 0, n_threads, 0, VCDC_FFMPEG_IO);
+        if (p_vid_ext_path)
+            frame_extract_action_register(framebuffer, p_vid_ext_path, p_vid_ext_path_end, 15, n_threads, VCDC_FFMPEG_IO,
+                                          tracking_data);
+
+        frame_draw_id_action_register(framebuffer);
+        frame_draw_legend_action_register(framebuffer, &draw_validation);
+        frame_draw_boxes_action_register(framebuffer, tracking_data, &p_vid_out_id);
+    }
 
     // ---------------- //
     // -- PROCESSING -- //
@@ -533,14 +530,7 @@ int main(int argc, char** argv) {
 
         // display the result to the screen or write it into a video file
         if (framebuffer) {
-            frame_t* frame = framebuffer_pop(framebuffer);
-            if(frame) {
-                frame_draw_boxes(frame, framebuffer, tracking_data->tracks, draw_legend);
-                frame_draw_legend(frame, 1);
-                if (fb_writer) frame_write(frame, fb_writer);
-                if (fb_player) frame_write(frame,fb_player);
-                if (frame_extractor) frame_extract(frame, frame_extractor, tracking_data->tracks);
-            }
+            framebuffer_pop(framebuffer);
 
             if (video_color)
                 video_reader_get_frame(video_color, NULL, IC);
@@ -587,16 +577,8 @@ int main(int argc, char** argv) {
            (int)(n_frames / (TIME_ELAPSED_SEC(start_compute, stop_compute))));
 
     // some frames have been buffered for the visualization, display or write these frames here
-    if (framebuffer) {
-        frame_t* frame;
-        while ( (frame = framebuffer_flush(framebuffer)) ) {
-            frame_draw_boxes(frame, framebuffer, tracking_data->tracks, draw_legend);
-            frame_draw_legend(frame, 0);
-            if (fb_writer) frame_write(frame, fb_writer);
-            if (fb_player) frame_write(frame,fb_player);
-            if (frame_extractor) frame_extract(frame, frame_extractor, tracking_data->tracks);
-        }
-    }
+    if (framebuffer)
+        framebuffer_flush(framebuffer);
 
 
     // ---------- //
@@ -618,12 +600,6 @@ int main(int argc, char** argv) {
         image_gs_free(img_data);
         video_writer_free(video_writer);
     }
-    if (fb_writer)
-        video_writer_free(fb_writer);
-    if (fb_player)
-        video_writer_free(fb_player);
-    if (frame_extractor)
-        frame_extractor_free(frame_extractor);
     if (framebuffer)
         framebuffer_free(framebuffer);
     if(p_vid_out_color)
