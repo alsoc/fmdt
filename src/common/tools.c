@@ -105,6 +105,39 @@ void tools_save_max(const char* filename, uint8_t** I, int i0, int i1, int j0, i
     fclose(f);
 }
 
+void tools_str_format_int(char* destination, const size_t length, const char* source, const char* placeholder, const int value, const char* value_format) {
+    const size_t placeholder_length = strlen(placeholder);
+    const char* found = strstr(source, placeholder);
+    if(found) {
+        size_t prefix_length = found - source;
+        if(prefix_length > length)
+            prefix_length = length;
+        strncpy(destination, source, prefix_length);
+
+        char format[16];
+        snprintf(format, 16, "%s%s", value_format, "%s");
+        snprintf(&destination[prefix_length], length - prefix_length, format, value, &source[prefix_length + placeholder_length]);
+    } else {
+        strncpy(destination, source, length);
+    }
+}
+
+void tools_str_format_placeholder(char* destination, const size_t length, const char* source, const char* placeholder, const char* value) {
+    const size_t placeholder_length = strlen(placeholder);
+    const char* found = strstr(source, placeholder);
+    if(found) {
+        size_t prefix_length = found - source;
+        if(prefix_length > length)
+            prefix_length = length;
+        strncpy(destination, source, prefix_length);
+        destination[prefix_length] = '\0';
+
+        snprintf(&destination[prefix_length], length - prefix_length, "%s%s", value, &source[prefix_length + placeholder_length]);
+    } else {
+        strncpy(destination, source, length);
+    }
+}
+
 // void tools_filter_speed_binarize(uint32_t** in, int i0, int i1, int j0, int j1, uint8_t** out, RoI_t* stats) {
 //     for (int i = i0; i <= i1; i++)
 //         for (int j = j0; j <= j1; j++)

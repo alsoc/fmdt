@@ -112,3 +112,14 @@ void tools_create_folder(const char* folder_path);
  * @return `1` if the given path is a folder, `0` otherwise.
  */
 int tools_is_dir(const char *path);
+
+/**
+ * Replace a placeholder in the source string with a string value.
+ *
+ * @param destination Destination string.
+ * @param length Size of the destination string to ensure no overflow.
+ * @param source Source string.
+ * @param placeholder The string placeholder that will be replaced (e.g. "{id}").
+ * @param value The string value to replace the placeholder with.
+ */
+void tools_str_format_placeholder(char* destination, const size_t length, const char* source, const char* placeholder, const char* value);
