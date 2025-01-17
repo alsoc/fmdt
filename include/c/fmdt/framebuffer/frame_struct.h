@@ -16,26 +16,26 @@
  *  Frame structure.
  */
 typedef struct {
-    size_t id;
-    img_data_t* img;
-    RoI_basic_t* RoIs;
-    size_t n_RoIs;
+    size_t id; /*!< Frame id. */
+    img_data_t* img; /*!< Image data of the frame. */
+    RoI_basic_t* RoIs; /*!< Array of RoIs of the frame. */
+    size_t n_RoIs; /*!< Number of RoIs. */
 } frame_t;
 
 /**
  *  Frame Extractor structure.
  */
 typedef struct {
-    size_t* track_ids;
-    video_writer_t** writers;
-    size_t n_writers;
-    char* path;
-    size_t path_len;
-    size_t n_meteors;
+    size_t* track_ids; /*!< Array of track ids ( = buffer). */
+    video_writer_t** writers; /*!< Array of writers ( = buffer). */
+    size_t n_writers; /*!< Number of writers. */
+    char* path; /*!< Path to save meteor images or videos. */
+    size_t path_len; /*!< Path length */
+    size_t n_meteors; /*!< Number of detected meteors */
 
-    size_t n_threads;
-    size_t frame_height;
-    size_t frame_width;
-    enum pixfmt_e frame_pixfmt;
-    enum video_codec_e codec_type;
+    size_t n_threads; /*!< Number of threads per writers */
+    size_t frame_height; /*!< Frame height */
+    size_t frame_width; /*!< Frame width */
+    enum pixfmt_e frame_pixfmt; /*!< Pixel format for writers */
+    enum video_codec_e codec_type; /*!< Codec for writers */
 } frame_extractor_t;

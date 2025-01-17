@@ -14,10 +14,10 @@
  *  Frame Buffer Action structure.
  */
 typedef struct framebuffer_action {
-    struct framebuffer_action* next;
-    void (*apply)(frame_t*, void*[]);
-    void (*free)(void*[]);
-    void* args[];
+    struct framebuffer_action* next;  /*!< Next registered action on the framebuffer */
+    void (*apply)(frame_t*, void*[]);  /*!< Function ( = action) to be called on each popped frame */
+    void (*free)(void*[]); /*!< Function to free the action */
+    void* args[]; /*!< Arguments of the action */
 } framebuffer_action_t;
 /**
  *  Frame Buffer structure.
