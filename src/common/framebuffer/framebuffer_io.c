@@ -78,17 +78,17 @@ void framebuffer_flush(framebuffer_data_t* fb) {
         _pop(fb);
 }
 
-framebuffer_action* framebuffer_action_alloc(size_t n_args) {
-    return (framebuffer_action*)malloc(sizeof(framebuffer_action) + n_args * sizeof(void*));
+framebuffer_action_t* framebuffer_action_alloc(size_t n_args) {
+    return (framebuffer_action_t*)malloc(sizeof(framebuffer_action_t) + n_args * sizeof(void*));
 }
 
-void framebuffer_action_register(framebuffer_data_t* fb, framebuffer_action* action) {
+void framebuffer_action_register(framebuffer_data_t* fb, framebuffer_action_t* action) {
     assert(fb != NULL && action != NULL);
     action->next = fb->actions;
     fb->actions = action;
 }
 
-void framebuffer_action_free(framebuffer_action* action) {
+void framebuffer_action_free(framebuffer_action_t* action) {
     assert(action != NULL);
     if(action->free != NULL)
         action->free(action->args);

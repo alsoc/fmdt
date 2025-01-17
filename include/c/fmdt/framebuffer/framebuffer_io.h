@@ -27,11 +27,11 @@ frame_t* framebuffer_pop(framebuffer_data_t* fb);
 
 void framebuffer_flush(framebuffer_data_t* fb);
 
-framebuffer_action* framebuffer_action_alloc(size_t n_args);
+framebuffer_action_t* framebuffer_action_alloc(size_t n_args);
 
-void framebuffer_action_register(framebuffer_data_t* framebuffer, framebuffer_action* action);
+void framebuffer_action_register(framebuffer_data_t* framebuffer, framebuffer_action_t* action);
 
-void framebuffer_action_free(framebuffer_action* action);
+void framebuffer_action_free(framebuffer_action_t* action);
 
 
 /**

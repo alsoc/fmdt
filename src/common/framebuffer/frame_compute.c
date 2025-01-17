@@ -27,7 +27,7 @@ static void _frame_draw_id_action(frame_t* frame, void* args[]) {
 }
 
 void frame_draw_id_action_register(framebuffer_data_t* framebuffer) {
-    framebuffer_action* action = framebuffer_action_alloc(0);
+    framebuffer_action_t* action = framebuffer_action_alloc(0);
     action->apply = _frame_draw_id_action;
     action->free = NULL;
     framebuffer_action_register(framebuffer, action);
@@ -77,7 +77,7 @@ static void _frame_draw_legend_action(frame_t* frame, void* args[]) {
 }
 
 void frame_draw_legend_action_register(framebuffer_data_t* framebuffer, const int* validation) {
-    framebuffer_action* action = framebuffer_action_alloc(1);
+    framebuffer_action_t* action = framebuffer_action_alloc(1);
     action->apply   = _frame_draw_legend_action;
     action->free    = NULL;
     action->args[0] = (void*)validation;
@@ -134,7 +134,7 @@ static void _frame_draw_boxes_action(frame_t* frame, void* args[]) {
 }
 
 void frame_draw_boxes_action_register(framebuffer_data_t* framebuffer, const tracking_data_t* tracking_data, const int* draw_id) {
-    framebuffer_action* action = framebuffer_action_alloc(3);
+    framebuffer_action_t* action = framebuffer_action_alloc(3);
     action->apply   = _frame_draw_boxes_action;
     action->free    = NULL;
     action->args[0] = (void*)framebuffer;
@@ -163,7 +163,7 @@ void frame_write_action_register(framebuffer_data_t* framebuffer, const char* pa
                                                      framebuffer->frame_width, PIXFMT_RGB24, codec_type, is_player, 0, NULL);
     if(!writer) return;
 
-    framebuffer_action* action = framebuffer_action_alloc(1);
+    framebuffer_action_t* action = framebuffer_action_alloc(1);
     action->apply   = _frame_write_action;
     action->free    = _frame_write_action_free;
     action->args[0] = (void*)writer;
@@ -299,7 +299,7 @@ void frame_extract_action_register(framebuffer_data_t* framebuffer, const char* 
                                                               n_threads, PIXFMT_RGB24, codec);
     if(!extractor) return;
 
-    framebuffer_action* action = framebuffer_action_alloc(2);
+    framebuffer_action_t* action = framebuffer_action_alloc(2);
     action->apply   = _frame_extract_action;
     action->free    = _frame_extract_action_free;
     action->args[0] = (void*)extractor;
