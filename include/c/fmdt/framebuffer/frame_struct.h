@@ -29,9 +29,9 @@ typedef struct {
     size_t* track_ids;
     video_writer_t** writers;
     size_t n_writers;
-    char* path_begin;
-    char* path_end;
+    char* path;
     size_t path_len;
+    size_t n_meteors;
 
     size_t n_threads;
     size_t frame_height;

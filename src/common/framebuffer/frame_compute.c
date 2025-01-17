@@ -12,6 +12,7 @@
 #include "fmdt/tracking/tracking_global.h"
 
 #include "fmdt/macros.h"
+#include "fmdt/tools.h"
 #include "vec.h"
 
 void frame_draw_id(frame_t* frame) {
@@ -169,10 +170,9 @@ void frame_write_action_register(framebuffer_data_t* framebuffer, const char* pa
     framebuffer_action_register(framebuffer, action);
 }
 
-frame_extractor_t* frame_extractor_alloc_init(const char* path_begin, const char* path_end, const size_t n_writers,
-                                              const size_t frame_height, const size_t frame_width,
-                                              const size_t n_threads, const enum pixfmt_e frame_pixfmt,
-                                              const enum video_codec_e codec)
+frame_extractor_t* frame_extractor_alloc_init(const char* path, const size_t n_writers, const size_t frame_height,
+                                              const size_t frame_width, const size_t n_threads,
+                                              const enum pixfmt_e frame_pixfmt, const enum video_codec_e codec)
 {
     frame_extractor_t* fe = (frame_extractor_t*)malloc(sizeof(frame_extractor_t));
     fe->n_writers  = n_writers;
@@ -184,9 +184,9 @@ frame_extractor_t* frame_extractor_alloc_init(const char* path_begin, const char
         fe->writers[i]   = NULL;
     }
 
-    fe->path_begin = strdup(path_begin);
-    fe->path_end   = strdup(path_end);
-    fe->path_len  = strlen(path_begin) + strlen(path_end) + 50;
+    fe->path      = strdup(path);
+    fe->path_len  = strlen(path) + 128;
+    fe->n_meteors = 1;
 
     fe->n_threads    = n_threads;
     fe->frame_height = frame_height;
@@ -199,8 +199,7 @@ frame_extractor_t* frame_extractor_alloc_init(const char* path_begin, const char
 
 void frame_extractor_free(frame_extractor_t* frame_extractor)
 {
-    free(frame_extractor->path_begin);
-    free(frame_extractor->path_end);
+    free(frame_extractor->path);
 
     for(size_t i=0; i<frame_extractor->n_writers; i++)
         if(frame_extractor->writers[i])
@@ -234,13 +233,25 @@ void frame_extract(frame_t* frame, frame_extractor_t* frame_extractor, const vec
                 if(fe_id < 0)
                     continue;
 
-                char path_begin[frame_extractor->path_len];
-                snprintf(path_begin, frame_extractor->path_len, frame_extractor->path_begin, track_id);
-                char path[frame_extractor->path_len];
-                snprintf(path, frame_extractor->path_len, "%s%s", path_begin, frame_extractor->path_end);
+                const size_t path_len = frame_extractor->path_len;
+                char path_formatted1[path_len];
+                char path_formatted2[path_len];
+
+                // Format meteor id placeholder
+                char mid[11];
+                snprintf(mid, 11, "%ld", frame_extractor->n_meteors++);
+                tools_str_format_placeholder(path_formatted1, path_len, frame_extractor->path, "{mid}", mid);
+
+                // Format track id placeholder
+                char tid[11];
+                snprintf(tid, 11, "%04d", track_id);
+                tools_str_format_placeholder(path_formatted2, path_len, path_formatted1, "{tid}", tid);
+
+                // Format frame id placeholder
+                tools_str_format_placeholder(path_formatted1, path_len, path_formatted2, "{fid}", "%04d");
 
                 frame_extractor->track_ids[fe_id] = track_id;
-                frame_extractor->writers[fe_id] = video_writer_alloc_init(path, 0, frame_extractor->n_threads,
+                frame_extractor->writers[fe_id] = video_writer_alloc_init(path_formatted1, 0, frame_extractor->n_threads,
                                                                           frame_extractor->frame_height,
                                                                           frame_extractor->frame_width,
                                                                           frame_extractor->frame_pixfmt,
@@ -279,11 +290,11 @@ static void _frame_extract_action_free(void* args[]) {
     frame_extractor_free((frame_extractor_t*)args[0]);
 }
 
-void frame_extract_action_register(framebuffer_data_t* framebuffer, const char* path_begin, const char* path_end,
-                                   const size_t n_writers, const size_t n_threads, const enum video_codec_e codec,
+void frame_extract_action_register(framebuffer_data_t* framebuffer, const char* path, const size_t n_writers,
+                                   const size_t n_threads, const enum video_codec_e codec,
                                    const tracking_data_t* tracking_data) {
 
-    frame_extractor_t* extractor = frame_extractor_alloc_init(path_begin, path_end, n_writers,
+    frame_extractor_t* extractor = frame_extractor_alloc_init(path, n_writers,
                                                               framebuffer->frame_height, framebuffer->frame_width,
                                                               n_threads, PIXFMT_RGB24, codec);
     if(!extractor) return;

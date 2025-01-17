@@ -55,7 +55,6 @@ int main(int argc, char** argv) {
     char* def_p_vid_out_path = NULL;
     char* def_p_vid_out_opt = NULL;
     char* def_p_vid_ext_path = NULL;
-    char* def_p_vid_ext_path_end = (char*)"";
 
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -192,11 +191,8 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --vid-out-color     Write the output in color (if the input is)                                \n");
         fprintf(stderr,
-                "  --vid-ext_path      Path to video files or to image sequences to extract each meteor       [%s]\n",
+                "  --vid-ext-path      Path to video files or to image sequences to extract each meteor       [%s]\n",
                 def_p_vid_ext_path ? def_p_vid_ext_path : "NULL");
-        fprintf(stderr,
-                "  --vid-ext-path-end  End path to video files or to image sequences to extract each meteor   [%s]\n",
-                def_p_vid_ext_path_end ? def_p_vid_ext_path_end : "NULL");
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
         fprintf(stderr,
@@ -268,9 +264,7 @@ int main(int argc, char** argv) {
     const int p_vid_out_dbg = args_find(argc, argv, "--vid-out-dbg");
     const char* p_vid_out_opt = args_find_char(argc, argv, "--vid-out-opt", def_p_vid_out_opt);
     const int p_vid_out_color = args_find(argc, argv, "--vid-out-color");
-
     const char* p_vid_ext_path     = args_find_char(argc, argv, "--vid-ext-path", def_p_vid_ext_path);
-    const char* p_vid_ext_path_end = args_find_char(argc, argv, "--vid-ext-path-end", def_p_vid_ext_path_end);
 
     // heading display
     printf("#  ---------------------\n");
@@ -333,7 +327,6 @@ int main(int argc, char** argv) {
     printf("#  * vid-out-opt      = %s\n", p_vid_out_opt);
     printf("#  * vid-out-color    = %d\n", p_vid_out_color);
     printf("#  * vid-ext-path     = %s\n", p_vid_ext_path);
-    printf("#  * vid-ext-path-end = %s\n", p_vid_ext_path_end);
     printf("#\n");
 
     // arguments checking
@@ -363,10 +356,6 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--cca-ell' has to be combined with the '--log-path' or the '--trk-ell-min' parameter\n");
     if (p_trk_ell_min && !p_cca_ell)
         fprintf(stderr, "(WW) '--trk-ell-min' has no effect without the '--cca-ell' parameter\n");
-    if (p_vid_out_path && p_vid_out_play)
-        fprintf(stderr, "(WW) '--vid-out-path' will be ignore because '--vid-out-play' is set\n");
-    if (!p_vid_out_path && p_vid_out_opt && p_vid_out_play)
-        fprintf(stderr, "(WW) '--vid-out-opt' has no effect when '--vid-out-play' is set\n");
 
     // --------------------------------------- //
     // -- VIDEO ALLOCATION & INITIALISATION -- //
@@ -450,7 +439,7 @@ int main(int argc, char** argv) {
         if (p_vid_out_path)
             frame_write_action_register(framebuffer, p_vid_out_path, 0, n_threads, 0, VCDC_FFMPEG_IO);
         if (p_vid_ext_path)
-            frame_extract_action_register(framebuffer, p_vid_ext_path, p_vid_ext_path_end, 15, n_threads, VCDC_FFMPEG_IO,
+            frame_extract_action_register(framebuffer, p_vid_ext_path, 15, n_threads, VCDC_FFMPEG_IO,
                                           tracking_data);
         if (p_vid_out_frameid)
             frame_draw_id_action_register(framebuffer);
