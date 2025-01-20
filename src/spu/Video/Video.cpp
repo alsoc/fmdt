@@ -1,4 +1,5 @@
 #include "fmdt/video/video_io.h"
+#include "fmdt/image/image_compute.h"
 #include "fmdt/tools.h"
 
 #include "fmdt/spu/Video/Video.hpp"
@@ -43,6 +44,23 @@ Video::Video(const std::string filename, const size_t frame_start, const size_t 
 
         return spu::runtime::status_t::SUCCESS;
     });
+
+    auto &convert = this->create_task("gray2rgb");
+    auto converts_fwd_img_gray8  = this->template create_2d_socket_in<uint8_t>(convert, "fwd_img_gray8", img_n_rows, img_n_cols);
+    auto converts_out_img_rgb24 = this->template create_2d_socket_out<uint8_t>(convert, "out_img_rgb24", img_n_rows, img_n_cols * 3);
+    this->create_codelet(convert, [converts_fwd_img_gray8, converts_out_img_rgb24]
+                            (spu::module::Module &m, spu::runtime::Task &t,const size_t frame_id) -> int {
+        auto &vid = static_cast<Video&>(m);
+
+        // calling get_2d_dataptr() has a small overhead (it performs the 1D to 2D conversion)
+        const uint8_t** fwd_img_gray8  = t[converts_fwd_img_gray8].get_2d_dataptr<const uint8_t>();
+        uint8_t** out_img_rgb24        = t[converts_out_img_rgb24].get_2d_dataptr<uint8_t>();
+
+        image_convert_gray8_to_rgb24(fwd_img_gray8, vid.i0, vid.i1, vid.j0, vid.j1, out_img_rgb24);
+
+        return spu::runtime::status_t::SUCCESS;
+    });
+
 }
 
 Video::~Video() {
