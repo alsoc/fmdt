@@ -17,7 +17,7 @@
 #include "fmdt/video.h"
 #include "fmdt/image.h"
 #include "fmdt/version.h"
-#include "fmdt/visu.h"
+#include "fmdt/framebuffer.h"
 
 int main(int argc, char** argv) {
     // default values
@@ -53,6 +53,7 @@ int main(int argc, char** argv) {
     int def_p_cca_roi_max2 = 400; // Maximum number of RoIs after `features_merge_CCL_HI` selection.
     char* def_p_vid_out_path = NULL;
     char* def_p_vid_out_opt = NULL;
+    char* def_p_vid_ext_path = NULL;
 
     // help
     if (args_find(argc, argv, "--help,-h")) {
@@ -172,12 +173,23 @@ int main(int argc, char** argv) {
 #ifdef FMDT_OPENCV_LINK
         fprintf(stderr,
                 "  --vid-out-id        Draw the track ids on the ouptut video                                     \n");
+        fprintf(stderr,
+                "  --vid-out-frameid   Draw the frame id on the ouptut video                                      \n");
+        fprintf(stderr,
+                "  --vid-out-legend    Draw the legend on the ouptut video                                        \n");
 #endif
+        fprintf(stderr,
+                "  --vid-out-no-bb     Do not draw the bounding boxes on the ouptut video                         \n");
         fprintf(stderr,
                 "  --vid-out-dbg       Print ffmpeg command line                                                  \n");
         fprintf(stderr,
                 "  --vid-out-opt       Add ffmpeg options to encode output video sequence                     [%s]\n",
                 def_p_vid_out_opt ? def_p_vid_out_opt : "NULL");
+        fprintf(stderr,
+                "  --vid-out-color     Write the output in color (if the input is)                                \n");
+        fprintf(stderr,
+                "  --vid-ext-path      Path to video files or to image sequences to extract each meteor       [%s]\n",
+                def_p_vid_ext_path ? def_p_vid_ext_path : "NULL");
         fprintf(stderr,
                 "  --help, -h          This help                                                                  \n");
         fprintf(stderr,
@@ -237,11 +249,18 @@ int main(int argc, char** argv) {
     const int p_vid_out_play = args_find(argc, argv, "--vid-out-play");
 #ifdef FMDT_OPENCV_LINK
     const int p_vid_out_id = args_find(argc, argv, "--vid-out-id");
+    const int p_vid_out_frameid = args_find(argc, argv, "--vid-out-frameid");
+    const int p_vid_out_legend = args_find(argc, argv, "--vid-out-legend");
 #else
     const int p_vid_out_id = 0;
+    const int p_vid_out_frameid = 0;
+    const int p_vid_out_legend = 0;
 #endif
+    const int p_vid_out_no_bb = args_find(argc, argv, "--vid-out-no-bb");
     const int p_vid_out_dbg = args_find(argc, argv, "--vid-out-dbg");
     const char* p_vid_out_opt = args_find_char(argc, argv, "--vid-out-opt", def_p_vid_out_opt);
+    const int p_vid_out_color = args_find(argc, argv, "--vid-out-color");
+    const char* p_vid_ext_path     = args_find_char(argc, argv, "--vid-ext-path", def_p_vid_ext_path);
 
     // heading display
     printf("#  ---------------------\n");
@@ -252,52 +271,57 @@ int main(int argc, char** argv) {
     printf("#\n");
     printf("# Parameters:\n");
     printf("# -----------\n");
-    printf("#  * vid-in-path    = %s\n", p_vid_in_path);
-    printf("#  * vid-in-start   = %d\n", p_vid_in_start);
-    printf("#  * vid-in-stop    = %d\n", p_vid_in_stop);
-    printf("#  * vid-in-skip    = %d\n", p_vid_in_skip);
-    printf("#  * vid-in-buff    = %d\n", p_vid_in_buff);
-    printf("#  * vid-in-loop    = %d\n", p_vid_in_loop);
-    printf("#  * vid-in-threads = %d\n", p_vid_in_threads);
-    printf("#  * vid-in-dec     = %s\n", p_vid_in_dec);
-    printf("#  * vid-in-dec-hw  = %s\n", p_vid_in_dec_hw);
-    printf("#  * vid-in-dbg     = %d\n", p_vid_in_dbg);
-    printf("#  * vid-in-opt     = %s\n", p_vid_in_opt);
-    printf("#  * ccl-impl       = %s\n", p_ccl_impl);
-    printf("#  * ccl-hyst-lo    = %d\n", p_ccl_hyst_lo);
-    printf("#  * ccl-hyst-hi    = %d\n", p_ccl_hyst_hi);
-    printf("#  * ccl-fra-path   = %s\n", p_ccl_fra_path);
+    printf("#  * vid-in-path      = %s\n", p_vid_in_path);
+    printf("#  * vid-in-start     = %d\n", p_vid_in_start);
+    printf("#  * vid-in-stop      = %d\n", p_vid_in_stop);
+    printf("#  * vid-in-skip      = %d\n", p_vid_in_skip);
+    printf("#  * vid-in-buff      = %d\n", p_vid_in_buff);
+    printf("#  * vid-in-loop      = %d\n", p_vid_in_loop);
+    printf("#  * vid-in-threads   = %d\n", p_vid_in_threads);
+    printf("#  * vid-in-dec       = %s\n", p_vid_in_dec);
+    printf("#  * vid-in-dec-hw    = %s\n", p_vid_in_dec_hw);
+    printf("#  * vid-in-dbg       = %d\n", p_vid_in_dbg);
+    printf("#  * vid-in-opt       = %s\n", p_vid_in_opt);
+    printf("#  * ccl-impl         = %s\n", p_ccl_impl);
+    printf("#  * ccl-hyst-lo      = %d\n", p_ccl_hyst_lo);
+    printf("#  * ccl-hyst-hi      = %d\n", p_ccl_hyst_hi);
+    printf("#  * ccl-fra-path     = %s\n", p_ccl_fra_path);
 #ifdef FMDT_OPENCV_LINK
-    printf("#  * ccl-fra-id     = %d\n", p_ccl_fra_id);
+    printf("#  * ccl-fra-id       = %d\n", p_ccl_fra_id);
 #endif
-    printf("#  * cca-mag        = %d\n", p_cca_mag);
-    printf("#  * cca-ell        = %d\n", p_cca_ell);
-    printf("#  * cca-roi-max1   = %d\n", p_cca_roi_max1);
-    printf("#  * cca-roi-max2   = %d\n", p_cca_roi_max2);
-    printf("#  * mrp-s-min      = %d\n", p_mrp_s_min);
-    printf("#  * mrp-s-max      = %d\n", p_mrp_s_max);
-    printf("#  * knn-k          = %d\n", p_knn_k);
-    printf("#  * knn-d          = %d\n", p_knn_d);
-    printf("#  * knn-s          = %1.3f\n", p_knn_s);
-    printf("#  * trk-ext-d      = %d\n", p_trk_ext_d);
-    printf("#  * trk-ext-o      = %d\n", p_trk_ext_o);
-    printf("#  * trk-angle      = %f\n", p_trk_angle);
-    printf("#  * trk-star-min   = %d\n", p_trk_star_min);
-    printf("#  * trk-meteor-min = %d\n", p_trk_meteor_min);
-    printf("#  * trk-meteor-max = %d\n", p_trk_meteor_max);
-    printf("#  * trk-ddev       = %4.2f\n", p_trk_ddev);
-    printf("#  * trk-ell-min    = %f\n", p_trk_ell_min);
-    printf("#  * trk-all        = %d\n", p_trk_all);
-    printf("#  * trk-roi-path   = %s\n", p_trk_roi_path);
-    printf("#  * log-path       = %s\n", p_log_path);
-    printf("#  * log-hexa       = %d\n", p_log_hexa);
-    printf("#  * vid-out-path   = %s\n", p_vid_out_path);
-    printf("#  * vid-out-play   = %d\n", p_vid_out_play);
+    printf("#  * cca-mag          = %d\n", p_cca_mag);
+    printf("#  * cca-ell          = %d\n", p_cca_ell);
+    printf("#  * cca-roi-max1     = %d\n", p_cca_roi_max1);
+    printf("#  * cca-roi-max2     = %d\n", p_cca_roi_max2);
+    printf("#  * mrp-s-min        = %d\n", p_mrp_s_min);
+    printf("#  * mrp-s-max        = %d\n", p_mrp_s_max);
+    printf("#  * knn-k            = %d\n", p_knn_k);
+    printf("#  * knn-d            = %d\n", p_knn_d);
+    printf("#  * knn-s            = %1.3f\n", p_knn_s);
+    printf("#  * trk-ext-d        = %d\n", p_trk_ext_d);
+    printf("#  * trk-ext-o        = %d\n", p_trk_ext_o);
+    printf("#  * trk-angle        = %f\n", p_trk_angle);
+    printf("#  * trk-star-min     = %d\n", p_trk_star_min);
+    printf("#  * trk-meteor-min   = %d\n", p_trk_meteor_min);
+    printf("#  * trk-meteor-max   = %d\n", p_trk_meteor_max);
+    printf("#  * trk-ddev         = %4.2f\n", p_trk_ddev);
+    printf("#  * trk-ell-min      = %f\n", p_trk_ell_min);
+    printf("#  * trk-all          = %d\n", p_trk_all);
+    printf("#  * trk-roi-path     = %s\n", p_trk_roi_path);
+    printf("#  * log-path         = %s\n", p_log_path);
+    printf("#  * log-hexa         = %d\n", p_log_hexa);
+    printf("#  * vid-out-path     = %s\n", p_vid_out_path);
+    printf("#  * vid-out-play     = %d\n", p_vid_out_play);
 #ifdef FMDT_OPENCV_LINK
-    printf("#  * vid-out-id     = %d\n", p_vid_out_id);
+    printf("#  * vid-out-id       = %d\n", p_vid_out_id);
+    printf("#  * vid-out-frameid  = %d\n", p_vid_out_frameid);
+    printf("#  * vid-out-legend   = %d\n", p_vid_out_legend);
 #endif
-    printf("#  * vid-out-dbg    = %d\n", p_vid_out_dbg);
-    printf("#  * vid-out-opt    = %s\n", p_vid_out_opt);
+    printf("#  * vid-out-no-bb    = %d\n", p_vid_out_no_bb);
+    printf("#  * vid-out-dbg      = %d\n", p_vid_out_dbg);
+    printf("#  * vid-out-opt      = %s\n", p_vid_out_opt);
+    printf("#  * vid-out-color    = %d\n", p_vid_out_color);
+    printf("#  * vid-ext-path     = %s\n", p_vid_ext_path);
     printf("#\n");
 
     // arguments checking
@@ -327,10 +351,6 @@ int main(int argc, char** argv) {
         fprintf(stderr, "(WW) '--cca-ell' has to be combined with the '--log-path' or the '--trk-ell-min' parameter\n");
     if (p_trk_ell_min && !p_cca_ell)
         fprintf(stderr, "(WW) '--trk-ell-min' has no effect without the '--cca-ell' parameter\n");
-    if (p_vid_out_path && p_vid_out_play)
-        fprintf(stderr, "(WW) '--vid-out-path' will be ignore because '--vid-out-play' is set\n");
-    if (!p_vid_out_path && p_vid_out_opt && p_vid_out_play)
-        fprintf(stderr, "(WW) '--vid-out-opt' has no effect when '--vid-out-play' is set\n");
 
     // --------------------------------------- //
     // -- VIDEO ALLOCATION & INITIALISATION -- //
@@ -345,22 +365,26 @@ int main(int argc, char** argv) {
     video->loop_size = (size_t)(p_vid_in_loop);
     video_writer_t* video_writer = NULL;
     img_data_t* img_data = NULL;
+    const int draw_validation = 0;
+    const size_t n_threads = 1;
     if (p_ccl_fra_path) {
         img_data = image_gs_alloc((i1 - i0) + 1, (j1 - j0) + 1);
-        const size_t n_threads = 1;
         video_writer = video_writer_alloc_init(p_ccl_fra_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
                                                PIXFMT_GRAY8, VCDC_FFMPEG_IO, 0, 0, NULL);
     }
-    visu_data_t *visu_data = NULL;
-    if (p_vid_out_play || p_vid_out_path) {
-        const uint8_t draw_legend = 1;
-        const uint8_t n_threads = 1;
-        visu_data = visu_alloc_init(p_vid_out_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
-                                    PIXFMT_GRAY8, PIXFMT_RGB24, VCDC_FFMPEG_IO, p_vid_out_id, draw_legend,
-                                    p_vid_out_play, p_vid_out_dbg, p_vid_out_opt,
-                                    MAX(p_trk_star_min, p_trk_meteor_min + p_trk_meteor_max), p_cca_roi_max2,
-                                    p_vid_in_skip);
+
+    framebuffer_data_t* framebuffer = NULL;
+    video_reader_t* video_color = NULL;
+    if (p_vid_out_path || p_vid_out_play || p_vid_ext_path) {
+        framebuffer = framebuffer_alloc_init(MAX(p_trk_star_min, p_trk_meteor_min + p_trk_meteor_max), (i1 - i0) + 1,
+                                             (j1 - j0) + 1, p_vid_in_skip, PIXFMT_RGB24, p_cca_roi_max2);
+        if(p_vid_out_color)
+            video_color = video_reader_alloc_init(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip,
+                                                  p_vid_in_buff, p_vid_in_threads, video_str_to_enum(p_vid_in_dec),
+                                                  video_hwaccel_str_to_enum(p_vid_in_dec_hw), PIXFMT_RGB24,
+                                                  p_vid_in_dbg, p_vid_in_opt, &i0, &i1, &j0, &j1);
     }
+
 
     // --------------------- //
     // -- DATA ALLOCATION -- //
@@ -374,6 +398,9 @@ int main(int argc, char** argv) {
     tracking_data_t* tracking_data = tracking_alloc_data(MAX(p_trk_star_min, p_trk_meteor_min), p_cca_roi_max2);
     int b = 1; // image border
     uint8_t **I = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // grayscale input image
+    uint8_t **IC = NULL; // RGB input image
+    if (framebuffer)
+        IC = (uint8_t**)rgb8matrix(i0, i1, j0, j1);
     uint8_t **IL = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold low)
     uint8_t **IH = ui8matrix(i0 - b, i1 + b, j0 - b, j1 + b); // binary image (after threshold high)
     uint32_t **L1 = ui32matrix(i0 - b, i1 + b, j0 - b, j1 + b); // labels (CCL)
@@ -400,6 +427,22 @@ int main(int argc, char** argv) {
         zero_ui32matrix(L2, i0 - b, i1 + b, j0 - b, j1 + b);
     TIME_POINT(stop_alloc_init);
     printf("# Allocations and initialisations took %6.3f sec\n", TIME_ELAPSED_SEC(start_alloc_init, stop_alloc_init));
+
+    if (framebuffer) {
+        if (p_vid_out_play)
+            frame_write_action_register(framebuffer, NULL, 0, n_threads, 1, VCDC_FFMPEG_IO);
+        if (p_vid_out_path)
+            frame_write_action_register(framebuffer, p_vid_out_path, 0, n_threads, 0, VCDC_FFMPEG_IO);
+        if (p_vid_ext_path)
+            frame_extract_action_register(framebuffer, p_vid_ext_path, 15, n_threads, VCDC_FFMPEG_IO,
+                                          tracking_data);
+        if (p_vid_out_frameid)
+            frame_draw_id_action_register(framebuffer);
+        if (p_vid_out_legend)
+            frame_draw_legend_action_register(framebuffer, &draw_validation);
+        if (!p_vid_out_no_bb)
+            frame_draw_boxes_action_register(framebuffer, tracking_data, &p_vid_out_id);
+    }
 
     // ---------------- //
     // -- PROCESSING -- //
@@ -456,7 +499,7 @@ int main(int argc, char** argv) {
 
         // step 6: tracking
         tracking_perform(tracking_data, RoIs1, cur_fra, &motion_est2, p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all,
-                         p_trk_star_min, p_trk_meteor_min, p_trk_meteor_max, p_trk_roi_path != NULL || visu_data,
+                         p_trk_star_min, p_trk_meteor_min, p_trk_meteor_max, p_trk_roi_path != NULL || framebuffer,
                          p_trk_ext_o, p_knn_s, p_trk_ell_min);
 
         // save frames (CCs)
@@ -501,8 +544,16 @@ int main(int argc, char** argv) {
         }
 
         // display the result to the screen or write it into a video file
-        if (visu_data)
-            visu_display(visu_data, (const uint8_t**)I, RoIs1->basic, RoIs1->_size, tracking_data->tracks, cur_fra);
+        if (framebuffer) {
+            framebuffer_pop(framebuffer);
+
+            if (video_color)
+                video_reader_get_frame(video_color, NULL, IC);
+            else
+                image_convert_gray8_to_rgb24(I, i0, i1, j0, j1, IC);
+
+            framebuffer_push(framebuffer, cur_fra, (const uint8_t**)IC, RoIs1->basic, RoIs1->_size);
+        }
 
         // swap RoIs0 <-> RoIs1 for the next frame
         RoIs_t* tmp = RoIs0;
@@ -543,8 +594,9 @@ int main(int argc, char** argv) {
            (int)(n_frames / (TIME_ELAPSED_SEC(start_compute, stop_compute))));
 
     // some frames have been buffered for the visualization, display or write these frames here
-    if (visu_data)
-        visu_flush(visu_data, tracking_data->tracks);
+    if (framebuffer)
+        framebuffer_flush(framebuffer);
+
 
     // ---------- //
     // -- FREE -- //
@@ -564,8 +616,14 @@ int main(int argc, char** argv) {
         image_gs_free(img_data);
         video_writer_free(video_writer);
     }
-    if (visu_data)
-        visu_free(visu_data);
+    if (framebuffer) {
+        framebuffer_free(framebuffer);
+        free_rgb8matrix((rgb8**)IC, i0, i1, j0, j1);
+        if(video_color) {
+            video_reader_free(video_color);
+        }
+    }
+
     CCL_free_data(ccl_data);
     kNN_free_data(knn_data);
     tracking_free_data(tracking_data);
