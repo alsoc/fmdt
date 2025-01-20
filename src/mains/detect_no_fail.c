@@ -552,7 +552,7 @@ int main(int argc, char** argv) {
             if (video_color)
                 video_reader_get_frame(video_color, NULL, IC);
             else
-                image_convert_gray8_to_rgb24(I, i0, i1, j0, j1, IC);
+                image_convert_gray8_to_rgb24((const uint8_t**)I, i0, i1, j0, j1, IC);
 
             framebuffer_push(framebuffer, cur_fra, (const uint8_t**)IC, RoIs1->basic, RoIs1->_size);
         }

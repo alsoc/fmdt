@@ -151,7 +151,7 @@ void image_max_reduce(uint8_t** I, int i0, int i1, int j0, int j1, uint8_t** M) 
     }
 }
 
-void image_convert_gray8_to_rgb24(uint8_t** gray8, int i0, int i1, int j0, int j1, uint8_t** rgb24) {
+void image_convert_gray8_to_rgb24(const uint8_t** gray8, int i0, int i1, int j0, int j1, uint8_t** rgb24) {
     rgb8_t** out = (rgb8_t**)rgb24;
     for (int i = i0; i <= i1; i++) {
         for (int j = j0; j <= j1; j++) {
