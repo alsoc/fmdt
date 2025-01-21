@@ -22,6 +22,7 @@ protected:
     int i0, i1, j0, j1;
     int b;
     video_reader_t* video;
+    enum pixfmt_e out_pixfmt;
     bool done;
 public:
     Video(const std::string filename, const size_t frame_start, const size_t frame_end, const size_t frame_skip,

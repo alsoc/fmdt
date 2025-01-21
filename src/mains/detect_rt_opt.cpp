@@ -555,11 +555,11 @@ int main(int argc, char** argv) {
     }
 
     // step 1 + step 2: threshold low + CCL/CCA
-    lsl["apply::in_img"] = video["generate::out_img_gray8"];
+    lsl["apply::in_img"] = video["generate::out_img"];
 
     // step 3: hysteresis threshold & surface filtering
     merger["merge::in_labels"] = lsl["apply::out_labels"];
-    merger["merge::in_img"] = video["generate::out_img_gray8"];
+    merger["merge::in_img"] = video["generate::out_img"];
     merger["merge::fwd_RoIs_basic"] = lsl["apply::out_RoIs_basic"];
     merger["merge::in_n_RoIs"] = lsl["apply::out_n_RoIs"];
 
@@ -571,7 +571,7 @@ int main(int argc, char** argv) {
 
     // step 3.5 : compute magnitude / ellipse for each RoI
     if (p_cca_mag) {
-        magnitude["compute::in_img"] = video["generate::out_img_gray8"];
+        magnitude["compute::in_img"] = video["generate::out_img"];
         magnitude["compute::in_labels"] = merger["merge::out_labels"];
         magnitude["compute::in_RoIs_basic"] = merger["merge::out_RoIs_basic"];
         magnitude["compute::in_n_RoIs"] = merger["merge::out_n_RoIs"];
@@ -692,7 +692,7 @@ int main(int argc, char** argv) {
 
     if (visu) {
         (*visu)["display::in_frame"] = video["generate::out_frame"];
-        (*visu)["display::in_img"] = video["generate::out_img_gray8"];
+        (*visu)["display::in_img"] = video["generate::out_img"];
         (*visu)["display::in_RoIs_basic"] = merger["merge::out_RoIs_basic"];
         (*visu)["display::in_n_RoIs"] = merger["merge::out_n_RoIs"];
         (*visu)("display") = tracking(perform_tsk);

@@ -548,13 +548,13 @@ int main(int argc, char** argv) {
 
     if (p_out_probes) {
         video("generate") = prb_ts_s1b("probe"); // probe_noin
-        prb_ts_s1e("probe") = video["generate::out_img_gray8"];
-        (*ts_s2b)("exec") = video["generate::out_img_gray8"];
+        prb_ts_s1e("probe") = video["generate::out_img"];
+        (*ts_s2b)("exec") = video["generate::out_img"];
         prb_ts_s2b["probe::in"] = (*ts_s2b)["exec::out"];
     }
 
     // step 1: threshold low
-    threshold_min["apply::in_img"] = video["generate::out_img_gray8"];
+    threshold_min["apply::in_img"] = video["generate::out_img"];
 
     // step 2: CCL/CCA
     ccl["apply::in_img"] = threshold_min["apply::out_img"];
@@ -562,7 +562,7 @@ int main(int argc, char** argv) {
     extractor["extract::in_n_RoIs"] = ccl["apply::out_n_RoIs"];
 
     // step 3: hysteresis threshold & surface filtering
-    threshold_max["apply::in_img"] = video["generate::out_img_gray8"];
+    threshold_max["apply::in_img"] = video["generate::out_img"];
     merger["merge::in_labels"] = ccl["apply::out_labels"];
     merger["merge::in_img_HI"] = threshold_max["apply::out_img"];
     merger["merge::fwd_RoIs_basic"] = extractor["extract::out_RoIs_basic"];
@@ -570,7 +570,7 @@ int main(int argc, char** argv) {
 
     // step 3.5 : compute magnitude / ellipse for each RoI
     if (p_cca_mag) {
-        magnitude["compute::in_img"] = video["generate::out_img_gray8"];
+        magnitude["compute::in_img"] = video["generate::out_img"];
         magnitude["compute::in_labels"] = merger["merge::out_labels"];
         magnitude["compute::in_RoIs_basic"] = merger["merge::out_RoIs_basic"];
         magnitude["compute::in_n_RoIs"] = merger["merge::out_n_RoIs"];
@@ -691,7 +691,7 @@ int main(int argc, char** argv) {
 
     if (visu) {
         (*visu)["display::in_frame"] = video["generate::out_frame"];
-        (*visu)["display::in_img"] = video["generate::out_img_gray8"];
+        (*visu)["display::in_img"] = video["generate::out_img"];
         (*visu)["display::in_RoIs_basic"] = merger["merge::out_RoIs_basic"];
         (*visu)["display::in_n_RoIs"] = merger["merge::out_n_RoIs"];
         (*visu)("display") = tracking(perform_tsk);
