@@ -11,7 +11,7 @@
 #include "fmdt/video/video_struct.h"
 
 namespace vid2 {
-    enum class tsk : size_t { generate, SIZE };
+    enum class tsk : size_t { generate, gray2rgb, SIZE };
     namespace sck {
         enum class generate : size_t { out_img0, out_img1, out_frame, status };
     }
@@ -22,15 +22,15 @@ protected:
     int i0, i1, j0, j1;
     int b;
     video_reader_t* video;
+    enum pixfmt_e out_pixfmt;
     uint8_t* img_buf;
     int size_image;
     bool done;
 public:
     Video2(const std::string filename, const size_t frame_start, const size_t frame_end, const size_t frame_skip,
-           const int bufferize, const size_t n_ffmpeg_threads, const int b,
-           const enum video_codec_e codec_type = VCDC_FFMPEG_IO,
-           const enum video_codec_hwaccel_e hwaccel = VCDC_HWACCEL_NONE, const bool ffmpeg_debug = false,
-           const char* ffmpeg_out_extra_opts = nullptr);
+               const int bufferize, const size_t n_ffmpeg_threads, const int b, const enum video_codec_e codec_type,
+               const enum video_codec_hwaccel_e hwaccel, const enum pixfmt_e pixfmt, const bool ffmpeg_debug,
+               const char* ffmpeg_in_extra_opts = nullptr);
     virtual ~Video2();
     virtual bool is_done() const;
     inline int get_i0();

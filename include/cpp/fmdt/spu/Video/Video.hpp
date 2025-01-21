@@ -11,7 +11,7 @@
 #include "fmdt/video/video_struct.h"
 
 namespace vid {
-    enum class tsk : size_t { generate, SIZE };
+    enum class tsk : size_t { generate, gray2rgb, SIZE };
     namespace sck {
         enum class generate : size_t { out_img, out_frame, status };
     }
