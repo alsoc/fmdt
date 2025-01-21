@@ -14,7 +14,9 @@
  * @param size Number of frames to buffer.
  * @param frame_height Frames height.
  * @param frame_width Frames width.
- * @param frame_pixfmt Frames pixels format
+ * @param frame_skip Number of skipped frames.
+ * @param frame_pixfmt Frames pixels format.
+ * @param max_RoIs_size Maximum number of RoIs per frame.
  * @return The allocated data.
  */
 framebuffer_data_t* framebuffer_alloc_init(const size_t size, const size_t frame_height, const size_t frame_width,
