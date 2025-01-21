@@ -7,87 +7,97 @@ The meteors detection chain is located here: ``./bin/fmdt-detect``.
 
 The following table summarizes the available parameters:
 
-+----------------------+---------+----------------------------------------------------+
-| Argument             | Type    | Details                                            |
-+======================+=========+====================================================+
-| ``--vid-in-path``    | STRING  | See :numref:`detect_vid-in-path`.                  |
-+----------------------+---------+----------------------------------------------------+
-| ``--vid-in-start``   | INTEGER | See :numref:`detect_vid-in-start`.                 |
-+----------------------+---------+----------------------------------------------------+
-| ``--vid-in-stop``    | INTEGER | See :numref:`detect_vid-in-stop`.                  |
-+----------------------+---------+----------------------------------------------------+
-| ``--vid-in-skip``    | INTEGER | See :numref:`detect_vid-in-skip`.                  |
-+----------------------+---------+----------------------------------------------------+
-| ``--vid-in-buff``    | BOOLEAN | See :numref:`detect_vid-in-buff`.                  |
-+----------------------+---------+----------------------------------------------------+
-| ``--vid-in-loop``    | INTEGER | See :numref:`detect_vid-in-loop`.                  |
-+----------------------+---------+----------------------------------------------------+
-| ``--vid-in-threads`` | INTEGER | See :numref:`detect_vid-in-threads`.               |
-+----------------------+---------+----------------------------------------------------+
-| ``--vid-in-dec``     | STRING  | See :numref:`detect_vid-in-dec`.                   |
-+----------------------+---------+----------------------------------------------------+
-| ``--ccl-impl``       | STRING  | See :numref:`detect_ccl-impl`.                     |
-+----------------------+---------+----------------------------------------------------+
-| ``--ccl-hyst-lo``    | INTEGER | See :numref:`detect_ccl-hyst-lo`.                  |
-+----------------------+---------+----------------------------------------------------+
-| ``--ccl-hyst-hi``    | INTEGER | See :numref:`detect_ccl-hyst-hi`.                  |
-+----------------------+---------+----------------------------------------------------+
-| ``--ccl-fra-path``   | STRING  | See :numref:`detect_ccl-fra-path`.                 |
-+----------------------+---------+----------------------------------------------------+
-| ``--ccl-fra-id``     | BOOLEAN | See :numref:`detect_ccl-fra-id`.                   |
-+----------------------+---------+----------------------------------------------------+
-| ``--cca-mag``        | BOOLEAN | See :numref:`detect_cca-mag`.                      |
-+----------------------+---------+----------------------------------------------------+
-| ``--cca-ell``        | BOOLEAN | See :numref:`detect_cca-ell`.                      |
-+----------------------+---------+----------------------------------------------------+
-| ``--cca-roi-max1``   | INTEGER | See :numref:`detect_cca-roi-max1`.                 |
-+----------------------+---------+----------------------------------------------------+
-| ``--cca-roi-max2``   | INTEGER | See :numref:`detect_cca-roi-max2`.                 |
-+----------------------+---------+----------------------------------------------------+
-| ``--mrp-s-min``      | INTEGER | See :numref:`detect_mrp-s-min`.                    |
-+----------------------+---------+----------------------------------------------------+
-| ``--mrp-s-max``      | INTEGER | See :numref:`detect_mrp-s-max`.                    |
-+----------------------+---------+----------------------------------------------------+
-| ``--knn-k``          | INTEGER | See :numref:`detect_knn-k`.                        |
-+----------------------+---------+----------------------------------------------------+
-| ``--knn-d``          | INTEGER | See :numref:`detect_knn-d`.                        |
-+----------------------+---------+----------------------------------------------------+
-| ``--knn-s``          | FLOAT   | See :numref:`detect_knn-s`.                        |
-+----------------------+---------+----------------------------------------------------+
-| ``--mtn-no-reg``     | BOOLEAN | See :numref:`detect_mtn-no-reg`.                   |
-+----------------------+---------+----------------------------------------------------+
-| ``--gnd-detect``     | BOOLEAN | Alias of :ref:`detect_mtn-no-reg`.                 |
-+----------------------+---------+----------------------------------------------------+
-| ``--trk-ext-d``      | INTEGER | See :numref:`detect_trk-ext-d`.                    |
-+----------------------+---------+----------------------------------------------------+
-| ``--trk-ext-o``      | INTEGER | See :numref:`detect_trk-ext-o`.                    |
-+----------------------+---------+----------------------------------------------------+
-| ``--trk-angle``      | FLOAT   | See :numref:`detect_trk-angle`.                    |
-+----------------------+---------+----------------------------------------------------+
-| ``--trk-star-min``   | INTEGER | See :numref:`detect_trk-star-min`.                 |
-+----------------------+---------+----------------------------------------------------+
-| ``--trk-meteor-min`` | INTEGER | See :numref:`detect_trk-meteor-min`.               |
-+----------------------+---------+----------------------------------------------------+
-| ``--trk-meteor-max`` | INTEGER | See :numref:`detect_trk-meteor-max`.               |
-+----------------------+---------+----------------------------------------------------+
-| ``--trk-ddev``       | FLOAT   | See :numref:`detect_trk-ddev`.                     |
-+----------------------+---------+----------------------------------------------------+
-| ``--trk-ell-min``    | FLOAT   | See :numref:`detect_trk-ell-min`.                  |
-+----------------------+---------+----------------------------------------------------+
-| ``--trk-all``        | BOOLEAN | See :numref:`detect_trk-all`.                      |
-+----------------------+---------+----------------------------------------------------+
-| ``--trk-roi-path``   | STRING  | See :numref:`detect_trk-roi-path`.                 |
-+----------------------+---------+----------------------------------------------------+
-| ``--log-path``       | STRING  | See :numref:`detect_log-path`.                     |
-+----------------------+---------+----------------------------------------------------+
-| ``--log-hexa``       | BOOLEAN | See :numref:`detect_log-hexa`.                     |
-+----------------------+---------+----------------------------------------------------+
-| ``--vid-out-path``   | STRING  | See :numref:`detect_vid-out-path`.                 |
-+----------------------+---------+----------------------------------------------------+
-| ``--vid-out-play``   | BOOLEAN | See :numref:`detect_vid-out-play`.                 |
-+----------------------+---------+----------------------------------------------------+
-| ``--vid-out-id``     | BOOLEAN | See :numref:`detect_vid-out-id`.                   |
-+----------------------+---------+----------------------------------------------------+
++-----------------------+---------+----------------------------------------------------+
+| Argument              | Type    | Details                                            |
++=======================+=========+====================================================+
+| ``--vid-in-path``     | STRING  | See :numref:`detect_vid-in-path`.                  |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-in-start``    | INTEGER | See :numref:`detect_vid-in-start`.                 |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-in-stop``     | INTEGER | See :numref:`detect_vid-in-stop`.                  |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-in-skip``     | INTEGER | See :numref:`detect_vid-in-skip`.                  |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-in-buff``     | BOOLEAN | See :numref:`detect_vid-in-buff`.                  |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-in-loop``     | INTEGER | See :numref:`detect_vid-in-loop`.                  |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-in-threads``  | INTEGER | See :numref:`detect_vid-in-threads`.               |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-in-dec``      | STRING  | See :numref:`detect_vid-in-dec`.                   |
++-----------------------+---------+----------------------------------------------------+
+| ``--ccl-impl``        | STRING  | See :numref:`detect_ccl-impl`.                     |
++-----------------------+---------+----------------------------------------------------+
+| ``--ccl-hyst-lo``     | INTEGER | See :numref:`detect_ccl-hyst-lo`.                  |
++-----------------------+---------+----------------------------------------------------+
+| ``--ccl-hyst-hi``     | INTEGER | See :numref:`detect_ccl-hyst-hi`.                  |
++-----------------------+---------+----------------------------------------------------+
+| ``--ccl-fra-path``    | STRING  | See :numref:`detect_ccl-fra-path`.                 |
++-----------------------+---------+----------------------------------------------------+
+| ``--ccl-fra-id``      | BOOLEAN | See :numref:`detect_ccl-fra-id`.                   |
++-----------------------+---------+----------------------------------------------------+
+| ``--cca-mag``         | BOOLEAN | See :numref:`detect_cca-mag`.                      |
++-----------------------+---------+----------------------------------------------------+
+| ``--cca-ell``         | BOOLEAN | See :numref:`detect_cca-ell`.                      |
++-----------------------+---------+----------------------------------------------------+
+| ``--cca-roi-max1``    | INTEGER | See :numref:`detect_cca-roi-max1`.                 |
++-----------------------+---------+----------------------------------------------------+
+| ``--cca-roi-max2``    | INTEGER | See :numref:`detect_cca-roi-max2`.                 |
++-----------------------+---------+----------------------------------------------------+
+| ``--mrp-s-min``       | INTEGER | See :numref:`detect_mrp-s-min`.                    |
++-----------------------+---------+----------------------------------------------------+
+| ``--mrp-s-max``       | INTEGER | See :numref:`detect_mrp-s-max`.                    |
++-----------------------+---------+----------------------------------------------------+
+| ``--knn-k``           | INTEGER | See :numref:`detect_knn-k`.                        |
++-----------------------+---------+----------------------------------------------------+
+| ``--knn-d``           | INTEGER | See :numref:`detect_knn-d`.                        |
++-----------------------+---------+----------------------------------------------------+
+| ``--knn-s``           | FLOAT   | See :numref:`detect_knn-s`.                        |
++-----------------------+---------+----------------------------------------------------+
+| ``--mtn-no-reg``      | BOOLEAN | See :numref:`detect_mtn-no-reg`.                   |
++-----------------------+---------+----------------------------------------------------+
+| ``--gnd-detect``      | BOOLEAN | Alias of :ref:`detect_mtn-no-reg`.                 |
++-----------------------+---------+----------------------------------------------------+
+| ``--trk-ext-d``       | INTEGER | See :numref:`detect_trk-ext-d`.                    |
++-----------------------+---------+----------------------------------------------------+
+| ``--trk-ext-o``       | INTEGER | See :numref:`detect_trk-ext-o`.                    |
++-----------------------+---------+----------------------------------------------------+
+| ``--trk-angle``       | FLOAT   | See :numref:`detect_trk-angle`.                    |
++-----------------------+---------+----------------------------------------------------+
+| ``--trk-star-min``    | INTEGER | See :numref:`detect_trk-star-min`.                 |
++-----------------------+---------+----------------------------------------------------+
+| ``--trk-meteor-min``  | INTEGER | See :numref:`detect_trk-meteor-min`.               |
++-----------------------+---------+----------------------------------------------------+
+| ``--trk-meteor-max``  | INTEGER | See :numref:`detect_trk-meteor-max`.               |
++-----------------------+---------+----------------------------------------------------+
+| ``--trk-ddev``        | FLOAT   | See :numref:`detect_trk-ddev`.                     |
++-----------------------+---------+----------------------------------------------------+
+| ``--trk-ell-min``     | FLOAT   | See :numref:`detect_trk-ell-min`.                  |
++-----------------------+---------+----------------------------------------------------+
+| ``--trk-all``         | BOOLEAN | See :numref:`detect_trk-all`.                      |
++-----------------------+---------+----------------------------------------------------+
+| ``--trk-roi-path``    | STRING  | See :numref:`detect_trk-roi-path`.                 |
++-----------------------+---------+----------------------------------------------------+
+| ``--log-path``        | STRING  | See :numref:`detect_log-path`.                     |
++-----------------------+---------+----------------------------------------------------+
+| ``--log-hexa``        | BOOLEAN | See :numref:`detect_log-hexa`.                     |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-out-path``    | STRING  | See :numref:`detect_vid-out-path`.                 |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-out-play``    | BOOLEAN | See :numref:`detect_vid-out-play`.                 |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-out-id``      | BOOLEAN | See :numref:`detect_vid-out-id`.                   |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-out-frameid`` | BOOLEAN | See :numref:`detect_vid-out-frameid`.              |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-out-legend``  | BOOLEAN | See :numref:`detect_vid-out-legend`.               |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-out-no-bb``   | BOOLEAN | See :numref:`detect_vid-out-no-bb`.                |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-out-color``   | BOOLEAN | See :numref:`detect_vid-out-color`.                |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-ext-path``    | STRING  | See :numref:`detect_vid-ext-path`.                 |
++-----------------------+---------+----------------------------------------------------+
 
 .. _detect_stdout:
 
@@ -766,8 +776,8 @@ when running the regression tests.
    :Default: [empty]
    :Example: ``--vid-out-path ~/Videos/out_video.mp4``
 
-Output video path with the bounding boxes around the detected tracks (supports
-also a path to a sequence of images ``path/basename_%05d.jpg``).
+Writes the output video with the bounding boxes around the detected tracks in a
+file (also supports a path to a sequence of images ``path/basename_%05d.jpg``).
 
 .. _detect_vid-out-play:
 
@@ -777,7 +787,7 @@ also a path to a sequence of images ``path/basename_%05d.jpg``).
    :Type: BOOLEAN
    :Example: ``--vid-out-play``
 
-Open an SDL window to show the output video of the detected tracks (shows the
+Opens an SDL window to show the output video of the detected tracks (shows the
 bounding boxes around the detected tracks)
 
 .. _detect_vid-out-id:
@@ -788,7 +798,74 @@ bounding boxes around the detected tracks)
    :Type: BOOLEAN
    :Example: ``--vid-out-id``
 
-Work only if :ref:`detect_vid-out-path` or :ref:`detect_vid-out-play` is set.
-Display the track ids corresponding to the bounding boxes. Requires to link with
-OpenCV library (``-DFMDT_OPENCV_LINK`` CMake option,
-see :numref:`user_installation_cmake`).
+Draws the track ids corresponding to the bounding boxes on the output video.
+Only works if :ref:`detect_vid-out-path`, :ref:`detect_vid-out-play` or
+:ref:`detect_vid-ext-path` is set and requires to link with OpenCV library
+(``-DFMDT_OPENCV_LINK`` CMake option, see :numref:`user_installation_cmake`).
+
+.. _detect_vid-out-frameid:
+
+``--vid-out-frameid``
+---------------------
+
+   :Type: BOOLEAN
+   :Example: ``--vid-out-frameid``
+
+Draws the frame numbers in the bottom left corner of the output video.
+Only works if :ref:`detect_vid-out-path`, :ref:`detect_vid-out-play` or
+:ref:`detect_vid-ext-path` is set and requires to link with OpenCV library
+(``-DFMDT_OPENCV_LINK`` CMake option, see :numref:`user_installation_cmake`).
+
+.. _detect_vid-out-legend:
+
+``--vid-out-legend``
+--------------------
+
+   :Type: BOOLEAN
+   :Example: ``--vid-out-legend``
+
+Draws the legend for the different types of tracked objects in the top left
+corner of the output video. Only works if :ref:`detect_vid-out-path`,
+:ref:`detect_vid-out-play` or :ref:`detect_vid-ext-path` is set and requires
+to link with OpenCV library (``-DFMDT_OPENCV_LINK`` CMake option, see
+:numref:`user_installation_cmake`).
+
+.. _detect_vid-out-no-bb:
+
+``--vid-out-no-bb``
+-------------------
+
+   :Type: BOOLEAN
+   :Example: ``--vid-out-no-bb``
+
+Disables the drawing of the bounding boxes on the ouput video.
+Only works if :ref:`detect_vid-out-path`, :ref:`detect_vid-out-play` or
+:ref:`detect_vid-ext-path` is set.
+
+.. _detect_vid-out-color:
+
+``--vid-out-color``
+-------------------
+
+   :Type: BOOLEAN
+   :Example: ``--vid-out-color``
+
+Disables the drawing of the bounding boxes on the ouput video.
+Only works if the input video is in color and if :ref:`detect_vid-out-path`
+, :ref:`detect_vid-out-play` or :ref:`detect_vid-ext-path` is set.
+
+.. _detect_vid-ext-path:
+
+``--vid-ext-path``
+-------------------
+
+   :Type: STRING
+   :Example: ``--vid-ext-path meteor_{mid}.mp4``
+
+Extracts each meteor detected and writes its corresponding output video (or a
+sequence of images depending on the file extension in the given path).
+The following placeholders can be used once to format the path of each meteor:
+
+- ``{mid}``: The meteor id,
+- ``{tid}``: The track id,
+- ``{fid}``: The frame id (mandatory for output a sequence of images).
