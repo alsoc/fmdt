@@ -155,6 +155,8 @@ int main(int argc, char** argv) {
                 "  --knn-s             Minimum surface ratio to match two CCs in k-NN                         [%f]\n",
                 def_p_knn_s);
         fprintf(stderr,
+                "  --mtn-no-reg        Disable image registration (for ground detection)                         \n");
+        fprintf(stderr,
                 "  --trk-ext-d         Search radius in pixels for CC extrapolation (piece-wise tracking)     [%d]\n",
                 def_p_trk_ext_d);
         fprintf(stderr,
@@ -284,6 +286,7 @@ int main(int argc, char** argv) {
     const int p_knn_k = args_find_int_min(argc, argv, "--knn-k,-k", def_p_knn_k, 0);
     const int p_knn_d = args_find_int_min(argc, argv, "--knn-d,--max-dist", def_p_knn_d, 0);
     const float p_knn_s = args_find_float_min_max(argc, argv, "--knn-s,--min-ratio-s", def_p_knn_s, 0.f, 1.f);
+    const int p_mtn_no_reg = args_find(argc, argv, "--mtn-no-reg,--gnd-detect");
     const int p_trk_ext_d = args_find_int_min(argc, argv, "--trk-ext-d,--r-extrapol", def_p_trk_ext_d, 0);
     const int p_trk_ext_o = args_find_int_min_max(argc, argv, "--trk-ext-o,--extrapol-order", def_p_trk_ext_o, 0, 255);
     const float p_trk_angle = args_find_float_min_max(argc, argv, "--trk-angle,--angle-max", def_p_trk_angle, 0.f, 360.f);
@@ -358,6 +361,7 @@ int main(int argc, char** argv) {
     printf("#  * knn-k            = %d\n", p_knn_k);
     printf("#  * knn-d            = %d\n", p_knn_d);
     printf("#  * knn-s            = %1.3f\n", p_knn_s);
+    printf("#  * mtn-no-reg       = %d\n", p_mtn_no_reg);
     printf("#  * trk-ext-d        = %d\n", p_trk_ext_d);
     printf("#  * trk-ext-o        = %d\n", p_trk_ext_o);
     printf("#  * trk-angle        = %f\n", p_trk_angle);
@@ -494,7 +498,7 @@ int main(int argc, char** argv) {
     ellipse1.set_custom_name("Ellipse1");
 
     kNN_matcher matcher(p_knn_k, p_knn_d, p_knn_s, p_cca_roi_max2);
-    Motion motion(p_cca_roi_max2);
+    Motion motion(p_cca_roi_max2, p_mtn_no_reg);
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
                       p_trk_meteor_max, p_trk_roi_path || p_vid_out_play || p_vid_out_path || p_vid_ext_path, p_trk_ext_o, p_knn_s,

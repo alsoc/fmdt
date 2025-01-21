@@ -2,8 +2,8 @@
 
 #include "fmdt/spu/Motion/Motion.hpp"
 
-Motion::Motion(const size_t max_RoIs_size)
-: spu::module::Stateful(), max_RoIs_size(max_RoIs_size) {
+Motion::Motion(const size_t max_RoIs_size, const bool disable_registration)
+: spu::module::Stateful(), max_RoIs_size(max_RoIs_size), disable_registration(disable_registration) {
     const std::string name = "Motion";
     this->set_name(name);
     this->set_short_name(name);
@@ -35,8 +35,13 @@ Motion::Motion(const size_t max_RoIs_size)
               motion_t*     out_motion_est1  =  t[ps_out_motion_est1 ].get_dataptr<      motion_t    >();
               motion_t*     out_motion_est2  =  t[ps_out_motion_est2 ].get_dataptr<      motion_t    >();
 
-        motion_compute(in_RoIs0_basic, in_RoIs1_basic, in_RoIs1_asso, out_RoIs1_motion, in_n_RoIs1, out_motion_est1,
-                       out_motion_est2);
+        auto& motion = static_cast<Motion&>(m);
+        if (motion.disable_registration)
+            motion_compute_without_registration(in_RoIs0_basic, in_RoIs1_basic, in_RoIs1_asso, out_RoIs1_motion,
+                                                in_n_RoIs1, out_motion_est1, out_motion_est2);
+        else
+            motion_compute(in_RoIs0_basic, in_RoIs1_basic, in_RoIs1_asso, out_RoIs1_motion, in_n_RoIs1,
+                           out_motion_est1, out_motion_est2);
 
         return spu::runtime::status_t::SUCCESS;
     });

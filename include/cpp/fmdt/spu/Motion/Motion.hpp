@@ -19,8 +19,9 @@ namespace mtn {
 class Motion : public spu::module::Stateful {
 protected:
     const size_t max_RoIs_size;
+    const bool disable_registration;
 public:
-    Motion(const size_t max_RoIs_size);
+    Motion(const size_t max_RoIs_size, const bool disable_registration = false);
     virtual ~Motion();
     virtual Motion* clone() const;
     inline spu::runtime::Task& operator[](const mtn::tsk t);
