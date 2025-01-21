@@ -480,7 +480,7 @@ int main(int argc, char** argv) {
     Motion motion(p_cca_roi_max2);
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
-                      p_trk_meteor_max, p_trk_roi_path || p_vid_out_play || p_vid_out_path, p_trk_ext_o, p_knn_s,
+                      p_trk_meteor_max, p_trk_roi_path || p_vid_out_play || p_vid_out_path || p_vid_ext_path, p_trk_ext_o, p_knn_s,
                       p_trk_ell_min, p_cca_roi_max2);
     spu::module::Delayer<uint8_t> delayer_RoIs_basic(p_cca_roi_max2 * sizeof(RoI_basic_t), 0);
     spu::module::Delayer<uint8_t> delayer_RoIs_magn(p_cca_roi_max2 * sizeof(RoI_magn_t), 0);
