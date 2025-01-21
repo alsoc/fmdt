@@ -157,7 +157,6 @@ set(src_common_files
     ${src_dir}/common/validation/validation_io.c
     ${src_dir}/common/video/video_io.c
     ${src_dir}/common/video/video_struct.c
-    ${src_dir}/common/visu/visu_io.c
     ${lib_dir}/c-vector/vec.c)
 list(APPEND fmdt_src_list ${src_common_files})
 
@@ -226,7 +225,7 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/spu/Logger/Logger_tracks.cpp
 		    ${src_dir}/spu/Threshold/Threshold.cpp
 		    ${src_dir}/spu/Tracking/Tracking.cpp
-		    ${src_dir}/spu/Visu/Visu.cpp
+		    ${src_dir}/spu/Framebuffer/Framebuffer.cpp
 		    ${src_dir}/common/args.cpp
 		    ${src_dir}/common/tools.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt_common_files})

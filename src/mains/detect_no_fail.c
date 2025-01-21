@@ -19,7 +19,6 @@
 #include "fmdt/version.h"
 #include "fmdt/video/video_struct.h"
 #include "fmdt/framebuffer.h"
-#include "fmdt/visu.h"
 
 int main(int argc, char** argv) {
     // default values

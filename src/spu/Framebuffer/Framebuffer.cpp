@@ -2,7 +2,6 @@
 #include "fmdt/framebuffer/frame_compute.h"
 
 #include "fmdt/tools.h"
-#include "fmdt/visu/visu_io.h"
 
 #include "fmdt/spu/Framebuffer/Framebuffer.hpp"
 #include "fmdt/spu/Tracking/Tracking.hpp"
