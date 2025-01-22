@@ -39,6 +39,7 @@ Framebuffer::Framebuffer(const size_t size, const size_t frame_height, const siz
                              const RoI_basic_t* in_RoIs_basic = t[ps_in_RoIs_basic].get_dataptr<const RoI_basic_t>();
                              const uint32_t in_n_RoIs = *t[ps_in_n_RoIs].get_dataptr<const uint32_t>();
 
+                             framebuffer_pop(fb.framebuffer);
                              framebuffer_push(fb.framebuffer, in_frame_id, in_img_rgb24, in_RoIs_basic, in_n_RoIs);
 
                              return spu::runtime::status_t::SUCCESS;

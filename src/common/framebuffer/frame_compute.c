@@ -249,7 +249,8 @@ void frame_extract(frame_t* frame, frame_extractor_t* frame_extractor, const vec
                 tools_str_format_placeholder(path_formatted1, path_len, path_formatted2, "{fid}", "%04d");
 
                 frame_extractor->track_ids[fe_id] = track_id;
-                frame_extractor->writers[fe_id] = video_writer_alloc_init(path_formatted1, 0, frame_extractor->n_threads,
+                frame_extractor->writers[fe_id] = video_writer_alloc_init(path_formatted1, frame->id,
+                                                                          frame_extractor->n_threads,
                                                                           frame_extractor->frame_height,
                                                                           frame_extractor->frame_width,
                                                                           frame_extractor->frame_pixfmt,
