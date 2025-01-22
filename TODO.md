@@ -1,17 +1,19 @@
 TODO list:
-- [ ] Add the `--gnd-detect` option to all of the `fmdt-detect*` exe binaries
+- [ ] Add a clang-format style to the project
+- [ ] Add a stateless StreamPU task to compute the task gray2rgb in parallel
+- [x] Add the `--gnd-detect` option to all of the `fmdt-detect*` exe binaries
 - [ ] Add a new criterion in k-NN: the distance between the bounding boxes (in 
       addition to the distance between the centers of inertia)
 - [ ] Split tracking in two separated process: one for the tracking, the other
       for the classification
-- [ ] Use the `--trk-ddev` criterion in k-NN
+- [ ] Use the --trk-ddev criterion in the motion registration to determine moving & non-moving objects
 - [ ] Write an interactive Python script to ease the human detection task 
       (= ground truth)
 - [ ] In `fmdt-log-parser`, find the RoIs without the "tracks to RoIs" file.
-- [ ] Implement *socket forward* in AFF3CT-core will significantly speedup the
+- [x] Implement *socket forward* in AFF3CT-core will significantly speedup the
       CCL. More precisely, *socket forward* is required to wrap the 
       `features_labels_zero_init` function in the runtime)
-- [ ] Implement `--trk-ell-min` in `fmdt-detect-rt*` (the classification with 
+- [x] Implement `--trk-ell-min` in `fmdt-detect-rt*` (the classification with
       ellipse ratio)
 - [ ] Add CI tests with `fmdt-check` 
 - [ ] Rewrite `fmdt-check` in Python
@@ -21,9 +23,9 @@ TODO list:
       from straight down)
 - [ ] Add zones to ignore for CCL (for instance, this can allow to do not take 
       care of saturated zones)
-- [ ] For each detection: extract meteor video sequence + - a few seconds: this 
-      way if we need to re-process it we don't have to run it through the whole 
-      video again
+- [x] For each detection: extract meteor video sequence
+- [ ] Add few frames before and after a meteor extraction : this way if we need
+      to re-process it we don't have to run it through the whole video again
 - [x] Compute extrapolated bounding boxes of tracks in `fmdt-log-parser` when 
       generating the bounding boxes (with the `--trk-bb-path` option)
 - [x] Put a saturation flag for each detected object: meteor and star -> this 
