@@ -226,6 +226,7 @@ if(FMDT_DETECT_EXE)
 		    ${src_dir}/spu/Threshold/Threshold.cpp
 		    ${src_dir}/spu/Tracking/Tracking.cpp
 		    ${src_dir}/spu/Framebuffer/Framebuffer.cpp
+		    ${src_dir}/spu/Image_compute/Image_compute.cpp
 		    ${src_dir}/common/args.cpp
 		    ${src_dir}/common/tools.cpp)
 		list(APPEND fmdt_src_list ${src_detectrt_common_files})

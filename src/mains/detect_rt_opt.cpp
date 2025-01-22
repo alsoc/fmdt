@@ -32,6 +32,7 @@
 #include "fmdt/spu/Logger/Logger_tracks.hpp"
 #include "fmdt/spu/Logger/Logger_frame.hpp"
 #include "fmdt/spu/Framebuffer/Framebuffer.hpp"
+#include "fmdt/spu/Image_compute/Image_compute.hpp"
 
 int main(int argc, char** argv) {
     // default values
@@ -149,6 +150,8 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --knn-s             Minimum surface ratio to match two CCs in k-NN                         [%f]\n",
                 def_p_knn_s);
+        fprintf(stderr,
+                "  --mtn-no-reg        Disable image registration (for ground detection)                         \n");
         fprintf(stderr,
                 "  --trk-ext-d         Search radius in pixels for CC extrapolation (piece-wise tracking)     [%d]\n",
                 def_p_trk_ext_d);
@@ -505,6 +508,7 @@ int main(int argc, char** argv) {
                                          p_cca_roi_max2));
 
     std::unique_ptr<Video> video_rgb;
+    std::unique_ptr<Image_compute> image_compute;
     std::unique_ptr<Framebuffer> framebuffer;
     if (p_vid_out_play || p_vid_out_path || p_vid_ext_path) {
         const size_t size      = MAX(p_trk_star_min, p_trk_meteor_min + p_trk_meteor_max);
@@ -531,6 +535,8 @@ int main(int argc, char** argv) {
             video_rgb.reset(new Video(p_vid_in_path, p_vid_in_start, p_vid_in_stop, p_vid_in_skip, p_vid_in_buff, p_vid_in_threads, b,
                                   video_str_to_enum(p_vid_in_dec), video_hwaccel_str_to_enum(p_vid_in_dec_hw), PIXFMT_RGB24,
                                   p_vid_in_dbg, p_vid_in_opt));
+        else
+            image_compute.reset(new Image_compute(i0, i1, j0, j1, b));
     }
 
     // create reporters and probes for the real-time probes file
@@ -740,9 +746,9 @@ int main(int argc, char** argv) {
             (*video_rgb)("generate")                  = video("generate");
             (*framebuffer)["bufferize::in_img_rgb24"] = (*video_rgb)["generate::out_img"];
         } else {
-            video["gray2rgb::fwd_img_gray8"]          = video["generate::out_img"];
-            video("gray2rgb")                         = video("generate");
-            (*framebuffer)["bufferize::in_img_rgb24"] = video["gray2rgb::out_img_rgb24"];
+            (*image_compute)["gray2rgb::fwd_img_gray8"] = video["generate::out_img"];
+            (*image_compute)("gray2rgb")                = video("generate");
+            (*framebuffer)["bufferize::in_img_rgb24"]   = (*image_compute)["gray2rgb::fwd_img_rgb24"];
         }
 
         (*framebuffer)["bufferize::in_frame_id"]   = video["generate::out_frame"];
@@ -898,7 +904,7 @@ int main(int argc, char** argv) {
         if (video_rgb)
             std::get<0>(sep_stages[0]).push_back(&(*video_rgb)("generate"));
         else
-            std::get<0>(sep_stages[0]).push_back(&video("gray2rgb"));
+            std::get<0>(sep_stages[1]).push_back(&(*image_compute)("gray2rgb"));
     }
 
     std::get<0>(sep_stages[1]).push_back(&(labels0)("zinit"));
