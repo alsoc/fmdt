@@ -24,23 +24,23 @@ Framebuffer::Framebuffer(const size_t size, const size_t frame_height, const siz
 
     auto& p = this->create_task("bufferize");
     auto ps_in_frame_id = this->template create_socket_in<uint32_t>(p, "in_frame_id", 1);
-    auto ps_in_img_rgb24 = this->template create_2d_socket_in<uint8_t>(p, "in_img_rgb24", height, width * pixsize);
+    auto ps_fwd_img_rgb24 = this->template create_2d_socket_fwd<uint8_t>(p, "fwd_img_rgb24", height, width * pixsize);
     auto ps_in_RoIs_basic =
         this->template create_socket_in<uint8_t>(p, "in_RoIs_basic", max_RoIs_size * sizeof(RoI_basic_t));
     auto ps_in_n_RoIs = this->template create_socket_in<uint32_t>(p, "in_n_RoIs", 1);
 
     this->create_codelet(p,
-                         [ps_in_frame_id, ps_in_img_rgb24, ps_in_RoIs_basic,
+                         [ps_in_frame_id, ps_fwd_img_rgb24, ps_in_RoIs_basic,
                           ps_in_n_RoIs](spu::module::Module& m, spu::runtime::Task& t, const size_t frame_id) -> int {
                              auto& fb = static_cast<Framebuffer&>(m);
                              const uint32_t in_frame_id = *t[ps_in_frame_id].get_dataptr<const uint32_t>();
-                             const uint8_t** in_img_rgb24 =
-                                 t[ps_in_img_rgb24].get_2d_dataptr<const uint8_t>(fb.border, fb.border);
+                             const uint8_t** fwd_img_rgb24 =
+                                 t[ps_fwd_img_rgb24].get_2d_dataptr<const uint8_t>(fb.border, fb.border);
                              const RoI_basic_t* in_RoIs_basic = t[ps_in_RoIs_basic].get_dataptr<const RoI_basic_t>();
                              const uint32_t in_n_RoIs = *t[ps_in_n_RoIs].get_dataptr<const uint32_t>();
 
                              framebuffer_pop(fb.framebuffer);
-                             framebuffer_push(fb.framebuffer, in_frame_id, in_img_rgb24, in_RoIs_basic, in_n_RoIs);
+                             framebuffer_push(fb.framebuffer, in_frame_id, fwd_img_rgb24, in_RoIs_basic, in_n_RoIs);
 
                              return spu::runtime::status_t::SUCCESS;
                          });

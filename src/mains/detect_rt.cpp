@@ -741,18 +741,18 @@ int main(int argc, char** argv) {
 
     if (framebuffer) {
         if (video_rgb) {
-            (*video_rgb)("generate")                  = video("generate");
-            (*framebuffer)["bufferize::in_img_rgb24"] = (*video_rgb)["generate::out_img"];
+            (*video_rgb)("generate")                   = video("generate");
+            (*framebuffer)["bufferize::fwd_img_rgb24"] = (*video_rgb)["generate::out_img"];
         } else {
             (*image_compute)["gray2rgb::fwd_img_gray8"] = video["generate::out_img"];
             (*image_compute)("gray2rgb")                = video("generate");
-            (*framebuffer)["bufferize::in_img_rgb24"]   = (*image_compute)["gray2rgb::fwd_img_rgb24"];
+            (*framebuffer)["bufferize::fwd_img_rgb24"]  = (*image_compute)["gray2rgb::fwd_img_rgb24"];
         }
 
         (*framebuffer)["bufferize::in_frame_id"]   = video["generate::out_frame"];
         (*framebuffer)["bufferize::in_RoIs_basic"] = merger["merge::out_RoIs_basic"];
         (*framebuffer)["bufferize::in_n_RoIs"]     = merger["merge::out_n_RoIs"];
-        (*framebuffer)("bufferize")                 = tracking(perform_tsk);
+        (*framebuffer)("bufferize")                = tracking(perform_tsk);
     }
 
     // --------------------------------- //
