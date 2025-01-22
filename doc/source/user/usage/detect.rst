@@ -848,9 +848,10 @@ Only works if :ref:`detect_vid-out-path`, :ref:`detect_vid-out-play` or
    :Type: BOOLEAN
    :Example: ``--vid-out-color``
 
-Disables the drawing of the bounding boxes on the ouput video.
-Only works if the input video is in color and if :ref:`detect_vid-out-path`
-, :ref:`detect_vid-out-play` or :ref:`detect_vid-ext-path` is set.
+Outputs a colored video (or colored image sequence), matching colors of the
+input video. Only works if the input video is in color and if
+:ref:`detect_vid-out-path`, :ref:`detect_vid-out-play` or
+:ref:`detect_vid-ext-path` is set.
 
 .. _detect_vid-ext-path:
 
