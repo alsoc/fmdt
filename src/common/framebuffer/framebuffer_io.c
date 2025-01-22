@@ -7,7 +7,6 @@
 #include "fmdt/features/features_compute.h"
 #include "vec.h"
 
-
 framebuffer_data_t* framebuffer_alloc_init(const size_t size, const size_t frame_height, const size_t frame_width,
                                            const size_t frame_skip, const enum pixfmt_e frame_pixfmt,
                                            const size_t max_RoIs_size) {

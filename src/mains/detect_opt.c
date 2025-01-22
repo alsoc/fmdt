@@ -386,7 +386,6 @@ int main(int argc, char** argv) {
                                                   p_vid_in_dbg, p_vid_in_opt, &i0, &i1, &j0, &j1);
     }
 
-
     // --------------------- //
     // -- DATA ALLOCATION -- //
     // --------------------- //
@@ -586,7 +585,6 @@ int main(int argc, char** argv) {
     // some frames have been buffered for the visualization, display or write these frames here
     if (framebuffer)
         framebuffer_flush(framebuffer);
-
 
     // ---------- //
     // -- FREE -- //

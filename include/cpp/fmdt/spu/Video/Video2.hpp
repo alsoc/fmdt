@@ -28,9 +28,9 @@ protected:
     bool done;
 public:
     Video2(const std::string filename, const size_t frame_start, const size_t frame_end, const size_t frame_skip,
-               const int bufferize, const size_t n_ffmpeg_threads, const int b, const enum video_codec_e codec_type,
-               const enum video_codec_hwaccel_e hwaccel, const enum pixfmt_e pixfmt, const bool ffmpeg_debug,
-               const char* ffmpeg_in_extra_opts = nullptr);
+           const int bufferize, const size_t n_ffmpeg_threads, const int b, const enum video_codec_e codec_type,
+           const enum video_codec_hwaccel_e hwaccel, const enum pixfmt_e pixfmt, const bool ffmpeg_debug,
+           const char* ffmpeg_in_extra_opts = nullptr);
     virtual ~Video2();
     virtual bool is_done() const;
     inline int get_i0();

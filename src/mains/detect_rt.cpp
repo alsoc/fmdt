@@ -902,8 +902,6 @@ int main(int argc, char** argv) {
             std::get<0>(sep_stages[0]).push_back(&video("gray2rgb"));
     }
 
-
-
     spu::runtime::Pipeline sequence_or_pipeline({ first_task }, // first task of the sequence
                                                  sep_stages,
                                                  tools_convert_int_cvector_int_stdvector(p_pip_threads),
@@ -1033,7 +1031,6 @@ int main(int argc, char** argv) {
     // some frames have been buffered for the visualization, display or write these frames here
     if (framebuffer)
         framebuffer->flush();
-
 
 #ifdef FMDT_ENABLE_PIPELINE
     // ----------

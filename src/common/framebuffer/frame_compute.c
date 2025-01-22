@@ -84,7 +84,6 @@ void frame_draw_legend_action_register(framebuffer_data_t* framebuffer, const in
     framebuffer_action_register(framebuffer, action);
 }
 
-
 void frame_draw_boxes(frame_t* frame, const framebuffer_data_t* fb, const vec_track_t tracks, const int draw_id) {
     const int border = 2;
     const int delta_bb = 5;
@@ -218,7 +217,6 @@ static inline int _find_frame_extractor(frame_extractor_t* frame_extractor, size
     return -1;
 }
 
-
 void frame_extract(frame_t* frame, frame_extractor_t* frame_extractor, const vec_track_t tracks) {
     const size_t n_tracks = vector_size(tracks);
     for (size_t i = 0; i < n_tracks; i++) {
@@ -268,7 +266,6 @@ void frame_extract(frame_t* frame, frame_extractor_t* frame_extractor, const vec
                 // write the frame
                 video_writer_save_frame(frame_extractor->writers[fe_id], (const uint8_t**)image_color_get_pixels_2d(frame->img));
 
-
                 // Last frame of the track : free the writter
                 if (frame->id == tracks[i].end.frame) {
                     video_writer_free(frame_extractor->writers[fe_id]);
@@ -280,7 +277,6 @@ void frame_extract(frame_t* frame, frame_extractor_t* frame_extractor, const vec
 
     }
 }
-
 
 static void _frame_extract_action(frame_t* frame, void* args[]) {
     frame_extract(frame,(frame_extractor_t*)args[0], ((const tracking_data_t*)args[1])->tracks);

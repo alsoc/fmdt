@@ -1033,7 +1033,6 @@ int main(int argc, char** argv) {
     if (framebuffer)
         framebuffer->flush();
 
-
 #ifdef FMDT_ENABLE_PIPELINE
     // ----------
     // -- FREE --
