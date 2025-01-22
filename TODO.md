@@ -1,6 +1,6 @@
 TODO list:
 - [ ] Add a clang-format style to the project
-- [ ] Add a stateless StreamPU task to compute the task gray2rgb in parallel
+- [x] Add a clonable StreamPU task to compute the task gray2rgb in parallel
 - [x] Add the `--gnd-detect` option to all of the `fmdt-detect*` exe binaries
 - [ ] Add a new criterion in k-NN: the distance between the bounding boxes (in 
       addition to the distance between the centers of inertia)
