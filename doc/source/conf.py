@@ -36,7 +36,7 @@ read_the_docs_build = os.environ.get('READTHEDOCS', None) == 'True'
 # -- Project information -----------------------------------------------------
 
 project = 'FMDT'
-copyright = '2024, FMDT team'
+copyright = '2025, FMDT team'
 author = 'FMDT team'
 
 if os.environ.get('SKIP_VERSION', 'NO') == 'YES':
