@@ -509,8 +509,23 @@ class LogParser:
             f = 0
             for rid in tracks2RoIs[tid]:
                 if "RoIs" not in frames[fbeg + f]:
-                    print("(EE) \"RoIs\" not in frames[fbeg + f], fbeg = " + str(fbeg) + ", f = " + str(f))
-                    sys.exit(-1)
+                    frames[fbeg + f]["RoIs"] = []
+                    # # For debug
+                    # print("(EE) \"RoIs\" not in frames[fbeg + f], fbeg = " + str(fbeg) + ", f = " + str(f) + ", rid = " + str(rid))
+                    # import json
+                    # print("# Dumping 'dump_tracks.json'...", end=' ', flush=True)
+                    # with open("dump_tracks.json", 'w') as fp:
+                    #     json.dump(tracks, fp)
+                    # print("Done.")
+                    # print("# Dumping 'dump_frames.json'...", end=' ', flush=True)
+                    # with open("dump_frames.json", 'w') as fp:
+                    #     json.dump(frames, fp)
+                    # print("Done.")
+                    # print("# Dumping 'dump_tracks2RoIs.json'...", end=' ', flush=True)
+                    # with open("dump_tracks2RoIs.json", 'w') as fp:
+                    #     json.dump(tracks2RoIs, fp)
+                    # print("Done, bye.")
+                    # sys.exit(-1)
                 if rid != 0:
                     RoIs.append(frames[fbeg + f]["RoIs"][rid])
                 else:

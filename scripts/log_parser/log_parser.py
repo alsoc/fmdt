@@ -28,7 +28,7 @@ parser.add_argument('-f', '--log-flt',
                     action='store',
                     dest='logFilter',
                     type=str,
-                    default="^[0-9]{5}\.txt",
+                    default="^[0-9]{5}\\.txt",
                     help='regular expression filter for log filenames')
 parser.add_argument('-o', '--fra-path',
                     action='store',
