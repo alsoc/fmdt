@@ -215,7 +215,8 @@ void _update_extrapol_vars(const History_t* history, track_t* cur_track) {
 void _update_existing_tracks(History_t* history, vec_track_t track_array, const size_t frame, const size_t r_extrapol,
                              const float angle_max, const int track_all, const size_t fra_meteor_max,
                              const uint8_t extrapol_order_max, const float min_extrapol_ratio_S,
-                             const float min_ellipse_ratio, const uint8_t simple_tracking) {
+                             const float min_ellipse_ratio, const uint8_t simple_tracking, const uint8_t enable_angle,
+                             const uint8_t enable_direction) {
     size_t n_tracks = vector_size(track_array);
     for (size_t i = 0; i < n_tracks; i++) {
         track_t* cur_track = &track_array[i];
@@ -260,9 +261,15 @@ void _update_existing_tracks(History_t* history, vec_track_t track_array, const 
                     if (!simple_tracking && (cur_track->obj_type == OBJ_METEOR)) {
                         float norm_u, norm_v, angle_degree;
                         _compute_angle_and_norms(history, cur_track, &angle_degree, &norm_u, &norm_v);
-                        if (angle_degree >= angle_max || norm_u > norm_v) {
-                            cur_track->change_state_reason = (angle_degree >= angle_max) ?
-                                REASON_TOO_BIG_ANGLE : REASON_WRONG_DIRECTION;
+                        if (enable_angle && angle_degree >= angle_max) {
+                            cur_track->change_state_reason = REASON_TOO_BIG_ANGLE;
+                            cur_track->obj_type = OBJ_NOISE;
+                            if (!track_all) {
+                                cur_track->id = 0; // clear_index_track_array
+                                continue;
+                            }
+                        } else if (enable_direction && norm_u > norm_v) {
+                            cur_track->change_state_reason = REASON_WRONG_DIRECTION;
                             cur_track->obj_type = OBJ_NOISE;
                             if (!track_all) {
                                 cur_track->id = 0; // clear_index_track_array
@@ -342,7 +349,7 @@ void _insert_new_track(const RoI_t* RoIs_list, const unsigned n_RoIs, vec_track_
 void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track_array, const size_t frame,
                         const float diff_dev, const float angle_max, const int track_all, const size_t fra_star_min,
                         const size_t fra_meteor_min, const float min_ellipse_ratio, const uint8_t save_RoIs_id,
-                        const uint8_t simple_tracking) {
+                        const uint8_t simple_tracking, const uint8_t enable_angle, const uint8_t enable_direction) {
     for (size_t i = 0; i < history->n_RoIs[1]; i++) {
         int asso = history->RoIs[1][i].next_id;
         if (asso) {
@@ -350,13 +357,20 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
             int is_new_meteor = 0;
             enum obj_e type = OBJ_STAR;
             // if motion detected
-            if (simple_tracking ||
-                (fabs(e - history->motion[0].mean_error) > diff_dev * history->motion[0].std_deviation)) {
+            if (simple_tracking) {
                 if (history->RoIs[1][i].is_extrapolated)
                     continue; // Extrapolated
                 is_new_meteor = 1;
                 type = OBJ_METEOR;
-            } // else it is a new star
+            } else {
+                float tmp = history->motion[0].std_deviation != 0.f ? diff_dev * history->motion[0].std_deviation : diff_dev;
+                if (fabs(e - history->motion[0].mean_error) > tmp) {
+                    if (history->RoIs[1][i].is_extrapolated)
+                        continue; // Extrapolated
+                    is_new_meteor = 1;
+                    type = OBJ_METEOR;
+                } // else it is a new star
+            }
 
             int fra_min;
             int time;
@@ -415,9 +429,13 @@ void _create_new_tracks(History_t* history, RoI_t* RoIs_list, vec_track_t* track
                                 float norm_u, norm_v, angle_degree;
                                 __compute_angle_and_norms(history->motion, motion_id, x0_0, y0_0, x1_1, y1_1, x2_2,
                                                           y2_2, &angle_degree, &norm_u, &norm_v);
-                                if (angle_degree >= angle_max || norm_u > norm_v) {
-                                    reason = (angle_degree >= angle_max) ? REASON_TOO_BIG_ANGLE :
-                                                                           REASON_WRONG_DIRECTION;
+                                if (enable_angle && angle_degree >= angle_max) {
+                                    reason = REASON_TOO_BIG_ANGLE;
+                                    type = OBJ_NOISE;
+                                    break;
+                                }
+                                if (enable_direction && norm_u > norm_v) {
+                                    reason = REASON_WRONG_DIRECTION;
                                     type = OBJ_NOISE;
                                     break;
                                 }
@@ -465,7 +483,7 @@ void tracking_perform(tracking_data_t* tracking_data, const RoIs_t* RoIs, size_t
                       const size_t r_extrapol, const float angle_max, const float diff_dev, const int track_all,
                       const size_t fra_star_min, const size_t fra_meteor_min, const size_t fra_meteor_max,
                       const uint8_t save_RoIs_id, const uint8_t extrapol_order_max, const float min_extrapol_ratio_S,
-                      const float min_ellipse_ratio) {
+                      const float min_ellipse_ratio, const uint8_t enable_angle, const uint8_t enable_direction) {
     assert(extrapol_order_max < tracking_data->history->_max_size);
     assert(min_extrapol_ratio_S >= 0.f && min_extrapol_ratio_S <= 1.f);
 
@@ -493,10 +511,10 @@ void tracking_perform(tracking_data_t* tracking_data, const RoIs_t* RoIs, size_t
     if (tracking_data->history->_size >= 2) {
         _create_new_tracks(tracking_data->history, tracking_data->RoIs_list, &tracking_data->tracks, frame, diff_dev,
                            angle_max, track_all, fra_star_min, fra_meteor_min, min_ellipse_ratio, save_RoIs_id,
-                           simple_tracking);
+                           simple_tracking, enable_angle, enable_direction);
         _update_existing_tracks(tracking_data->history, tracking_data->tracks, frame, r_extrapol, angle_max, track_all,
                                 fra_meteor_max, extrapol_order_max, min_extrapol_ratio_S, min_ellipse_ratio,
-                                simple_tracking);
+                                simple_tracking, enable_angle, enable_direction);
     }
 
     rotate_history(tracking_data->history);

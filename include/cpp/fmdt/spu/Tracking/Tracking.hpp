@@ -34,12 +34,15 @@ protected:
     const float min_extrapol_ratio_S;
     const float min_ellipse_ratio;
     const size_t max_RoIs_size;
+    const uint8_t enable_angle;
+    const uint8_t enable_direction;
     tracking_data_t* tracking_data;
 public:
     Tracking(const size_t r_extrapol, const float angle_max, const float diff_dev, const int track_all,
              const size_t fra_star_min, const size_t fra_meteor_min, const size_t fra_meteor_max,
              const bool save_RoIs_id, const uint8_t extrapol_order_max, const float min_extrapol_ratio_S,
-             const float min_ellipse_ratio, const size_t max_RoIs_size);
+             const float min_ellipse_ratio, const size_t max_RoIs_size, const bool enable_angle,
+             const bool enable_direction);
     virtual ~Tracking();
     inline tracking_data_t* get_data();
     inline spu::runtime::Task& operator[](const trk::tsk t);

@@ -161,6 +161,10 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --trk-all           Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
+                "  --trk-no-angle      Disable angle criterion for meteor classification                          \n");
+        fprintf(stderr,
+                "  --trk-no-dir        Disable direction criterion for meteor classification                      \n");
+        fprintf(stderr,
                 "  --trk-roi-path      Path to the file containing the RoI ids for each track                 [%s]\n",
                 def_p_trk_roi_path ? def_p_trk_roi_path : "NULL");
         fprintf(stderr,
@@ -246,6 +250,8 @@ int main(int argc, char** argv) {
     const float p_trk_ddev = args_find_float_min(argc, argv, "--trk-ddev,--diff-dev", def_p_trk_ddev, 0.f);
     const float p_trk_ell_min = args_find_float_min(argc, argv, "--trk-ell-min", def_p_trk_ell_min, 0.f);
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
+    const int p_trk_no_angle = args_find(argc, argv, "--trk-no-angle");
+    const int p_trk_no_dir = args_find(argc, argv, "--trk-no-dir");
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
     const int p_log_hexa = args_find(argc, argv, "--log-hexa");
@@ -312,6 +318,8 @@ int main(int argc, char** argv) {
     printf("#  * trk-ddev         = %4.2f\n", p_trk_ddev);
     printf("#  * trk-ell-min      = %f\n", p_trk_ell_min);
     printf("#  * trk-all          = %d\n", p_trk_all);
+    printf("#  * trk-no-angle     = %d\n", p_trk_no_angle);
+    printf("#  * trk-no-dir       = %d\n", p_trk_no_dir);
     printf("#  * trk-roi-path     = %s\n", p_trk_roi_path);
     printf("#  * log-path         = %s\n", p_log_path);
     printf("#  * log-hexa         = %d\n", p_log_hexa);
@@ -502,7 +510,7 @@ int main(int argc, char** argv) {
         // step 6: tracking
         tracking_perform(tracking_data, RoIs1, cur_fra, &motion_est2, p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all,
                          p_trk_star_min, p_trk_meteor_min, p_trk_meteor_max, p_trk_roi_path != NULL || framebuffer,
-                         p_trk_ext_o, p_knn_s, p_trk_ell_min);
+                         p_trk_ext_o, p_knn_s, p_trk_ell_min, !p_trk_no_angle, !p_trk_no_dir);
 
         // save frames (CCs)
         if (img_data && RoIs_tmp->_size <= RoIs_tmp->_max_size && RoIs1->_size <= RoIs1->_max_size) {

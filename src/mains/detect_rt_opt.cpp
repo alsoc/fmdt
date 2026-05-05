@@ -181,6 +181,10 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --trk-all           Tracks all object types (star, meteor or noise)                            \n");
         fprintf(stderr,
+                "  --trk-no-angle      Disable angle criterion for meteor classification                          \n");
+        fprintf(stderr,
+                "  --trk-no-dir        Disable direction criterion for meteor classification                      \n");
+        fprintf(stderr,
                 "  --trk-roi-path      Path to the file containing the RoI ids for each track                 [%s]\n",
                 def_p_trk_roi_path ? def_p_trk_roi_path : "NULL");
         fprintf(stderr,
@@ -295,6 +299,8 @@ int main(int argc, char** argv) {
     const float p_trk_ddev = args_find_float_min(argc, argv, "--trk-ddev,--diff-dev", def_p_trk_ddev, 0.f);
     const float p_trk_ell_min = args_find_float_min(argc, argv, "--trk-ell-min", def_p_trk_ell_min, 0.f);
     const int p_trk_all = args_find(argc, argv, "--trk-all,--track-all");
+    const int p_trk_no_angle = args_find(argc, argv, "--trk-no-angle");
+    const int p_trk_no_dir = args_find(argc, argv, "--trk-no-dir");
     const char* p_trk_roi_path = args_find_char(argc, argv, "--trk-roi-path", def_p_trk_roi_path);
     const char* p_trk_bb_path = args_find_char(argc, argv, "--trk-bb-path,--out-bb", def_p_trk_bb_path);
     const char* p_log_path = args_find_char(argc, argv, "--log-path,--out-stats", def_p_log_path);
@@ -371,6 +377,8 @@ int main(int argc, char** argv) {
     printf("#  * trk-ddev         = %4.2f\n", p_trk_ddev);
     printf("#  * trk-ell-min      = %f\n", p_trk_ell_min);
     printf("#  * trk-all          = %d\n", p_trk_all);
+    printf("#  * trk-no-angle     = %d\n", p_trk_no_angle);
+    printf("#  * trk-no-dir       = %d\n", p_trk_no_dir);
     printf("#  * trk-roi-path     = %s\n", p_trk_roi_path);
     printf("#  * trk-bb-path      = %s\n", p_trk_bb_path);
     printf("#  * log-path         = %s\n", p_log_path);
@@ -486,7 +494,7 @@ int main(int argc, char** argv) {
     motion.set_custom_name("Motion");
     Tracking tracking(p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all, p_trk_star_min, p_trk_meteor_min,
                       p_trk_meteor_max, p_trk_roi_path || p_vid_out_play || p_vid_out_path || p_vid_ext_path, p_trk_ext_o, p_knn_s,
-                      p_trk_ell_min, p_cca_roi_max2);
+                      p_trk_ell_min, p_cca_roi_max2, !p_trk_no_angle, !p_trk_no_dir);
     spu::module::Delayer<uint8_t> delayer_RoIs_basic(p_cca_roi_max2 * sizeof(RoI_basic_t), 0);
     spu::module::Delayer<uint8_t> delayer_RoIs_magn(p_cca_roi_max2 * sizeof(RoI_magn_t), 0);
     spu::module::Delayer<uint8_t> delayer_RoIs_elli(p_cca_roi_max2 * sizeof(RoI_elli_t), 0);

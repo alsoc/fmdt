@@ -6,11 +6,13 @@
 Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float diff_dev, const int track_all,
                    const size_t fra_star_min, const size_t fra_meteor_min, const size_t fra_meteor_max,
                    const bool save_RoIs_id, const uint8_t extrapol_order_max, const float min_extrapol_ratio_S,
-                   const float min_ellipse_ratio, const size_t max_RoIs_size)
+                   const float min_ellipse_ratio, const size_t max_RoIs_size, const bool enable_angle,
+                   const bool enable_direction)
 : spu::module::Stateful(), r_extrapol(r_extrapol), angle_max(angle_max), diff_dev(diff_dev), track_all(track_all),
   save_RoIs_id(save_RoIs_id), fra_star_min(fra_star_min), fra_meteor_min(fra_meteor_min),
   fra_meteor_max(fra_meteor_max), extrapol_order_max(extrapol_order_max), min_extrapol_ratio_S(min_extrapol_ratio_S),
-  min_ellipse_ratio(min_ellipse_ratio), max_RoIs_size(max_RoIs_size), tracking_data(nullptr) {
+  min_ellipse_ratio(min_ellipse_ratio), max_RoIs_size(max_RoIs_size), enable_angle(enable_angle),
+  enable_direction(enable_direction), tracking_data(nullptr) {
     const std::string name = "Tracking";
     this->set_name(name);
     this->set_short_name(name);
@@ -52,7 +54,7 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
         tracking_perform(trk.tracking_data, &the_RoIs, in_frame, in_motion_est,
                          trk.r_extrapol, trk.angle_max, trk.diff_dev, trk.track_all, trk.fra_star_min,
                          trk.fra_meteor_min, trk.fra_meteor_max, trk.save_RoIs_id, trk.extrapol_order_max,
-                         trk.min_extrapol_ratio_S, trk.min_ellipse_ratio);
+                         trk.min_extrapol_ratio_S, trk.min_ellipse_ratio, trk.enable_angle, trk.enable_direction);
 
         return spu::runtime::status_t::SUCCESS;
     });
@@ -96,7 +98,7 @@ Tracking::Tracking(const size_t r_extrapol, const float angle_max, const float d
         tracking_perform(trk.tracking_data, &the_RoIs, in_frame, in_motion_est,
                          trk.r_extrapol, trk.angle_max, trk.diff_dev, trk.track_all, trk.fra_star_min,
                          trk.fra_meteor_min, trk.fra_meteor_max, trk.save_RoIs_id, trk.extrapol_order_max,
-                         trk.min_extrapol_ratio_S, trk.min_ellipse_ratio);
+                         trk.min_extrapol_ratio_S, trk.min_ellipse_ratio, trk.enable_angle, trk.enable_direction);
 
         return spu::runtime::status_t::SUCCESS;
     });

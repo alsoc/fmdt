@@ -56,9 +56,12 @@ void tracking_free_data(tracking_data_t* tracking_data);
  *                             \f$r_S < r_S^{min}\f$ then the association for the extrapolation is not made.
  * @param min_ellipse_ratio Minimum ellipse ratio of a meteor (for classification). If `0` then this parameter is
  *                          ignored. `RoIs->misc->a` and `RoIs->misc->b` can't be NULL.
+ * @param enable_angle Enable to use the angle criterion to classify meteor objects as noise if the angle is too big.
+ * @param enable_direction Enable to use the direction criterion to classify meteor objects as noise if the direction
+ *                         changes.
  */
 void tracking_perform(tracking_data_t* tracking_data, const RoIs_t* RoIs, size_t frame, const motion_t* motion_est,
                       const size_t r_extrapol, const float angle_max, const float diff_dev, const int track_all,
                       const size_t fra_star_min, const size_t fra_meteor_min, const size_t fra_meteor_max,
                       const uint8_t save_RoIs_id, const uint8_t extrapol_order_max, const float min_extrapol_ratio_S,
-                      const float min_ellipse_ratio);
+                      const float min_ellipse_ratio, const uint8_t enable_angle, const uint8_t enable_direction);

@@ -76,6 +76,10 @@ The following table summarizes the available parameters:
 +-----------------------+---------+----------------------------------------------------+
 | ``--trk-all``         | BOOLEAN | See :numref:`detect_trk-all`.                      |
 +-----------------------+---------+----------------------------------------------------+
+| ``--trk-no-angle``    | BOOLEAN | See :numref:`detect_trk-no-angle`.                 |
++-----------------------+---------+----------------------------------------------------+
+| ``--trk-no-dir``      | BOOLEAN | See :numref:`detect_trk-no-dir`.                   |
++-----------------------+---------+----------------------------------------------------+
 | ``--trk-roi-path``    | STRING  | See :numref:`detect_trk-roi-path`.                 |
 +-----------------------+---------+----------------------------------------------------+
 | ``--log-path``        | STRING  | See :numref:`detect_log-path`.                     |
@@ -463,6 +467,9 @@ Maximum number of frames to extrapolate for lost objects (linear extrapolation).
 Tracking max angle between two meteors at :math:`t-1` and :math:`t` (in degree).
 This is a classification criterion.
 
+.. note:: This criterion can be disabled with the :ref:`detect_trk-no-angle`
+  parameter.
+
 .. _detect_trk-star-min:
 
 ``--trk-star-min``
@@ -516,6 +523,11 @@ Multiplication factor of the standard deviation (|CC| error has to be higher
 than :math:`ddev \times stddev` to be considered in movement). This is a
 classification criterion.
 
+.. note:: When using :ref:`detect_mtn-no-reg` (or ``--gnd-detect``),
+  :math:`stddev = 0` because image registration is disabled. In this particular
+  case, ``--diff-dev`` value is used raw, without multiplying it to
+  :math:`stddev`.
+
 .. _detect_trk-ell-min:
 
 ``--trk-ell-min``
@@ -543,6 +555,35 @@ By default the program only tracks ``meteor`` object type. If ``--trk-all`` is
 set, all object types are tracked (``meteor``, ``star`` or ``noise``).
 
 This parameter is used in the :func:`tracking_perform` function.
+
+.. _detect_trk-no-angle:
+
+``--trk-no-angle``
+------------------
+
+   :Type: BOOLEAN
+   :Example: ``--trk-no-angle``
+
+By default the tracking takes into account an angle between two consecutive
+positions of an object. This angle is used for meteor classification (see the
+:ref:`detect_trk-angle` parameter). This option completely disables the use of
+this angle for classification in the tracking. This is relevant in some case
+when the mass center estimation is wrong and the the angle classification leads
+to false negatives.
+
+.. _detect_trk-no-dir:
+
+``--trk-no-dir``
+----------------
+
+   :Type: BOOLEAN
+   :Example: ``--trk-no-dir``
+
+By default, the tracking system uses sudden changes in the object's direction to
+avoid classifying it as a meteor. This option completely disables this
+criterion. This is relevant in some cases because of over-segmentation and wrong
+estimation of the mass center.
+
 
 .. _detect_trk-roi-path:
 
