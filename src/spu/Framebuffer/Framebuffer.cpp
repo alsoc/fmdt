@@ -46,13 +46,18 @@ Framebuffer::Framebuffer(const size_t size, const size_t frame_height, const siz
                          });
 }
 
-void Framebuffer::register_display(const size_t n_ffmpeg_threads, const enum video_codec_e codec_type) {
-    frame_write_action_register(this->framebuffer, NULL, 0, n_ffmpeg_threads, 1, codec_type);
+void Framebuffer::register_display(const size_t n_ffmpeg_threads, const enum video_codec_e codec_type,
+                                   const bool ffmpeg_debug, const char* ffmpeg_out_codec,
+                                   const char* ffmpeg_out_extra_opts) {
+    frame_write_action_register(this->framebuffer, NULL, 0, n_ffmpeg_threads, codec_type, 1, ffmpeg_debug,
+                                ffmpeg_out_codec, ffmpeg_out_extra_opts);
 }
 
 void Framebuffer::register_write(const char* path, const size_t start, const size_t n_ffmpeg_threads,
-                                 const enum video_codec_e codec_type) {
-    frame_write_action_register(this->framebuffer, path, start, n_ffmpeg_threads, 0, codec_type);
+                                 const enum video_codec_e codec_type, const bool ffmpeg_debug,
+                                 const char* ffmpeg_out_codec, const char* ffmpeg_out_extra_opts) {
+    frame_write_action_register(this->framebuffer, path, start, n_ffmpeg_threads, codec_type, 0, ffmpeg_debug,
+                                ffmpeg_out_codec, ffmpeg_out_extra_opts);
 }
 
 void Framebuffer::register_extractor(const char* path, const size_t n_writers, const size_t n_threads,

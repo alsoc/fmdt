@@ -98,6 +98,12 @@ The following table summarizes the available parameters:
 +-----------------------+---------+----------------------------------------------------+
 | ``--vid-out-no-bb``   | BOOLEAN | See :numref:`detect_vid-out-no-bb`.                |
 +-----------------------+---------+----------------------------------------------------+
+| ``--vid-out-dbg``     | BOOLEAN | See :numref:`detect_vid-out-dbg`.                  |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-out-codec``   | STRING  | See :numref:`detect_vid-out-codec`.                |
++-----------------------+---------+----------------------------------------------------+
+| ``--vid-out-opt``     | STRING  | See :numref:`detect_vid-out-opt`.                  |
++-----------------------+---------+----------------------------------------------------+
 | ``--vid-out-color``   | BOOLEAN | See :numref:`detect_vid-out-color`.                |
 +-----------------------+---------+----------------------------------------------------+
 | ``--vid-ext-path``    | STRING  | See :numref:`detect_vid-ext-path`.                 |
@@ -880,6 +886,50 @@ to link with OpenCV library (``-DFMDT_OPENCV_LINK`` CMake option, see
 Disables the drawing of the bounding boxes on the ouput video.
 Only works if :ref:`detect_vid-out-path`, :ref:`detect_vid-out-play` or
 :ref:`detect_vid-ext-path` is set.
+
+.. _detect_vid-out-dbg:
+
+``--vid-out-dbg``
+-----------------
+
+   :Type: BOOLEAN
+   :Example: ``--vid-out-dbg``
+
+Print, for debugging purpose, the FFMPEG command used to encode the output
+video. Should print something like this:
+
+.. code-block:: bash
+
+    cmd: exec ffmpeg -loglevel 8 -y -f rawvideo -vcodec rawvideo -pix_fmt rgb24 -s 1280x720 -threads 1 -i - -an -vcodec ffv1 -start_number 0 'recording_251214_000042-0432_out.avi'
+
+.. note:: Works only if :ref:`detect_vid-out-path` or :ref:`detect_vid-out-play`
+    is set.
+
+.. _detect_vid-out-codec:
+
+``--vid-out-codec``
+-------------------
+
+   :Type: STRING
+   :Example: ``--vid-out-codec "ffv1"``
+
+Specify the FFMEG codec to use to encode the output video (FFV1 in the example
+is a lossless video codec).
+
+.. note:: Works only if :ref:`detect_vid-out-path` is set.
+
+.. _detect_vid-out-opt:
+
+``--vid-out-opt``
+-----------------
+
+   :Type: STRING
+   :Example: ``--vid-out-opt "-hwaccel"``
+
+Specify additional FFMEG codec options.
+
+.. note:: Works only if :ref:`detect_vid-out-path` or :ref:`detect_vid-out-play`
+  is set.
 
 .. _detect_vid-out-color:
 

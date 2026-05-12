@@ -73,12 +73,16 @@ void frame_write(frame_t* frame, video_writer_t* video_writer);
  * @param path The file path for the output video or images.
  * @param start The starting frame index.
  * @param n_ffmpeg_threads The number of threads to use for ffmpeg.
- * @param is_player A flag indicating whether to play or save.
  * @param codec_type The codec type for encoding the video.
+ * @param win_play A flag indicating whether to play or save.
+ * @param ffmpeg_debug Print the ffmpeg command line.
+ * @param ffmpeg_out_codec Specify the codec to use in ffmpeg (can be NULL).
+ * @param ffmpeg_out_extra_opts Pass extra arguments to ffmpeg (can be NULL).
  */
 void frame_write_action_register(framebuffer_data_t* framebuffer, const char* path, const size_t start,
-                                 const size_t n_ffmpeg_threads, const int is_player,
-                                 const enum video_codec_e codec_type);
+                                 const size_t n_ffmpeg_threads, const enum video_codec_e codec_type,
+                                 const int win_play, const uint8_t ffmpeg_debug, const char* ffmpeg_out_codec,
+                                 const char* ffmpeg_out_extra_opts);
 
 /**
  * Allocate and initialize a frame extractor.

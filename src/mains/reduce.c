@@ -329,11 +329,11 @@ int main(int argc, char** argv) {
         if (p_trk_path) {
             img_data = image_color_alloc((i1 - i0) + 1, (j1 - j0) + 1);
             video_writer = video_writer_alloc_init(p_fra_out_path, p_vid_in_start, n_threads, i1 - i0 + 1, j1 - j0 + 1,
-                                                   PIXFMT_RGB24, VCDC_FFMPEG_IO, 0, 0, NULL);
+                                                   PIXFMT_RGB24, VCDC_FFMPEG_IO, 0, 0, NULL, NULL);
         } else {
             img_data = image_gs_alloc((i1 - i0) + 1, (j1 - j0) + 1);
             video_writer = video_writer_alloc_init(p_fra_out_path, p_vid_in_start, n_threads, i1 - i0 + 1, j1 - j0 + 1,
-                                                   PIXFMT_GRAY8, VCDC_FFMPEG_IO, 0, 0, NULL);
+                                                   PIXFMT_GRAY8, VCDC_FFMPEG_IO, 0, 0, NULL, NULL);
         }
     }
 

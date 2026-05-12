@@ -266,7 +266,7 @@ static int ffmpeg_stop_writer_or_player(ffmpeg_handle* handle, const int win_pla
 video_writer_t* video_writer_ffio_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
                                              const size_t img_height, const size_t img_width,
                                              const enum pixfmt_e pixfmt, const int win_play, const uint8_t ffmpeg_debug,
-                                             const char* ffmpeg_out_extra_opts) {
+                                             const char* ffmpeg_out_codec, const char* ffmpeg_out_extra_opts) {
     video_writer_t* video = (video_writer_t*)malloc(sizeof(video_writer_t));
     if (!video) {
         fprintf(stderr, "(EE) can't allocate video structure\n");
@@ -293,6 +293,9 @@ video_writer_t* video_writer_ffio_alloc_init(const char* path, const size_t star
 
     metadata->ffmpeg.input.width = img_width;
     metadata->ffmpeg.input.height = img_height;
+
+    if (ffmpeg_out_codec != NULL)
+        metadata->ffmpeg.output.codec = ffmpeg_str2codec(ffmpeg_out_codec);
 
     switch (pixfmt) {
         case PIXFMT_RGB24:
@@ -608,12 +611,13 @@ void video_reader_free(video_reader_t* video) {
 video_writer_t* video_writer_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
                                         const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt,
                                         const enum video_codec_e codec_type, const int win_play,
-                                        const uint8_t ffmpeg_debug, const char* ffmpeg_out_extra_opts) {
+                                        const uint8_t ffmpeg_debug, const char* ffmpeg_out_codec,
+                                        const char* ffmpeg_out_extra_opts) {
     switch (codec_type) {
         case VCDC_FFMPEG_IO: {
 #ifdef FMDT_USE_FFMPEG_IO
             return video_writer_ffio_alloc_init(path, start, n_ffmpeg_threads, img_height, img_width, pixfmt, win_play,
-                                                ffmpeg_debug, ffmpeg_out_extra_opts);
+                                                ffmpeg_debug, ffmpeg_out_codec, ffmpeg_out_extra_opts);
             break;
 #else
             fprintf(stderr, "(EE) Link with the ffmpeg-io library is required.\n");

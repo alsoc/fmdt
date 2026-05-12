@@ -226,7 +226,7 @@ int main(int argc, char** argv) {
 
     size_t n_threads = 4;
     video_writer_t* video_writer = video_writer_alloc_init(p_vid_out_path, p_vid_in_start, n_threads, i1 - i0 + 1,
-                                                           j1 - j0 + 1, PIXFMT_RGB24, VCDC_FFMPEG_IO, 0, 0, NULL);
+                                                           j1 - j0 + 1, PIXFMT_RGB24, VCDC_FFMPEG_IO, 0, 0, NULL, NULL);
 
     // parcours de la video
     enum color_e color = COLOR_MISC;

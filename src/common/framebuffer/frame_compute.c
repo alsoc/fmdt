@@ -156,10 +156,12 @@ static void _frame_write_action_free(void* args[]) {
 }
 
 void frame_write_action_register(framebuffer_data_t* framebuffer, const char* path, const size_t start,
-                                 const size_t n_ffmpeg_threads, const int is_player,
-                                 const enum video_codec_e codec_type) {
+                                 const size_t n_ffmpeg_threads, const enum video_codec_e codec_type,
+                                 const int win_play, const uint8_t ffmpeg_debug, const char* ffmpeg_out_codec,
+                                 const char* ffmpeg_out_extra_opts) {
     video_writer_t* writer = video_writer_alloc_init(path, start, n_ffmpeg_threads, framebuffer->frame_height,
-                                                     framebuffer->frame_width, PIXFMT_RGB24, codec_type, is_player, 0, NULL);
+                                                     framebuffer->frame_width, PIXFMT_RGB24, codec_type, win_play,
+                                                     ffmpeg_debug, ffmpeg_out_codec, ffmpeg_out_extra_opts);
     if(!writer) return;
 
     framebuffer_action_t* action = framebuffer_action_alloc(1);
@@ -254,7 +256,8 @@ void frame_extract(frame_t* frame, frame_extractor_t* frame_extractor, const vec
                                                                           frame_extractor->frame_height,
                                                                           frame_extractor->frame_width,
                                                                           frame_extractor->frame_pixfmt,
-                                                                          frame_extractor->codec_type, 0, 0, 0);
+                                                                          frame_extractor->codec_type,
+                                                                          0, 0, NULL, NULL);
 
                 // write the frame
                 video_writer_save_frame(frame_extractor->writers[fe_id], (const uint8_t**)image_color_get_pixels_2d(frame->img));

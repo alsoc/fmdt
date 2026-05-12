@@ -66,13 +66,15 @@ void video_reader_free(video_reader_t* video);
  * @param codec_type Select the API to use for video codec (`VCDC_FFMPEG_IO` or `VCDC_VCODECS_IO`).
  * @param win_play Boolean, if 0 write into a file, if 1 play in a SDL window.
  * @param ffmpeg_debug Print the ffmpeg command line.
+ * @param ffmpeg_out_codec Specify the codec to use in ffmpeg (can be NULL).
  * @param ffmpeg_out_extra_opts Pass extra arguments to ffmpeg (can be NULL).
  * @return The allocated data.
  */
 video_writer_t* video_writer_alloc_init(const char* path, const size_t start, const size_t n_ffmpeg_threads,
                                         const size_t img_height, const size_t img_width, const enum pixfmt_e pixfmt,
                                         const enum video_codec_e codec_type, const int win_play,
-                                        const uint8_t ffmpeg_debug, const char* ffmpeg_out_extra_opts);
+                                        const uint8_t ffmpeg_debug, const char* ffmpeg_out_codec,
+                                        const char* ffmpeg_out_extra_opts);
 
 /**
  * Allocation of inner data required for a video writer.

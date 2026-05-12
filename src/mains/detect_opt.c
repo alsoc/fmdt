@@ -52,6 +52,7 @@ int main(int argc, char** argv) {
     int def_p_cca_roi_max1 = 65535; // Maximum number of RoIs before `features_merge_CCL_HI` selection.
     int def_p_cca_roi_max2 = 400; // Maximum number of RoIs after `features_merge_CCL_HI` selection.
     char* def_p_vid_out_path = NULL;
+    char* def_p_vid_out_codec = NULL;
     char* def_p_vid_out_opt = NULL;
     char* def_p_vid_ext_path = NULL;
 
@@ -188,6 +189,9 @@ int main(int argc, char** argv) {
         fprintf(stderr,
                 "  --vid-out-dbg       Print ffmpeg command line                                                  \n");
         fprintf(stderr,
+                "  --vid-out-codec     Specify ffmpeg codec to encode output video sequence                   [%s]\n",
+                def_p_vid_out_codec ? def_p_vid_out_codec : "NULL");
+        fprintf(stderr,
                 "  --vid-out-opt       Add ffmpeg options to encode output video sequence                     [%s]\n",
                 def_p_vid_out_opt ? def_p_vid_out_opt : "NULL");
         fprintf(stderr,
@@ -265,6 +269,7 @@ int main(int argc, char** argv) {
 #endif
     const int p_vid_out_no_bb = args_find(argc, argv, "--vid-out-no-bb");
     const int p_vid_out_dbg = args_find(argc, argv, "--vid-out-dbg");
+    const char* p_vid_out_codec = args_find_char(argc, argv, "--vid-out-codec", def_p_vid_out_codec);
     const char* p_vid_out_opt = args_find_char(argc, argv, "--vid-out-opt", def_p_vid_out_opt);
     const int p_vid_out_color = args_find(argc, argv, "--vid-out-color");
     const char* p_vid_ext_path     = args_find_char(argc, argv, "--vid-ext-path", def_p_vid_ext_path);
@@ -328,6 +333,7 @@ int main(int argc, char** argv) {
 #endif
     printf("#  * vid-out-no-bb    = %d\n", p_vid_out_no_bb);
     printf("#  * vid-out-dbg      = %d\n", p_vid_out_dbg);
+    printf("#  * vid-out-codec    = %s\n", p_vid_out_codec);
     printf("#  * vid-out-opt      = %s\n", p_vid_out_opt);
     printf("#  * vid-out-color    = %d\n", p_vid_out_color);
     printf("#  * vid-ext-path     = %s\n", p_vid_ext_path);
@@ -379,7 +385,7 @@ int main(int argc, char** argv) {
     if (p_ccl_fra_path) {
         img_data = image_gs_alloc((i1 - i0) + 1, (j1 - j0) + 1);
         video_writer = video_writer_alloc_init(p_ccl_fra_path, p_vid_in_start, n_threads, (i1 - i0) + 1, (j1 - j0) + 1,
-                                               PIXFMT_GRAY8, VCDC_FFMPEG_IO, 0, 0, NULL);
+                                               PIXFMT_GRAY8, VCDC_FFMPEG_IO, 0, 0, NULL, NULL);
     }
 
     framebuffer_data_t* framebuffer = NULL;
@@ -438,9 +444,11 @@ int main(int argc, char** argv) {
 
     if (framebuffer) {
         if (p_vid_out_play)
-            frame_write_action_register(framebuffer, NULL, 0, n_threads, 1, VCDC_FFMPEG_IO);
+            frame_write_action_register(framebuffer, NULL, 0, n_threads, VCDC_FFMPEG_IO, 1, p_vid_out_dbg,
+                                        p_vid_out_codec, p_vid_out_opt);
         if (p_vid_out_path)
-            frame_write_action_register(framebuffer, p_vid_out_path, 0, n_threads, 0, VCDC_FFMPEG_IO);
+            frame_write_action_register(framebuffer, p_vid_out_path, 0, n_threads, VCDC_FFMPEG_IO, 0, p_vid_out_dbg,
+                                        p_vid_out_codec, p_vid_out_opt);
         if (p_vid_ext_path)
             frame_extract_action_register(framebuffer, p_vid_ext_path, 15, n_threads, VCDC_FFMPEG_IO,
                                           tracking_data);

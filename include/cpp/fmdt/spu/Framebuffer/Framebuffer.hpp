@@ -28,9 +28,11 @@ class Framebuffer : public spu::module::Stateful {
                 const size_t frame_skip, const enum pixfmt_e frame_pixfmt, const size_t max_RoIs_size);
     virtual ~Framebuffer();
     void flush();
-    void register_display(const size_t n_ffmpeg_threads, const enum video_codec_e codec_type);
+    void register_display(const size_t n_ffmpeg_threads, const enum video_codec_e codec_type, const bool ffmpeg_debug,
+                          const char* ffmpeg_out_codec, const char* ffmpeg_out_extra_opts);
     void register_write(const char* path, const size_t start, const size_t n_ffmpeg_threads,
-                        const enum video_codec_e codec_type);
+                        const enum video_codec_e codec_type, const bool ffmpeg_debug, const char* ffmpeg_out_codec,
+                        const char* ffmpeg_out_extra_opts);
     void register_extractor(const char* path, const size_t n_writers, const size_t n_threads,
                             const enum video_codec_e codec, Tracking& tracking);
     void register_draw_frame_id();
