@@ -56,7 +56,6 @@ int main(int argc, char** argv) {
     char* def_p_vid_out_opt = NULL;
     char* def_p_vid_ext_path = NULL;
 
-    fprintf(stdout, "Starting fmdt-detect-opt\n");
     // help
     if (args_find(argc, argv, "--help,-h")) {
         fprintf(stderr,
