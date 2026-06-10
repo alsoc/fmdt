@@ -2,6 +2,7 @@
 #include <assert.h>
 #include <stdlib.h>
 #include <stdint.h>
+#include <string.h>
 #include <nrc2.h>
 
 #include "fmdt/args.h"
@@ -492,6 +493,8 @@ int main(int argc, char** argv) {
             RoIs1->_size = features_merge_CCL_HI_v3((const uint32_t**)L1, (const uint8_t**)I, L2, i0, i1, j0, j1,
                                                     RoIs_tmp->basic, RoIs_tmp->_size, p_mrp_s_min, p_mrp_s_max,
                                                     p_ccl_hyst_hi, fast_out_labels);
+            features_labels_zero_init(RoIs_tmp->basic, RoIs_tmp->_size, L1);
+
             if (RoIs1->_size <= RoIs1->_max_size) {
                 features_shrink(RoIs_tmp->basic, NULL, NULL, RoIs_tmp->_size, RoIs1->basic, NULL, NULL);
                 if (p_cca_mag)
@@ -515,10 +518,11 @@ int main(int argc, char** argv) {
                 }
             }
         }
-        features_labels_zero_init(RoIs_tmp->basic, RoIs_tmp->_size, L1); // /!\ not very good to do this here for data
-                                                                         //     locality, we could do it earlier in the
-                                                                         //     general case (just after the
-                                                                         //    `features_merge_CCL_HI_v3` call)
+        else {
+            // zero all L1 image of labels
+            for (int i = i0; i <= i1; i++)
+                memset(L1[i], 0, sizeof(uint32_t) * ((j1 - j0) + 1));
+        }
 
         // step 6: tracking
         tracking_perform(tracking_data, RoIs1, cur_fra, &motion_est2, p_trk_ext_d, p_trk_angle, p_trk_ddev, p_trk_all,
